@@ -27,7 +27,11 @@ const REPO = resolve(HERE, "../..");
 const BASELINE = "";
 
 const git = (...args: string[]) =>
-  execFileSync("git", args, { cwd: REPO, encoding: "utf8" });
+  execFileSync("git", args, {
+    cwd: REPO,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
 
 const hasHistory = (() => {
   try {

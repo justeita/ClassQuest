@@ -23,21 +23,21 @@ MVP dianggap selesai jika alur ini berjalan tanpa intervensi manual:
 
 ## In scope
 
-| Area              | Yang dikerjakan                                                       |
-| ----------------- | --------------------------------------------------------------------- |
-| Upload            | Satu file PDF per cerita, metadata minimal                            |
-| Ekstraksi         | Teks dari PDF digital (bukan scan)                                    |
-| AI                | Outline + generate JSON + validasi + repair + fallback                |
-| Cerita            | 3–6 chapter, tiap chapter 2–6 scene, tiap scene 3–10 beat             |
-| Tantangan         | `multiple_choice`, `true_false`, `ordering`, `short_answer`           |
-| Editor guru       | Edit teks, pilih aset dari daftar, edit soal & jawaban, urutkan scene |
-| Preview           | Preview dalam game yang sama dengan yang dipakai siswa                |
-| Game              | 1 alur linear per chapter, dialog, hotspot "lanjut", tantangan, hasil |
-| Aset              | Sprite karakter, background, musik, SFX, UI — jumlah terbatas         |
-| Penyimpanan lokal | Progres siswa di `localStorage`                                       |
-| Persistence       | Satu database + satu storage (pilihan di ADR 0005)                    |
-| Akses             | Tautan publik, tanpa akun siswa. Kode kelas: **backlog**, bukan MVP   |
-| Deployment        | Satu environment (production demo)                                    |
+| Area              | Yang dikerjakan                                                                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Upload            | Satu file PDF per cerita, metadata minimal                                                                                                                  |
+| Ekstraksi         | Teks dari PDF digital (bukan scan)                                                                                                                          |
+| AI                | Outline + generate JSON + validasi + repair + fallback                                                                                                      |
+| Cerita            | 3–6 chapter, tiap chapter 2–6 scene, tiap scene 3–10 beat                                                                                                   |
+| Tantangan         | `multiple_choice`, `true_false`, `ordering`, `short_answer`                                                                                                 |
+| Editor guru       | Edit teks, pilih aset dari daftar, edit soal & jawaban, urutkan scene                                                                                       |
+| Preview           | Preview dalam game yang sama dengan yang dipakai siswa                                                                                                      |
+| Game              | Alur linear per chapter dengan eksplorasi top-down per scene (map dummy, ADR 0008), gerak 4 arah + collision, interaksi NPC memicu dialog, tantangan, hasil |
+| Aset              | Sprite karakter, background, musik, SFX, UI — jumlah terbatas                                                                                               |
+| Penyimpanan lokal | Progres siswa di `localStorage`                                                                                                                             |
+| Persistence       | Satu database + satu storage (pilihan di ADR 0005)                                                                                                          |
+| Akses             | Tautan publik, tanpa akun siswa. Kode kelas: **backlog**, bukan MVP                                                                                         |
+| Deployment        | Satu environment (production demo)                                                                                                                          |
 
 ## Out of scope (tegas)
 
