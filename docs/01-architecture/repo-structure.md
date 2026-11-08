@@ -73,7 +73,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/story/schema.test.ts`                | ya      | Tes schema TypeScript vs `story.schema.json`        |
 | `src/story/validate.ts`                   | ya      | Validator semantik                                  |
 | `src/story/scoring.ts`                    | rencana | Penilaian jawaban, fungsi murni                     |
-| `src/story/fallback.ts`                   | rencana | Cerita cadangan                                     |
+| `src/story/fallback.ts`                   | ya      | Cerita cadangan (deterministik, selalu valid)       |
 | `src/assets/manifest.ts`                  | rencana | Daftar resmi aset                                   |
 | `src/ai/pipeline.ts`                      | rencana | Outline → generate → repair                         |
 | `src/game/config.ts`                      | ya      | Konfigurasi Phaser (480×270)                        |
