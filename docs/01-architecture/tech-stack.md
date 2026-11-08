@@ -43,6 +43,7 @@ Jangan menambahkannya sebelum fiturnya dikerjakan, tapi ini arah yang disepakati
 
 | Paket               | Untuk              | Catatan                                |
 | ------------------- | ------------------ | -------------------------------------- |
+| `phaser` 4.2.1      | Engine game        | Hanya di client, lihat ADR 0004.       |
 | `unpdf`/`pdf-parse` | Ekstraksi teks PDF | Pilih yang jalan di Node runtime Next. |
 | DB client           | Persistence        | Tergantung ADR 0005.                   |
 
