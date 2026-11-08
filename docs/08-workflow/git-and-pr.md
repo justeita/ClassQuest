@@ -33,9 +33,14 @@ feat(editor): tambah edit tantangan short_answer
 fix(upload): tolak PDF tanpa text layer
 docs(ai): jelaskan aturan repair
 refactor(story): pisahkan scoring dari validator
-test(manifest): cek semua file aset ada
+feat(manifest): tolak aset yang tidak ditemukan saat build
 chore(deps): pasang phaser 4.2.1
 ```
+
+Awalan `test` **tidak** dipakai meskipun isinya test. Guidebook halaman 17
+menyebut `test` sebagai pesan yang tidak menjelaskan perubahan, dan
+`compliance.test.ts` menolaknya. Tambahan test masuk ke `chore(scope)` bila berdiri
+sendiri, atau ikut commit fitur yang diujinya.
 
 Aturan:
 

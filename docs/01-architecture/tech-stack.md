@@ -43,7 +43,6 @@ Jangan menambahkannya sebelum fiturnya dikerjakan, tapi ini arah yang disepakati
 
 | Paket               | Untuk              | Catatan                                |
 | ------------------- | ------------------ | -------------------------------------- |
-| `phaser` 4.2.1      | Engine game        | Hanya di client, lihat ADR 0004.       |
 | `unpdf`/`pdf-parse` | Ekstraksi teks PDF | Pilih yang jalan di Node runtime Next. |
 | DB client           | Persistence        | Tergantung ADR 0005.                   |
 
@@ -126,9 +125,9 @@ Jangan menghapus aturan ini; Tailwind 4 di proyek ini bergantung padanya.
 
 ## Phaser 4.2.1
 
-**Belum terpasang.** Rencananya `phaser@4.2.1` ditambahkan saat shell game mulai
-ditulis, bersama `src/game/config.ts`, `createGame.ts`, dan dua scene placeholder.
-Bridge ke React, `StoryRunner`, dan loader aset juga masih rencana (lihat
+**Terpasang** di `package.json` (`phaser@4.2.1`). Shell client ada di `src/game/`
+dan `src/components/game/GameCanvas.tsx`, dibuka lewat halaman dev `/game`.
+Bridge ke React, `StoryRunner`, dan loader aset masih rencana (lihat
 [`../04-game/engine.md`](../04-game/engine.md#keadaan-sekarang-vs-target)).
 
 Perbedaan besar dari Phaser 3 yang **akan memengaruhi kode kita**:

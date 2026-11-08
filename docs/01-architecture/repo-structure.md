@@ -16,10 +16,22 @@ classquest/
 ├── src/
 │   ├── app/
 │   │   ├── favicon.ico
+│   │   ├── game/
+│   │   │   └── page.tsx     # halaman dev Phaser, bukan route siswa
 │   │   ├── globals.css
 │   │   ├── layout.tsx
 │   │   ├── page.test.tsx
 │   │   └── page.tsx         # masih halaman starter
+│   ├── components/
+│   │   └── game/
+│   │       └── GameCanvas.tsx
+│   └── game/
+│       ├── config.ts
+│       ├── createGame.ts
+│       ├── types.ts
+│       └── scenes/
+│           ├── GameScene.ts
+│           └── PreloadScene.ts
 ├── AGENTS.md
 ├── CONTRIBUTING.md
 ├── README.md
@@ -64,11 +76,13 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/story/fallback.ts`                   | rencana | Cerita cadangan                                     |
 | `src/assets/manifest.ts`                  | rencana | Daftar resmi aset                                   |
 | `src/ai/pipeline.ts`                      | rencana | Outline → generate → repair                         |
-| `src/game/config.ts`                      | rencana | Konfigurasi Phaser (480×270)                        |
-| `src/game/createGame.ts`                  | rencana | Entry `createGame(parent)`, dipanggil React         |
-| `src/game/types.ts`                       | rencana | Tipe data game (map, player, NPC, handle)           |
-| `src/game/scenes`                         | rencana | `PreloadScene` + `GameScene` (masih placeholder)    |
-| `src/components/game/GameCanvas.tsx`      | rencana | Host Phaser di React (client-only, dynamic import)  |
+| `src/game/config.ts`                      | ya      | Konfigurasi Phaser (480×270)                        |
+| `src/game/createGame.ts`                  | ya      | Entry `createGame(parent)`, dipanggil React         |
+| `src/game/types.ts`                       | ya      | `GameHandle` untuk menutup instance Phaser          |
+| `src/game/scenes`                         | ya      | `PreloadScene` + `GameScene` (masih placeholder)    |
+| `src/game/StoryRunner.ts`                 | ya      | State machine pemutar cerita (murni, tanpa Phaser)  |
+| `src/game/fixture`                        | ya      | Cerita demo untuk pengembangan frontend game        |
+| `src/components/game/GameCanvas.tsx`      | ya      | Host Phaser di React (client-only, dynamic import)  |
 | `src/components/game/GameShell.tsx`       | rencana | Shell fullscreen halaman game                       |
 | `src/app/play`                            | rencana | Halaman siswa                                       |
 | `src/server/config.ts`                    | ya      | Konfigurasi env AI (satu-satunya pembaca)           |

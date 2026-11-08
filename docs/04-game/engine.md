@@ -161,8 +161,8 @@ bisa menerima fokus keyboard. Yang dekoratif cukup elemen di dalam canvas.
 
 ### Keadaan sekarang vs target
 
-Komponen di atas **belum ada sama sekali** — `GameShell` dan `GameCanvas` masih
-rencana. Bentuk targetnya:
+`GameCanvas`, `createGame`, dan scene placeholder **sudah ada**. `GameShell`,
+bridge, dan `Story` belum. Bentuk target saat cerita siap:
 
 ```tsx
 type Props = {
