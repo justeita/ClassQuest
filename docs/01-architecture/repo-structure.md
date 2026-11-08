@@ -81,8 +81,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/types.ts`                       | ya      | `GameHandle` untuk menutup instance Phaser          |
 | `src/game/scenes`                         | ya      | `PreloadScene` + `GameScene` (masih placeholder)    |
 | `src/game/StoryRunner.ts`                 | ya      | State machine pemutar cerita (murni, tanpa Phaser)  |
-| `src/game/map.ts`                         | rencana | Data map dummy per scene: spawn, dinding, NPC       |
-| `src/game/movement.ts`                    | rencana | Gerak pemain 4 arah + collision top-down (ADR 0008) |
+| `src/game/map.ts`                         | ya      | Data map dummy per scene: spawn, dinding, NPC       |
+| `src/game/movement.ts`                    | ya      | Gerak pemain 4 arah + collision top-down (ADR 0008) |
 | `src/game/fixture`                        | ya      | Cerita demo untuk pengembangan frontend game        |
 | `src/components/game/GameCanvas.tsx`      | ya      | Host Phaser di React (client-only, dynamic import)  |
 | `src/components/game/GameShell.tsx`       | rencana | Shell fullscreen halaman game                       |
