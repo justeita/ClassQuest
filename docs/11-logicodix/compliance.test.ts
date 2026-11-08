@@ -32,7 +32,10 @@ const git = (...args: string[]) =>
 const hasHistory = (() => {
   try {
     git("rev-parse", "--verify", "HEAD");
-    return true;
+    // Clone dangkal tidak punya parent commit, sehingga `git show` pada HEAD
+    // terlihat seperti commit yang menambah seluruh repo. Pemeriksaan riwayat
+    // hanya sah kalau riwayatnya lengkap.
+    return git("rev-parse", "--is-shallow-repository").trim() !== "true";
   } catch {
     return false;
   }
