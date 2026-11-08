@@ -5,7 +5,7 @@ bercerita, supaya siswa belajar lewat alur cerita dan tantangan, bukan hafalan.
 
 > **Status:** masih tahap awal. Repo ini baru berisi scaffold Next.js dan
 > dokumentasi kontrak. Belum ada fitur produk yang bisa dicoba. Rencana lengkap
-> ada di [docs/](docs/README.md).
+> ada di [README](docs/README.md).
 
 ## Tim
 
