@@ -16,19 +16,53 @@ function beatsOf(
 }
 
 describe("StoryRunner", () => {
-  it("mulai di beat pertama bab pertama dengan fase dialog", () => {
+  it("mulai di fase explore bab pertama tanpa beat aktif", () => {
     const runner = new StoryRunner(demoStory);
     const state = runner.getState();
 
-    expect(state.phase).toBe("dialog");
+    expect(state.phase).toBe("explore");
     expect(state.chapterNumber).toBe(1);
     expect(state.chapterTotal).toBe(3);
+    expect(state.beat).toBeNull();
+    expect(state.beatIndex).toBe(-1);
+  });
+
+  it("interact memulai deretan beat scene dari beat pertama", () => {
+    const runner = new StoryRunner(demoStory);
+
+    runner.interact();
+    const state = runner.getState();
+
+    expect(state.phase).toBe("dialog");
     expect(state.beat).toEqual(beatsOf(demoStory, 0, 0)[0]);
+  });
+
+  it("advance di fase explore adalah no-op", () => {
+    const runner = new StoryRunner(demoStory);
+
+    runner.advance();
+    expect(runner.getState().phase).toBe("explore");
+    expect(runner.getState().beat).toBeNull();
+
+    // interact tetap berjalan setelah advance yang no-op.
+    runner.interact();
+    expect(runner.getState().phase).toBe("dialog");
+  });
+
+  it("interact di luar fase explore adalah no-op", () => {
+    const runner = new StoryRunner(demoStory);
+
+    runner.interact();
+    expect(runner.getState().beatIndex).toBe(0);
+
+    runner.interact();
+    expect(runner.getState().beatIndex).toBe(0);
   });
 
   it("advance menggerakkan kursor beat demi beat", () => {
     const runner = new StoryRunner(demoStory);
 
+    runner.interact();
     runner.advance();
     expect(runner.getState().beat).toEqual(beatsOf(demoStory, 0, 0)[1]);
   });
@@ -39,7 +73,11 @@ describe("StoryRunner", () => {
 
     // Maju sampai beat challenge pertama (scene kedua bab pertama).
     while (runner.getState().phase !== "challenge") {
-      runner.advance();
+      if (runner.getState().phase === "explore") {
+        runner.interact();
+      } else {
+        runner.advance();
+      }
     }
     const stateChallenge = runner.getState();
     expect(stateChallenge.phase).toBe("challenge");
@@ -57,23 +95,45 @@ describe("StoryRunner", () => {
   it("resolveChallenge di luar fase challenge adalah no-op", () => {
     const runner = new StoryRunner(demoStory);
     runner.resolveChallenge();
-    expect(runner.getState().beatIndex).toBe(0);
+    expect(runner.getState().phase).toBe("explore");
   });
 
-  it("akhir scene terakhir bab memicu chapter_end lalu lanjut ke bab berikutnya", () => {
+  it("akhir scene memicu kembali ke explore scene berikutnya", () => {
     const runner = new StoryRunner(demoStory);
-    const totalBeatBab1 = demoStory.chapters[0]!.scenes.reduce(
-      (total, scene) => total + scene.beats.length,
-      0,
-    );
+    const totalBeatScene1 = demoStory.chapters[0]!.scenes[0]!.beats.length;
+
+    // Habiskan seluruh beat scene pertama (tanpa challenge di scene ini).
+    runner.interact();
+    for (let i = 0; i < totalBeatScene1; i += 1) {
+      runner.advance();
+    }
+
+    const stateScene2 = runner.getState();
+    expect(stateScene2.phase).toBe("explore");
+    expect(stateScene2.sceneIndex).toBe(1);
+    expect(stateScene2.chapterNumber).toBe(1);
+    expect(stateScene2.beat).toBeNull();
+
+    // Deretan beat scene kedua bisa dimulai dari awal.
+    runner.interact();
+    expect(runner.getState().beat).toEqual(beatsOf(demoStory, 0, 1)[0]);
+  });
+
+  it("akhir scene terakhir bab memicu chapter_end lalu bab berikutnya dibuka di explore", () => {
+    const runner = new StoryRunner(demoStory);
+    let guard = 0;
 
     // Habiskan seluruh beat bab 1 (termasuk dua challenge).
-    for (let i = 0; i < totalBeatBab1; i += 1) {
-      if (runner.getState().phase === "challenge") {
+    while (runner.getState().phase !== "chapter_end" && guard < 1000) {
+      const phase = runner.getState().phase;
+      if (phase === "challenge") {
         runner.resolveChallenge();
+      } else if (phase === "explore") {
+        runner.interact();
       } else {
         runner.advance();
       }
+      guard += 1;
     }
 
     const stateAkhirBab = runner.getState();
@@ -83,12 +143,16 @@ describe("StoryRunner", () => {
 
     runner.advance();
     const stateBab2 = runner.getState();
-    expect(stateBab2.phase).toBe("dialog");
+    expect(stateBab2.phase).toBe("explore");
     expect(stateBab2.chapterNumber).toBe(2);
-    expect(stateBab2.beat).toEqual(beatsOf(demoStory, 1, 0)[0]);
+    expect(stateBab2.beat).toBeNull();
+
+    // Scene pertama bab 2 tetap bisa diputar.
+    runner.interact();
+    expect(runner.getState().beat).toEqual(beatsOf(demoStory, 1, 0)[0]);
   });
 
-  it("menyelesaikan seluruh cerita berakhir di fase done dan advance tidak crash", () => {
+  it("menyelesaikan seluruh cerita berakhir di fase done dan aksi tidak crash", () => {
     const runner = new StoryRunner(demoStory);
     let guard = 0;
 
@@ -96,6 +160,8 @@ describe("StoryRunner", () => {
       const phase = runner.getState().phase;
       if (phase === "challenge") {
         runner.resolveChallenge();
+      } else if (phase === "explore") {
+        runner.interact();
       } else {
         runner.advance();
       }
@@ -106,6 +172,7 @@ describe("StoryRunner", () => {
     expect(runner.getState().beat).toBeNull();
     expect(guard).toBeLessThan(1000);
 
+    runner.interact();
     runner.advance();
     runner.resolveChallenge();
     expect(runner.getState().phase).toBe("done");
