@@ -71,7 +71,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `docs/docs.test.ts`                       | ya      | Tes kerapian docs                                   |
 | `src/story/schema.ts`                     | ya      | Tipe `Story` (bentuk mengikuti `story.schema.json`) |
 | `src/story/schema.test.ts`                | ya      | Tes schema TypeScript vs `story.schema.json`        |
-| `src/story/validate.ts`                   | rencana | Validator semantik                                  |
+| `src/story/validate.ts`                   | ya      | Validator semantik                                  |
 | `src/story/scoring.ts`                    | rencana | Penilaian jawaban, fungsi murni                     |
 | `src/story/fallback.ts`                   | rencana | Cerita cadangan                                     |
 | `src/assets/manifest.ts`                  | rencana | Daftar resmi aset                                   |
