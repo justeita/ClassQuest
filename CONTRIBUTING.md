@@ -32,3 +32,16 @@ documentation when configuration or developer workflows change.
 Prefer small, focused commits with clear messages. Reviewers should check
 correctness, accessibility, error handling, test coverage, and unintended
 behavior changes.
+
+Commit subjects follow the convention in
+[docs/08-workflow/git-and-pr.md](docs/08-workflow/git-and-pr.md):
+`feat`, `fix`, `docs`, `style`, `refactor`, or `chore`, optionally with a scope.
+
+Rewriting pushed history (force push, rebase, amend, squash merge) is not
+allowed. Merges use merge commits.
+
+All work must follow [docs/11-logicodix/README.md](docs/11-logicodix/README.md).
+Two rules worth repeating here:
+
+- Commits must come from team members. Do not enable tools that commit on their own.
+- Never commit credentials. Keep local values in `.env.local`.
