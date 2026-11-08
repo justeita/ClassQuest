@@ -111,6 +111,8 @@ Kesalahan adalah bagian dari belajar. Yang diberikan hanya penjelasan.
 
 | Aksi                | Keyboard                  | Mouse/Touch           |
 | ------------------- | ------------------------- | --------------------- |
+| Gerak               | `W`/`A`/`S`/`D`, panah    | D-pad virtual (nanti) |
+| Interaksi NPC       | `Space` / `Enter`         | Tombol interaksi      |
 | Lanjut dialog       | `Space` / `Enter`         | Klik/tap di mana saja |
 | Pilih opsi          | `1`–`5`, panah + `Enter`  | Klik/tap              |
 | Kirim jawaban       | `Enter`                   | Tombol "Jawab"        |
@@ -120,13 +122,28 @@ Kesalahan adalah bagian dari belajar. Yang diberikan hanya penjelasan.
 
 Semua aksi utama harus bisa dilakukan **tanpa mouse**.
 
+## Eksplorasi (fase `explore`)
+
+Per ADR 0008, siswa bergerak bebas top-down di dalam scene — ala Undertale,
+bukan dunia terbuka:
+
+- Scene adalah **ruangan satu layar** dalam map (480×270); urutan antar-ruangan
+  tetap linear mengikuti cerita, bukan pintu yang bebas dipilih.
+- Pemain spawn di titik tetap tiap ruangan dan bergerak 4 arah dengan collision
+  sederhana (arcade physics, gravity 0).
+- NPC/objek interaksi punya zona kecil; saat pemain berada di dalamnya, tombol
+  interaksi muncul dan memicu deretan beat dialog/tantangan.
+- Untuk MVP, data map, spawn, penempatan NPC, dan collision didefinisikan **di
+  sisi game** (`src/game/`, map dummy) dan tidak mengubah kontrak Story JSON.
+- Gerak terkunci saat textbox, overlay tantangan, atau menu terbuka.
+
 ## Layar
 
 | Layar     | Isi                                                              |
 | --------- | ---------------------------------------------------------------- |
 | Boot      | Logo kecil, progress bar pemuatan aset                           |
 | Judul     | Judul cerita, "Mulai", "Lanjutkan" (bila ada progres), "Tentang" |
-| Cerita    | Background, karakter, textbox, HUD chapter                       |
+| Cerita    | Ruangan map, pemain, NPC, textbox, HUD chapter                   |
 | Tantangan | Overlay: soal, opsi, tombol jawab, feedback, penjelasan          |
 | Jeda      | Lanjut, ulangi chapter, pengaturan suara, keluar                 |
 | Hasil     | Skor, jumlah benar, konsep yang perlu diulang, "Main lagi"       |
@@ -149,6 +166,7 @@ Setiap elemen mekanik harus punya alasan di cerita:
 
 | Mekanik           | Alasan naratif                                              |
 | ----------------- | ----------------------------------------------------------- |
+| Eksplorasi        | Siswa menjelajahi lokasi yang sedang diceritakan            |
 | Dialog            | Karakter sedang mengamati/menjelaskan                       |
 | Tantangan         | Karakter menghadapi pertanyaan atau teka-teki               |
 | Perpindahan scene | Perjalanan mengikuti alur materi                            |
@@ -159,7 +177,8 @@ tempel soal di tengah dialog.
 
 ## Yang tidak dikerjakan (MVP)
 
-- Gerak bebas top-down dengan collision.
+- Dunia terbuka lintas chapter (kamera multi-layar, pintu bebas).
+- Line-of-sight, stealth, atau AI musuh.
 - Inventory, item, combat.
 - Pilihan dialog bercabang.
 - Mini-game di luar tantangan.
@@ -168,6 +187,7 @@ tempel soal di tengah dialog.
 
 ## Referensi internal
 
+- Keputusan top-down: [`../09-decisions/0008-top-down-movement.md`](../09-decisions/0008-top-down-movement.md)
 - Arsitektur teknis: [`engine.md`](./engine.md)
 - Mapping cerita → scene: [`scene-format.md`](./scene-format.md)
 - Loop interaksi detail: [`interaction-loop.md`](./interaction-loop.md)

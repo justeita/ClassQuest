@@ -73,8 +73,9 @@ harus sama dengan [`game-design.md`](./game-design.md#resolusi-dan-skala) dan
 [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md). Mengubahnya berarti
 mengubah ukuran aset juga.
 
-Physics arcade dipasang dengan gravitasi nol. Belum dipakai, tapi sudah disiapkan
-untuk gerak pemain di map (`PlayerConfig.speed` di `src/game/types.ts`).
+Physics arcade dipasang dengan gravitasi nol untuk gerak pemain dan collision top-down
+per ADR 0008 — pemain dan NPC sebagai sprite arcade, dinding/objek padat sebagai
+static body (`PlayerConfig.speed` di `src/game/types.ts`).
 
 Catatan Phaser 4:
 
@@ -296,7 +297,7 @@ type RunnerState = {
   chapterIndex: number;
   sceneIndex: number;
   beatIndex: number;
-  phase: "dialog" | "challenge" | "chapter_end" | "done";
+  phase: "explore" | "dialog" | "challenge" | "chapter_end" | "done";
 };
 
 export function advance(state: RunnerState, story: Story): RunnerState;
