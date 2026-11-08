@@ -11,16 +11,17 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 
 ## Peta route
 
-| Route                            | Akses   | Render  | Fungsi                                    |
-| -------------------------------- | ------- | ------- | ----------------------------------------- |
-| `/`                              | Publik  | Statis  | Landing: apa ini, tombol masuk guru/siswa |
-| `/guru/masuk`                    | Publik  | Dinamis | Kode akses guru                           |
-| `/guru`                          | Guru    | Dinamis | Daftar materi + status                    |
-| `/guru/materi/baru`              | Guru    | Dinamis | Form upload                               |
-| `/guru/materi/[storyId]`         | Guru    | Dinamis | Ringkasan + status generasi + aksi        |
-| `/guru/materi/[storyId]/edit`    | Guru    | Dinamis | Story editor                              |
-| `/guru/materi/[storyId]/preview` | Guru    | Dinamis | Preview game (versi draft)                |
-| `/play/[storyId]`                | Publik* | Dinamis | Game siswa (termasuk layar hasil)         |
+| Route                            | Akses   | Render  | Fungsi                                     |
+| -------------------------------- | ------- | ------- | ------------------------------------------ |
+| `/`                              | Publik  | Statis  | Landing: apa ini, tombol masuk guru/siswa  |
+| `/guru/masuk`                    | Publik  | Dinamis | Kode akses guru                            |
+| `/guru`                          | Guru    | Dinamis | Daftar materi + status                     |
+| `/guru/materi/baru`              | Guru    | Dinamis | Form upload                                |
+| `/guru/materi/[storyId]`         | Guru    | Dinamis | Ringkasan + status generasi + aksi         |
+| `/guru/materi/[storyId]/edit`    | Guru    | Dinamis | Story editor                               |
+| `/guru/materi/[storyId]/preview` | Guru    | Dinamis | Preview game (versi draft)                 |
+| `/play/[storyId]`                | Publik* | Dinamis | Game siswa (termasuk layar hasil)          |
+| `/game`                          | Dev     | Client  | Boot Phaser placeholder, bukan route siswa |
 
 \* Publik tapi hanya untuk cerita `published`; kalau tidak ada → `notFound()`.
 
@@ -29,10 +30,9 @@ Tidak ada route `/play/[storyId]/hasil`. Layar hasil adalah **overlay di dalam
 hidup di memori (skor, jawaban, `weakConcepts`). Pindah route berarti membuang
 state itu. Lihat [`game-player.md`](./game-player.md).
 
-`/game` **bukan** route siswa dan belum dibuat. Kalau nanti perlu tempat
-menjalankan Phaser sebelum pipeline dan cerita siap, buat sebagai halaman dev
-tanpa `storyId` dan tanpa otorisasi; jangan menautkannya dari landing atau
-dashboard guru. Target siswa tetap `/play/[storyId]`.
+`/game` **bukan** route siswa. Halaman itu hanya boot Phaser sebelum pipeline
+dan cerita siap: tanpa `storyId`, tanpa otorisasi, dan tidak ditautkan dari
+landing atau dashboard guru. Target siswa tetap `/play/[storyId]`.
 
 ## Route API
 

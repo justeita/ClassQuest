@@ -55,7 +55,7 @@ Urutan pengerjaan ada di [docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hac
 | Framework            | Next.js 16 (App Router)  | Server Component, Route Handler, Server Action |
 | Bahasa               | TypeScript               | Strict mode                                    |
 | UI                   | React 19, Tailwind CSS 4 |                                                |
-| Game                 | Phaser 4                 | Rencana, belum terpasang                       |
+| Game                 | Phaser 4.2.1             | Client-only. Shell placeholder di `/game`      |
 | Database             | `TBD`                    | Keputusan ada di ADR 0005                      |
 | AI                   | `TBD`                    | Keputusan provider ada di ADR 0006             |
 | Layanan pihak ketiga | `TBD`                    | Diisi saat deployment ditentukan               |

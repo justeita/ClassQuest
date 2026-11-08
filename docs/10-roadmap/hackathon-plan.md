@@ -54,8 +54,8 @@ Fase 3 **tidak** boleh mengunci provider sebelum ADR 0006 `Accepted`.
 
 **Gerbang:** validator menerima contoh dan menolak fixture rusak.
 
-Fase 0 tidak menyentuh game. `phaser@4.2.1` **belum** terpasang; penambahannya
-dan boot + scene kosong masuk ke Fase 2 (lihat
+Fase 0 tidak menyentuh game. `phaser@4.2.1` dan boot scene kosong dikerjakan di
+Fase 2 (lihat
 [`../01-architecture/tech-stack.md`](../01-architecture/tech-stack.md)).
 
 ### Fase 1 — Jalur guru tanpa AI (2–6 jam)
@@ -71,13 +71,13 @@ dan boot + scene kosong masuk ke Fase 2 (lihat
 
 ### Fase 2 — Game bisa dimainkan (4–10 jam)
 
-| Pekerjaan                   | Output                               |
-| --------------------------- | ------------------------------------ |
-| `bun add phaser@4.2.1`      | Belum — dependency belum ditambahkan |
-| `GameCanvas` + Phaser boot  | Belum — belum ada kode game          |
-| `StoryRunner` + dialog      | Dialog berjalan dengan contoh        |
-| Overlay tantangan + scoring | 4 tipe tantangan bisa dijawab        |
-| Progres lokal + hasil       | Selesai → layar hasil                |
+| Pekerjaan                   | Output                            |
+| --------------------------- | --------------------------------- |
+| `bun add phaser@4.2.1`      | Terpasang di `package.json`       |
+| `GameCanvas` + Phaser boot  | Halaman dev `/game`, scene kosong |
+| `StoryRunner` + dialog      | Dialog berjalan dengan contoh     |
+| Overlay tantangan + scoring | 4 tipe tantangan bisa dijawab     |
+| Progres lokal + hasil       | Selesai → layar hasil             |
 
 **Gerbang:** cerita contoh bisa dimainkan dari awal sampai hasil di browser.
 
