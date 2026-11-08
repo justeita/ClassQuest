@@ -69,18 +69,19 @@ editor mana pun tanpa file biner.
 
 Jujur dulu, supaya tidak ada yang salah paham:
 
-| Bagian                      | Keadaan sekarang                                       |
-| --------------------------- | ------------------------------------------------------ |
-| Aplikasi Next.js            | Ada. Next 16.4.5, App Router, Tailwind 4, Bun.         |
-| Halaman                     | Landing starter `src/app/page.tsx`.                    |
-| Phaser                      | **Belum terpasang.** Rencana memakai `4.2.1`.          |
-| Fitur ClassQuest            | **Belum ada.** Dokumen di sini rencana, bukan laporan. |
-| Aset game                   | Belum ada di `public/assets/`.                         |
-| Validator, editor, pipeline | Belum ada. Bentuknya sudah disepakati di dokumen.      |
+| Bagian                      | Keadaan sekarang                                  |
+| --------------------------- | ------------------------------------------------- |
+| Aplikasi Next.js            | Ada. Next 16.4.5, App Router, Tailwind 4, Bun.    |
+| Halaman                     | Landing starter dan halaman dev `/game`.          |
+| Phaser                      | Terpasang `4.2.1`. Scene masih placeholder.       |
+| Fitur ClassQuest            | Shell game saja. Cerita dan dashboard belum ada.  |
+| Aset game                   | Belum ada di `public/assets/`.                    |
+| Validator, editor, pipeline | Belum ada. Bentuknya sudah disepakati di dokumen. |
 
-Belum ada satu pun kode game. Route siswa yang dituju tetap `/play/[storyId]`
-(lihat [`05-frontend/routes.md`](./05-frontend/routes.md)); `phaser@4.2.1` baru
-akan ditambahkan saat shell game mulai ditulis.
+Shell Phaser ada di halaman dev `/game` dan tidak ditautkan dari landing. Route
+siswa yang dituju tetap `/play/[storyId]`
+(lihat [`05-frontend/routes.md`](./05-frontend/routes.md)); halaman itu belum
+dibuat.
 
 Artinya: dokumen bertanda `stable` adalah **keputusan yang sudah disepakati untuk
 dibangun**, bukan deskripsi kode yang sudah jalan. Daftar mana yang sudah ada dan
