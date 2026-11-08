@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="248" viewBox="0 0 720 248" role="img" aria-labelledby="palette-title palette-desc">
+  <title id="palette-title">Palet ClassQuest</title>
+  <desc id="palette-desc">Delapan warna resmi: enam warna inti dan dua warna fungsional untuk umpan balik.</desc>
+
+  <rect width="720" height="248" fill="#F4EFE6"/>
+
+  <text x="24" y="34" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" font-weight="700" fill="#1F1E28">Palet ClassQuest</text>
+  <text x="24" y="54" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1F1E28" opacity="0.7">Enam warna inti + dua warna fungsional. Tidak ada warna lain.</text>
+
+  <!-- baris 1 -->
+  <g>
+    <rect x="24" y="72" width="156" height="64" fill="#F4EFE6" stroke="#1F1E28" stroke-opacity="0.2"/>
+    <text x="32" y="150" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1F1E28">latar terang</text>
+    <text x="32" y="166" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#1F1E28" opacity="0.6">#F4EFE6</text>
+
+    <rect x="192" y="72" width="156" height="64" fill="#14201A"/>
+    <text x="200" y="150" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1F1E28">latar gelap</text>
+    <text x="200" y="166" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#1F1E28" opacity="0.6">#14201A</text>
+
+    <rect x="360" y="72" width="156" height="64" fill="#E8A87C"/>
+    <text x="368" y="150" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1F1E28">aksen utama</text>
+    <text x="368" y="166" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#1F1E28" opacity="0.6">#E8A87C</text>
+
+    <rect x="528" y="72" width="156" height="64" fill="#7FA6C9"/>
+    <text x="536" y="150" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1F1E28">aksen dingin</text>
+    <text x="536" y="166" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#1F1E28" opacity="0.6">#7FA6C9</text>
+  </g>
+
+  <!-- baris 2 -->
+  <g>
+    <rect x="24" y="180" width="156" height="44" fill="#1F1E28"/>
+    <text x="32" y="207" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#F7F4EC">teks</text>
+    <text x="32" y="220" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#F7F4EC" opacity="0.7">#1F1E28</text>
+
+    <rect x="192" y="180" width="156" height="44" fill="#F7F4EC" stroke="#1F1E28" stroke-opacity="0.2"/>
+    <text x="200" y="207" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1F1E28">teks terang</text>
+    <text x="200" y="220" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#1F1E28" opacity="0.6">#F7F4EC</text>
+
+    <rect x="360" y="180" width="156" height="44" fill="#6F9B7A"/>
+    <text x="368" y="207" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#F7F4EC">benar / sukses</text>
+    <text x="368" y="220" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#F7F4EC" opacity="0.8">#6F9B7A</text>
+
+    <rect x="528" y="180" width="156" height="44" fill="#C9A227"/>
+    <text x="536" y="207" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1F1E28">peringatan</text>
+    <text x="536" y="220" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#1F1E28" opacity="0.7">#C9A227</text>
+  </g>
+</svg>
