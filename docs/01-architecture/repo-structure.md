@@ -72,7 +72,9 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/play`                            | rencana | Halaman siswa                                       |
 | `src/server/stories.ts`                   | rencana | Query cerita (butuh DB, ADR 0005)                   |
 | `src/app/guru`                            | rencana | Halaman guru                                        |
-| `src/app/api`                             | rencana | Route handler                                       |
+| `src/app/api`                             | ya      | Route handler                                       |
+| `src/app/api/health/route.ts`             | ya      | `GET /api/health`: cek hidup + versi build          |
+| `src/app/api/health/route.test.ts`        | ya      | Tes kontrak respons health                          |
 | `public/assets`                           | rencana | File aset game                                      |
 
 ## Struktur target
