@@ -71,15 +71,18 @@ Fase 2 (lihat
 
 ### Fase 2 — Game bisa dimainkan (4–10 jam)
 
-| Pekerjaan                   | Output                            |
-| --------------------------- | --------------------------------- |
-| `bun add phaser@4.2.1`      | Terpasang di `package.json`       |
-| `GameCanvas` + Phaser boot  | Halaman dev `/game`, scene kosong |
-| `StoryRunner` + dialog      | Dialog berjalan dengan contoh     |
-| Overlay tantangan + scoring | 4 tipe tantangan bisa dijawab     |
-| Progres lokal + hasil       | Selesai → layar hasil             |
+| Pekerjaan                      | Output                                                            |
+| ------------------------------ | ----------------------------------------------------------------- |
+| `bun add phaser@4.2.1`         | Terpasang di `package.json`                                       |
+| `GameCanvas` + Phaser boot     | Halaman dev `/game`, scene kosong                                 |
+| `StoryRunner` + dialog         | Dialog berjalan dengan contoh                                     |
+| Eksplorasi top-down (ADR 0008) | Map dummy + gerak 4 arah + collision; interaksi NPC memicu dialog |
+| Overlay tantangan + scoring    | 4 tipe tantangan bisa dijawab                                     |
+| Progres lokal + hasil          | Selesai → layar hasil                                             |
 
-**Gerbang:** cerita contoh bisa dimainkan dari awal sampai hasil di browser.
+**Gerbang:** cerita contoh bisa dimainkan dari awal sampai hasil di browser,
+dengan siswa berjalan menjelajah setiap scene. Jika waktu mepet, baris
+eksplorasi dilepas dulu (scene statis) sesuai jalur fallback ADR 0008.
 
 Bisa dikerjakan paralel dengan Fase 1 setelah schema disepakati.
 
