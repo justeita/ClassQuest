@@ -1,0 +1,405 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://classquest.local/schema/story-1.0.json",
+  "title": "ClassQuest Story",
+  "description": "Bentuk resmi cerita ClassQuest versi 1.0. Dibaca manusia lewat docs/02-data-model/story-schema.md; file ini adalah versi yang bisa dijalankan mesin. Kalau keduanya berbeda, tes docs/02-data-model/story-schema.test.ts akan gagal.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "meta",
+    "source",
+    "cast",
+    "chapters",
+    "challenges",
+    "assetUsage"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "meta": { "$ref": "#/$defs/meta" },
+    "source": { "$ref": "#/$defs/source" },
+    "cast": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/character" }
+    },
+    "chapters": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/chapter" }
+    },
+    "challenges": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/multipleChoice" },
+          { "$ref": "#/$defs/trueFalse" },
+          { "$ref": "#/$defs/ordering" },
+          { "$ref": "#/$defs/shortAnswer" }
+        ]
+      }
+    },
+    "assetUsage": { "$ref": "#/$defs/assetUsage" }
+  },
+  "$defs": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "subject",
+        "gradeLevel",
+        "language",
+        "tone",
+        "synopsis",
+        "estimatedMinutes"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 3, "maxLength": 80 },
+        "subject": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "gradeLevel": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "language": { "type": "string", "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
+        "tone": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "synopsis": { "type": "string", "minLength": 40, "maxLength": 400 },
+        "estimatedMinutes": { "type": "integer", "minimum": 3, "maximum": 30 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "pageCount", "concepts"],
+      "properties": {
+        "fileName": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "pageCount": { "type": "integer", "minimum": 1, "maximum": 40 },
+        "concepts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 60 }
+        },
+        "gaps": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        }
+      }
+    },
+    "character": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "role", "spriteId"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^char_[a-z0-9_]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "role": {
+          "enum": ["player", "mentor", "npc", "antagonist"]
+        },
+        "spriteId": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "maxLength": 160 }
+      }
+    },
+    "chapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "concept",
+        "summary",
+        "backgroundId",
+        "musicId",
+        "scenes"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^ch_[a-z0-9_]+$" },
+        "title": { "type": "string", "minLength": 3, "maxLength": 60 },
+        "concept": { "type": "string", "minLength": 1 },
+        "summary": { "type": "string", "minLength": 20, "maxLength": 240 },
+        "backgroundId": { "type": "string", "minLength": 1 },
+        "musicId": { "type": "string", "minLength": 1 },
+        "scenes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/scene" }
+        }
+      }
+    },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "beats"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^sc_[a-z0-9_]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "backgroundId": { "type": "string", "minLength": 1 },
+        "musicId": { "type": "string", "minLength": 1 },
+        "beats": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/beat" }
+        }
+      }
+    },
+    "beat": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "text"],
+          "properties": {
+            "type": { "const": "narration" },
+            "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "speakerId", "text"],
+          "properties": {
+            "type": { "const": "dialogue" },
+            "speakerId": { "type": "string", "minLength": 1 },
+            "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "challengeId"],
+          "properties": {
+            "type": { "const": "challenge" },
+            "challengeId": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "effect"],
+          "properties": {
+            "type": { "const": "transition" },
+            "effect": { "enum": ["fade", "cut"] },
+            "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+          }
+        }
+      ]
+    },
+    "challengeBase": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "prompt",
+        "conceptTag",
+        "difficulty",
+        "explanation"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^chl_[a-z0-9_]+$" },
+        "prompt": { "type": "string", "minLength": 5, "maxLength": 300 },
+        "conceptTag": { "type": "string", "minLength": 1 },
+        "difficulty": { "enum": [1, 2, 3] },
+        "explanation": { "type": "string", "minLength": 10, "maxLength": 400 },
+        "hints": {
+          "type": "array",
+          "maxItems": 2,
+          "items": { "type": "string", "minLength": 1, "maxLength": 140 }
+        },
+        "points": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "multipleChoice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "prompt",
+        "conceptTag",
+        "difficulty",
+        "explanation",
+        "options",
+        "correctOptionId"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/challengeBase/properties/id" },
+        "type": { "const": "multiple_choice" },
+        "prompt": { "$ref": "#/$defs/challengeBase/properties/prompt" },
+        "conceptTag": {
+          "$ref": "#/$defs/challengeBase/properties/conceptTag"
+        },
+        "difficulty": {
+          "$ref": "#/$defs/challengeBase/properties/difficulty"
+        },
+        "explanation": {
+          "$ref": "#/$defs/challengeBase/properties/explanation"
+        },
+        "hints": { "$ref": "#/$defs/challengeBase/properties/hints" },
+        "points": { "$ref": "#/$defs/challengeBase/properties/points" },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/option" }
+        },
+        "correctOptionId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "trueFalse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "prompt",
+        "conceptTag",
+        "difficulty",
+        "explanation",
+        "statement",
+        "correctAnswer"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/challengeBase/properties/id" },
+        "type": { "const": "true_false" },
+        "prompt": { "$ref": "#/$defs/challengeBase/properties/prompt" },
+        "conceptTag": {
+          "$ref": "#/$defs/challengeBase/properties/conceptTag"
+        },
+        "difficulty": {
+          "$ref": "#/$defs/challengeBase/properties/difficulty"
+        },
+        "explanation": {
+          "$ref": "#/$defs/challengeBase/properties/explanation"
+        },
+        "hints": { "$ref": "#/$defs/challengeBase/properties/hints" },
+        "points": { "$ref": "#/$defs/challengeBase/properties/points" },
+        "statement": { "type": "string", "minLength": 5, "maxLength": 240 },
+        "correctAnswer": { "type": "boolean" }
+      }
+    },
+    "ordering": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "prompt",
+        "conceptTag",
+        "difficulty",
+        "explanation",
+        "items",
+        "correctOrder"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/challengeBase/properties/id" },
+        "type": { "const": "ordering" },
+        "prompt": { "$ref": "#/$defs/challengeBase/properties/prompt" },
+        "conceptTag": {
+          "$ref": "#/$defs/challengeBase/properties/conceptTag"
+        },
+        "difficulty": {
+          "$ref": "#/$defs/challengeBase/properties/difficulty"
+        },
+        "explanation": {
+          "$ref": "#/$defs/challengeBase/properties/explanation"
+        },
+        "hints": { "$ref": "#/$defs/challengeBase/properties/hints" },
+        "points": { "$ref": "#/$defs/challengeBase/properties/points" },
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/orderingItem" }
+        },
+        "correctOrder": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 5,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "shortAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "prompt",
+        "conceptTag",
+        "difficulty",
+        "explanation",
+        "acceptedAnswers"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/challengeBase/properties/id" },
+        "type": { "const": "short_answer" },
+        "prompt": { "$ref": "#/$defs/challengeBase/properties/prompt" },
+        "conceptTag": {
+          "$ref": "#/$defs/challengeBase/properties/conceptTag"
+        },
+        "difficulty": {
+          "$ref": "#/$defs/challengeBase/properties/difficulty"
+        },
+        "explanation": {
+          "$ref": "#/$defs/challengeBase/properties/explanation"
+        },
+        "hints": { "$ref": "#/$defs/challengeBase/properties/hints" },
+        "points": { "$ref": "#/$defs/challengeBase/properties/points" },
+        "acceptedAnswers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": { "type": "string", "minLength": 1, "maxLength": 60 }
+        },
+        "caseSensitive": { "type": "boolean" }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^opt_[a-z0-9_]+$" },
+        "text": { "type": "string", "minLength": 1, "maxLength": 120 }
+      }
+    },
+    "orderingItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^itm_[a-z0-9_]+$" },
+        "text": { "type": "string", "minLength": 1, "maxLength": 120 }
+      }
+    },
+    "assetUsage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backgrounds", "music", "sprites"],
+      "properties": {
+        "backgrounds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "music": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "sprites": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

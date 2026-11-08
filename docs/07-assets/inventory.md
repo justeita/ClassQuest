@@ -1,0 +1,121 @@
+---
+status: draft
+last_reviewed: 2026-11-08
+owner: tim ClassQuest
+---
+
+# Inventory Aset
+
+Ini **satu-satunya** tabel daftar aset di repo. Dokumen lain menyebut bentuk
+manifest dan aturan id, tapi tidak menyalin daftarnya — supaya tidak ada dua tabel
+yang harus disinkronkan tangan.
+
+Urutan kebenaran:
+
+1. `src/assets/manifest.ts` (rencana) — yang dipakai kode.
+2. Tabel di halaman ini — yang dibaca manusia.
+3. Kalau keduanya berbeda, manifest yang menang, dan tabel ini **wajib**
+   diperbarui di PR yang sama.
+
+Legenda status:
+
+- `todo` — belum dibuat.
+- `placeholder` — file ada, isinya sementara.
+- `ready` — final, sesuai spesifikasi.
+
+> `ready` di sini adalah status **aset**, bukan status cerita. Status cerita hanya
+> `processing | draft | published | failed | archived`; lihat
+> [`../06-backend/persistence.md`](../06-backend/persistence.md#siklus-status).
+> Dua domain ini tidak saling memengaruhi.
+
+## Background
+
+| id                      | Label                  | Path                                | Tags                                               | Status |
+| ----------------------- | ---------------------- | ----------------------------------- | -------------------------------------------------- | ------ |
+| `bg_classroom_day`      | Kelas, siang           | `/assets/bg/classroom_day.png`      | kelas, sekolah, belajar, siang, classroom, indoor  | todo   |
+| `bg_schoolyard_day`     | Halaman sekolah, siang | `/assets/bg/schoolyard_day.png`     | halaman, sekolah, luar, siang, schoolyard, outdoor | todo   |
+| `bg_schoolyard_evening` | Halaman sekolah, sore  | `/assets/bg/schoolyard_evening.png` | halaman, sekolah, sore, senja, sunset, outdoor     | todo   |
+| `bg_cloud_sky`          | Langit di atas awan    | `/assets/bg/cloud_sky.png`          | langit, awan, tinggi, terang, sky, cloud           | todo   |
+| `bg_mountain_night`     | Gunung, malam          | `/assets/bg/mountain_night.png`     | gunung, malam, gelap, dingin, mountain, night      | todo   |
+| `bg_river_day`          | Sungai, siang          | `/assets/bg/river_day.png`          | sungai, air, alam, siang, river, nature            | todo   |
+| `bg_library_evening`    | Perpustakaan, sore     | `/assets/bg/library_evening.png`    | perpustakaan, buku, sore, tenang, library, indoor  | todo   |
+| `bg_default`            | Latar default          | `/assets/bg/default.png`            | default, cadangan, netral, fallback                | todo   |
+
+## Karakter
+
+| id              | Label            | Sprite                      | Portrait                        | Tags                                       | Status |
+| --------------- | ---------------- | --------------------------- | ------------------------------- | ------------------------------------------ | ------ |
+| `char_nara`     | Nara (siswa)     | `/assets/char/nara.png`     | `/assets/portrait/nara.png`     | siswa, perempuan, seragam, remaja, student | todo   |
+| `char_pak_bima` | Pak Bima (guru)  | `/assets/char/pak_bima.png` | `/assets/portrait/pak_bima.png` | guru, dewasa, pria, pengajar, teacher      | todo   |
+| `char_tirta`    | Tirta (roh air)  | `/assets/char/tirta.png`    | `/assets/portrait/tirta.png`    | air, roh, biru, kecil, spirit, water       | todo   |
+| `char_rani`     | Rani (siswa)     | `/assets/char/rani.png`     | `/assets/portrait/rani.png`     | siswa, perempuan, rambut pendek, teman     | todo   |
+| `char_default`  | Karakter default | `/assets/char/default.png`  | —                               | default, cadangan, fallback, netral        | todo   |
+
+## Musik
+
+| id                | Label          | Path                            | Tags                                   | Status |
+| ----------------- | -------------- | ------------------------------- | -------------------------------------- | ------ |
+| `bgm_school_calm` | Sekolah tenang | `/assets/music/school_calm.ogg` | tenang, sekolah, pagi, hangat, calm    | todo   |
+| `bgm_adventure`   | Petualangan    | `/assets/music/adventure.ogg`   | petualangan, naik, semangat, adventure | todo   |
+| `bgm_mystery`     | Misteri        | `/assets/music/mystery.ogg`     | misteri, gelap, penasaran, mystery     | todo   |
+| `bgm_ending`      | Penutup        | `/assets/music/ending.ogg`      | penutup, hangat, lega, ending          | todo   |
+| `bgm_default`     | Musik default  | `/assets/music/default.ogg`     | default, cadangan, netral, tenang      | todo   |
+
+## SFX
+
+| id            | Label         | Path                      | Tags                            | Status |
+| ------------- | ------------- | ------------------------- | ------------------------------- | ------ |
+| `sfx_click`   | Klik          | `/assets/sfx/click.ogg`   | klik, pilih, ui, click          | todo   |
+| `sfx_correct` | Jawaban benar | `/assets/sfx/correct.ogg` | benar, berhasil, benar, correct | todo   |
+| `sfx_wrong`   | Jawaban salah | `/assets/sfx/wrong.ogg`   | salah, lembut, wrong            | todo   |
+| `sfx_page`    | Ganti scene   | `/assets/sfx/page.ogg`    | transisi, halaman, page         | todo   |
+
+## UI
+
+| id                  | Label          | Path                            | Tags                             | Status |
+| ------------------- | -------------- | ------------------------------- | -------------------------------- | ------ |
+| `ui_textbox`        | Kotak dialog   | `/assets/ui/textbox.png`        | dialog, teks, panel, textbox     | todo   |
+| `ui_portrait_frame` | Bingkai potret | `/assets/ui/portrait_frame.png` | potret, bingkai, frame           | todo   |
+| `ui_default`        | UI default     | `/assets/ui/default.png`        | default, cadangan, panel, netral | todo   |
+
+## Ringkasan
+
+| Kind         | Jumlah |
+| ------------ | ------ |
+| `background` | 8      |
+| `character`  | 5      |
+| `music`      | 5      |
+| `sfx`        | 4      |
+| `ui`         | 3      |
+| **Total**    | **25** |
+
+## Prioritas pengerjaan
+
+Urutan yang disarankan agar game bisa tampil cepat:
+
+1. `bg_default`, `char_default`, `bgm_default`, `ui_default` — agar fallback jalan.
+2. `bg_classroom_day`, `char_nara`, `char_pak_bima`, `ui_textbox` — cukup untuk
+   chapter 1 contoh.
+3. `bgm_school_calm`, `sfx_click`, `sfx_correct`, `sfx_wrong`.
+4. Sisa background dan karakter.
+5. `bgm_adventure`, `bgm_ending`, `ui_portrait_frame`.
+
+## Sumber dan lisensi
+
+| id  | Sumber                                                           | Lisensi |
+| --- | ---------------------------------------------------------------- | ------- |
+| —   | Semua aset harus dibuat sendiri atau CC0; catat saat aset dibuat | —       |
+
+Jangan mengisi kolom ini dengan "Google Images" atau nama game komersial.
+
+## Cara memeriksa konsistensi
+
+Test `src/assets/manifest.test.ts` memeriksa:
+
+- setiap `id` di manifest punya file di path-nya,
+- setiap file di folder aset terdaftar di manifest,
+- jumlah aset per kind sesuai tabel ringkasan ini,
+- semua `id` unik dan berprefix benar.
+
+Kalau test gagal karena file belum ada, buat placeholder dulu — jangan menghapus
+entri manifest.
