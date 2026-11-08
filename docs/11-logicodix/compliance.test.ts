@@ -139,28 +139,43 @@ describe("kredensial (halaman 15)", () => {
 describe("riwayat commit (halaman 15-16)", () => {
   const PREFIX =
     /^(feat|fix|docs|style|refactor|chore)(\([a-z0-9._-]+\))?!?: .+/;
-  const MERGE = /^Merge (pull request|branch) /;
   const BANNED =
     /^(update|test|final|wip|fixup|asdf|minor|changes?|perbaikan)\.?$/i;
 
   const commits = (() => {
     if (!hasHistory) return [];
-    return git(
-      "log",
-      `${BASELINE ? `${BASELINE}..` : ""}HEAD`,
-      "--format=%h\x1f%an\x1f%ae\x1f%s",
-    )
-      .split("\n")
-      .filter(Boolean)
-      .map((line) => {
-        const [hash, name, email, subject] = line.split("\x1f");
-        return { hash, name, email, subject };
-      });
+    return (
+      git(
+        "log",
+        `${BASELINE ? `${BASELINE}..` : ""}HEAD`,
+        "--format=%h\x1f%an\x1f%ae\x1f%s\x1f%p",
+      )
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => {
+          const [hash, name, email, subject, parents] = line.split("\x1f");
+          return {
+            hash,
+            name,
+            email,
+            subject,
+            parents: parents
+              ? parents.trim().split(" ").filter(Boolean).length
+              : 0,
+          };
+        })
+        // Merge commit dibuat otomatis oleh GitHub, bukan oleh tim, sehingga pesan
+        // dan penulisnya tidak bisa dikendalikan. Di event pull_request, checkout
+        // menghasilkan commit gabungan `Merge <sha> into <sha>` yang tidak cocok
+        // dengan format awalan resmi. Deteksi lewat jumlah parent, bukan teks
+        // pesan, supaya merge commit otomatis maupun manual sama-sama terlewat.
+        .filter((commit) => commit.parents < 2)
+    );
   })();
 
   it.skipIf(!hasHistory)("setiap commit baru memakai awalan resmi", () => {
     const wrong = commits
-      .filter((c) => !MERGE.test(c.subject) && !PREFIX.test(c.subject))
+      .filter((c) => !PREFIX.test(c.subject))
       .map((c) => `${c.hash} "${c.subject}"`);
 
     expect(wrong).toEqual([]);
