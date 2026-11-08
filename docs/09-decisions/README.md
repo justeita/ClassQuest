@@ -11,15 +11,16 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 
 ## Daftar
 
-| #    | Judul                                                        | Status       | Dampak              |
-| ---- | ------------------------------------------------------------ | ------------ | ------------------- |
-| 0001 | [Next.js App Router](0001-nextjs-app-router.md)              | Accepted     | Seluruh aplikasi    |
-| 0002 | [Story JSON sebagai kontrak](0002-story-json-as-contract.md) | Accepted     | AI, editor, game    |
-| 0003 | [Aset tetap dari manifest](0003-fixed-asset-library.md)      | Accepted     | AI, game, aset      |
-| 0004 | [Phaser 4.2.1 sebagai engine](0004-phaser-4.md)              | Accepted     | Game                |
-| 0005 | [Persistence dan storage](0005-persistence-and-storage.md)   | **Proposed** | Backend             |
-| 0006 | [Provider AI](0006-ai-provider.md)                           | **Proposed** | Pipeline            |
-| 0007 | [UI hybrid Phaser + DOM](0007-hybrid-ui.md)                  | Accepted     | Game, aksesibilitas |
+| #    | Judul                                                         | Status       | Dampak              |
+| ---- | ------------------------------------------------------------- | ------------ | ------------------- |
+| 0001 | [Next.js App Router](0001-nextjs-app-router.md)               | Accepted     | Seluruh aplikasi    |
+| 0002 | [Story JSON sebagai kontrak](0002-story-json-as-contract.md)  | Accepted     | AI, editor, game    |
+| 0003 | [Aset tetap dari manifest](0003-fixed-asset-library.md)       | Accepted     | AI, game, aset      |
+| 0004 | [Phaser 4.2.1 sebagai engine](0004-phaser-4.md)               | Accepted     | Game                |
+| 0005 | [Persistence dan storage](0005-persistence-and-storage.md)    | **Proposed** | Backend             |
+| 0006 | [Provider AI](0006-ai-provider.md)                            | **Proposed** | Pipeline            |
+| 0007 | [UI hybrid Phaser + DOM](0007-hybrid-ui.md)                   | Accepted     | Game, aksesibilitas |
+| 0008 | [Gerak bebas top-down dalam scene](0008-top-down-movement.md) | Accepted     | Game                |
 
 ## Status
 
