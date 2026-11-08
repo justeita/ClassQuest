@@ -5,10 +5,7 @@
  */
 
 export type ChallengeType =
-  | "multiple_choice"
-  | "true_false"
-  | "ordering"
-  | "short_answer";
+  "multiple_choice" | "true_false" | "ordering" | "short_answer";
 
 export interface StoryMeta {
   id: string;
