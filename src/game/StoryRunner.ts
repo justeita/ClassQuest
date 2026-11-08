@@ -1,6 +1,7 @@
 import type { Beat, Chapter, Challenge, Story } from "@/story/schema";
 
-export type StoryRunnerPhase = "dialog" | "challenge" | "chapter_end" | "done";
+export type StoryRunnerPhase =
+  "explore" | "dialog" | "challenge" | "chapter_end" | "done";
 
 export interface StoryRunnerState {
   phase: StoryRunnerPhase;
@@ -8,9 +9,9 @@ export interface StoryRunnerState {
   chapterIndex: number;
   /** Indeks scene saat ini (0-based); -1 saat akhir bab maupun selesai. */
   sceneIndex: number;
-  /** Indeks beat saat ini (0-based); -1 saat akhir bab maupun selesai. */
+  /** Indeks beat saat ini (0-based); -1 saat explore, akhir bab, maupun selesai. */
   beatIndex: number;
-  /** Beat aktif; null saat chapter_end atau done. */
+  /** Beat aktif; null saat explore, chapter_end, atau done. */
   beat: Beat | null;
   /** Bab aktif; null saat done. */
   chapter: Chapter | null;
@@ -24,14 +25,17 @@ export interface StoryRunnerState {
  * Penilaian jawaban challenge bukan tanggung jawab runner (lihat PR tantangan);
  * runner hanya mengunci jalur sampai `resolveChallenge()` dipanggil.
  *
- * Kontrak kursor: sceneIndex/beatIndex -1 berarti kursor berada di akhir bab
- * (chapter_end), dan chapterIndex di luar rentang berarti cerita selesai.
+ * Kontrak kursor (ADR 0008): setiap scene dibuka dalam fase `explore` — pemain
+ * berjalan bebas di ruangan sampai `interact()` memutar deretan beat scene itu.
+ * beatIndex -1 berarti belum di dalam deretan beat (explore) atau sudah lewat
+ * dari scene terakhir (chapter_end); chapterIndex di luar rentang berarti
+ * cerita selesai.
  */
 export class StoryRunner {
   private readonly story: Story;
   private chapterIndex = 0;
   private sceneIndex = 0;
-  private beatIndex = 0;
+  private beatIndex = -1;
 
   constructor(story: Story) {
     if (story.chapters.length === 0) {
@@ -72,6 +76,19 @@ export class StoryRunner {
       };
     }
 
+    if (this.beatIndex === -1) {
+      return {
+        phase: "explore",
+        chapterIndex: this.chapterIndex,
+        sceneIndex: this.sceneIndex,
+        beatIndex: -1,
+        beat: null,
+        chapter,
+        chapterNumber: this.chapterIndex + 1,
+        chapterTotal: total,
+      };
+    }
+
     const scene = chapter.scenes[this.sceneIndex]!;
     const beat = scene.beats[this.beatIndex]!;
 
@@ -85,6 +102,15 @@ export class StoryRunner {
       chapterNumber: this.chapterIndex + 1,
       chapterTotal: total,
     };
+  }
+
+  /**
+   * Mulai deretan beat scene saat pemain berinteraksi dengan NPC/objek di
+   * zona interaksi. No-op di fase lain — GameScene yang memanggil ini.
+   */
+  interact(): void {
+    if (this.getState().phase !== "explore") return;
+    this.beatIndex = 0;
   }
 
   /** Lanjut dari beat dialog atau dari akhir bab. No-op di fase lain. */
@@ -122,18 +148,17 @@ export class StoryRunner {
 
     if (this.beatIndex < scene.beats.length) return;
 
-    // Akhir scene: pindah ke scene berikutnya, atau tandai akhir bab.
+    // Akhir scene: scene berikutnya dibuka dalam fase explore.
     this.sceneIndex += 1;
-    this.beatIndex = 0;
+    this.beatIndex = -1;
     if (this.sceneIndex < chapter.scenes.length) return;
 
     this.sceneIndex = -1;
-    this.beatIndex = -1;
   }
 
   private enterChapter(nextChapterIndex: number): void {
     this.chapterIndex = nextChapterIndex;
     this.sceneIndex = 0;
-    this.beatIndex = 0;
+    this.beatIndex = -1;
   }
 }
