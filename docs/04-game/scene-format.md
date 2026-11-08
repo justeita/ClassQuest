@@ -44,9 +44,30 @@ Aturan:
 - Ganti musik hanya bila `musicId` berbeda dari scene sebelumnya. Jangan restart
   track yang sama.
 
+## Ruangan dan eksplorasi (ADR 0008)
+
+Per ADR 0008, scene dirender sebagai **ruangan satu layar** yang bisa dijelajahi:
+
+- Scene dibuka dalam fase `explore`: pemain spawn di titik tetap, lalu bergerak
+  4 arah (`W`/`A`/`S`/`D`, panah) dengan collision.
+- Data map — lantai, dinding, penempatan NPC, spawn, zona interaksi —
+  didefinisikan **di sisi game** (`src/game/`, map dummy per scene) dan **tidak
+  mengubah kontrak Story JSON**. Struktur datanya dibuat supaya nanti bisa
+  diganti tileset nyata tanpa refactor.
+- Map dummy: til warna untuk lantai/dinding, kotak berwarna untuk pemain dan
+  NPC. Kunci data map tetap memakai `backgroundId`/`spriteId` yang sudah ada di
+  Story, bukan id baru.
+- Collision: dinding keliling ruangan + objek padat; arcade physics gravity 0
+  (sudah diset di `config.ts`).
+- NPC/objek interaksi punya zona kecil. Pemain di dalam zona → indikator
+  interaksi muncul → `Space`/`Enter` memutar deretan beat scene itu (fase
+  `dialog`); gerak terkunci sampai deretan beat habis.
+
 ## Peta visual
 
-Resolusi 480×270. Posisi dalam piksel:
+Resolusi 480×270. Layout di bawah berlaku saat fase `dialog` (textbox terbuka);
+saat fase `explore`, textbox tersembunyi dan karakter bebas bergerak. Posisi
+dalam piksel:
 
 ```text
 ┌──────────────────────────────────────────────────┐ 480×270
@@ -96,7 +117,9 @@ kedua angka itu.
 flowchart TD
   S["Scene mulai"] --> A["Set background"]
   A --> B["Set musik<br/>(hanya jika berubah)"]
-  B --> C["beatIndex = 0"]
+  B --> X["Fase explore:<br/>pemain jalan bebas"]
+  X --> D0["Interaksi NPC<br/>Space/Enter di zona"]
+  D0 --> C["beatIndex = 0"]
   C --> D["Tampilkan beat"]
   D --> E{"Jenis beat?"}
   E -- "narration" --> F["Textbox tanpa nama"]
@@ -119,6 +142,8 @@ flowchart TD
 
 Perhatikan dua hal: `transition` **tidak** menunggu klik (ia hanya menunggu
 animasi selesai), dan `challenge` menunggu `resolve_challenge`, bukan `advance`.
+Scene **tidak** kembali ke `explore` di tengah deretan beat — eksplorasi hanya
+terjadi sebelum beat pertama scene.
 
 ## Menampilkan beat
 
@@ -201,12 +226,14 @@ Chapter 1, scene `sc_01_02`:
 Yang terjadi:
 
 1. Background tetap `bg_classroom_day` (dari chapter).
-2. Pak Bima tampil, textbox berisi nama + kalimat.
-3. Klik → beat tantangan → dialog pause, overlay `chl_01_01` muncul.
-4. Siswa menjawab → feedback + penjelasan → overlay tertutup.
-5. Tirta muncul (sprite `char_tirta`), dialog.
-6. Narasi tanpa nama.
-7. Scene selesai → `sc_01_03`.
+2. Ruangan `sc_01_02` dibuka dalam fase `explore`: Nara berjalan bebas.
+3. Pemain mendekati Pak Bima (zona interaksi dari map dummy) → `Space`/`Enter`.
+4. Pak Bima tampil, textbox berisi nama + kalimat.
+5. Klik → beat tantangan → dialog pause, overlay `chl_01_01` muncul.
+6. Siswa menjawab → feedback + penjelasan → overlay tertutup.
+7. Tirta muncul (sprite `char_tirta`), dialog.
+8. Narasi tanpa nama.
+9. Scene selesai → `sc_01_03`.
 
 ## Data yang dikirim ke React
 

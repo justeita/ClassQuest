@@ -14,10 +14,10 @@ menjawab, menutup tab, atau kehilangan fokus.
 Ada dua mesin state yang berbeda, dan dokumen ini sebelumnya menyamakannya. Itu
 salah. Yang benar:
 
-| State                  | Dipegang oleh | Isi                                                               |
-| ---------------------- | ------------- | ----------------------------------------------------------------- |
-| `RunnerState.phase`    | `StoryRunner` | `dialog`, `challenge`, `chapter_end`, `done` — murni, tanpa React |
-| `GameShellState.phase` | `GameShell`   | `loading`, `ready`, `playing`, `paused`, `finished`, `error`      |
+| State                  | Dipegang oleh | Isi                                                                          |
+| ---------------------- | ------------- | ---------------------------------------------------------------------------- |
+| `RunnerState.phase`    | `StoryRunner` | `explore`, `dialog`, `challenge`, `chapter_end`, `done` — murni, tanpa React |
+| `GameShellState.phase` | `GameShell`   | `loading`, `ready`, `playing`, `paused`, `finished`, `error`                 |
 
 `StoryRunner` menjawab **"di mana kita di dalam cerita"**. `GameShell` menjawab
 **"layar apa yang sedang terlihat"**. Keduanya dipetakan begini:
@@ -26,6 +26,7 @@ salah. Yang benar:
 | ------------------- | ---------------------- | --------------------------------- |
 | —                   | `loading`              | progress bar aset                 |
 | —                   | `ready`                | layar judul, tombol Mulai         |
+| `explore`           | `playing`              | ruangan map + pemain + NPC        |
 | `dialog`            | `playing`              | canvas + textbox                  |
 | `challenge`         | `playing`              | canvas + `ChallengeOverlay` (DOM) |
 | `chapter_end`       | `playing`              | kartu ringkasan chapter           |
@@ -55,33 +56,44 @@ Dan di dalam `playing`, `StoryRunner` berjalan sendiri:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> dialog
+    [*] --> explore
+    explore --> dialog: interaksi NPC (Space/Enter)
     dialog --> challenge: beat bertipe challenge
     challenge --> dialog: jawaban sudah dinilai
-    dialog --> chapter_end: beat terakhir habis
-    chapter_end --> dialog: masih ada chapter berikutnya
+    dialog --> explore: beat habis, masih ada scene berikutnya
+    dialog --> chapter_end: beat habis di scene terakhir
+    chapter_end --> explore: masih ada chapter berikutnya
     chapter_end --> done: chapter terakhir selesai
     done --> [*]
 ```
+
+Setiap scene dibuka dalam fase `explore` (ADR 0008): pemain berjalan bebas di
+ruangan. Interaksi dengan NPC/objek memutar deretan beat scene itu; ketika deretan
+beat habis, kembali ke `explore` (scene berikutnya) atau berhenti di
+`chapter_end`. `explore` hanya pernah dijeda oleh textbox, overlay tantangan,
+atau menu — cerita tetap berhenti di beat yang sama.
 
 `RunnerState` didefinisikan di [`engine.md`](./engine.md#alur-state); dokumen ini
 tidak menyalin tipenya, hanya perilakunya.
 
 ## Aksi pengguna
 
-| Aksi                  | State       | Efek                                                       |
-| --------------------- | ----------- | ---------------------------------------------------------- |
-| Klik/tap di mana saja | `dialog`    | Sedang mengetik → selesaikan teks; sudah → beat berikutnya |
-| `Space` / `Enter`     | `dialog`    | Sama seperti klik                                          |
-| `1`–`5`               | `challenge` | Pilih opsi (belum submit)                                  |
-| `Enter`               | `challenge` | Submit jawaban (bila ada pilihan)                          |
-| `Esc`                 | `dialog`    | Buka menu jeda                                             |
-| Klik "Lanjut"         | `dialog`    | Sama seperti klik di mana saja                             |
-| Klik "Ulangi chapter" | `paused`    | Reset ke awal chapter, simpan progres                      |
+| Aksi                        | State       | Efek                                                       |
+| --------------------------- | ----------- | ---------------------------------------------------------- |
+| `W`/`A`/`S`/`D`, panah      | `explore`   | Gerakkan pemain 4 arah dalam ruangan                       |
+| `Space` / `Enter` dekat NPC | `explore`   | Mulai deretan beat scene (interaksi)                       |
+| Klik/tap di mana saja       | `dialog`    | Sedang mengetik → selesaikan teks; sudah → beat berikutnya |
+| `Space` / `Enter`           | `dialog`    | Sama seperti klik                                          |
+| `1`–`5`                     | `challenge` | Pilih opsi (belum submit)                                  |
+| `Enter`                     | `challenge` | Submit jawaban (bila ada pilihan)                          |
+| `Esc`                       | `dialog`    | Buka menu jeda                                             |
+| Klik "Lanjut"               | `dialog`    | Sama seperti klik di mana saja                             |
+| Klik "Ulangi chapter"       | `paused`    | Reset ke awal chapter, simpan progres                      |
 
 Aturan input:
 
 - **Debounce 150 ms** untuk klik/Spasi, agar satu tekanan tidak melewati dua beat.
+- Saat `explore`, gerak bebas; saat `dialog`/`challenge`, input gerak **terkunci**.
 - Saat `challenge`, input dialog **diabaikan**.
 - Saat transisi/fade, input diabaikan sampai selesai.
 - Saat tab tidak aktif (`visibilitychange`), game pause otomatis.
