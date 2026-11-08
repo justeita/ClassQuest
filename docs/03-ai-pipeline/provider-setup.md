@@ -49,8 +49,9 @@ AI_TIMEOUT_MS=60000
 Aturan:
 
 - **Jangan** memakai prefix `NEXT_PUBLIC_`.
-- Validasi di `src/lib/env.ts`; kalau `AI_PROVIDER` tidak dikenal → gagal saat
-  start, bukan saat demo.
+- Validasi di `src/server/config.ts` (satu-satunya pembaca env AI, lihat
+  [`../01-architecture/repo-structure.md`](../01-architecture/repo-structure.md));
+  kalau `AI_PROVIDER` tidak dikenal → gagal saat start, bukan saat demo.
 - Nilai default adalah `mock` — provider nyata belum diputuskan (ADR 0006).
   Jangan menaruh nama provider sungguhan sebagai contoh default, karena itu
   terbaca seperti keputusan.

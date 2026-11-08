@@ -70,6 +70,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `docs/02-data-model/story-schema.test.ts` | ya      | Tes schema vs dokumen                               |
 | `docs/docs.test.ts`                       | ya      | Tes kerapian docs                                   |
 | `src/story/schema.ts`                     | ya      | Tipe `Story` (bentuk mengikuti `story.schema.json`) |
+| `src/story/schema.test.ts`                | ya      | Tes schema TypeScript vs `story.schema.json`        |
 | `src/story/validate.ts`                   | rencana | Validator semantik                                  |
 | `src/story/scoring.ts`                    | rencana | Penilaian jawaban, fungsi murni                     |
 | `src/story/fallback.ts`                   | rencana | Cerita cadangan                                     |
@@ -84,9 +85,13 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/components/game/GameCanvas.tsx`      | ya      | Host Phaser di React (client-only, dynamic import)  |
 | `src/components/game/GameShell.tsx`       | rencana | Shell fullscreen halaman game                       |
 | `src/app/play`                            | rencana | Halaman siswa                                       |
+| `src/server/config.ts`                    | ya      | Konfigurasi env AI (satu-satunya pembaca)           |
+| `src/server/config.test.ts`               | ya      | Tes konfigurasi env AI                              |
 | `src/server/stories.ts`                   | rencana | Query cerita (butuh DB, ADR 0005)                   |
 | `src/app/guru`                            | rencana | Halaman guru                                        |
-| `src/app/api`                             | rencana | Route handler                                       |
+| `src/app/api`                             | ya      | Route handler                                       |
+| `src/app/api/health/route.ts`             | ya      | `GET /api/health`: cek hidup + versi build          |
+| `src/app/api/health/route.test.ts`        | ya      | Tes kontrak respons health                          |
 | `public/assets`                           | rencana | File aset game                                      |
 
 ## Struktur target
