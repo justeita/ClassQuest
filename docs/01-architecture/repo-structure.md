@@ -69,7 +69,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `docs/02-data-model/story.schema.json`    | ya      | Kontrak cerita versi mesin                          |
 | `docs/02-data-model/story-schema.test.ts` | ya      | Tes schema vs dokumen                               |
 | `docs/docs.test.ts`                       | ya      | Tes kerapian docs                                   |
-| `src/story/schema.ts`                     | rencana | Tipe `Story` (bentuk mengikuti `story.schema.json`) |
+| `src/story/schema.ts`                     | ya      | Tipe `Story` (bentuk mengikuti `story.schema.json`) |
 | `src/story/validate.ts`                   | rencana | Validator semantik                                  |
 | `src/story/scoring.ts`                    | rencana | Penilaian jawaban, fungsi murni                     |
 | `src/story/fallback.ts`                   | rencana | Cerita cadangan                                     |
@@ -79,6 +79,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/createGame.ts`                  | ya      | Entry `createGame(parent)`, dipanggil React         |
 | `src/game/types.ts`                       | ya      | `GameHandle` untuk menutup instance Phaser          |
 | `src/game/scenes`                         | ya      | `PreloadScene` + `GameScene` (masih placeholder)    |
+| `src/game/StoryRunner.ts`                 | ya      | State machine pemutar cerita (murni, tanpa Phaser)  |
+| `src/game/fixture`                        | ya      | Cerita demo untuk pengembangan frontend game        |
 | `src/components/game/GameCanvas.tsx`      | ya      | Host Phaser di React (client-only, dynamic import)  |
 | `src/components/game/GameShell.tsx`       | rencana | Shell fullscreen halaman game                       |
 | `src/app/play`                            | rencana | Halaman siswa                                       |
