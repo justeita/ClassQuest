@@ -1,0 +1,414 @@
+{
+  "schemaVersion": "1.0",
+  "meta": {
+    "id": "st_demo_siklus_air",
+    "title": "Ke Mana Perginya Genangan Itu?",
+    "subject": "IPA",
+    "gradeLevel": "SMP 7",
+    "language": "id",
+    "tone": "hangat dan penasaran",
+    "synopsis": "Nara mengikuti perjalanan setetes air dari halaman sekolah, naik ke awan, lalu kembali ke bumi. Di sepanjang perjalanan, ia belajar tentang evaporasi, kondensasi, dan infiltrasi.",
+    "estimatedMinutes": 8
+  },
+  "source": {
+    "fileName": "siklus-air.pdf",
+    "pageCount": 6,
+    "concepts": ["Evaporasi", "Kondensasi", "Infiltrasi"],
+    "gaps": []
+  },
+  "cast": [
+    {
+      "id": "char_nara",
+      "name": "Nara",
+      "role": "player",
+      "spriteId": "char_nara",
+      "description": "Siswa yang penasaran dan suka mengamati hal kecil."
+    },
+    {
+      "id": "char_pak_bima",
+      "name": "Pak Bima",
+      "role": "mentor",
+      "spriteId": "char_pak_bima",
+      "description": "Guru IPA yang sabar dan suka memberi pertanyaan."
+    },
+    {
+      "id": "char_tirta",
+      "name": "Tirta",
+      "role": "npc",
+      "spriteId": "char_tirta",
+      "description": "Perwujudan setetes air yang menemani Nara."
+    }
+  ],
+  "chapters": [
+    {
+      "id": "ch_01",
+      "title": "Pagi yang Menguap",
+      "concept": "Evaporasi",
+      "summary": "Nara memperhatikan genangan di halaman sekolah yang menyusut tanpa diseka siapa pun.",
+      "backgroundId": "bg_classroom_day",
+      "musicId": "bgm_school_calm",
+      "scenes": [
+        {
+          "id": "sc_01_01",
+          "title": "Genangan yang Menghilang",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Bel berbunyi. Di depan kelas, Pak Bima menunjuk genangan air yang mulai mengering."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Genangan itu tadi pagi masih penuh. Sekarang hampir habis. Ke mana airnya?"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_nara",
+              "text": "Aku tidak melihat ada yang mengepelnya, Pak."
+            },
+            {
+              "type": "narration",
+              "text": "Nara menatap atap kelas. Ada titik-titik air di sana, tapi tidak ada hujan."
+            }
+          ]
+        },
+        {
+          "id": "sc_01_02",
+          "title": "Uap yang Tak Terlihat",
+          "beats": [
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Air bisa berubah wujud. Saat dipanaskan matahari, air menjadi uap yang tidak terlihat."
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_01_01"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_tirta",
+              "text": "Aku uap yang baru lepas dari genangan itu. Ringan sekali, sampai aku bisa naik."
+            },
+            {
+              "type": "narration",
+              "text": "Nara mengikuti arah naiknya uap, meski matanya tidak bisa melihat apa pun."
+            }
+          ]
+        },
+        {
+          "id": "sc_01_03",
+          "title": "Bukan Lenyap",
+          "beats": [
+            {
+              "type": "challenge",
+              "challengeId": "chl_01_02"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_nara",
+              "text": "Jadi air yang hilang bukan lenyap. Ia berubah jadi uap dan naik."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Tepat. Proses itu disebut evaporasi. Sekarang, ikuti uap itu ke atas."
+            },
+            {
+              "type": "narration",
+              "text": "Angin berhembus, membawa uap menjauh dari halaman sekolah."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ch_02",
+      "title": "Naik ke Langit",
+      "concept": "Kondensasi",
+      "summary": "Di atas awan, Nara melihat uap air berkumpul dan berubah menjadi titik-titik air.",
+      "backgroundId": "bg_cloud_sky",
+      "musicId": "bgm_adventure",
+      "scenes": [
+        {
+          "id": "sc_02_01",
+          "title": "Tubuh yang Mengeras",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Nara berdiri di atas awan. Udara terasa dingin dan basah."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_tirta",
+              "text": "Di sini dingin. Tubuhku mulai mengeras dan berkumpul dengan uap lain."
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_02_01"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_tirta",
+              "text": "Kami berubah menjadi titik-titik air, lalu bergabung membentuk awan."
+            }
+          ]
+        },
+        {
+          "id": "sc_02_02",
+          "title": "Bukan Kapas",
+          "beats": [
+            {
+              "type": "challenge",
+              "challengeId": "chl_02_02"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_nara",
+              "text": "Jadi awan itu kumpulan titik air, bukan kapas."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Betul. Perubahan uap menjadi titik air disebut kondensasi."
+            },
+            {
+              "type": "narration",
+              "text": "Awan semakin berat. Warna putihnya berubah menjadi kelabu."
+            }
+          ]
+        },
+        {
+          "id": "sc_02_03",
+          "title": "Tetesan Pertama",
+          "backgroundId": "bg_mountain_night",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Tetesan pertama jatuh dari awan dan melewati wajah Nara."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_tirta",
+              "text": "Aku kembali menjadi air. Terima kasih sudah menemaniku."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_nara",
+              "text": "Tunggu, bagaimana kamu bisa kembali ke tanah?"
+            },
+            {
+              "type": "narration",
+              "text": "Angin membawa awan itu menuju pegunungan di kejauhan."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ch_03",
+      "title": "Kembali ke Bumi",
+      "concept": "Infiltrasi",
+      "summary": "Hujan turun di lereng gunung. Nara belajar bahwa air bisa mengalir di permukaan atau meresap ke dalam tanah.",
+      "backgroundId": "bg_river_day",
+      "musicId": "bgm_ending",
+      "scenes": [
+        {
+          "id": "sc_03_01",
+          "title": "Dua Jalan Air",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Hujan turun di lereng gunung. Air mengalir ke sungai kecil."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Air hujan punya dua jalan: mengalir di permukaan, atau meresap ke dalam tanah."
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_03_01"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_nara",
+              "text": "Jadi infiltrasi itu air yang masuk ke tanah, bukan yang mengalir di atasnya."
+            }
+          ]
+        },
+        {
+          "id": "sc_03_02",
+          "title": "Akar yang Minum",
+          "beats": [
+            {
+              "type": "challenge",
+              "challengeId": "chl_03_02"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Sebagian air tanah kembali ke sungai perlahan, sebagian disimpan akar tanaman."
+            },
+            {
+              "type": "narration",
+              "text": "Nara melihat akar pohon menyerap air, lalu daun-daunnya terlihat lebih segar."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_tirta",
+              "text": "Dan nanti, matahari akan memanggilku lagi. Siklus ini tidak pernah benar-benar berhenti."
+            }
+          ]
+        },
+        {
+          "id": "sc_03_03",
+          "title": "Lingkaran Kecil",
+          "backgroundId": "bg_schoolyard_day",
+          "beats": [
+            {
+              "type": "challenge",
+              "challengeId": "chl_tidak_ada"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Sekarang kamu tahu ke mana air itu pergi."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_nara",
+              "text": "Ia tidak hilang. Ia hanya berjalan dalam lingkaran."
+            },
+            {
+              "type": "narration",
+              "text": "Genangan itu mengecil, tapi ceritanya baru saja dimulai."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "chl_01_01",
+      "type": "multiple_choice",
+      "prompt": "Apa yang terjadi pada air genangan saat terkena panas matahari?",
+      "conceptTag": "Evaporasi",
+      "difficulty": 1,
+      "explanation": "Panas matahari memberi energi pada air sehingga air berubah menjadi uap yang naik ke udara.",
+      "points": 10,
+      "options": [
+        {
+          "id": "opt_a",
+          "text": "Menguap menjadi uap air"
+        },
+        {
+          "id": "opt_b",
+          "text": "Membeku menjadi es"
+        },
+        {
+          "id": "opt_c",
+          "text": "Berubah menjadi tanah"
+        }
+      ],
+      "correctOptionId": "opt_a"
+    },
+    {
+      "id": "chl_01_02",
+      "type": "true_false",
+      "prompt": "Tentukan benar atau salah pernyataan berikut.",
+      "statement": "Uap air lebih ringan daripada air cair, sehingga uap dapat naik ke atas.",
+      "conceptTag": "Evaporasi",
+      "difficulty": 1,
+      "explanation": "Uap air bercampur dengan udara dan bergerak naik karena lebih ringan daripada air dalam wujud cair.",
+      "points": 10,
+      "correctAnswer": true
+    },
+    {
+      "id": "chl_02_01",
+      "type": "ordering",
+      "prompt": "Urutkan proses terbentuknya awan dari yang pertama terjadi.",
+      "conceptTag": "Kondensasi",
+      "difficulty": 2,
+      "explanation": "Uap air naik, suhu turun, uap berubah menjadi titik air, lalu titik-titik itu berkumpul menjadi awan.",
+      "points": 15,
+      "items": [
+        {
+          "id": "itm_naik",
+          "text": "Uap air naik ke atmosfer"
+        },
+        {
+          "id": "itm_dingin",
+          "text": "Suhu udara di atas turun"
+        },
+        {
+          "id": "itm_titik",
+          "text": "Uap berubah menjadi titik air"
+        },
+        {
+          "id": "itm_awan",
+          "text": "Titik air berkumpul membentuk awan"
+        }
+      ],
+      "correctOrder": ["itm_naik", "itm_dingin", "itm_titik", "itm_awan"]
+    },
+    {
+      "id": "chl_02_02",
+      "type": "multiple_choice",
+      "prompt": "Apa yang menyebabkan uap air berubah menjadi titik-titik air?",
+      "conceptTag": "Kondensasi",
+      "difficulty": 2,
+      "explanation": "Saat suhu udara turun, uap air kehilangan energi dan mengembun menjadi titik-titik air.",
+      "points": 10,
+      "options": [
+        {
+          "id": "opt_a",
+          "text": "Suhu udara yang lebih dingin"
+        },
+        {
+          "id": "opt_b",
+          "text": "Tekanan air yang menghilang"
+        },
+        {
+          "id": "opt_c",
+          "text": "Cahaya matahari yang bertambah"
+        }
+      ],
+      "correctOptionId": "opt_a"
+    },
+    {
+      "id": "chl_03_01",
+      "type": "short_answer",
+      "prompt": "Proses air hujan meresap ke dalam tanah disebut apa?",
+      "conceptTag": "Infiltrasi",
+      "difficulty": 2,
+      "explanation": "Infiltrasi adalah pergerakan air dari permukaan tanah masuk ke lapisan tanah di bawahnya.",
+      "points": 15,
+      "acceptedAnswers": ["infiltrasi", "peresapan", "perkolasi"],
+      "caseSensitive": false
+    },
+    {
+      "id": "chl_03_02",
+      "type": "true_false",
+      "prompt": "Tentukan benar atau salah pernyataan berikut.",
+      "statement": "Air hujan yang jatuh di permukaan tanah selalu langsung kembali ke laut.",
+      "conceptTag": "Infiltrasi",
+      "difficulty": 1,
+      "explanation": "Sebagian air meresap ke tanah, disimpan akar tanaman, atau menguap kembali sebelum mencapai laut.",
+      "points": 10,
+      "correctAnswer": false
+    }
+  ],
+  "assetUsage": {
+    "backgrounds": [
+      "bg_classroom_day",
+      "bg_cloud_sky",
+      "bg_mountain_night",
+      "bg_river_day",
+      "bg_schoolyard_day"
+    ],
+    "music": ["bgm_school_calm", "bgm_adventure", "bgm_ending"],
+    "sprites": ["char_nara", "char_pak_bima", "char_tirta"]
+  }
+}

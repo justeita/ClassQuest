@@ -1,0 +1,3 @@
+# Fixture sengaja bukan JSON valid; prettier gagal mem-parse-nya.
+# `.next` tidak perlu didaftar: prettier membaca `.gitignore` secara default.
+src/story/__fixtures__/json-parse.json
