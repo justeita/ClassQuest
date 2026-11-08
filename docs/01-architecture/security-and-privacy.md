@@ -65,8 +65,8 @@ import "server-only";
 
 - Variabel lingkungan: `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` (nama final
   tergantung ADR 0006).
-- Hanya boleh dibaca lewat `src/lib/env.ts` yang memvalidasi keberadaan nilainya
-  saat runtime server.
+- Hanya boleh dibaca lewat `src/server/config.ts` yang memvalidasi keberadaan
+  nilainya saat runtime server.
 - **Jangan** memakai prefix `NEXT_PUBLIC_` untuk apa pun yang bersifat rahasia.
 - `.env*` sudah di-ignore kecuali `.env.example`. Jangan pernah commit nilai asli.
 

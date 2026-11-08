@@ -101,12 +101,18 @@ Kebiasaan yang aman: **setiap kali menambah `process.env.X` di kode, tambahkan
 
 ## Aturan pemakaian di kode
 
-1. Semua pembacaan env lewat satu modul: `src/lib/env.ts`.
+1. Semua pembacaan env lewat satu modul: `src/server/config.ts`.
 2. Modul itu wajib `import "server-only"`.
 3. Jangan pernah memakai prefix `NEXT_PUBLIC_` untuk nilai rahasia — prefix itu
    membocorkan nilai ke bundle browser.
 4. Jangan menaruh nilai env di `next.config.ts` yang terekspos ke client.
 5. Jangan menempelkan nilai env di issue, PR, chat, atau screenshot.
+
+> **Belum sesuai (2026):** `src/server/config.ts` saat ini **belum** memakai
+> `import "server-only"`, karena paket itu belum dipasang dan di test Vitest
+> (jsdom) impornya menggagalkan pemuatan modul. Batas impornya dijaga lewat
+> `src/server/**` yang tidak diimpor komponen client. Menambah `server-only`
+> dicatat sebagai langkah berikutnya.
 
 ## Cara memeriksa tidak ada yang bocor
 

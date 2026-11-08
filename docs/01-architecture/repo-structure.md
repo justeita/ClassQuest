@@ -71,6 +71,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/components/game/GameCanvas.tsx`      | rencana | Host Phaser di React (client-only, dynamic import)  |
 | `src/components/game/GameShell.tsx`       | rencana | Shell fullscreen halaman game                       |
 | `src/app/play`                            | rencana | Halaman siswa                                       |
+| `src/server/config.ts`                    | ya      | Konfigurasi env AI (satu-satunya pembaca)           |
+| `src/server/config.test.ts`               | ya      | Tes konfigurasi env AI                              |
 | `src/server/stories.ts`                   | rencana | Query cerita (butuh DB, ADR 0005)                   |
 | `src/app/guru`                            | rencana | Halaman guru                                        |
 | `src/app/api`                             | ya      | Route handler                                       |
