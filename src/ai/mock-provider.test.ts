@@ -245,3 +245,37 @@ describe("MockProvider — determinisme dan jaringan", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
+
+describe("MockProvider — skrip per panggilan", () => {
+  it("menyajikan langkah berurutan lalu kembali ke perilaku biasa", async () => {
+    const provider = new MockProvider({
+      scenario: "valid",
+      stage: "story",
+      sequence: [
+        { fixture: "chapter/ch_02.json" },
+        { fixture: "chapter/ch_03.json" },
+      ],
+    });
+
+    expect((await provider.complete(request())).text).toBe(
+      output("chapter/ch_02.json"),
+    );
+    expect((await provider.complete(request())).text).toBe(
+      output("chapter/ch_03.json"),
+    );
+    expect((await provider.complete(request())).text).toBe(
+      output("story/valid.json"),
+    );
+  });
+
+  it("langkah skenario tetap menghormati timeout", async () => {
+    const provider = new MockProvider({
+      timeoutMs: 0,
+      sequence: ["timeout"],
+    });
+
+    await expect(provider.complete(request())).rejects.toMatchObject({
+      code: "AI_TIMEOUT",
+    });
+  });
+});
