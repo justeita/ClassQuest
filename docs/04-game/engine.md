@@ -211,16 +211,19 @@ ditandai `"use client"` dan diimpor dinamis.
 
 ## Scene Phaser
 
-| Scene          | Tanggung jawab sekarang                                         | Target                                        |
-| -------------- | --------------------------------------------------------------- | --------------------------------------------- |
-| `PreloadScene` | Langsung pindah ke `GameScene`                                  | Muat aset cerita + progress bar               |
-| `GameScene`    | Ruangan dummy (`map.ts`), pemain gerak 4 arah, collision arcade | Background, karakter, dialog, perintah lanjut |
-| `ResultScene`  | Belum ada                                                       | (Opsional) transisi akhir                     |
+| Scene          | Tanggung jawab sekarang                                                | Target                                        |
+| -------------- | ---------------------------------------------------------------------- | --------------------------------------------- |
+| `PreloadScene` | Langsung pindah ke `GameScene`                                         | Muat aset cerita + progress bar               |
+| `GameScene`    | Ruangan + gerak + interaksi NPC + dialog typewriter dari `StoryRunner` | Background, karakter, dialog, perintah lanjut |
+| `ResultScene`  | Belum ada                                                              | (Opsional) transisi akhir                     |
 
-`GameScene` merender fase `explore` dari `StoryRunner`: ruangan dari data map
-dummy, pemain dari `movement.ts`, NPC placeholder statis. Interaksi NPC
-(zona + `interact()`) dan dialog menyusul; saat manifest aset ada, placeholder
-kotak/til warna diganti — bukan ditambah scene baru dengan nama lain.
+`GameScene` menjalankan siklus ADR 0008: fase `explore` (ruangan dari `map.ts`,
+pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()`
+memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
+(Space/Enter/klik). Speaker disorot, beat `transition` fade otomatis, beat
+`challenge` masih placeholder teks sampai overlay React tersambung. Saat
+manifest aset ada, placeholder kotak/til warna diganti — bukan ditambah scene
+baru dengan nama lain.
 
 `ChallengeScene` **tidak ada** — tantangan adalah overlay React.
 
