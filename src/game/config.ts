@@ -33,6 +33,6 @@ export function createGameConfig(
         debug: false,
       },
     },
-    scene: [PreloadScene, new GameScene(story, bus)],
+    scene: [new PreloadScene(story), new GameScene(story, bus)],
   };
 }
