@@ -21,8 +21,8 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0006 | [Provider AI](0006-ai-provider.md)                                   | **Proposed** | Pipeline            |
 | 0007 | [UI hybrid Phaser + DOM](0007-hybrid-ui.md)                          | Accepted     | Game, aksesibilitas |
 | 0008 | [Gerak bebas top-down dalam scene](0008-top-down-movement.md)        | Accepted     | Game                |
-| 0009 | [Resolusi internal dan skala karakter](0009-resolution-and-scale.md) | **Proposed** | Game, aset          |
-| 0010 | [Map data-driven dan kamera](0010-map-data-and-camera.md)            | **Proposed** | Game                |
+| 0009 | [Resolusi internal dan skala karakter](0009-resolution-and-scale.md) | **Accepted** | Game, aset          |
+| 0010 | [Map data-driven dan kamera](0010-map-data-and-camera.md)            | **Accepted** | Game                |
 
 ## Status
 
