@@ -60,72 +60,73 @@ Tabel ini **tidak** mendaftar setiap file; ia mendaftar file yang paling sering
 ditanyakan "sudah ada atau belum". Folder `docs/` sendiri tidak diulang di sini —
 isinya sudah ada di [`../README.md`](../README.md).
 
-| Path                                       | Ada?    | Isi                                                   |
-| ------------------------------------------ | ------- | ----------------------------------------------------- |
-| `src/app/page.tsx`                         | ya      | Halaman starter, masih placeholder                    |
-| `src/app/layout.tsx`                       | ya      | Layout global                                         |
-| `src/app/page.test.tsx`                    | ya      | Contoh test komponen pertama                          |
-| `docs/02-data-model/story.example.json`    | ya      | Cerita contoh (fixture)                               |
-| `docs/02-data-model/story.schema.json`     | ya      | Kontrak cerita versi mesin                            |
-| `docs/02-data-model/story-schema.test.ts`  | ya      | Tes schema vs dokumen                                 |
-| `docs/docs.test.ts`                        | ya      | Tes kerapian docs                                     |
-| `src/story/schema.ts`                      | ya      | Tipe `Story` (bentuk mengikuti `story.schema.json`)   |
-| `src/story/schema.test.ts`                 | ya      | Tes schema TypeScript vs `story.schema.json`          |
-| `src/story/validate.ts`                    | ya      | Validator semantik                                    |
-| `src/story/validate-parts.ts`              | ya      | `validateOutline` dan `validateChapter`               |
-| `src/story/validate-parts.test.ts`         | ya      | Tes validasi outline dan chapter                      |
-| `src/story/scoring.ts`                     | ya      | Penilaian jawaban, fungsi murni                       |
-| `src/story/fallback.ts`                    | ya      | Cerita cadangan (deterministik, selalu valid)         |
-| `src/assets/manifest.ts`                   | ya      | Daftar resmi aset + `toAssetManifest()`               |
-| `src/assets/manifest.test.ts`              | ya      | Tes id, path, tag, fallback, dan file aset            |
-| `src/ai/provider.ts`                       | ya      | Antarmuka `LlmProvider` + error provider              |
-| `src/ai/mock-provider.ts`                  | ya      | Provider mock deterministik dari fixture              |
-| `src/ai/factory.ts`                        | ya      | `createLlmProvider` dari konfigurasi env AI           |
-| `src/ai/prompt.ts`                         | ya      | Prompt builder: outline, chapter, repair              |
-| `src/ai/prompt.test.ts`                    | ya      | Tes kontrak prompt builder                            |
-| `src/ai/__fixtures__/outputs`              | ya      | Fixture keluaran mock (valid, rusak, timeout)         |
-| `src/ai/pipeline.ts`                       | ya      | Outline → generate → repair                           |
-| `src/ai/pipeline.test.ts`                  | ya      | Tes pipeline: repair, anggaran, fallback              |
-| `src/game/config.ts`                       | ya      | Konfigurasi Phaser (480×270)                          |
-| `src/game/createGame.ts`                   | ya      | Entry `createGame(parent)`, dipanggil React           |
-| `src/game/types.ts`                        | ya      | `GameHandle` untuk menutup instance Phaser            |
-| `src/game/scenes`                          | ya      | `PreloadScene` (muat aset) + `GameScene` (cerita)     |
-| `src/game/sceneAssets.ts`                  | ya      | Resolusi background/musik + daftar aset preload       |
-| `src/game/sceneAssets.test.ts`             | ya      | Tes resolusi look dan pemilihan aset cerita           |
-| `src/game/StoryRunner.ts`                  | ya      | State machine pemutar cerita (murni, tanpa Phaser)    |
-| `src/game/typewriter.ts`                   | ya      | Efek ketik murni (30–40 karakter/detik)               |
-| `src/game/textbox.ts`                      | ya      | Textbox dialog sesuai scene-format.md                 |
-| `src/game/interaction.ts`                  | ya      | Zona interaksi NPC + prompt (ADR 0008)                |
-| `src/game/map.ts`                          | ya      | Data map dummy per scene: spawn, dinding, NPC         |
-| `src/game/movement.ts`                     | ya      | Gerak pemain 4 arah + collision top-down (ADR 0008)   |
-| `src/game/gameBus.ts`                      | ya      | Bridge bertipe Phaser ↔ React (event + command)       |
-| `src/game/challengeView.ts`                | ya      | Data tantangan aman untuk overlay (tanpa jawaban)     |
-| `src/game/answerLog.ts`                    | ya      | Catatan jawaban percobaan pertama + ringkasan hasil   |
-| `src/game/demoStory.ts`                    | ya      | Akses cerita demo untuk halaman siswa dan dev         |
-| `src/game/fixture`                         | ya      | Cerita demo untuk pengembangan frontend game          |
-| `src/components/game/GameCanvas.tsx`       | ya      | Host Phaser + overlay tantangan di React              |
-| `src/components/game/ChallengeOverlay.tsx` | ya      | Overlay tantangan DOM di atas canvas                  |
-| `src/components/game/GameShell.tsx`        | ya      | Shell halaman game + state layar judul/main/hasil     |
-| `src/components/game/TitleScreen.tsx`      | ya      | Layar judul: ringkasan cerita + menu Mulai            |
-| `src/components/game/HUD.tsx`              | ya      | HUD: chapter aktif, tombol suara, tombol jeda         |
-| `src/components/game/PauseMenu.tsx`        | ya      | Menu jeda: lanjut, ulangi chapter, suara, keluar      |
-| `src/components/game/ResultScreen.tsx`     | ya      | Layar hasil: skor, jawaban tepat, konsep lemah        |
-| `src/app/play`                             | ya      | Halaman siswa dari cerita demo                        |
-| `src/server/config.ts`                     | ya      | Konfigurasi env server (satu-satunya pembaca)         |
-| `src/server/config.test.ts`                | ya      | Tes konfigurasi env                                   |
-| `src/server/auth.ts`                       | ya      | Auth guru: kode akses, token cookie, `requireTeacher` |
-| `src/server/auth.test.ts`                  | ya      | Tes kode akses, token, cookie, dan sesi guru          |
-| `src/server/stories.ts`                    | rencana | Query cerita (butuh DB, ADR 0005)                     |
-| `src/app/guru`                             | rencana | Halaman guru                                          |
-| `src/app/api`                              | ya      | Route handler                                         |
-| `src/app/api/health/route.ts`              | ya      | `GET /api/health`: cek hidup + versi build            |
-| `src/app/api/health/route.test.ts`         | ya      | Tes kontrak respons health                            |
-| `src/app/api/upload/route.ts`              | ya      | `POST /api/upload`: validasi PDF + buat story & job   |
-| `src/app/api/upload/route.test.ts`         | ya      | Tes route upload (libSQL in-memory)                   |
-| `src/server/api-error.ts`                  | ya      | Helper respons error bentuk `ApiError`                |
-| `src/server/jobs/schedule.ts`              | ya      | Placeholder penjadwal job (diisi di task 18)          |
-| `public/assets`                            | ya      | File aset game (dibuat `bun run assets:generate`)     |
-| `scripts/generate-assets.mjs`              | ya      | Generator aset pixel + audio, tanpa dependensi        |
+| Path                                       | Ada?    | Isi                                                     |
+| ------------------------------------------ | ------- | ------------------------------------------------------- |
+| `src/app/page.tsx`                         | ya      | Halaman starter, masih placeholder                      |
+| `src/app/layout.tsx`                       | ya      | Layout global                                           |
+| `src/app/page.test.tsx`                    | ya      | Contoh test komponen pertama                            |
+| `docs/02-data-model/story.example.json`    | ya      | Cerita contoh (fixture)                                 |
+| `docs/02-data-model/story.schema.json`     | ya      | Kontrak cerita versi mesin                              |
+| `docs/02-data-model/story-schema.test.ts`  | ya      | Tes schema vs dokumen                                   |
+| `docs/docs.test.ts`                        | ya      | Tes kerapian docs                                       |
+| `src/story/schema.ts`                      | ya      | Tipe `Story` (bentuk mengikuti `story.schema.json`)     |
+| `src/story/schema.test.ts`                 | ya      | Tes schema TypeScript vs `story.schema.json`            |
+| `src/story/validate.ts`                    | ya      | Validator semantik                                      |
+| `src/story/validate-parts.ts`              | ya      | `validateOutline` dan `validateChapter`                 |
+| `src/story/validate-parts.test.ts`         | ya      | Tes validasi outline dan chapter                        |
+| `src/story/scoring.ts`                     | ya      | Penilaian jawaban, fungsi murni                         |
+| `src/story/fallback.ts`                    | ya      | Cerita cadangan (deterministik, selalu valid)           |
+| `src/assets/manifest.ts`                   | ya      | Daftar resmi aset + `toAssetManifest()`                 |
+| `src/assets/manifest.test.ts`              | ya      | Tes id, path, tag, fallback, dan file aset              |
+| `src/ai/provider.ts`                       | ya      | Antarmuka `LlmProvider` + error provider                |
+| `src/ai/mock-provider.ts`                  | ya      | Provider mock deterministik dari fixture                |
+| `src/ai/factory.ts`                        | ya      | `createLlmProvider` dari konfigurasi env AI             |
+| `src/ai/prompt.ts`                         | ya      | Prompt builder: outline, chapter, repair                |
+| `src/ai/prompt.test.ts`                    | ya      | Tes kontrak prompt builder                              |
+| `src/ai/__fixtures__/outputs`              | ya      | Fixture keluaran mock (valid, rusak, timeout)           |
+| `src/ai/pipeline.ts`                       | ya      | Outline → generate → repair                             |
+| `src/ai/pipeline.test.ts`                  | ya      | Tes pipeline: repair, anggaran, fallback                |
+| `src/game/config.ts`                       | ya      | Konfigurasi Phaser (resolusi diubah oleh ADR 0009)      |
+| `src/game/createGame.ts`                   | ya      | Entry `createGame(parent)`, dipanggil React             |
+| `src/game/types.ts`                        | ya      | `GameHandle` untuk menutup instance Phaser              |
+| `src/game/scenes`                          | ya      | `PreloadScene` (muat aset) + `GameScene` (cerita)       |
+| `src/game/sceneAssets.ts`                  | ya      | Resolusi background/musik + daftar aset preload         |
+| `src/game/sceneAssets.test.ts`             | ya      | Tes resolusi look dan pemilihan aset cerita             |
+| `src/game/StoryRunner.ts`                  | ya      | State machine pemutar cerita (murni, tanpa Phaser)      |
+| `src/game/typewriter.ts`                   | ya      | Efek ketik murni (30–40 karakter/detik)                 |
+| `src/game/textbox.ts`                      | ya      | Textbox dialog sesuai scene-format.md                   |
+| `src/game/interaction.ts`                  | ya      | Zona interaksi NPC + prompt (ADR 0008)                  |
+| `src/game/map.ts`                          | ya      | Map dummy (diganti map per scene oleh ADR 0010)         |
+| `src/game/movement.ts`                     | ya      | Gerak pemain 4 arah + collision top-down (ADR 0008)     |
+| `src/game/maps`                            | rencana | Map per scene: lantai, dinding, objek, spawn (ADR 0010) |
+| `src/game/gameBus.ts`                      | ya      | Bridge bertipe Phaser ↔ React (event + command)         |
+| `src/game/challengeView.ts`                | ya      | Data tantangan aman untuk overlay (tanpa jawaban)       |
+| `src/game/answerLog.ts`                    | ya      | Catatan jawaban percobaan pertama + ringkasan hasil     |
+| `src/game/demoStory.ts`                    | ya      | Akses cerita demo untuk halaman siswa dan dev           |
+| `src/game/fixture`                         | ya      | Cerita demo untuk pengembangan frontend game            |
+| `src/components/game/GameCanvas.tsx`       | ya      | Host Phaser + overlay tantangan di React                |
+| `src/components/game/ChallengeOverlay.tsx` | ya      | Overlay tantangan DOM di atas canvas                    |
+| `src/components/game/GameShell.tsx`        | ya      | Shell halaman game + state layar judul/main/hasil       |
+| `src/components/game/TitleScreen.tsx`      | ya      | Layar judul: ringkasan cerita + menu Mulai              |
+| `src/components/game/HUD.tsx`              | ya      | HUD: chapter aktif, tombol suara, tombol jeda           |
+| `src/components/game/PauseMenu.tsx`        | ya      | Menu jeda: lanjut, ulangi chapter, suara, keluar        |
+| `src/components/game/ResultScreen.tsx`     | ya      | Layar hasil: skor, jawaban tepat, konsep lemah          |
+| `src/app/play`                             | ya      | Halaman siswa dari cerita demo                          |
+| `src/server/config.ts`                     | ya      | Konfigurasi env server (satu-satunya pembaca)           |
+| `src/server/config.test.ts`                | ya      | Tes konfigurasi env                                     |
+| `src/server/auth.ts`                       | ya      | Auth guru: kode akses, token cookie, `requireTeacher`   |
+| `src/server/auth.test.ts`                  | ya      | Tes kode akses, token, cookie, dan sesi guru            |
+| `src/server/stories.ts`                    | rencana | Query cerita (butuh DB, ADR 0005)                       |
+| `src/app/guru`                             | rencana | Halaman guru                                            |
+| `src/app/api`                              | ya      | Route handler                                           |
+| `src/app/api/health/route.ts`              | ya      | `GET /api/health`: cek hidup + versi build              |
+| `src/app/api/health/route.test.ts`         | ya      | Tes kontrak respons health                              |
+| `src/app/api/upload/route.ts`              | ya      | `POST /api/upload`: validasi PDF + buat story & job     |
+| `src/app/api/upload/route.test.ts`         | ya      | Tes route upload (libSQL in-memory)                     |
+| `src/server/api-error.ts`                  | ya      | Helper respons error bentuk `ApiError`                  |
+| `src/server/jobs/schedule.ts`              | ya      | Placeholder penjadwal job (diisi di task 18)            |
+| `public/assets`                            | ya      | File aset game (dibuat `bun run assets:generate`)       |
+| `scripts/generate-assets.mjs`              | ya      | Generator aset pixel + audio, tanpa dependensi          |
 
 ## Struktur target
 

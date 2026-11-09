@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -91,9 +91,15 @@ Catatan:
 
 ## Ukuran teks
 
-Canvas 480×270 diskalakan dengan `Phaser.Scale.FIT`, jadi skalanya mengikuti lebar
-kontainer. Di layar 1280×720 skala ~2.67x: font pixel 12 px menjadi ~32 px —
-nyaman.
+Canvas berukuran sesuai resolusi internal (sekarang 480×270) dan diskalakan
+dengan `Phaser.Scale.FIT`, jadi skalanya mengikuti lebar kontainer. Di layar
+1280×720 skala ~2.67x: font pixel 12 px menjadi ~32 px — nyaman.
+
+> Perhitungan ini ikut berubah jika ADR
+> [`0009`](../09-decisions/0009-resolution-and-scale.md) diterima. Angka baru
+> (resolusi, tile, font pixel) ada di
+> [`world-design.md`](./world-design.md#satuan-dasar); bagian ini diperbarui di
+> PR implementasinya, bukan sekarang.
 
 Masalahnya di layar kecil: pada HP 360 px, skala hanya 0.75x, sehingga font 12 px
 menjadi ~9 px. Itu **di bawah** batas minimum yang kita janjikan. Karena itu:

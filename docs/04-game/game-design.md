@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -17,6 +17,10 @@ antar "dunia".
 
 **Yang tidak diambil:** tema trauma, horor psikologis, kekerasan, dan nada depresif.
 ClassQuest harus aman dimainkan siswa sekolah.
+
+Cara menerjemahkan arah ini menjadi ruangan yang dilihat dari atas — satuan tile,
+perspektif objek, urutan gambar, dan kamera — ada di
+[`world-design.md`](./world-design.md).
 
 ### Palet
 
