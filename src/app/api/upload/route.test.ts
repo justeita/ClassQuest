@@ -357,6 +357,24 @@ describe("POST /api/upload — unggahan valid", () => {
     expect(call.pdf.filename).toBe("materi.pdf");
   });
 
+  it("meneruskan tone dari form ke scheduleJob", async () => {
+    const response = await POST(
+      multipartRequest({ fields: { tone: "tegang tapi ramah" } }),
+    );
+    expect(response.status).toBe(202);
+
+    const call = scheduleJobMock.mock.calls[0][0] as { tone?: string };
+    expect(call.tone).toBe("tegang tapi ramah");
+  });
+
+  it("memakai tone bawaan kontrak saat field tone kosong", async () => {
+    const response = await POST(multipartRequest({}));
+    expect(response.status).toBe(202);
+
+    const call = scheduleJobMock.mock.calls[0][0] as { tone?: string };
+    expect(call.tone).toBe("hangat dan penasaran");
+  });
+
   it("tidak pernah memanggil node:fs/promises (tidak ada penulisan file)", async () => {
     const response = await POST(multipartRequest({}));
     expect(response.status).toBe(202);

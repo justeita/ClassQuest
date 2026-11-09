@@ -118,7 +118,10 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/api/upload/route.ts`              | ya      | `POST /api/upload`: validasi PDF + buat story & job   |
 | `src/app/api/upload/route.test.ts`         | ya      | Tes route upload (libSQL in-memory)                   |
 | `src/server/api-error.ts`                  | ya      | Helper respons error bentuk `ApiError`                |
-| `src/server/jobs/schedule.ts`              | ya      | Placeholder penjadwal job (diisi di task 18)          |
+| `src/server/jobs/run.ts`                   | ya      | Job runner: ekstraksi → pipeline → simpan versi       |
+| `src/server/jobs/run.test.ts`              | ya      | Tes job runner (libSQL in-memory, provider mock)      |
+| `src/server/jobs/schedule.ts`              | ya      | `scheduleJob()`: jalankan runner lewat `after()`      |
+| `src/server/jobs/schedule.test.ts`         | ya      | Tes penjadwalan `after()` dan penanganan kegagalan    |
 | `public/assets`                            | rencana | File aset game                                        |
 
 ## Struktur target
