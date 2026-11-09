@@ -127,6 +127,7 @@ Tidak perlu baca semua. Pilih sesuai pekerjaanmu, lalu ikuti tautannya.
 | Ubah prompt / aturan AI  | [`03-ai-pipeline/prompt-contract.md`](./03-ai-pipeline/prompt-contract.md), [`03-ai-pipeline/generation-rules.md`](./03-ai-pipeline/generation-rules.md) |
 | Tambah tipe soal         | [`02-data-model/challenge-types.md`](./02-data-model/challenge-types.md)                                                                                 |
 | Kerja di game/Phaser     | [`04-game/engine.md`](./04-game/engine.md), [`04-game/scene-format.md`](./04-game/scene-format.md)                                                       |
+| Kerja di map/visual game | [`04-game/world-design.md`](./04-game/world-design.md), [`04-game/game-design.md`](./04-game/game-design.md)                                             |
 | Kerja di UI guru         | [`05-frontend/teacher-dashboard.md`](./05-frontend/teacher-dashboard.md), [`05-frontend/story-editor.md`](./05-frontend/story-editor.md)                 |
 | Tambah endpoint API      | [`06-backend/api-contract.md`](./06-backend/api-contract.md)                                                                                             |
 | Tambah/ganti aset        | [`07-assets/asset-guide.md`](./07-assets/asset-guide.md), [`07-assets/inventory.md`](./07-assets/inventory.md)                                           |
@@ -169,6 +170,7 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`04-game/game-design.md`](./04-game/game-design.md)                                                     | stable | Arah visual, suasana, dan loop permainan                 |
 | [`04-game/engine.md`](./04-game/engine.md)                                                               | draft  | Cara Phaser 4 dipasang di Next.js                        |
 | [`04-game/scene-format.md`](./04-game/scene-format.md)                                                   | draft  | Cara cerita JSON jadi tampilan game                      |
+| [`04-game/world-design.md`](./04-game/world-design.md)                                                   | draft  | Satuan tile, perspektif, map, kamera, dan font           |
 | [`04-game/interaction-loop.md`](./04-game/interaction-loop.md)                                           | draft  | Perilaku saat siswa klik, jawab, atau menutup tab        |
 | [`04-game/accessibility.md`](./04-game/accessibility.md)                                                 | draft  | Keyboard, kontras, dan batas aksesibilitas MVP           |
 | [`05-frontend/routes.md`](./05-frontend/routes.md)                                                       | draft  | Daftar halaman dan endpoint                              |
@@ -197,6 +199,8 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0006-ai-provider.md`](./09-decisions/0006-ai-provider.md)                                 | tbd    | Penyedia model AI belum dipilih                          |
 | [`09-decisions/0007-hybrid-ui.md`](./09-decisions/0007-hybrid-ui.md)                                     | stable | Kenapa canvas dan DOM dipakai bersama                    |
 | [`09-decisions/0008-top-down-movement.md`](./09-decisions/0008-top-down-movement.md)                     | stable | Gerak bebas top-down dengan map dummy                    |
+| [`09-decisions/0009-resolution-and-scale.md`](./09-decisions/0009-resolution-and-scale.md)               | stable | Resolusi 640x360, tile 16, karakter 24x32                |
+| [`09-decisions/0010-map-data-and-camera.md`](./09-decisions/0010-map-data-and-camera.md)                 | stable | Map data per scene, kamera follow dengan batas map       |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                         | draft  | Urutan kerja dan pembagian tugas                         |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                               | draft  | Naskah demo 3 menit + sketsa layar                       |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                     | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal |

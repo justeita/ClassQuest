@@ -6,6 +6,8 @@ import {
   ChallengeOverlay,
   type GradedView,
 } from "@/components/game/ChallengeOverlay";
+import { Hud, type ProgresBab } from "@/components/game/HUD";
+import { PauseMenu } from "@/components/game/PauseMenu";
 import type { ChallengeView } from "@/game/challengeView";
 import type { GameBus } from "@/game/gameBus";
 import type { GameHandle } from "@/game/types";
@@ -23,8 +25,13 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<GameHandle | null>(null);
   const busRef = useRef<GameBus | null>(null);
+  const tombolJedaRef = useRef<HTMLButtonElement>(null);
+  const pernahJeda = useRef(false);
   const [tantangan, setTantangan] = useState<ChallengeView | null>(null);
   const [hasil, setHasil] = useState<GradedView | null>(null);
+  const [progres, setProgres] = useState<ProgresBab | null>(null);
+  const [jeda, setJeda] = useState(false);
+  const [suaraAktif, setSuaraAktif] = useState(true);
 
   // Callback disimpan di ref agar pergantian identitas tidak memuat ulang Phaser.
   const onFinishedRef = useRef(onFinished);
@@ -65,6 +72,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
             onFinishedRef.current?.(result);
           }),
         );
+        lepas.push(
+          game.bus.on("progress", (bab) => {
+            setProgres(bab);
+          }),
+        );
       })
       .catch((error: unknown) => {
         console.error("Gagal memuat game:", error);
@@ -78,6 +90,24 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       busRef.current = null;
     };
   }, [story]);
+
+  const bukaJeda = useCallback(() => {
+    busRef.current?.send({ type: "pause" });
+    setJeda(true);
+  }, []);
+
+  const tutupJeda = useCallback(() => {
+    busRef.current?.send({ type: "resume" });
+    setJeda(false);
+  }, []);
+
+  /** Fokus kembali ke tombol Jeda setelah menu ditutup, bukan hilang ke body. */
+  useEffect(() => {
+    if (pernahJeda.current && !jeda) {
+      tombolJedaRef.current?.focus({ preventScroll: true });
+    }
+    pernahJeda.current = jeda;
+  }, [jeda]);
 
   const kirimJawaban = useCallback((answer: Answer) => {
     busRef.current?.send({
@@ -99,6 +129,45 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     });
   }, [tantangan, hasil]);
 
+  const gantiSuara = useCallback(() => {
+    const berikut = !suaraAktif;
+    setSuaraAktif(berikut);
+    busRef.current?.send({ type: "set_muted", muted: !berikut });
+  }, [suaraAktif]);
+
+  const ulangiChapter = useCallback(() => {
+    setTantangan(null);
+    setHasil(null);
+    busRef.current?.send({ type: "restart_chapter" });
+    tutupJeda();
+  }, [tutupJeda]);
+
+  // Esc: buka/tutup jeda. Saat tantangan terbuka, Esc hanya berlaku setelah
+  // dijawab (docs/04-game/interaction-loop.md) — sebelum itu diabaikan.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+
+      if (tantangan) {
+        if (hasil) {
+          event.preventDefault();
+          lanjut();
+        }
+        return;
+      }
+
+      event.preventDefault();
+      if (jeda) {
+        tutupJeda();
+      } else {
+        bukaJeda();
+      }
+    }
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tantangan, hasil, jeda, lanjut, bukaJeda, tutupJeda]);
+
   return (
     <div className="relative h-full w-full">
       <div
@@ -107,12 +176,29 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         role="region"
         aria-label="Area permainan ClassQuest"
       />
+      {!jeda && !tantangan && (
+        <Hud
+          progres={progres}
+          suaraAktif={suaraAktif}
+          onToggleSuara={gantiSuara}
+          onJeda={bukaJeda}
+          tombolJedaRef={tombolJedaRef}
+        />
+      )}
       {tantangan && (
         <ChallengeOverlay
           view={tantangan}
           graded={hasil}
           onSubmit={kirimJawaban}
           onResolve={lanjut}
+        />
+      )}
+      {jeda && (
+        <PauseMenu
+          onLanjut={tutupJeda}
+          onUlangiChapter={ulangiChapter}
+          suaraAktif={suaraAktif}
+          onToggleSuara={gantiSuara}
         />
       )}
     </div>

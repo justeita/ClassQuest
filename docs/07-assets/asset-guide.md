@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -16,6 +16,12 @@ dalam waktu hackathon.
 
 ## Spesifikasi
 
+> Angka di bagian ini mengikuti resolusi internal yang berlaku sekarang.
+> Keputusan untuk menaikkan resolusi dan mengecilkan karakter ada di
+> [`../09-decisions/0009-resolution-and-scale.md`](../09-decisions/0009-resolution-and-scale.md);
+> angka finalnya di [`../04-game/world-design.md`](../04-game/world-design.md#satuan-dasar).
+> Selama ADR itu masih `Proposed`, **spesifikasi di bawah yang dipakai**.
+
 ### Background
 
 | Properti     | Nilai                                                   |
@@ -26,6 +32,11 @@ dalam waktu hackathon.
 | Gaya         | Pixel art, tanpa anti-aliasing                          |
 | Ukuran file  | ≤ 80 KB per gambar                                      |
 | Area aman    | 90 px bawah untuk textbox (jangan taruh detail penting) |
+
+Background di dalam permainan kelak disusun dari tile lantai, dinding, dan
+objek (lihat [`../04-game/world-design.md`](../04-game/world-design.md#lampiran-aset-latar)),
+bukan satu gambar pemandangan. Latar pemandangan tetap dipakai untuk layar
+judul dan layar hasil.
 
 ### Sprite karakter
 

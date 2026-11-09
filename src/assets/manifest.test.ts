@@ -62,8 +62,8 @@ const REQUIRED_FALLBACKS: Partial<Record<AssetKind, string>> = {
 };
 
 /**
- * File yang **sengaja belum dibuat**. Semua aset di `inventory.md` masih
- * berstatus `todo`, dan tugas ini dilarang membuat placeholder.
+ * File yang **sengaja belum dibuat**. Saat ini kosong: semua aset di
+ * `inventory.md` sudah berstatus `ready` dan berkasnya ada di `public/`.
  *
  * Kunci memakai `id`, atau `id#portrait` untuk `portraitPath`. Test di bawah
  * membandingkan daftar file yang hilang dengan daftar ini **persis**: menambah
@@ -71,37 +71,7 @@ const REQUIRED_FALLBACKS: Partial<Record<AssetKind, string>> = {
  * jadi tidak ada aset yang hilang diam-diam. Begitu file aset dibuat, hapus
  * barisnya di sini.
  */
-const PENDING_FILES: readonly string[] = [
-  "bg_classroom_day",
-  "bg_schoolyard_day",
-  "bg_schoolyard_evening",
-  "bg_cloud_sky",
-  "bg_mountain_night",
-  "bg_river_day",
-  "bg_library_evening",
-  "bg_default",
-  "char_nara",
-  "char_nara#portrait",
-  "char_pak_bima",
-  "char_pak_bima#portrait",
-  "char_tirta",
-  "char_tirta#portrait",
-  "char_rani",
-  "char_rani#portrait",
-  "char_default",
-  "bgm_school_calm",
-  "bgm_adventure",
-  "bgm_mystery",
-  "bgm_ending",
-  "bgm_default",
-  "sfx_click",
-  "sfx_correct",
-  "sfx_wrong",
-  "sfx_page",
-  "ui_textbox",
-  "ui_portrait_frame",
-  "ui_default",
-];
+const PENDING_FILES: readonly string[] = [];
 
 const fileEntries = (asset: AssetEntry) => [
   { key: asset.id, path: asset.path },

@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -17,6 +17,10 @@ antar "dunia".
 
 **Yang tidak diambil:** tema trauma, horor psikologis, kekerasan, dan nada depresif.
 ClassQuest harus aman dimainkan siswa sekolah.
+
+Cara menerjemahkan arah ini menjadi ruangan yang dilihat dari atas — satuan tile,
+perspektif objek, urutan gambar, dan kamera — ada di
+[`world-design.md`](./world-design.md).
 
 ### Palet
 
@@ -48,6 +52,37 @@ Cara memakai tanpa bingung:
 
 Jangan menambah warna di luar palet tanpa memperbarui dokumen ini dan
 [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md).
+
+#### Ramp turunan
+
+Aset piksel butuh lebih dari delapan nilai untuk membentuk bayangan dan cahaya.
+Semua nilai tambahan di bawah ini **bukan warna baru**: masing-masing adalah
+hasil `mix()` dua warna palet atau `shade()` satu warna palet dengan faktor
+tetap. Definisinya ada di `scripts/lib/palette.mjs` (`RAMP`), dan generator aset
+hanya boleh memakai warna dari tabel ini.
+
+| Nama         | Hex       | Asal                                         |
+| ------------ | --------- | -------------------------------------------- |
+| `deep`       | `#0B120E` | `night` × 0.55                               |
+| `nightMid`   | `#0E1713` | `night` × 0.72                               |
+| `neutral700` | `#3D4C43` | `night` + `neutral500` (1/3)                 |
+| `neutral500` | `#8FA396` | netral tengah (dipakai teks sekunder DOM)    |
+| `neutral300` | `#D9E4DA` | netral terang (dipakai teks isi panel gelap) |
+| `skyNight`   | `#2C3D41` | `night` + `cool` (0.22)                      |
+| `skyDusk`    | `#544937` | `night` + `warm` (0.30)                      |
+| `skyDay`     | `#BFCED9` | `paper` + `cool` (0.45)                      |
+| `far`        | `#21302F` | `night` + `cool` (0.12)                      |
+| `mid`        | `#293B3D` | `night` + `cool` (0.20)                      |
+| `near`       | `#191F20` | `night` + `ink` (0.45)                       |
+| `skin`       | `#EFCFB6` | `warm` + `paper` (0.55)                      |
+| `skinShade`  | `#9E785A` | `warm` + `night` (0.35)                      |
+| `water`      | `#64859D` | `cool` + `night` (0.25)                      |
+| `waterDeep`  | `#445C69` | `cool` + `night` (0.55)                      |
+| `leaf`       | `#587C62` | `moss` + `night` (0.25)                      |
+| `leafLight`  | `#9EB8A0` | `moss` + `paper` (0.35)                      |
+| `glow`       | `#DAC173` | `gold` + `paper` (0.40)                      |
+
+Menambah entri `RAMP` berarti menambah baris di tabel ini pada PR yang sama.
 
 ### Resolusi dan skala
 

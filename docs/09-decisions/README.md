@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -11,16 +11,18 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 
 ## Daftar
 
-| #    | Judul                                                         | Status       | Dampak              |
-| ---- | ------------------------------------------------------------- | ------------ | ------------------- |
-| 0001 | [Next.js App Router](0001-nextjs-app-router.md)               | Accepted     | Seluruh aplikasi    |
-| 0002 | [Story JSON sebagai kontrak](0002-story-json-as-contract.md)  | Accepted     | AI, editor, game    |
-| 0003 | [Aset tetap dari manifest](0003-fixed-asset-library.md)       | Accepted     | AI, game, aset      |
-| 0004 | [Phaser 4.2.1 sebagai engine](0004-phaser-4.md)               | Accepted     | Game                |
-| 0005 | [Persistence dan storage](0005-persistence-and-storage.md)    | **Proposed** | Backend             |
-| 0006 | [Provider AI](0006-ai-provider.md)                            | **Proposed** | Pipeline            |
-| 0007 | [UI hybrid Phaser + DOM](0007-hybrid-ui.md)                   | Accepted     | Game, aksesibilitas |
-| 0008 | [Gerak bebas top-down dalam scene](0008-top-down-movement.md) | Accepted     | Game                |
+| #    | Judul                                                                | Status       | Dampak              |
+| ---- | -------------------------------------------------------------------- | ------------ | ------------------- |
+| 0001 | [Next.js App Router](0001-nextjs-app-router.md)                      | Accepted     | Seluruh aplikasi    |
+| 0002 | [Story JSON sebagai kontrak](0002-story-json-as-contract.md)         | Accepted     | AI, editor, game    |
+| 0003 | [Aset tetap dari manifest](0003-fixed-asset-library.md)              | Accepted     | AI, game, aset      |
+| 0004 | [Phaser 4.2.1 sebagai engine](0004-phaser-4.md)                      | Accepted     | Game                |
+| 0005 | [Persistence dan storage](0005-persistence-and-storage.md)           | **Proposed** | Backend             |
+| 0006 | [Provider AI](0006-ai-provider.md)                                   | **Proposed** | Pipeline            |
+| 0007 | [UI hybrid Phaser + DOM](0007-hybrid-ui.md)                          | Accepted     | Game, aksesibilitas |
+| 0008 | [Gerak bebas top-down dalam scene](0008-top-down-movement.md)        | Accepted     | Game                |
+| 0009 | [Resolusi internal dan skala karakter](0009-resolution-and-scale.md) | **Accepted** | Game, aset          |
+| 0010 | [Map data-driven dan kamera](0010-map-data-and-camera.md)            | **Accepted** | Game                |
 
 ## Status
 
@@ -59,6 +61,8 @@ Tidak perlu ADR untuk: rename variabel, perbaikan bug, penambahan test.
 | Provider LLM apa?                     | 0006 | Sebelum pipeline    |
 | Auth guru seperti apa?                | 0005 | Setelah demo        |
 | Job async pakai `after()` atau queue? | 0005 | Saat butuh produksi |
+| Resolusi internal 640×360?            | 0009 | Sebelum PR aset     |
+| Map per scene + kamera mengikuti?     | 0010 | Sebelum PR map      |
 
 ## Aturan
 

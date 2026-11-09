@@ -202,8 +202,12 @@ describe("riwayat commit (halaman 15-16)", () => {
     expect(wrong).toEqual([]);
   });
 
+  // Memindai `git show --numstat` untuk SELURUH riwayat, jadi durasinya naik
+  // seiring jumlah commit. Beri batas yang cukup agar tidak gagal karena
+  // bersaing dengan 35 file tes lain, bukan karena aturannya dilanggar.
   it.skipIf(!hasHistory)(
     "tidak ada commit berisi seluruh proyek sekaligus",
+    { timeout: 30_000 },
     () => {
       const wrong = commits.flatMap((c) => {
         const lines = git("show", "--numstat", "--format=", c.hash)
