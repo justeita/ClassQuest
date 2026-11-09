@@ -17,6 +17,9 @@ import {
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import type { PlayerConfig } from "../types";
 import { StoryRunner } from "../StoryRunner";
+import { buildChallengeView } from "../challengeView";
+import type { GameBus } from "../gameBus";
+import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { Story } from "@/story/schema";
 
 /** Kecepatan pemain placeholder (piksel/detik) hingga ada pengaturan. */
@@ -32,11 +35,8 @@ const DEBOUNCE_MS = 150;
 
 const DUMMY_STORY = demoStoryJson as unknown as Story;
 
-/** Placeholder beat tantangan sampai overlay DOM siap (PR berikutnya). */
-const CHALLENGE_PLACEHOLDER =
-  "(Tantangan di sini — overlay akan datang di PR berikutnya.)";
-
 export class GameScene extends Phaser.Scene {
+  private readonly bus?: GameBus;
   private room: RoomMap = DUMMY_ROOM;
   private player?: Phaser.GameObjects.Rectangle;
   private keys?: MovementKeys;
@@ -50,8 +50,9 @@ export class GameScene extends Phaser.Scene {
   private prompt?: InteractPrompt;
   private lastAdvance = 0;
 
-  constructor() {
+  constructor(bus?: GameBus) {
     super("GameScene");
+    this.bus = bus;
   }
 
   create() {
@@ -82,6 +83,16 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, wallBodies);
 
     this.input.on("pointerdown", () => this.onLanjutInput());
+
+    // React mengirim jawaban siswa; penilaian tetap di sisi game (pemegang Story).
+    this.bus?.onCommand("submit_answer", ({ answer }) => {
+      this.nilaiJawaban(answer);
+    });
+    // React menutup overlay setelah feedback; cerita lanjut dari sini.
+    this.bus?.onCommand("resolve_challenge", () => {
+      this.runner.resolveChallenge();
+      this.presentBeat();
+    });
   }
 
   update(_time: number, delta: number) {
@@ -143,15 +154,28 @@ export class GameScene extends Phaser.Scene {
 
   /** Lanjut dari beat yang sedang tampil ke beat/scene berikutnya. */
   private lanjutBeat() {
-    const phase = this.runner.getState().phase;
+    // Saat challenge, input dialog diabaikan — overlay React yang memegang kendali.
+    if (this.runner.getState().phase === "challenge") return;
 
-    if (phase === "challenge") {
-      // Placeholder: overlay tantangan asli menyusul di PR berikutnya.
-      this.runner.resolveChallenge();
-    } else {
-      this.runner.advance();
-    }
+    this.runner.advance();
     this.presentBeat();
+  }
+
+  /** Nilai jawaban lewat fungsi murni backend, lalu kirim hasil ke React. */
+  private nilaiJawaban(answer: Answer) {
+    const state = this.runner.getState();
+    if (state.phase !== "challenge" || !state.beat) return;
+
+    const challenge = this.runner.getChallenge(answer.challengeId);
+    if (!challenge) return;
+
+    const hasil = scoreAnswer(challenge, answer);
+    this.bus?.emit({
+      type: "graded",
+      challengeId: hasil.challengeId,
+      correct: hasil.isCorrect,
+      explanation: challenge.explanation,
+    });
   }
 
   /** Tampilkan beat aktif sesuai fase runner. */
@@ -177,6 +201,11 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    if (beat.type === "challenge") {
+      this.bukaTantangan(beat.challengeId);
+      return;
+    }
+
     let view: BeatView;
     if (beat.type === "dialogue") {
       this.dimNpc(beat.speakerId);
@@ -184,15 +213,22 @@ export class GameScene extends Phaser.Scene {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
         text: beat.text,
       };
-    } else if (beat.type === "challenge") {
-      // Placeholder sampai overlay tantangan siap (PR berikutnya).
-      this.dimNpc(null);
-      view = { name: null, text: CHALLENGE_PLACEHOLDER };
     } else {
       this.dimNpc(null);
       view = { name: null, text: beat.text };
     }
     this.textbox?.show(view);
+  }
+
+  /** Dialog ditahan (bukan ditutup) saat overlay tantangan tampil. */
+  private bukaTantangan(challengeId: string) {
+    this.textbox?.hide();
+    this.dimNpc(null);
+
+    const challenge = this.runner.getChallenge(challengeId);
+    if (!challenge || !this.bus) return;
+
+    this.bus.emit({ type: "challenge", view: buildChallengeView(challenge) });
   }
 
   private presentTransition(withFade: boolean) {
