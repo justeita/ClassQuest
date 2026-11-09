@@ -99,7 +99,7 @@ export class GameScene extends Phaser.Scene {
     const phase = this.runner.getState().phase;
 
     if (phase === "explore") {
-      this.updateExplore(delta);
+      this.updateExplore();
     } else {
       this.textbox?.tick(delta);
       this.checkLanjutKeys();
@@ -107,7 +107,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Fase explore: gerak bebas, zona interaksi, dan pemicu dialog. */
-  private updateExplore(delta: number) {
+  private updateExplore() {
     if (this.player) {
       applyMovement(this.player, this.keys);
     }

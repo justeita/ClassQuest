@@ -264,6 +264,11 @@ Aturan:
 
 ## Bridge Phaser ↔ React
 
+Implementasi: `src/game/gameBus.ts` — emitter kecil bertipe (bukan
+`EventEmitter` global) agar mudah dites dan tidak bocor antar-instance.
+Sudah diimplementasikan: event `challenge`, `graded`; command `submit_answer`,
+`resolve_challenge`. Sisanya masih rencana.
+
 Event yang dikirim **dari** Phaser:
 
 ```ts
@@ -272,7 +277,13 @@ type GameEvent =
   | { type: "chapter_start"; chapterId: string; index: number; total: number }
   | { type: "scene_start"; sceneId: string }
   | { type: "beat"; beat: BeatView }
-  | { type: "challenge"; challengeId: string }
+  | { type: "challenge"; view: ChallengeView }
+  | {
+      type: "graded";
+      challengeId: string;
+      correct: boolean;
+      explanation: string;
+    }
   | { type: "chapter_complete"; chapterId: string }
   | { type: "story_complete" }
   | { type: "error"; code: string };
@@ -283,14 +294,22 @@ Perintah **ke** Phaser:
 ```ts
 type GameCommand =
   | { type: "advance" }
+  | { type: "submit_answer"; challengeId: string; answer: Answer }
   | { type: "resolve_challenge"; challengeId: string; correct: boolean }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "restart_chapter" };
 ```
 
-Implementasi: emitter kecil bertipe (bukan `EventEmitter` global) agar mudah
-dites dan tidak bocor antar-instance.
+Aturan yang mengikat:
+
+- `challenge` membawa `ChallengeView` dari `challengeView.ts` — **tanpa**
+  `correctOptionId`, `correctAnswer`, `correctOrder`, `acceptedAnswers`, atau
+  `explanation`. Overlay tidak boleh menerima jawaban.
+- Penilaian dijalankan di sisi game (pemegang `Story`) memakai `scoreAnswer()`
+  dari `src/story/scoring.ts`; hasilnya dikirim sebagai `graded`.
+- Selama fase `challenge`, input dialog diabaikan sampai `resolve_challenge`
+  diterima.
 
 ## Alur state
 
