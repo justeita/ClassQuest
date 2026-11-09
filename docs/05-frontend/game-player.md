@@ -26,9 +26,13 @@ src/app/play/[storyId]/page.tsx        (Server Component)
 Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
-> **Yang ada hari ini:** belum ada satu pun komponen game. `GameShell` dan
-> `GameCanvas` masih rencana, begitu juga `ChallengeOverlay`, `HUD`, `PauseMenu`,
-> dan `ResultScreen` di diagram atas.
+> **Yang ada hari ini:** `GameShell`, `GameCanvas`, `ChallengeOverlay`, dan
+> `ResultScreen` sudah ada. `HUD` dan `PauseMenu` masih rencana.
+>
+> `/play/[storyId]` sudah berjalan, tetapi cerita masih dibaca dari fixture
+> (`src/game/demoStory.ts`), bukan dari `getPublishedStory()`. Hanya id cerita
+> demo yang dikenali (`generateStaticParams`); id lain → 404. Progres
+> `localStorage` dan layar "Lanjutkan" **belum** ada.
 
 ## Pengambilan data
 

@@ -98,11 +98,14 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/movement.ts`                     | ya      | Gerak pemain 4 arah + collision top-down (ADR 0008) |
 | `src/game/gameBus.ts`                      | ya      | Bridge bertipe Phaser ↔ React (event + command)     |
 | `src/game/challengeView.ts`                | ya      | Data tantangan aman untuk overlay (tanpa jawaban)   |
+| `src/game/answerLog.ts`                    | ya      | Catatan jawaban percobaan pertama + ringkasan hasil |
+| `src/game/demoStory.ts`                    | ya      | Akses cerita demo untuk halaman siswa dan dev       |
 | `src/game/fixture`                         | ya      | Cerita demo untuk pengembangan frontend game        |
 | `src/components/game/GameCanvas.tsx`       | ya      | Host Phaser + overlay tantangan di React            |
 | `src/components/game/ChallengeOverlay.tsx` | ya      | Overlay tantangan DOM di atas canvas                |
-| `src/components/game/GameShell.tsx`        | rencana | Shell fullscreen halaman game                       |
-| `src/app/play`                             | rencana | Halaman siswa                                       |
+| `src/components/game/GameShell.tsx`        | ya      | Shell halaman game + layar hasil                    |
+| `src/components/game/ResultScreen.tsx`     | ya      | Layar hasil: skor, jawaban tepat, konsep lemah      |
+| `src/app/play`                             | ya      | Halaman siswa dari cerita demo                      |
 | `src/server/config.ts`                     | ya      | Konfigurasi env AI (satu-satunya pembaca)           |
 | `src/server/config.test.ts`                | ya      | Tes konfigurasi env AI                              |
 | `src/server/stories.ts`                    | rencana | Query cerita (butuh DB, ADR 0005)                   |
