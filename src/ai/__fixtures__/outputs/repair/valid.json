@@ -1,0 +1,92 @@
+{
+  "chapter": {
+    "id": "ch_01",
+    "title": "Daun yang Bekerja",
+    "concept": "Fotosintesis",
+    "summary": "Nara memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
+    "backgroundId": "bg_classroom_day",
+    "musicId": "bgm_school_calm",
+    "scenes": [
+      {
+        "id": "sc_01_01",
+        "title": "Daun di Depan Kelas",
+        "beats": [
+          {
+            "type": "narration",
+            "text": "Nara mengamati daun yang basah oleh embun pagi di depan kelas."
+          },
+          {
+            "type": "dialogue",
+            "speakerId": "char_pak_bima",
+            "text": "Daun itu tidak makan seperti kita. Ia membuat makanannya sendiri dengan bantuan cahaya matahari."
+          },
+          {
+            "type": "challenge",
+            "challengeId": "chl_01_01"
+          }
+        ]
+      },
+      {
+        "id": "sc_01_02",
+        "title": "Pertanyaan Nara",
+        "beats": [
+          {
+            "type": "narration",
+            "text": "Nara menempelkan telapak tangan di dekat daun. Permukaannya terasa dingin dan sedikit lembap."
+          },
+          {
+            "type": "dialogue",
+            "speakerId": "char_nara",
+            "text": "Jadi cahaya matahari dipakai daun untuk memasak? Bagaimana caranya?"
+          },
+          {
+            "type": "narration",
+            "text": "Pak Bima menunjuk jendela. Di luar, matahari sedang naik di atas atap sekolah."
+          }
+        ]
+      }
+    ]
+  },
+  "challenges": [
+    {
+      "id": "chl_01_01",
+      "type": "multiple_choice",
+      "prompt": "Apa yang dibutuhkan daun untuk membuat makanan sendiri?",
+      "conceptTag": "Fotosintesis",
+      "difficulty": 1,
+      "explanation": "Fotosintesis membutuhkan cahaya matahari sebagai sumber energi untuk mengubah air dan karbon dioksida menjadi makanan.",
+      "points": 10,
+      "options": [
+        {
+          "id": "opt_a",
+          "text": "Cahaya matahari"
+        },
+        {
+          "id": "opt_b",
+          "text": "Tanah kering"
+        },
+        {
+          "id": "opt_c",
+          "text": "Angin malam"
+        }
+      ],
+      "correctOptionId": "opt_a"
+    }
+  ],
+  "continuity": {
+    "previousChapterSummary": "Nara baru saja mulai mengamati daun di depan kelas.",
+    "characterStates": [
+      {
+        "id": "char_nara",
+        "location": "kelas",
+        "knows": ["daun membutuhkan cahaya matahari"]
+      },
+      {
+        "id": "char_pak_bima",
+        "location": "kelas",
+        "knows": ["fotosintesis membuat makanan dari cahaya"]
+      }
+    ],
+    "openThreads": ["Apa peran warna hijau pada daun?"]
+  }
+}

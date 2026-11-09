@@ -75,6 +75,10 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/story/scoring.ts`                    | ya      | Penilaian jawaban, fungsi murni                     |
 | `src/story/fallback.ts`                   | ya      | Cerita cadangan (deterministik, selalu valid)       |
 | `src/assets/manifest.ts`                  | rencana | Daftar resmi aset                                   |
+| `src/ai/provider.ts`                      | ya      | Antarmuka `LlmProvider` + error provider            |
+| `src/ai/mock-provider.ts`                 | ya      | Provider mock deterministik dari fixture            |
+| `src/ai/factory.ts`                       | ya      | `createLlmProvider` dari konfigurasi env AI         |
+| `src/ai/__fixtures__/outputs`             | ya      | Fixture keluaran mock (valid, rusak, timeout)       |
 | `src/ai/pipeline.ts`                      | rencana | Outline → generate → repair                         |
 | `src/game/config.ts`                      | ya      | Konfigurasi Phaser (480×270)                        |
 | `src/game/createGame.ts`                  | ya      | Entry `createGame(parent)`, dipanggil React         |
