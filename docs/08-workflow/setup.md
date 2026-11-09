@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -46,7 +46,9 @@ AI_BASE_URL=
 AI_TIMEOUT_MS=60000
 
 # Akses guru (sementara, sampai auth nyata)
+# Keduanya wajib agar login berhasil. Kosong = login selalu gagal.
 TEACHER_ACCESS_CODE=
+TEACHER_SESSION_SECRET=
 
 # Database/storage (TBD, lihat docs/06-backend/persistence.md)
 DATABASE_URL=

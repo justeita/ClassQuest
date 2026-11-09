@@ -1,6 +1,6 @@
 ---
 status: tbd
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -243,9 +243,14 @@ AI", tambahkan sebagai kolom terpisah (mis. `reviewed_at`), bukan status baru.
 
 MVP cukup:
 
-- Satu kode akses guru dari env, disimpan di cookie `httpOnly` setelah berhasil.
-- `requireTeacher()` membaca cookie dan membandingkan hash.
-- Tidak ada pendaftaran, reset password, atau multi-guru.
+- Satu kode akses guru dari env (`TEACHER_ACCESS_CODE`), dibandingkan dengan
+  perbandingan waktu-tetap setelah di-hash.
+- Setelah berhasil, server menerbitkan cookie `httpOnly` berisi token bertanda
+  tangan HMAC-SHA256 dengan `TEACHER_SESSION_SECRET`; masa berlaku 8 jam.
+- `requireTeacher()` memverifikasi tanda tangan dan masa berlaku token, lalu
+  mengembalikan identitas guru dari baris `teachers` tetap (`teacher_demo`).
+- Tidak ada pendaftaran, reset password, atau multi-guru. Kolom `access_code`
+  dibiarkan kosong karena kode mentah tidak boleh disimpan.
 
 Jangan mengklaim ini aman untuk produksi. Untuk produksi, gunakan penyedia auth
 nyata dan tabel `teachers` di atas.

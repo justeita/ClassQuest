@@ -128,11 +128,37 @@ create index if not exists play_results_story_idx on play_results (story_id, cre
  * Daftar migrasi berurutan. Jangan mengubah entri yang sudah pernah dipakai;
  * tambahkan entri baru di akhir.
  */
+/**
+ * Migrasi 0002: melonggarkan `stories.source_file_path`.
+ *
+ * Keputusan produk: PDF **hanya** diproses di memori dan tidak pernah disimpan
+ * (tidak ke disk, bucket, atau database). Akibatnya tidak ada path file yang
+ * bisa diisi, sementara skema 0001 menetapkannya `not null`.
+ *
+ * Cara: kolom dihapus lalu ditambahkan kembali sebagai nullable. Ini menghindari
+ * rebuild tabel (yang berisiko dengan foreign key `story_versions`/`jobs`) dan
+ * tetap append-only. Kolom hasil re-add berada di posisi terakhir; urutan kolom
+ * tidak pernah menjadi kontrak.
+ */
+const RELAX_SOURCE_FILE_PATH_SQL = `
+alter table stories drop column source_file_path;
+alter table stories add column source_file_path text;
+`;
+
+/**
+ * Daftar migrasi berurutan. Jangan mengubah entri yang sudah pernah dipakai;
+ * tambahkan entri baru di akhir.
+ */
 export const MIGRATIONS: readonly Migration[] = [
   {
     id: "0001_initial_schema",
     name: "Skema awal: teachers, stories, story_versions, jobs, play_results",
     sql: INITIAL_SCHEMA_SQL,
+  },
+  {
+    id: "0002_relax_source_file_path",
+    name: "Lepaskan not null stories.source_file_path (PDF tidak disimpan)",
+    sql: RELAX_SOURCE_FILE_PATH_SQL,
   },
 ];
 
