@@ -28,13 +28,16 @@ dan [`engine.md`](./engine.md).
 Nilai efektif dihitung sekali saat chapter dimulai, bukan tiap beat:
 
 ```ts
-export function resolveSceneLook(story: Story, chapter: Chapter, scene: Scene) {
+export function resolveSceneLook(chapter: Chapter, scene: Scene | null) {
   return {
-    backgroundId: scene.backgroundId ?? chapter.backgroundId ?? "bg_default",
-    musicId: scene.musicId ?? chapter.musicId ?? "bgm_default",
+    backgroundId: scene?.backgroundId ?? chapter.backgroundId ?? "bg_default",
+    musicId: scene?.musicId ?? chapter.musicId ?? "bgm_default",
   };
 }
 ```
+
+Modul nyata ada di `src/game/sceneAssets.ts`; di sana juga ada
+`collectStoryAssets(story)` yang mengumpulkan aset dipakai cerita untuk preload.
 
 Aturan:
 
@@ -43,6 +46,19 @@ Aturan:
   mengganti.
 - Ganti musik hanya bila `musicId` berbeda dari scene sebelumnya. Jangan restart
   track yang sama.
+
+## Preload
+
+`PreloadScene` tidak memuat seluruh manifest. `collectStoryAssets(story)`
+mengambil hanya:
+
+- background chapter + override scene + `bg_default`;
+- musik chapter + override scene + `bgm_default`;
+- `spriteId` setiap `cast` (spritesheet 48×72) beserta portrait-nya;
+- aset UI (`ui_textbox`, `ui_portrait_frame`, `ui_default`) dan SFX
+  (`sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`).
+
+Semua key loader memakai `id` manifest, jadi scene tidak menebak path file.
 
 ## Ruangan dan eksplorasi (ADR 0008)
 
@@ -54,9 +70,10 @@ Per ADR 0008, scene dirender sebagai **ruangan satu layar** yang bisa dijelajahi
   didefinisikan **di sisi game** (`src/game/`, map dummy per scene) dan **tidak
   mengubah kontrak Story JSON**. Struktur datanya dibuat supaya nanti bisa
   diganti tileset nyata tanpa refactor.
-- Map dummy: til warna untuk lantai/dinding, kotak berwarna untuk pemain dan
-  NPC. Kunci data map tetap memakai `backgroundId`/`spriteId` yang sudah ada di
-  Story, bukan id baru.
+- Map dummy menyimpan lantai/dinding/spawn/zona; Sprite karakter memakai
+  `spriteId` dari `cast` (spritesheet 48×72, 2 frame idle) dan background dari
+  `backgroundId`. Bila texture tidak ada, runtime jatuh ke `char_default` /
+  `bg_default` tanpa menghentikan permainan.
 - Collision: dinding keliling ruangan + objek padat; arcade physics gravity 0
   (sudah diset di `config.ts`).
 - NPC/objek interaksi punya zona kecil. Pemain di dalam zona → indikator

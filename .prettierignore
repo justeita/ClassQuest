@@ -2,3 +2,9 @@
 # `.next` tidak perlu didaftar: prettier membaca `.gitignore` secara default.
 src/story/__fixtures__/json-parse.json
 src/ai/__fixtures__/outputs/story/malformed-json.json
+
+# Git worktree alat lain (Kilo Code) di dalam repo; bukan bagian proyek.
+.kilo/
+
+# Pengaturan editor lokal, bukan bagian proyek.
+.vscode/

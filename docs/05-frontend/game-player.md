@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -16,7 +16,8 @@ src/app/play/[storyId]/page.tsx        (Server Component)
   ├─ ambil cerita published
   ├─ notFound() bila tidak ada
   └─ <GameShell story={story} />       (Client Component)
-        ├─ <GameCanvas />              (Phaser, dynamic import)
+        ├─ <TitleScreen />             (DOM, sebelum Mulai)
+        ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
         ├─ <ChallengeOverlay />        (DOM)
         ├─ <HUD />                     (DOM)
         ├─ <PauseMenu />               (DOM)
@@ -26,8 +27,8 @@ src/app/play/[storyId]/page.tsx        (Server Component)
 Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
-> **Yang ada hari ini:** `GameShell`, `GameCanvas`, `ChallengeOverlay`, dan
-> `ResultScreen` sudah ada. `HUD` dan `PauseMenu` masih rencana.
+> **Yang ada hari ini:** `TitleScreen`, `GameShell`, `GameCanvas`,
+> `ChallengeOverlay`, `HUD`, `PauseMenu`, dan `ResultScreen` sudah ada.
 >
 > `/play/[storyId]` sudah berjalan, tetapi cerita masih dibaca dari fixture
 > (`src/game/demoStory.ts`), bukan dari `getPublishedStory()`. Hanya id cerita
@@ -57,6 +58,7 @@ Aturan:
 
 ```ts
 type GameShellState =
+  | { phase: "judul" }
   | { phase: "loading" }
   | { phase: "ready" }
   | { phase: "playing"; chapterIndex: number; sceneIndex: number }
@@ -70,6 +72,11 @@ Ini **state layar**, bukan state cerita. Soal yang sedang terbuka dilacak oleh
 `GameShell` hanya menampilkan overlay-nya. Pemetaan lengkap ada di
 [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#dua-state-bukan-satu).
 
+Implementasi sekarang memegang `judul | main | hasil` di `GameShell`, sedangkan
+`paused` dipegang `GameCanvas` karena menu jeda hanya relevan selama sesi
+permainan aktif. HUD menerima nomor bab lewat event `progress` dari Phaser, bukan
+menebak dari DOM.
+
 State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 [`../04-game/engine.md`](../04-game/engine.md)). Sumber kebenaran progres:
 `localStorage`, bukan Phaser.
@@ -79,19 +86,29 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 ### Loading
 
 - Latar gelap sesuai palet game.
-- Judul cerita + progress aset yang jujur.
+- Canvas menampilkan teks progres `Memuat… N%` selama aset cerita dimuat;
+  layar loading DOM dengan judul cerita belum dibuat.
 - Tombol "Batal" kembali ke halaman awal.
 
 ### Ready / judul
 
-- Judul, synopsis singkat, jumlah chapter.
-- Tombol "Mulai" dan "Lanjutkan" (bila ada progres valid).
-- Tombol suara.
+- Layar penuh dengan latar `bg_mountain_night` dan sprite pemain dari `cast`.
+- Judul, synopsis singkat, mata pelajaran, kelas, jumlah chapter, perkiraan
+  durasi.
+- Tombol "Mulai", "Kontrol", dan "Kembali". Panah atas/bawah memindahkan
+  fokus, Enter menjalankan pilihan.
+- Phaser **baru** dipasang setelah "Mulai" ditekan; sebelum itu tidak ada
+  kanvas yang berjalan di latar belakang.
+- Tombol "Lanjutkan" (bila ada progres valid) belum ditampilkan karena progres
+  `localStorage` belum ada.
 
 ### Playing
 
 - Canvas fullscreen (letterbox bila rasio beda).
-- HUD minimal: `Chapter 1/3`, tombol jeda, tombol suara.
+- HUD minimal: `Chapter 1/3` + judul bab, tombol jeda, tombol suara.
+- Tombol suara mengatur `sound.mute` Phaser; preferensi berlaku untuk musik dan
+  SFX. Musik mulai setelah "Mulai" ditekan (aturan autoplay browser), lalu
+  berganti hanya saat `musicId` scene berubah.
 - Klik di mana saja untuk lanjut.
 
 ### Challenge
@@ -103,11 +120,24 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Fokus keyboard masuk ke overlay.
 - `Esc` tidak menutup overlay sebelum soal dijawab; lihat
   [`../04-game/accessibility.md`](../04-game/accessibility.md#keyboard).
+- Keempat tipe soal punya UI jawaban sendiri:
+  - `multiple_choice` / `true_false`: daftar opsi; angka `1`–`5` memilih,
+    panah atas/bawah memindah sorotan, `Enter` mengirim.
+  - `ordering`: tombol naik/turun per item (bukan drag), urutan awal diacak
+    deterministik per `challengeId` agar tidak sama dengan urutan cerita.
+  - `short_answer`: satu input teks; `Enter` atau tombol "Jawab" mengirim.
+- Overlay hanya mengirim jawaban mentah. Trim, lowercase, dan pembuangan tanda
+  baca akhir dilakukan `src/story/scoring.ts`, bukan di komponen.
+- `hints` tampil sebagai catatan kecil bila ada; jawaban benar tidak pernah ikut
+  ke `ChallengeView`.
 
 ### Paused
 
 - Lanjut, ulangi chapter, suara, keluar.
-- Game di-pause, musik volume turun.
+- Game di-pause (`scene.pause()`), input dialog berhenti.
+- Musik tidak dihentikan, hanya dikecilkan (volume 0,35 → 0,12) agar jeda tidak
+  terasa memutus suasana; volume kembali saat lanjut atau ulangi chapter.
+- Fokus masuk ke tombol "Lanjut" dan kembali ke tombol HUD saat menu ditutup.
 
 ### Finished
 

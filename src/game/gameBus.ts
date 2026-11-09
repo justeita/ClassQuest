@@ -20,11 +20,25 @@ export type GameEvent =
     }
   /** Cerita selesai; `result` dihitung dari percobaan pertama tiap tantangan. */
   | { type: "finished"; result: PlayResult }
+  /** Bab aktif berubah; dipakai HUD untuk menampilkan "Chapter n/total". */
+  | {
+      type: "progress";
+      chapterNumber: number;
+      chapterTotal: number;
+      chapterTitle: string;
+    }
   | { type: "error"; code: string };
 
 export type GameCommand =
   | { type: "submit_answer"; challengeId: string; answer: Answer }
-  | { type: "resolve_challenge"; challengeId: string; correct: boolean };
+  | { type: "resolve_challenge"; challengeId: string; correct: boolean }
+  /** Hentikan sementara loop scene; state cerita tetap di tempatnya. */
+  | { type: "pause" }
+  | { type: "resume" }
+  /** Kembali ke awal bab aktif tanpa menghapus catatan jawaban. */
+  | { type: "restart_chapter" }
+  /** Bisukan/bunyikan seluruh audio Phaser. */
+  | { type: "set_muted"; muted: boolean };
 
 export class GameBus {
   private listeners = new Map<string, Set<(payload: unknown) => void>>();

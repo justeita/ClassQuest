@@ -7,6 +7,9 @@ import { Typewriter } from "./typewriter";
  * kotak di x=12, y=180, lebar 456, tinggi 78; nama di baris pertama;
  * teks maks 3 baris (~60 karakter/baris); indikator berkedip saat menunggu.
  * Semua komponen DOM/teks tetap di dalam resolusi 480×270.
+ *
+ * Panel memakai `ui_textbox` dari manifest. Kalau texture gagal dimuat,
+ * kotak warna lama dipakai supaya dialog tetap terbaca.
  */
 
 const TEXTBOX_X = 12;
@@ -15,6 +18,11 @@ const TEXTBOX_WIDTH = 456;
 const TEXTBOX_HEIGHT = 78;
 const PADDING = 12;
 const WRAP_WIDTH = 432;
+
+const PORTRAIT_X = 20;
+const PORTRAIT_Y = 72;
+const PORTRAIT_SIZE = 96;
+const PORTRAIT_FRAME_INSET = 4;
 
 const WARNA_LATAR = 0x14201a;
 const WARNA_BINGKAI = 0xf7f4ec;
@@ -27,6 +35,8 @@ export type BeatView = {
   /** Nama speaker; null untuk beat narration. */
   name: string | null;
   text: string;
+  /** Key texture portrait (`<charId>:portrait`), null bila tidak ada. */
+  portraitKey?: string | null;
 };
 
 export type Textbox = {
@@ -45,16 +55,35 @@ export type Textbox = {
 export function createTextbox(scene: Phaser.Scene): Textbox {
   const container = scene.add.container(0, 0).setVisible(false).setDepth(100);
 
-  const background = scene.add
-    .rectangle(
-      TEXTBOX_X + TEXTBOX_WIDTH / 2,
-      TEXTBOX_Y + TEXTBOX_HEIGHT / 2,
-      TEXTBOX_WIDTH,
-      TEXTBOX_HEIGHT,
-      WARNA_LATAR,
-      0.92,
+  const background = scene.textures.exists("ui_textbox")
+    ? scene.add.image(TEXTBOX_X, TEXTBOX_Y, "ui_textbox").setOrigin(0)
+    : scene.add
+        .rectangle(
+          TEXTBOX_X + TEXTBOX_WIDTH / 2,
+          TEXTBOX_Y + TEXTBOX_HEIGHT / 2,
+          TEXTBOX_WIDTH,
+          TEXTBOX_HEIGHT,
+          WARNA_LATAR,
+          0.92,
+        )
+        .setStrokeStyle(2, WARNA_BINGKAI);
+
+  const portrait = scene.add
+    .image(
+      PORTRAIT_X + PORTRAIT_FRAME_INSET,
+      PORTRAIT_Y + PORTRAIT_FRAME_INSET,
+      scene.textures.exists("ui_default") ? "ui_default" : "__MISSING",
     )
-    .setStrokeStyle(2, WARNA_BINGKAI);
+    .setOrigin(0)
+    .setDisplaySize(PORTRAIT_SIZE, PORTRAIT_SIZE)
+    .setVisible(false);
+
+  const portraitFrame = scene.textures.exists("ui_portrait_frame")
+    ? scene.add
+        .image(PORTRAIT_X, PORTRAIT_Y, "ui_portrait_frame")
+        .setOrigin(0)
+        .setVisible(false)
+    : null;
 
   const nameText = scene.add
     .text(TEXTBOX_X + PADDING, TEXTBOX_Y + 6, "", {
@@ -86,7 +115,8 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
     )
     .setVisible(false);
 
-  container.add([background, nameText, bodyText, indicator]);
+  container.add([background, portrait, nameText, bodyText, indicator]);
+  if (portraitFrame) container.add(portraitFrame);
 
   // Kedip lambat ala pixel game; hanya tampak saat menunggu input.
   scene.tweens.add({
@@ -99,6 +129,11 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
 
   let typewriter = new Typewriter("");
 
+  function sembunyikanPortrait() {
+    portrait.setVisible(false);
+    portraitFrame?.setVisible(false);
+  }
+
   return {
     show(beat) {
       nameText.setText(beat.name ?? "");
@@ -106,6 +141,15 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
       bodyText.setText("");
       container.setVisible(true);
       indicator.setVisible(false);
+
+      if (beat.portraitKey && scene.textures.exists(beat.portraitKey)) {
+        portrait.setTexture(beat.portraitKey);
+        portrait.setDisplaySize(PORTRAIT_SIZE, PORTRAIT_SIZE);
+        portrait.setVisible(true);
+        portraitFrame?.setVisible(true);
+      } else {
+        sembunyikanPortrait();
+      }
     },
     tick(deltaMs) {
       if (typewriter.isDone()) return;

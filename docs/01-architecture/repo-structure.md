@@ -89,7 +89,9 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/config.ts`                       | ya      | Konfigurasi Phaser (480×270)                          |
 | `src/game/createGame.ts`                   | ya      | Entry `createGame(parent)`, dipanggil React           |
 | `src/game/types.ts`                        | ya      | `GameHandle` untuk menutup instance Phaser            |
-| `src/game/scenes`                          | ya      | `PreloadScene` + `GameScene` (ruangan + dialog)       |
+| `src/game/scenes`                          | ya      | `PreloadScene` (muat aset) + `GameScene` (cerita)     |
+| `src/game/sceneAssets.ts`                  | ya      | Resolusi background/musik + daftar aset preload       |
+| `src/game/sceneAssets.test.ts`             | ya      | Tes resolusi look dan pemilihan aset cerita           |
 | `src/game/StoryRunner.ts`                  | ya      | State machine pemutar cerita (murni, tanpa Phaser)    |
 | `src/game/typewriter.ts`                   | ya      | Efek ketik murni (30–40 karakter/detik)               |
 | `src/game/textbox.ts`                      | ya      | Textbox dialog sesuai scene-format.md                 |
@@ -103,7 +105,10 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/fixture`                         | ya      | Cerita demo untuk pengembangan frontend game          |
 | `src/components/game/GameCanvas.tsx`       | ya      | Host Phaser + overlay tantangan di React              |
 | `src/components/game/ChallengeOverlay.tsx` | ya      | Overlay tantangan DOM di atas canvas                  |
-| `src/components/game/GameShell.tsx`        | ya      | Shell halaman game + layar hasil                      |
+| `src/components/game/GameShell.tsx`        | ya      | Shell halaman game + state layar judul/main/hasil     |
+| `src/components/game/TitleScreen.tsx`      | ya      | Layar judul: ringkasan cerita + menu Mulai            |
+| `src/components/game/HUD.tsx`              | ya      | HUD: chapter aktif, tombol suara, tombol jeda         |
+| `src/components/game/PauseMenu.tsx`        | ya      | Menu jeda: lanjut, ulangi chapter, suara, keluar      |
 | `src/components/game/ResultScreen.tsx`     | ya      | Layar hasil: skor, jawaban tepat, konsep lemah        |
 | `src/app/play`                             | ya      | Halaman siswa dari cerita demo                        |
 | `src/server/config.ts`                     | ya      | Konfigurasi env server (satu-satunya pembaca)         |
@@ -119,7 +124,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/api/upload/route.test.ts`         | ya      | Tes route upload (libSQL in-memory)                   |
 | `src/server/api-error.ts`                  | ya      | Helper respons error bentuk `ApiError`                |
 | `src/server/jobs/schedule.ts`              | ya      | Placeholder penjadwal job (diisi di task 18)          |
-| `public/assets`                            | rencana | File aset game                                        |
+| `public/assets`                            | ya      | File aset game (dibuat `bun run assets:generate`)     |
+| `scripts/generate-assets.mjs`              | ya      | Generator aset pixel + audio, tanpa dependensi        |
 
 ## Struktur target
 
@@ -162,9 +168,11 @@ src/
 │   │   └── ChallengeEditor.tsx
 │   └── game/
 │       ├── GameShell.tsx              # shell fullscreen halaman game
+│       ├── TitleScreen.tsx            # layar judul sebelum game dimulai
 │       ├── GameCanvas.tsx             # host Phaser (client-only)
 │       ├── ChallengeOverlay.tsx
 │       ├── HUD.tsx
+│       ├── PauseMenu.tsx
 │       └── ResultScreen.tsx
 │
 ├── story/                             # domain murni, tanpa React/DB

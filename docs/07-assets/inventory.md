@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -28,55 +28,60 @@ Legenda status:
 > [`../06-backend/persistence.md`](../06-backend/persistence.md#siklus-status).
 > Dua domain ini tidak saling memengaruhi.
 
+Semua berkas di tabel ini dibuat oleh generator di repo, bukan diunduh:
+`bun run assets:generate` (gambar PNG tanpa dependensi, audio OGG lewat ffmpeg).
+Jalankan ulang perintah itu setelah mengubah `scripts/lib/`; hasil gambar
+dijamin identik.
+
 ## Background
 
 | id                      | Label                  | Path                                | Tags                                               | Status |
 | ----------------------- | ---------------------- | ----------------------------------- | -------------------------------------------------- | ------ |
-| `bg_classroom_day`      | Kelas, siang           | `/assets/bg/classroom_day.png`      | kelas, sekolah, belajar, siang, classroom, indoor  | todo   |
-| `bg_schoolyard_day`     | Halaman sekolah, siang | `/assets/bg/schoolyard_day.png`     | halaman, sekolah, luar, siang, schoolyard, outdoor | todo   |
-| `bg_schoolyard_evening` | Halaman sekolah, sore  | `/assets/bg/schoolyard_evening.png` | halaman, sekolah, sore, senja, sunset, outdoor     | todo   |
-| `bg_cloud_sky`          | Langit di atas awan    | `/assets/bg/cloud_sky.png`          | langit, awan, tinggi, terang, sky, cloud           | todo   |
-| `bg_mountain_night`     | Gunung, malam          | `/assets/bg/mountain_night.png`     | gunung, malam, gelap, dingin, mountain, night      | todo   |
-| `bg_river_day`          | Sungai, siang          | `/assets/bg/river_day.png`          | sungai, air, alam, siang, river, nature            | todo   |
-| `bg_library_evening`    | Perpustakaan, sore     | `/assets/bg/library_evening.png`    | perpustakaan, buku, sore, tenang, library, indoor  | todo   |
-| `bg_default`            | Latar default          | `/assets/bg/default.png`            | default, cadangan, netral, fallback                | todo   |
+| `bg_classroom_day`      | Kelas, siang           | `/assets/bg/classroom_day.png`      | kelas, sekolah, belajar, siang, classroom, indoor  | ready  |
+| `bg_schoolyard_day`     | Halaman sekolah, siang | `/assets/bg/schoolyard_day.png`     | halaman, sekolah, luar, siang, schoolyard, outdoor | ready  |
+| `bg_schoolyard_evening` | Halaman sekolah, sore  | `/assets/bg/schoolyard_evening.png` | halaman, sekolah, sore, senja, sunset, outdoor     | ready  |
+| `bg_cloud_sky`          | Langit di atas awan    | `/assets/bg/cloud_sky.png`          | langit, awan, tinggi, terang, sky, cloud           | ready  |
+| `bg_mountain_night`     | Gunung, malam          | `/assets/bg/mountain_night.png`     | gunung, malam, gelap, dingin, mountain, night      | ready  |
+| `bg_river_day`          | Sungai, siang          | `/assets/bg/river_day.png`          | sungai, air, alam, siang, river, nature            | ready  |
+| `bg_library_evening`    | Perpustakaan, sore     | `/assets/bg/library_evening.png`    | perpustakaan, buku, sore, tenang, library, indoor  | ready  |
+| `bg_default`            | Latar default          | `/assets/bg/default.png`            | default, cadangan, netral, fallback                | ready  |
 
 ## Karakter
 
 | id              | Label            | Sprite                      | Portrait                        | Tags                                       | Status |
 | --------------- | ---------------- | --------------------------- | ------------------------------- | ------------------------------------------ | ------ |
-| `char_nara`     | Nara (siswa)     | `/assets/char/nara.png`     | `/assets/portrait/nara.png`     | siswa, perempuan, seragam, remaja, student | todo   |
-| `char_pak_bima` | Pak Bima (guru)  | `/assets/char/pak_bima.png` | `/assets/portrait/pak_bima.png` | guru, dewasa, pria, pengajar, teacher      | todo   |
-| `char_tirta`    | Tirta (roh air)  | `/assets/char/tirta.png`    | `/assets/portrait/tirta.png`    | air, roh, biru, kecil, spirit, water       | todo   |
-| `char_rani`     | Rani (siswa)     | `/assets/char/rani.png`     | `/assets/portrait/rani.png`     | siswa, perempuan, rambut pendek, teman     | todo   |
-| `char_default`  | Karakter default | `/assets/char/default.png`  | —                               | default, cadangan, fallback, netral        | todo   |
+| `char_nara`     | Nara (siswa)     | `/assets/char/nara.png`     | `/assets/portrait/nara.png`     | siswa, perempuan, seragam, remaja, student | ready  |
+| `char_pak_bima` | Pak Bima (guru)  | `/assets/char/pak_bima.png` | `/assets/portrait/pak_bima.png` | guru, dewasa, pria, pengajar, teacher      | ready  |
+| `char_tirta`    | Tirta (roh air)  | `/assets/char/tirta.png`    | `/assets/portrait/tirta.png`    | air, roh, biru, kecil, spirit, water       | ready  |
+| `char_rani`     | Rani (siswa)     | `/assets/char/rani.png`     | `/assets/portrait/rani.png`     | siswa, perempuan, rambut pendek, teman     | ready  |
+| `char_default`  | Karakter default | `/assets/char/default.png`  | —                               | default, cadangan, fallback, netral        | ready  |
 
 ## Musik
 
 | id                | Label          | Path                            | Tags                                   | Status |
 | ----------------- | -------------- | ------------------------------- | -------------------------------------- | ------ |
-| `bgm_school_calm` | Sekolah tenang | `/assets/music/school_calm.ogg` | tenang, sekolah, pagi, hangat, calm    | todo   |
-| `bgm_adventure`   | Petualangan    | `/assets/music/adventure.ogg`   | petualangan, naik, semangat, adventure | todo   |
-| `bgm_mystery`     | Misteri        | `/assets/music/mystery.ogg`     | misteri, gelap, penasaran, mystery     | todo   |
-| `bgm_ending`      | Penutup        | `/assets/music/ending.ogg`      | penutup, hangat, lega, ending          | todo   |
-| `bgm_default`     | Musik default  | `/assets/music/default.ogg`     | default, cadangan, netral, tenang      | todo   |
+| `bgm_school_calm` | Sekolah tenang | `/assets/music/school_calm.ogg` | tenang, sekolah, pagi, hangat, calm    | ready  |
+| `bgm_adventure`   | Petualangan    | `/assets/music/adventure.ogg`   | petualangan, naik, semangat, adventure | ready  |
+| `bgm_mystery`     | Misteri        | `/assets/music/mystery.ogg`     | misteri, gelap, penasaran, mystery     | ready  |
+| `bgm_ending`      | Penutup        | `/assets/music/ending.ogg`      | penutup, hangat, lega, ending          | ready  |
+| `bgm_default`     | Musik default  | `/assets/music/default.ogg`     | default, cadangan, netral, tenang      | ready  |
 
 ## SFX
 
 | id            | Label         | Path                      | Tags                            | Status |
 | ------------- | ------------- | ------------------------- | ------------------------------- | ------ |
-| `sfx_click`   | Klik          | `/assets/sfx/click.ogg`   | klik, pilih, ui, click          | todo   |
-| `sfx_correct` | Jawaban benar | `/assets/sfx/correct.ogg` | benar, berhasil, tepat, correct | todo   |
-| `sfx_wrong`   | Jawaban salah | `/assets/sfx/wrong.ogg`   | salah, lembut, keliru, wrong    | todo   |
-| `sfx_page`    | Ganti scene   | `/assets/sfx/page.ogg`    | transisi, halaman, pindah, page | todo   |
+| `sfx_click`   | Klik          | `/assets/sfx/click.ogg`   | klik, pilih, ui, click          | ready  |
+| `sfx_correct` | Jawaban benar | `/assets/sfx/correct.ogg` | benar, berhasil, tepat, correct | ready  |
+| `sfx_wrong`   | Jawaban salah | `/assets/sfx/wrong.ogg`   | salah, lembut, keliru, wrong    | ready  |
+| `sfx_page`    | Ganti scene   | `/assets/sfx/page.ogg`    | transisi, halaman, pindah, page | ready  |
 
 ## UI
 
 | id                  | Label          | Path                            | Tags                             | Status |
 | ------------------- | -------------- | ------------------------------- | -------------------------------- | ------ |
-| `ui_textbox`        | Kotak dialog   | `/assets/ui/textbox.png`        | dialog, teks, panel, textbox     | todo   |
-| `ui_portrait_frame` | Bingkai potret | `/assets/ui/portrait_frame.png` | potret, bingkai, karakter, frame | todo   |
-| `ui_default`        | UI default     | `/assets/ui/default.png`        | default, cadangan, panel, netral | todo   |
+| `ui_textbox`        | Kotak dialog   | `/assets/ui/textbox.png`        | dialog, teks, panel, textbox     | ready  |
+| `ui_portrait_frame` | Bingkai potret | `/assets/ui/portrait_frame.png` | potret, bingkai, karakter, frame | ready  |
+| `ui_default`        | UI default     | `/assets/ui/default.png`        | default, cadangan, panel, netral | ready  |
 
 ## Ringkasan
 

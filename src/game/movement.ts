@@ -2,17 +2,21 @@ import Phaser from "phaser";
 
 import type { PlayerConfig } from "./types";
 import type { RoomMap } from "./map";
+import { DEFAULT_CHARACTER_ID } from "./sceneAssets";
 
 /**
  * Gerak pemain top-down 4 arah (ADR 0008): arcade physics dengan gravitasi 0,
- * velocity dari keyboard. Sprite placeholder berupa kotak berwarna sampai
- * sprite karakter nyata tersedia dari manifest.
+ * velocity dari keyboard. Sprite memakai `spriteId` dari cerita; bila texture
+ * tidak ada, jatuh ke `char_default` tanpa menghentikan permainan.
  */
 
-export const PLAYER_WIDTH = 24;
-export const PLAYER_HEIGHT = 40;
-export const PLAYER_COLOR = 0xf2f2f2;
+/** Kotak tabrakan kecil di kaki sprite 48×72, bukan seluruh badan. */
+export const PLAYER_BODY_WIDTH = 20;
+export const PLAYER_BODY_HEIGHT = 16;
 export const PLAYER_NAMA = "player";
+
+const FRAME_WIDTH = 48;
+const FRAME_HEIGHT = 72;
 
 /** Tombol gerak: tiap arah bisa dipicu beberapa tombol (panah + WASD). */
 export type MovementKeys = Record<
@@ -47,17 +51,20 @@ export function createPlayer(
   scene: Phaser.Scene,
   map: RoomMap,
   config: PlayerConfig,
-): Phaser.GameObjects.Rectangle {
-  const player = scene.add.rectangle(
-    map.spawn.x,
-    map.spawn.y,
-    PLAYER_WIDTH,
-    PLAYER_HEIGHT,
-    PLAYER_COLOR,
-  );
-  scene.physics.add.existing(player);
+  spriteId: string = DEFAULT_CHARACTER_ID,
+): Phaser.Physics.Arcade.Sprite {
+  const key = scene.textures.exists(spriteId) ? spriteId : DEFAULT_CHARACTER_ID;
+  const player = scene.physics.add.sprite(map.spawn.x, map.spawn.y, key, 0);
 
+  // Kaki di titik spawn; tabrakan hanya area kaki agar pemain bisa berdiri
+  // dekat dinding tanpa badan sprite menembus latar.
+  player.setOrigin(0.5, 1);
   const body = player.body as Phaser.Physics.Arcade.Body;
+  body.setSize(PLAYER_BODY_WIDTH, PLAYER_BODY_HEIGHT);
+  body.setOffset(
+    (FRAME_WIDTH - PLAYER_BODY_WIDTH) / 2,
+    FRAME_HEIGHT - PLAYER_BODY_HEIGHT,
+  );
   body.setCollideWorldBounds(true);
 
   // Konfigurasi tersimpan di sprite agar update tidak butuh parameter tambahan.
@@ -71,7 +78,7 @@ export function createPlayer(
  * dinormalisasi supaya kecepatannya sama dengan gerak lurus.
  */
 export function applyMovement(
-  player: Phaser.GameObjects.Rectangle,
+  player: Phaser.Physics.Arcade.Sprite,
   keys: MovementKeys | undefined,
 ): void {
   const body = player.body as Phaser.Physics.Arcade.Body;
