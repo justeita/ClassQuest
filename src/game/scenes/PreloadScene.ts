@@ -2,7 +2,10 @@ import Phaser from "phaser";
 
 import type { Story } from "@/story/schema";
 
+import { ASSETS_BY_ID } from "@/assets/manifest";
+
 import { collectStoryAssets } from "../sceneAssets";
+import { listRoomAssets } from "../maps/roomData";
 
 /** Ukuran satu frame spritesheet karakter (docs/07-assets/asset-guide.md). */
 export const SPRITE_FRAME_WIDTH = 24;
@@ -25,7 +28,7 @@ export class PreloadScene extends Phaser.Scene {
 
   preload() {
     const label = this.add
-      .text(240, 135, "Memuat… 0%", {
+      .text(320, 180, "Memuat… 0%", {
         fontFamily: "monospace",
         fontSize: "11px",
         color: "#F7F4EC",
@@ -36,6 +39,14 @@ export class PreloadScene extends Phaser.Scene {
     this.load.on("progress", (nilai: number) => {
       label.setText(`Memuat… ${Math.round(nilai * 100)}%`);
     });
+
+    // Tile dan prop ruangan (ADR 0010) dimuat berdasarkan data map, bukan
+    // seluruh manifest.
+    const ruang = listRoomAssets();
+    for (const id of [...ruang.tiles, ...ruang.props]) {
+      const asset = ASSETS_BY_ID.get(id);
+      if (asset && !this.textures.exists(id)) this.load.image(id, asset.path);
+    }
 
     for (const asset of collectStoryAssets(this.story)) {
       if (asset.kind === "character") {

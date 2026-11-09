@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -211,11 +211,11 @@ ditandai `"use client"` dan diimpor dinamis.
 
 ## Scene Phaser
 
-| Scene          | Tanggung jawab sekarang                                                | Target                                        |
-| -------------- | ---------------------------------------------------------------------- | --------------------------------------------- |
-| `PreloadScene` | Langsung pindah ke `GameScene`                                         | Muat aset cerita + progress bar               |
-| `GameScene`    | Ruangan + gerak + interaksi NPC + dialog typewriter dari `StoryRunner` | Background, karakter, dialog, perintah lanjut |
-| `ResultScene`  | Belum ada                                                              | (Opsional) transisi akhir                     |
+| Scene          | Tanggung jawab sekarang                                                                                        | Target                                 |
+| -------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| `PreloadScene` | Langsung pindah ke `GameScene`                                                                                 | Muat aset cerita + progress bar        |
+| `GameScene`    | Ruangan dari `maps/` (tile + prop + NPC per scene), gerak, interaksi NPC, dialog typewriter dari `StoryRunner` | Kamera follow + transisi antar-ruangan |
+| `ResultScene`  | Belum ada                                                                                                      | (Opsional) transisi akhir              |
 
 `GameScene` menjalankan siklus ADR 0008: fase `explore` (ruangan dari `map.ts`,
 pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()`
@@ -245,8 +245,8 @@ export function queueStoryAssets(
     const asset = ASSETS_BY_ID.get(id);
     if (asset)
       load.spritesheet(asset.id, asset.path, {
-        frameWidth: 32,
-        frameHeight: 48,
+        frameWidth: 24,
+        frameHeight: 32,
       });
   }
   for (const id of story.assetUsage.music) {
