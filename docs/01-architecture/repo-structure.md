@@ -79,6 +79,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/ai/provider.ts`                      | ya      | Antarmuka `LlmProvider` + error provider            |
 | `src/ai/mock-provider.ts`                 | ya      | Provider mock deterministik dari fixture            |
 | `src/ai/factory.ts`                       | ya      | `createLlmProvider` dari konfigurasi env AI         |
+| `src/ai/prompt.ts`                        | ya      | Prompt builder: outline, chapter, repair            |
+| `src/ai/prompt.test.ts`                   | ya      | Tes kontrak prompt builder                          |
 | `src/ai/__fixtures__/outputs`             | ya      | Fixture keluaran mock (valid, rusak, timeout)       |
 | `src/ai/pipeline.ts`                      | rencana | Outline → generate → repair                         |
 | `src/game/config.ts`                      | ya      | Konfigurasi Phaser (480×270)                        |
