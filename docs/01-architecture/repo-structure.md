@@ -79,8 +79,11 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/config.ts`                      | ya      | Konfigurasi Phaser (480×270)                        |
 | `src/game/createGame.ts`                  | ya      | Entry `createGame(parent)`, dipanggil React         |
 | `src/game/types.ts`                       | ya      | `GameHandle` untuk menutup instance Phaser          |
-| `src/game/scenes`                         | ya      | `PreloadScene` + `GameScene` (masih placeholder)    |
+| `src/game/scenes`                         | ya      | `PreloadScene` + `GameScene` (ruangan + dialog)     |
 | `src/game/StoryRunner.ts`                 | ya      | State machine pemutar cerita (murni, tanpa Phaser)  |
+| `src/game/typewriter.ts`                  | ya      | Efek ketik murni (30–40 karakter/detik)             |
+| `src/game/textbox.ts`                     | ya      | Textbox dialog sesuai scene-format.md               |
+| `src/game/interaction.ts`                 | ya      | Zona interaksi NPC + prompt (ADR 0008)              |
 | `src/game/map.ts`                         | ya      | Data map dummy per scene: spawn, dinding, NPC       |
 | `src/game/movement.ts`                    | ya      | Gerak pemain 4 arah + collision top-down (ADR 0008) |
 | `src/game/fixture`                        | ya      | Cerita demo untuk pengembangan frontend game        |
