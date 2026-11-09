@@ -152,6 +152,50 @@ describe("StoryRunner", () => {
     expect(runner.getState().beat).toEqual(beatsOf(demoStory, 1, 0)[0]);
   });
 
+  it("restartChapter kembali ke scene pertama bab yang sama", () => {
+    const runner = new StoryRunner(demoStory);
+
+    // Masuk ke scene kedua bab pertama, lalu ulangi bab.
+    runner.interact();
+    for (let i = 0; i < beatsOf(demoStory, 0, 0).length; i += 1) {
+      runner.advance();
+    }
+    expect(runner.getState().sceneIndex).toBe(1);
+
+    runner.restartChapter();
+    const state = runner.getState();
+
+    expect(state.phase).toBe("explore");
+    expect(state.chapterNumber).toBe(1);
+    expect(state.sceneIndex).toBe(0);
+    expect(state.beatIndex).toBe(-1);
+    expect(state.beat).toBeNull();
+
+    // Deretan beat scene pertama bisa diputar lagi dari awal.
+    runner.interact();
+    expect(runner.getState().beat).toEqual(beatsOf(demoStory, 0, 0)[0]);
+  });
+
+  it("restartChapter tidak mengubah apa pun setelah cerita selesai", () => {
+    const runner = new StoryRunner(demoStory);
+    let guard = 0;
+
+    while (runner.getState().phase !== "done" && guard < 1000) {
+      const phase = runner.getState().phase;
+      if (phase === "challenge") {
+        runner.resolveChallenge();
+      } else if (phase === "explore") {
+        runner.interact();
+      } else {
+        runner.advance();
+      }
+      guard += 1;
+    }
+
+    runner.restartChapter();
+    expect(runner.getState().phase).toBe("done");
+  });
+
   it("menyelesaikan seluruh cerita berakhir di fase done dan aksi tidak crash", () => {
     const runner = new StoryRunner(demoStory);
     let guard = 0;

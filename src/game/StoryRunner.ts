@@ -133,6 +133,16 @@ export class StoryRunner {
     this.settle();
   }
 
+  /**
+   * Kembali ke awal chapter yang sedang berjalan tanpa menyentuh catatan
+   * jawaban. Dipakai menu jeda → "Ulangi chapter"; no-op saat cerita selesai.
+   */
+  restartChapter(): void {
+    if (this.getState().phase === "done") return;
+    this.sceneIndex = 0;
+    this.beatIndex = -1;
+  }
+
   /** Cari definisi challenge berdasarkan id dari beat challenge. */
   getChallenge(challengeId: string): Challenge | undefined {
     return this.story.challenges.find(
