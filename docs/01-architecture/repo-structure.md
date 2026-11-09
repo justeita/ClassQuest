@@ -115,6 +115,10 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/api`                              | ya      | Route handler                                         |
 | `src/app/api/health/route.ts`              | ya      | `GET /api/health`: cek hidup + versi build            |
 | `src/app/api/health/route.test.ts`         | ya      | Tes kontrak respons health                            |
+| `src/app/api/upload/route.ts`              | ya      | `POST /api/upload`: validasi PDF + buat story & job   |
+| `src/app/api/upload/route.test.ts`         | ya      | Tes route upload (libSQL in-memory)                   |
+| `src/server/api-error.ts`                  | ya      | Helper respons error bentuk `ApiError`                |
+| `src/server/jobs/schedule.ts`              | ya      | Placeholder penjadwal job (diisi di task 18)          |
 | `public/assets`                            | rencana | File aset game                                        |
 
 ## Struktur target
