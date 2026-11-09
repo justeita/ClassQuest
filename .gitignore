@@ -23,6 +23,9 @@
 # runtime data (local dev only)
 /data/
 /uploads/
+# local libSQL/SQLite database (DATABASE_URL default)
+/local.db
+/local.db-*
 
 # misc
 .DS_Store

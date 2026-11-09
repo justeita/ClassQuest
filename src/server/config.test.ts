@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { AiConfigError, DEFAULT_AI_TIMEOUT_MS, loadAiConfig } from "./config";
+import {
+  AiConfigError,
+  DEFAULT_AI_TIMEOUT_MS,
+  DEFAULT_DATABASE_URL,
+  loadAiConfig,
+  loadDatabaseConfig,
+} from "./config";
 
 /**
  * Kunci palsu. Dipakai untuk memastikan pesan error tidak pernah memuat nilai
@@ -215,5 +221,54 @@ describe("loadAiConfig — kunci tidak bocor di pesan error", () => {
 
     expect(message).not.toBe("");
     expect(message).not.toContain(FAKE_KEY);
+  });
+});
+
+describe("loadDatabaseConfig", () => {
+  it("memakai file lokal saat DATABASE_URL kosong atau tidak diset", () => {
+    expect(loadDatabaseConfig({})).toEqual({
+      url: DEFAULT_DATABASE_URL,
+      authToken: null,
+    });
+    expect(loadDatabaseConfig({ DATABASE_URL: "" }).url).toBe(
+      DEFAULT_DATABASE_URL,
+    );
+    expect(loadDatabaseConfig({ DATABASE_URL: "   " }).url).toBe(
+      DEFAULT_DATABASE_URL,
+    );
+  });
+
+  it("membaca DATABASE_URL dan DATABASE_AUTH_TOKEN lalu memangkas spasi", () => {
+    expect(
+      loadDatabaseConfig({
+        DATABASE_URL: "  libsql://contoh.turso.io  ",
+        DATABASE_AUTH_TOKEN: "  token-contoh  ",
+      }),
+    ).toEqual({
+      url: "libsql://contoh.turso.io",
+      authToken: "token-contoh",
+    });
+  });
+
+  it("auth token opsional dan kosong berarti null", () => {
+    expect(
+      loadDatabaseConfig({ DATABASE_URL: "file:./data/test.db" }).authToken,
+    ).toBeNull();
+    expect(
+      loadDatabaseConfig({
+        DATABASE_URL: "file:./data/test.db",
+        DATABASE_AUTH_TOKEN: "  ",
+      }).authToken,
+    ).toBeNull();
+  });
+
+  it("membaca process.env bila sumber tidak diberikan", () => {
+    vi.stubEnv("DATABASE_URL", "file:./data/dari-env.db");
+    vi.stubEnv("DATABASE_AUTH_TOKEN", "token-dari-env");
+
+    expect(loadDatabaseConfig()).toEqual({
+      url: "file:./data/dari-env.db",
+      authToken: "token-dari-env",
+    });
   });
 });
