@@ -81,6 +81,23 @@ describe("GameBus", () => {
 
     expect(handler).toHaveBeenCalledTimes(1);
   });
+
+  it("event finished membawa ringkasan hasil apa adanya", () => {
+    const bus = new GameBus();
+    const handler = vi.fn();
+    bus.on("finished", handler);
+
+    const result = {
+      totalPoints: 60,
+      earnedPoints: 40,
+      correctCount: 4,
+      totalChallenges: 6,
+      weakConcepts: ["Kondensasi"],
+    };
+    bus.emit({ type: "finished", result });
+
+    expect(handler).toHaveBeenCalledWith({ type: "finished", result });
+  });
 });
 
 describe("buildChallengeView", () => {
