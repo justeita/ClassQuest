@@ -2,12 +2,13 @@
  * Konfigurasi server dari environment.
  *
  * **Satu-satunya** modul yang membaca `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`,
- * `AI_BASE_URL`, `AI_TIMEOUT_MS`, `DATABASE_URL`, dan `DATABASE_AUTH_TOKEN`
- * dari `process.env` (`docs/03-ai-pipeline/provider-setup.md`,
- * `docs/06-backend/persistence.md`). Modul lain memakai hasil `loadAiConfig()`
- * atau `loadDatabaseConfig()` supaya test tidak perlu menyentuh environment
- * global dan supaya satu nilai tidak dibaca di dua tempat dengan aturan
- * berbeda.
+ * `AI_BASE_URL`, `AI_TIMEOUT_MS`, `DATABASE_URL`, `DATABASE_AUTH_TOKEN`,
+ * `TEACHER_ACCESS_CODE`, dan `TEACHER_SESSION_SECRET` dari `process.env`
+ * (`docs/03-ai-pipeline/provider-setup.md`, `docs/06-backend/persistence.md`,
+ * `docs/08-workflow/setup.md`). Modul lain memakai hasil `loadAiConfig()`,
+ * `loadDatabaseConfig()`, atau `loadTeacherAuthConfig()` supaya test tidak perlu
+ * menyentuh environment global dan supaya satu nilai tidak dibaca di dua tempat
+ * dengan aturan berbeda.
  *
  * Aturan yang dipegang di sini:
  *
@@ -63,6 +64,18 @@ export type AiConfig =
 export type DatabaseConfig = {
   url: string;
   authToken: string | null;
+};
+
+/**
+ * Konfigurasi auth guru. Kedua nilai boleh `null`: login memperlakukan
+ * konfigurasi tidak lengkap sebagai gagal (fail closed), bukan memakai nilai
+ * default atau secret acak per proses.
+ */
+export type TeacherAuthConfig = {
+  /** Kode akses tunggal untuk demo. `null` = belum diisi. */
+  accessCode: string | null;
+  /** Kunci HMAC untuk cookie sesi. `null` = belum diisi. */
+  sessionSecret: string | null;
 };
 
 /**
@@ -131,6 +144,28 @@ export function loadDatabaseConfig(
   return {
     url: read(env, "DATABASE_URL") ?? DEFAULT_DATABASE_URL,
     authToken: read(env, "DATABASE_AUTH_TOKEN"),
+  };
+}
+
+/**
+ * Baca konfigurasi auth guru.
+ *
+ * Tidak ada nilai default dan tidak ada secret acak per proses: instance
+ * serverless yang berbeda harus bisa memverifikasi token yang sama. Bila salah
+ * satu nilai kosong, `loginTeacher()` selalu gagal dan `verifySessionToken()`
+ * tidak pernah menerima token (lihat `src/server/auth.ts`).
+ *
+ * Nilai tidak pernah dicetak atau dimasukkan ke pesan error. Pesan yang aman
+ * ditampilkan boleh menyebut **nama** variabel, bukan isinya.
+ *
+ * @param env sumber environment; default `process.env`.
+ */
+export function loadTeacherAuthConfig(
+  env: EnvSource = process.env,
+): TeacherAuthConfig {
+  return {
+    accessCode: read(env, "TEACHER_ACCESS_CODE"),
+    sessionSecret: read(env, "TEACHER_SESSION_SECRET"),
   };
 }
 

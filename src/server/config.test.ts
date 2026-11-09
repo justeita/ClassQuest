@@ -6,6 +6,7 @@ import {
   DEFAULT_DATABASE_URL,
   loadAiConfig,
   loadDatabaseConfig,
+  loadTeacherAuthConfig,
 } from "./config";
 
 /**
@@ -269,6 +270,43 @@ describe("loadDatabaseConfig", () => {
     expect(loadDatabaseConfig()).toEqual({
       url: "file:./data/dari-env.db",
       authToken: "token-dari-env",
+    });
+  });
+});
+
+describe("loadTeacherAuthConfig", () => {
+  it("mengembalikan null saat kedua variabel belum diisi", () => {
+    expect(loadTeacherAuthConfig({})).toEqual({
+      accessCode: null,
+      sessionSecret: null,
+    });
+    expect(
+      loadTeacherAuthConfig({
+        TEACHER_ACCESS_CODE: "",
+        TEACHER_SESSION_SECRET: "   ",
+      }),
+    ).toEqual({ accessCode: null, sessionSecret: null });
+  });
+
+  it("membaca kedua nilai dan memangkas spasi", () => {
+    expect(
+      loadTeacherAuthConfig({
+        TEACHER_ACCESS_CODE: "  kode-demo  ",
+        TEACHER_SESSION_SECRET: "  secret-demo  ",
+      }),
+    ).toEqual({
+      accessCode: "kode-demo",
+      sessionSecret: "secret-demo",
+    });
+  });
+
+  it("membaca process.env bila sumber tidak diberikan", () => {
+    vi.stubEnv("TEACHER_ACCESS_CODE", "kode-dari-env");
+    vi.stubEnv("TEACHER_SESSION_SECRET", "secret-dari-env");
+
+    expect(loadTeacherAuthConfig()).toEqual({
+      accessCode: "kode-dari-env",
+      sessionSecret: "secret-dari-env",
     });
   });
 });
