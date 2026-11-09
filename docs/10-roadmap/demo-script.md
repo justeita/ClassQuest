@@ -92,7 +92,7 @@ server yang sama, jadi kalau instance mati, job bisa terputus. Untuk demo, itu
 risiko yang diterima; lihat
 [`../06-backend/jobs-and-limits.md`](../06-backend/jobs-and-limits.md#pilihan-eksekusi).
 
-### 3. Layar judul game (480×270, diperbesar)
+### 3. Layar judul game (640×360, diperbesar)
 
 ```text
 +---------------------------------------+

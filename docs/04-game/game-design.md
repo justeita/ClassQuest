@@ -86,10 +86,11 @@ Menambah entri `RAMP` berarti menambah baris di tabel ini pada PR yang sama.
 
 ### Resolusi dan skala
 
-- Resolusi internal: **480×270** (16:9). Ini sama dengan `GAME_WIDTH`/`GAME_HEIGHT`
-  di `src/game/config.ts`.
-- Ditampilkan dengan `Phaser.Scale.FIT` mengikuti ukuran kontainer, jadi skalanya
-  bisa pecahan (mis. 2.67x di layar 1280 px). Itu wajar.
+- Resolusi internal: **640×360** (16:9), kelipatan tile 16×16 — keputusan di
+  [ADR 0009](../09-decisions/0009-resolution-and-scale.md). Sama dengan
+  `GAME_WIDTH`/`GAME_HEIGHT` di `src/game/config.ts`.
+- Ditampilkan dengan `Phaser.Scale.FIT` mengikuti ukuran kontainer; 640×360 naik
+  pas 2× di 720p dan 3× di 1080p, jadi pixel tetap tajam.
 - `pixelArt: true` dan `roundPixels: true` **wajib** di konfigurasi Phaser.
   `pixelArt` yang membuat tekstur memakai nearest-neighbor, sehingga pixel tetap
   tajam walau skalanya pecahan — bukan integer scaling manual.
@@ -162,7 +163,7 @@ Semua aksi utama harus bisa dilakukan **tanpa mouse**.
 Per ADR 0008, siswa bergerak bebas top-down di dalam scene — ala Undertale,
 bukan dunia terbuka:
 
-- Scene adalah **ruangan satu layar** dalam map (480×270); urutan antar-ruangan
+- Scene adalah **ruangan satu peta** (min. satu layar, kelipatan tile 16); urutan antar-ruangan
   tetap linear mengikuti cerita, bukan pintu yang bebas dipilih.
 - Pemain spawn di titik tetap tiap ruangan dan bergerak 4 arah dengan collision
   sederhana (arcade physics, gravity 0).

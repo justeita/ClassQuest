@@ -68,7 +68,7 @@ export function createGameConfig(
 }
 ```
 
-Resolusi internal **480×270** (16:9) dan latar `#14201a`. Angka dan warna ini
+Resolusi internal **640×360** (16:9, ADR 0009) dan latar `#14201a`. Angka dan warna ini
 harus sama dengan [`game-design.md`](./game-design.md#resolusi-dan-skala) dan
 [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md). Mengubahnya berarti
 mengubah ukuran aset juga.
@@ -346,7 +346,7 @@ Yang sudah berlaku di kode hari ini:
 - [x] Phaser diimpor dinamis di dalam `useEffect`.
 - [x] `game.destroy(true)` di cleanup.
 - [x] `pixelArt: true`, `roundPixels: true`.
-- [x] `scale.mode = FIT`, resolusi 480×270.
+- [x] `scale.mode = FIT`, resolusi 640×360 (ADR 0009).
 - [x] `bun run build` tidak menghasilkan error `window is not defined`.
 
 Yang belum, karena fiturnya belum ada:

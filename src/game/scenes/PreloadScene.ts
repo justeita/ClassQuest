@@ -5,8 +5,8 @@ import type { Story } from "@/story/schema";
 import { collectStoryAssets } from "../sceneAssets";
 
 /** Ukuran satu frame spritesheet karakter (docs/07-assets/asset-guide.md). */
-export const SPRITE_FRAME_WIDTH = 48;
-export const SPRITE_FRAME_HEIGHT = 72;
+export const SPRITE_FRAME_WIDTH = 24;
+export const SPRITE_FRAME_HEIGHT = 32;
 
 /**
  * Muat hanya aset yang dipakai cerita ini. Semua key loader memakai `id`

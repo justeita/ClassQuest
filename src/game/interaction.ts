@@ -8,8 +8,8 @@ import type { RoomMap } from "./map";
  * Pencarian NPC berbasis jarak — murni, tanpa fisika tambahan.
  */
 
-/** Jarak pusat pemain ke pusat NPC untuk dianggap masuk zona (piksel). */
-export const ZONA_RADIUS = 28;
+/** Jarak zona interaksi: 1,5 tile = 24 px (world-design.md § Satuan dasar). */
+export const ZONA_RADIUS = 24;
 
 const WARNA_PROMPT = "#F7F4EC";
 
@@ -48,7 +48,7 @@ export function createInteractPrompt(
   const prompt = scene.add
     .text(0, 0, "Space", {
       fontFamily: "monospace",
-      fontSize: "8px",
+      fontSize: "10px",
       color: WARNA_PROMPT,
       backgroundColor: "#14201a",
       padding: { x: 3, y: 2 },

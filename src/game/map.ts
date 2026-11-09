@@ -35,9 +35,9 @@ export type RoomMap = {
   npcs: MapNpc[];
 };
 
-/** Ukuran ruangan mengikuti resolusi internal game. */
-export const ROOM_WIDTH = 480;
-export const ROOM_HEIGHT = 270;
+/** Ukuran ruangan default mengikuti resolusi internal game (ADR 0009). */
+export const ROOM_WIDTH = 640;
+export const ROOM_HEIGHT = 360;
 
 /** Ketebalan dinding keliling ruangan. */
 export const WALL_THICKNESS = 8;
@@ -52,7 +52,7 @@ export const DUMMY_ROOM: RoomMap = {
   height: ROOM_HEIGHT,
   floorColor: 0x2b3a2f,
   wallColor: 0x4a5b4e,
-  spawn: { x: 60, y: 200 },
+  spawn: { x: 80, y: 268 },
   walls: [
     // Dinding keliling.
     { x: 0, y: 0, width: ROOM_WIDTH, height: WALL_THICKNESS },
@@ -69,11 +69,11 @@ export const DUMMY_ROOM: RoomMap = {
       width: WALL_THICKNESS,
       height: ROOM_HEIGHT,
     },
-    // Objek padat: meja kelas.
-    { x: 170, y: 120, width: 96, height: 40 },
+    // Objek padat: meja kelas 6×3 tile.
+    { x: 224, y: 160, width: 96, height: 48 },
   ],
   npcs: [
-    { id: "char_pak_bima", x: 360, y: 150, width: 24, height: 40 },
-    { id: "char_tirta", x: 120, y: 70, width: 24, height: 40 },
+    { id: "char_pak_bima", x: 480, y: 200, width: 24, height: 32 },
+    { id: "char_tirta", x: 160, y: 96, width: 24, height: 32 },
   ],
 };

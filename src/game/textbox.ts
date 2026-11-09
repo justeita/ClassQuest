@@ -3,25 +3,24 @@ import Phaser from "phaser";
 import { Typewriter } from "./typewriter";
 
 /**
- * Textbox dialog sesuai docs/04-game/scene-format.md:
- * kotak di x=12, y=180, lebar 456, tinggi 78; nama di baris pertama;
- * teks maks 3 baris (~60 karakter/baris); indikator berkedip saat menunggu.
- * Semua komponen DOM/teks tetap di dalam resolusi 480×270.
+ * Textbox dialog sesuai docs/04-game/scene-format.md (skala 640×360, ADR 0009):
+ * kotak di x=16, y=240, lebar 608, tinggi 104; nama di baris pertama;
+ * teks maks 3 baris (~80 karakter/baris); indikator berkedip saat menunggu.
  *
  * Panel memakai `ui_textbox` dari manifest. Kalau texture gagal dimuat,
  * kotak warna lama dipakai supaya dialog tetap terbaca.
  */
 
-const TEXTBOX_X = 12;
-const TEXTBOX_Y = 180;
-const TEXTBOX_WIDTH = 456;
-const TEXTBOX_HEIGHT = 78;
-const PADDING = 12;
-const WRAP_WIDTH = 432;
+const TEXTBOX_X = 16;
+const TEXTBOX_Y = 240;
+const TEXTBOX_WIDTH = 608;
+const TEXTBOX_HEIGHT = 104;
+const PADDING = 16;
+const WRAP_WIDTH = 576;
 
-const PORTRAIT_X = 20;
-const PORTRAIT_Y = 72;
-const PORTRAIT_SIZE = 96;
+const PORTRAIT_X = 26;
+const PORTRAIT_Y = 164;
+const PORTRAIT_SIZE = 64;
 const PORTRAIT_FRAME_INSET = 4;
 
 const WARNA_LATAR = 0x14201a;
@@ -88,7 +87,7 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
   const nameText = scene.add
     .text(TEXTBOX_X + PADDING, TEXTBOX_Y + 6, "", {
       fontFamily: FONT_FAMILY,
-      fontSize: "10px",
+      fontSize: "13px",
       color: WARNA_NAMA,
       fontStyle: "bold",
     })
@@ -96,10 +95,10 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
 
   const bodyText = scene.add.text(TEXTBOX_X + PADDING, TEXTBOX_Y + 22, "", {
     fontFamily: FONT_FAMILY,
-    fontSize: "11px",
+    fontSize: "14px",
     color: WARNA_TEKS,
     wordWrap: { width: WRAP_WIDTH },
-    lineSpacing: 4,
+    lineSpacing: 6,
   });
 
   const indicator = scene.add
@@ -109,7 +108,7 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
       "▼",
       {
         fontFamily: FONT_FAMILY,
-        fontSize: "9px",
+        fontSize: "12px",
         color: WARNA_NAMA,
       },
     )

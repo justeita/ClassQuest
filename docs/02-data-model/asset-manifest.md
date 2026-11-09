@@ -54,8 +54,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/classroom_day.png",
     label: "Kelas, siang",
     tags: ["kelas", "sekolah", "belajar", "siang", "indoor", "classroom"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
   // ...
 ] as const satisfies readonly AssetEntry[];
@@ -139,7 +139,7 @@ yang paling dekat dan mencatatnya di `source.gaps`, bukan mengarang id.
 3. Semua `path` menunjuk file yang ada di `public/`.
 4. Semua aset punya minimal 4 tag.
 5. Fallback tiap kind ada.
-6. `width`/`height` background = 480×270 (lihat
+6. `width`/`height` background = 640×360 (lihat
    [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md)).
 
 Test ini yang membuat "aset hilang" ketahuan saat `bun run test`, bukan saat demo.
