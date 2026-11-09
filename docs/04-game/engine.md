@@ -211,15 +211,16 @@ ditandai `"use client"` dan diimpor dinamis.
 
 ## Scene Phaser
 
-| Scene          | Tanggung jawab sekarang                       | Target                                        |
-| -------------- | --------------------------------------------- | --------------------------------------------- |
-| `PreloadScene` | Langsung pindah ke `GameScene`                | Muat aset cerita + progress bar               |
-| `GameScene`    | Latar `#14201a` + teks "ClassQuest" di tengah | Background, karakter, dialog, perintah lanjut |
-| `ResultScene`  | Belum ada                                     | (Opsional) transisi akhir                     |
+| Scene          | Tanggung jawab sekarang                                         | Target                                        |
+| -------------- | --------------------------------------------------------------- | --------------------------------------------- |
+| `PreloadScene` | Langsung pindah ke `GameScene`                                  | Muat aset cerita + progress bar               |
+| `GameScene`    | Ruangan dummy (`map.ts`), pemain gerak 4 arah, collision arcade | Background, karakter, dialog, perintah lanjut |
+| `ResultScene`  | Belum ada                                                       | (Opsional) transisi akhir                     |
 
-`GameScene` sekarang hanya placeholder untuk membuktikan boot berhasil. Saat
-`StoryRunner` dan manifest aset ada, isinya diganti — bukan ditambah scene baru
-dengan nama lain.
+`GameScene` merender fase `explore` dari `StoryRunner`: ruangan dari data map
+dummy, pemain dari `movement.ts`, NPC placeholder statis. Interaksi NPC
+(zona + `interact()`) dan dialog menyusul; saat manifest aset ada, placeholder
+kotak/til warna diganti — bukan ditambah scene baru dengan nama lain.
 
 `ChallengeScene` **tidak ada** — tantangan adalah overlay React.
 
