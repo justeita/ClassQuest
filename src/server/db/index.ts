@@ -8,10 +8,11 @@
  * ```
  *
  * Modul ini tidak membuka koneksi saat diimpor. Koneksi baru dibuat saat
- * `getDb()` dipanggil.
+ * `getDb()` dipanggil; migrasi baru berjalan saat `getReadyDb()` dipanggil.
  */
 
 export { closeDb, getDb, resetDb, resetDbForTests } from "./client";
+export { getReadyDb, resetReadyDbForTests } from "./ready";
 export {
   DatabaseConnectionError,
   DatabaseError,

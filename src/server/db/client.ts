@@ -12,7 +12,11 @@
 import { createClient, type Client } from "@libsql/client";
 
 import { loadDatabaseConfig } from "../config";
-import { DatabaseConnectionError, DatabaseQueryError } from "./errors";
+import {
+  classifyDatabaseError,
+  DatabaseConnectionError,
+  DatabaseQueryError,
+} from "./errors";
 
 let db: Client | null = null;
 
@@ -46,17 +50,25 @@ function wrapClient(client: Client): Client {
       if (!DB_METHODS.has(property)) return value.bind(target);
 
       return (...args: unknown[]) => {
-        const fail = () => {
-          throw property === "transaction"
-            ? new DatabaseConnectionError()
-            : new DatabaseQueryError();
+        const fail = (error: unknown): never => {
+          if (property === "transaction") {
+            throw new DatabaseConnectionError(
+              undefined,
+              classifyDatabaseError(error, "NETWORK"),
+            );
+          }
+
+          throw new DatabaseQueryError(
+            undefined,
+            classifyDatabaseError(error, "QUERY"),
+          );
         };
 
         let result: unknown;
         try {
           result = value.apply(target, args);
-        } catch {
-          fail();
+        } catch (error) {
+          fail(error);
         }
 
         if (
@@ -94,9 +106,12 @@ export function getDb(): Client {
     });
     db = wrapClient(client);
     return db;
-  } catch {
-    // Pesan asli driver bisa memuat URL. Jangan diteruskan.
-    throw new DatabaseConnectionError();
+  } catch (error) {
+    // Pesan asli driver bisa memuat URL. Hanya kodenya yang dipetakan.
+    throw new DatabaseConnectionError(
+      undefined,
+      classifyDatabaseError(error, "CONFIG"),
+    );
   }
 }
 

@@ -45,4 +45,44 @@ describe("import modul database", () => {
     expect(db).toBeDefined();
     expect(createClientMock).toHaveBeenCalledWith({ url: ":memory:" });
   });
+
+  it("memetakan error 401 dari driver ke code AUTH", async () => {
+    vi.stubEnv("DATABASE_URL", ":memory:");
+    vi.resetModules();
+
+    createClientMock.mockReturnValue({
+      execute: vi
+        .fn()
+        .mockRejectedValue(
+          Object.assign(new Error("Unauthorized"), { status: 401 }),
+        ),
+      close: vi.fn(),
+    });
+
+    const { getDb } = await import("./client");
+
+    await expect(getDb().execute("select 1")).rejects.toMatchObject({
+      code: "AUTH",
+    });
+  });
+
+  it("memetakan kegagalan koneksi driver ke code NETWORK", async () => {
+    vi.stubEnv("DATABASE_URL", ":memory:");
+    vi.resetModules();
+
+    createClientMock.mockReturnValue({
+      execute: vi.fn().mockRejectedValue(
+        Object.assign(new Error("getaddrinfo ENOTFOUND"), {
+          code: "ENOTFOUND",
+        }),
+      ),
+      close: vi.fn(),
+    });
+
+    const { getDb } = await import("./client");
+
+    await expect(getDb().execute("select 1")).rejects.toMatchObject({
+      code: "NETWORK",
+    });
+  });
 });

@@ -46,6 +46,7 @@ describe("getDb", () => {
       expect.unreachable("query rusak harus gagal");
     } catch (error) {
       expect(error).toBeInstanceOf(DatabaseQueryError);
+      expect((error as DatabaseQueryError).code).toBe("QUERY");
       expect((error as Error).message).not.toContain("ini bukan sql yang sah");
     }
   });
@@ -59,6 +60,7 @@ describe("getDb", () => {
       expect.unreachable("URL tidak sah harus gagal");
     } catch (error) {
       expect(error).toBeInstanceOf(DatabaseConnectionError);
+      expect((error as DatabaseConnectionError).code).toBe("CONFIG");
       const message = (error as Error).message;
       expect(message).not.toContain(FAKE_TOKEN);
       expect(message).not.toContain(INVALID_URL);

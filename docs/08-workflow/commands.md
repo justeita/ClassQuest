@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -19,6 +19,7 @@ Semua perintah dijalankan dengan Bun. Sumber: `package.json`.
 | `bun run typecheck`    | `next typegen && tsc --noEmit`         | Cek tipe + generate route types       |
 | `bun run test`         | `vitest run`                           | Test sekali jalan                     |
 | `bun run test:watch`   | `vitest`                               | Test saat mengembangkan               |
+| `bun run db:migrate`   | `bun scripts/db-migrate.ts`            | Terapkan migrasi DB dari environment  |
 | `bun run format`       | `prettier --write .`                   | Rapikan format                        |
 | `bun run format:check` | `prettier --check .`                   | CI: pastikan format benar             |
 | `bun run check`        | format:check + lint + typecheck + test | Validasi cepat (belum termasuk build) |
