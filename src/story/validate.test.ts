@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+import { toAssetManifest } from "../assets/manifest";
 import type { Story } from "./schema";
 import {
   ERROR_CODES,
@@ -28,26 +29,10 @@ const example: Story = JSON.parse(exampleJson);
 const demoStory: unknown = JSON.parse(read("../game/fixture/demo-story.json"));
 
 /**
- * Daftar aset untuk test, disalin dari `docs/07-assets/inventory.md` karena
- * `src/assets/manifest.ts` baru dibuat di tugas 9. Begitu manifest asli ada,
- * test harus memakai manifest itu, bukan salinan ini.
+ * Manifest asli dari `src/assets/manifest.ts` (sumber kebenaran id aset).
+ * Validator hanya butuh `id` dan `kind`, jadi `toAssetManifest()` cukup.
  */
-const manifest: AssetManifest = [
-  { id: "bg_classroom_day", kind: "background" },
-  { id: "bg_schoolyard_day", kind: "background" },
-  { id: "bg_schoolyard_evening", kind: "background" },
-  { id: "bg_cloud_sky", kind: "background" },
-  { id: "bg_mountain_night", kind: "background" },
-  { id: "bg_river_day", kind: "background" },
-  { id: "bg_library_evening", kind: "background" },
-  { id: "bg_default", kind: "background" },
-  { id: "char_nara", kind: "character" },
-  { id: "char_pak_bima", kind: "character" },
-  { id: "char_tirta", kind: "character" },
-  { id: "bgm_school_calm", kind: "music" },
-  { id: "bgm_adventure", kind: "music" },
-  { id: "bgm_ending", kind: "music" },
-];
+const manifest: AssetManifest = toAssetManifest();
 const PAGE_COUNT = 6;
 
 const options = { manifest, pageCount: PAGE_COUNT };
@@ -132,7 +117,13 @@ describe("aturan yang dirakit dari cerita contoh", () => {
   });
 
   it("menerima setiap id aset yang ada di manifest", () => {
-    for (const asset of manifest) {
+    // Validator hanya memeriksa background, music, dan sprite karakter;
+    // `sfx`/`ui` tidak dirujuk `Story`.
+    const referenced = manifest.filter(
+      (asset) => asset.kind !== "sfx" && asset.kind !== "ui",
+    );
+
+    for (const asset of referenced) {
       const result = validateVariant((story) => {
         if (asset.kind === "background") {
           story.chapters[0].scenes[0].backgroundId = asset.id;

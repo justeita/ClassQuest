@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { toAssetManifest } from "../assets/manifest";
 import { buildFallbackStory, type FallbackStoryInput } from "./fallback";
 import type { CharacterRole } from "./schema";
 import { type AssetManifest, validateStory } from "./validate";
@@ -13,27 +14,8 @@ import { type AssetManifest, validateStory } from "./validate";
  * selalu deterministik, dan tidak pernah melempar.
  */
 
-/** Semua id dari `docs/07-assets/inventory.md`. */
-const INVENTORY: AssetManifest = [
-  { id: "bg_classroom_day", kind: "background" },
-  { id: "bg_schoolyard_day", kind: "background" },
-  { id: "bg_schoolyard_evening", kind: "background" },
-  { id: "bg_cloud_sky", kind: "background" },
-  { id: "bg_mountain_night", kind: "background" },
-  { id: "bg_river_day", kind: "background" },
-  { id: "bg_library_evening", kind: "background" },
-  { id: "bg_default", kind: "background" },
-  { id: "char_nara", kind: "character" },
-  { id: "char_pak_bima", kind: "character" },
-  { id: "char_tirta", kind: "character" },
-  { id: "char_rani", kind: "character" },
-  { id: "char_default", kind: "character" },
-  { id: "bgm_school_calm", kind: "music" },
-  { id: "bgm_adventure", kind: "music" },
-  { id: "bgm_mystery", kind: "music" },
-  { id: "bgm_ending", kind: "music" },
-  { id: "bgm_default", kind: "music" },
-];
+/** Semua id dari manifest asli (`src/assets/manifest.ts`). */
+const INVENTORY: AssetManifest = toAssetManifest();
 
 const INVENTORY_IDS = new Set(INVENTORY.map((asset) => asset.id));
 

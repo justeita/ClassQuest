@@ -1,0 +1,232 @@
+{
+  "schemaVersion": "1.0",
+  "meta": {
+    "id": "st_mock_fotosintesis",
+    "title": "Rahasia Daun Hijau",
+    "subject": "IPA",
+    "gradeLevel": "SMP 7",
+    "language": "id",
+    "tone": "hangat dan penasaran",
+    "synopsis": "Nara mengamati daun di kelas dan halaman sekolah. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
+    "estimatedMinutes": 7
+  },
+  "source": {
+    "fileName": "fotosintesis.pdf",
+    "pageCount": 4,
+    "concepts": ["Fotosintesis", "Klorofil", "Glukosa"],
+    "gaps": []
+  },
+  "cast": [
+    {
+      "id": "char_nara",
+      "name": "Nara",
+      "role": "player",
+      "spriteId": "char_nara",
+      "description": "Siswa yang suka mengamati tanaman."
+    },
+    {
+      "id": "char_pak_bima",
+      "name": "Pak Bima",
+      "role": "mentor",
+      "spriteId": "char_pak_bima",
+      "description": "Guru IPA yang sabar dan suka bertanya."
+    },
+    {
+      "id": "char_tirta",
+      "name": "Tirta",
+      "role": "npc",
+      "spriteId": "char_tirta",
+      "description": "Roh air yang membantu Nara melihat hal kecil."
+    }
+  ],
+  "chapters": [
+    {
+      "id": "ch_01",
+      "title": "Daun yang Bekerja",
+      "concept": "Fotosintesis",
+      "summary": "Nara memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
+      "backgroundId": "bg_classroom_day",
+      "musicId": "bgm_school_calm",
+      "scenes": [
+        {
+          "id": "sc_01_01",
+          "title": "Daun di Depan Kelas",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Bel istirahat berbunyi. Nara berdiri di depan pot tanaman di kelas dan memperhatikan daun yang basah oleh embun."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Daun itu tidak makan seperti kita. Ia membuat makanannya sendiri dengan bantuan cahaya matahari."
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_01_01"
+            }
+          ]
+        },
+        {
+          "id": "sc_01_02",
+          "title": "Pertanyaan Nara",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Nara menempelkan telapak tangan di dekat daun. Permukaannya terasa dingin dan sedikit lembap."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_nara",
+              "text": "Jadi cahaya matahari dipakai daun untuk memasak? Bagaimana caranya?"
+            },
+            {
+              "type": "narration",
+              "text": "Pak Bima menunjuk jendela. Di luar, matahari sedang naik di atas atap sekolah."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ch_02",
+      "title": "Warna Hijau Rahasia",
+      "concept": "Klorofil",
+      "summary": "Di halaman sekolah, Nara menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
+      "backgroundId": "bg_schoolyard_day",
+      "musicId": "bgm_school_calm",
+      "scenes": [
+        {
+          "id": "sc_02_01",
+          "title": "Butir Hijau",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Di halaman sekolah, Nara memetik sehelai daun rumput dan mengangkatnya ke arah cahaya."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_tirta",
+              "text": "Aku melihat butir-butir hijau di dalam daun itu. Mereka menangkap cahaya sebelum cahaya itu lewat."
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_02_01"
+            }
+          ]
+        },
+        {
+          "id": "sc_02_02",
+          "title": "Bercak di Jari",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Nara menggosok daun itu dengan jarinya. Ada bercak hijau tipis yang tertinggal di kulit."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Butir hijau itu disebut klorofil. Tanpa klorofil, daun tidak bisa menangkap cahaya."
+            },
+            {
+              "type": "narration",
+              "text": "Angin menggerakkan daun-daun di sekitarnya, seolah menjawab pertanyaan Nara."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ch_03",
+      "title": "Makanan dari Cahaya",
+      "concept": "Glukosa",
+      "summary": "Nara memahami bahwa fotosintesis menghasilkan glukosa, makanan bagi tumbuhan.",
+      "backgroundId": "bg_schoolyard_day",
+      "musicId": "bgm_adventure",
+      "scenes": [
+        {
+          "id": "sc_03_01",
+          "title": "Panah di Buku Catatan",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Kembali di kelas, Nara menggambar daun di buku catatannya. Ia menulis panah dari matahari menuju daun."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_nara",
+              "text": "Kalau cahaya sudah ditangkap, apa yang dibuat daun dari cahaya itu?"
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_03_01"
+            }
+          ]
+        },
+        {
+          "id": "sc_03_02",
+          "title": "Dapur Kecil",
+          "beats": [
+            {
+              "type": "narration",
+              "text": "Pak Bima menulis satu kata di papan: glukosa."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_pak_bima",
+              "text": "Glukosa adalah gula yang menjadi makanan tumbuhan. Sebagian disimpan, sebagian dipakai untuk tumbuh."
+            },
+            {
+              "type": "narration",
+              "text": "Nara menatap gambar daunnya. Untuk pertama kali, daun itu terlihat seperti dapur kecil yang bekerja diam-diam."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "challenges": [
+    {
+      "id": "chl_01_01",
+      "type": "multiple_choice",
+      "prompt": "Apa yang dibutuhkan daun untuk membuat makanan sendiri?",
+      "conceptTag": "Fotosintesis",
+      "difficulty": 1,
+      "explanation": "Fotosintesis membutuhkan cahaya matahari sebagai sumber energi untuk mengubah air dan karbon dioksida menjadi makanan.",
+      "points": 10,
+      "options": [
+        { "id": "opt_a", "text": "Cahaya matahari" },
+        { "id": "opt_b", "text": "Tanah kering" },
+        { "id": "opt_c", "text": "Angin malam" }
+      ],
+      "correctOptionId": "opt_a"
+    },
+    {
+      "id": "chl_02_01",
+      "type": "true_false",
+      "prompt": "Tentukan benar atau salah pernyataan berikut.",
+      "statement": "Klorofil adalah butir hijau pada daun yang menangkap cahaya matahari.",
+      "conceptTag": "Klorofil",
+      "difficulty": 2,
+      "explanation": "Klorofil memberi warna hijau pada daun dan berperan menangkap energi cahaya untuk fotosintesis.",
+      "points": 10,
+      "correctAnswer": true
+    },
+    {
+      "id": "chl_03_01",
+      "type": "short_answer",
+      "prompt": "Apa nama gula yang dihasilkan tumbuhan dari fotosintesis?",
+      "conceptTag": "Glukosa",
+      "difficulty": 2,
+      "explanation": "Fotosintesis menghasilkan glukosa, yaitu gula yang dipakai tumbuhan sebagai sumber energi dan bahan tumbuh.",
+      "points": 15,
+      "acceptedAnswers": ["glukosa", "gula"],
+      "caseSensitive": false
+    }
+  ],
+  "assetUsage": {
+    "backgrounds": ["bg_classroom_day", "bg_schoolyard_day"],
+    "music": ["bgm_adventure", "bgm_school_calm"],
+    "sprites": ["char_nara", "char_pak_bima", "char_tirta"]
+  }
+}

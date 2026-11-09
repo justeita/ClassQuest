@@ -74,7 +74,14 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/story/validate.ts`                   | ya      | Validator semantik                                  |
 | `src/story/scoring.ts`                    | ya      | Penilaian jawaban, fungsi murni                     |
 | `src/story/fallback.ts`                   | ya      | Cerita cadangan (deterministik, selalu valid)       |
-| `src/assets/manifest.ts`                  | rencana | Daftar resmi aset                                   |
+| `src/assets/manifest.ts`                  | ya      | Daftar resmi aset + `toAssetManifest()`             |
+| `src/assets/manifest.test.ts`             | ya      | Tes id, path, tag, fallback, dan file aset          |
+| `src/ai/provider.ts`                      | ya      | Antarmuka `LlmProvider` + error provider            |
+| `src/ai/mock-provider.ts`                 | ya      | Provider mock deterministik dari fixture            |
+| `src/ai/factory.ts`                       | ya      | `createLlmProvider` dari konfigurasi env AI         |
+| `src/ai/prompt.ts`                        | ya      | Prompt builder: outline, chapter, repair            |
+| `src/ai/prompt.test.ts`                   | ya      | Tes kontrak prompt builder                          |
+| `src/ai/__fixtures__/outputs`             | ya      | Fixture keluaran mock (valid, rusak, timeout)       |
 | `src/ai/pipeline.ts`                      | rencana | Outline → generate → repair                         |
 | `src/game/config.ts`                      | ya      | Konfigurasi Phaser (480×270)                        |
 | `src/game/createGame.ts`                  | ya      | Entry `createGame(parent)`, dipanggil React         |
