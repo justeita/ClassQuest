@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "db:migrate": "bun scripts/db-migrate.ts",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

@@ -2,10 +2,12 @@
  * Konfigurasi server dari environment.
  *
  * **Satu-satunya** modul yang membaca `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`,
- * `AI_BASE_URL`, dan `AI_TIMEOUT_MS` dari `process.env`
- * (`docs/03-ai-pipeline/provider-setup.md`). Modul lain memakai hasil
- * `loadAiConfig()` supaya test tidak perlu menyentuh environment global dan
- * supaya satu nilai tidak dibaca di dua tempat dengan aturan berbeda.
+ * `AI_BASE_URL`, `AI_TIMEOUT_MS`, `DATABASE_URL`, dan `DATABASE_AUTH_TOKEN`
+ * dari `process.env` (`docs/03-ai-pipeline/provider-setup.md`,
+ * `docs/06-backend/persistence.md`). Modul lain memakai hasil `loadAiConfig()`
+ * atau `loadDatabaseConfig()` supaya test tidak perlu menyentuh environment
+ * global dan supaya satu nilai tidak dibaca di dua tempat dengan aturan
+ * berbeda.
  *
  * Aturan yang dipegang di sini:
  *
@@ -33,6 +35,13 @@ export type AiProviderName = (typeof SUPPORTED_AI_PROVIDERS)[number];
 /** `AI_TIMEOUT_MS` bawaan; satu panggilan LLM yang lewat ini dianggap gagal. */
 export const DEFAULT_AI_TIMEOUT_MS = 60_000;
 
+/**
+ * Database lokal bawaan untuk development. File ini di-ignore `.gitignore`.
+ * Tidak ada koneksi yang dibuka hanya karena nilai ini ada; `getDb()` tetap
+ * lazy (`src/server/db/client.ts`).
+ */
+export const DEFAULT_DATABASE_URL = "file:./local.db";
+
 export type AiConfig =
   | {
       provider: "mock";
@@ -49,6 +58,12 @@ export type AiConfig =
       baseUrl: string | null;
       timeoutMs: number;
     };
+
+/** Konfigurasi database. `authToken` hanya dipakai untuk database remote. */
+export type DatabaseConfig = {
+  url: string;
+  authToken: string | null;
+};
 
 /**
  * Error konfigurasi. `message` aman ditampilkan (tidak memuat nilai rahasia);
@@ -99,6 +114,25 @@ const readTimeout = (env: EnvSource): number => {
 
   return value;
 };
+
+/**
+ * Baca konfigurasi database.
+ *
+ * `DATABASE_URL` kosong berarti database file lokal `file:./local.db` supaya
+ * development dan test tidak butuh layanan eksternal. `DATABASE_AUTH_TOKEN`
+ * opsional dan hanya relevan untuk database remote. Nilainya tidak pernah
+ * dicetak atau dimasukkan ke pesan error.
+ *
+ * @param env sumber environment; default `process.env`.
+ */
+export function loadDatabaseConfig(
+  env: EnvSource = process.env,
+): DatabaseConfig {
+  return {
+    url: read(env, "DATABASE_URL") ?? DEFAULT_DATABASE_URL,
+    authToken: read(env, "DATABASE_AUTH_TOKEN"),
+  };
+}
 
 /**
  * Baca dan validasi konfigurasi AI.
