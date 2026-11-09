@@ -72,6 +72,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/story/schema.ts`                     | ya      | Tipe `Story` (bentuk mengikuti `story.schema.json`) |
 | `src/story/schema.test.ts`                | ya      | Tes schema TypeScript vs `story.schema.json`        |
 | `src/story/validate.ts`                   | ya      | Validator semantik                                  |
+| `src/story/validate-parts.ts`             | ya      | `validateOutline` dan `validateChapter`             |
+| `src/story/validate-parts.test.ts`        | ya      | Tes validasi outline dan chapter                    |
 | `src/story/scoring.ts`                    | ya      | Penilaian jawaban, fungsi murni                     |
 | `src/story/fallback.ts`                   | ya      | Cerita cadangan (deterministik, selalu valid)       |
 | `src/assets/manifest.ts`                  | ya      | Daftar resmi aset + `toAssetManifest()`             |
