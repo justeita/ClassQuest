@@ -103,7 +103,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/fixture`                         | ya      | Cerita demo untuk pengembangan frontend game        |
 | `src/components/game/GameCanvas.tsx`       | ya      | Host Phaser + overlay tantangan di React            |
 | `src/components/game/ChallengeOverlay.tsx` | ya      | Overlay tantangan DOM di atas canvas                |
-| `src/components/game/GameShell.tsx`        | ya      | Shell halaman game + layar hasil                    |
+| `src/components/game/GameShell.tsx`        | ya      | Shell halaman game + state layar judul/main/hasil   |
+| `src/components/game/TitleScreen.tsx`      | ya      | Layar judul: ringkasan cerita + menu Mulai          |
 | `src/components/game/ResultScreen.tsx`     | ya      | Layar hasil: skor, jawaban tepat, konsep lemah      |
 | `src/app/play`                             | ya      | Halaman siswa dari cerita demo                      |
 | `src/server/config.ts`                     | ya      | Konfigurasi env AI (satu-satunya pembaca)           |
@@ -157,6 +158,7 @@ src/
 │   │   └── ChallengeEditor.tsx
 │   └── game/
 │       ├── GameShell.tsx              # shell fullscreen halaman game
+│       ├── TitleScreen.tsx            # layar judul sebelum game dimulai
 │       ├── GameCanvas.tsx             # host Phaser (client-only)
 │       ├── ChallengeOverlay.tsx
 │       ├── HUD.tsx

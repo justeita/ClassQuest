@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -16,7 +16,8 @@ src/app/play/[storyId]/page.tsx        (Server Component)
   ├─ ambil cerita published
   ├─ notFound() bila tidak ada
   └─ <GameShell story={story} />       (Client Component)
-        ├─ <GameCanvas />              (Phaser, dynamic import)
+        ├─ <TitleScreen />             (DOM, sebelum Mulai)
+        ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
         ├─ <ChallengeOverlay />        (DOM)
         ├─ <HUD />                     (DOM)
         ├─ <PauseMenu />               (DOM)
@@ -26,8 +27,9 @@ src/app/play/[storyId]/page.tsx        (Server Component)
 Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
-> **Yang ada hari ini:** `GameShell`, `GameCanvas`, `ChallengeOverlay`, dan
-> `ResultScreen` sudah ada. `HUD` dan `PauseMenu` masih rencana.
+> **Yang ada hari ini:** `TitleScreen`, `GameShell`, `GameCanvas`,
+> `ChallengeOverlay`, dan `ResultScreen` sudah ada. `HUD` dan `PauseMenu` masih
+> rencana.
 >
 > `/play/[storyId]` sudah berjalan, tetapi cerita masih dibaca dari fixture
 > (`src/game/demoStory.ts`), bukan dari `getPublishedStory()`. Hanya id cerita
@@ -57,6 +59,7 @@ Aturan:
 
 ```ts
 type GameShellState =
+  | { phase: "judul" }
   | { phase: "loading" }
   | { phase: "ready" }
   | { phase: "playing"; chapterIndex: number; sceneIndex: number }
@@ -84,9 +87,15 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ### Ready / judul
 
-- Judul, synopsis singkat, jumlah chapter.
-- Tombol "Mulai" dan "Lanjutkan" (bila ada progres valid).
-- Tombol suara.
+- Layar penuh dengan latar `bg_mountain_night` dan sprite pemain dari `cast`.
+- Judul, synopsis singkat, mata pelajaran, kelas, jumlah chapter, perkiraan
+  durasi.
+- Tombol "Mulai", "Kontrol", dan "Kembali". Panah atas/bawah memindahkan
+  fokus, Enter menjalankan pilihan.
+- Phaser **baru** dipasang setelah "Mulai" ditekan; sebelum itu tidak ada
+  kanvas yang berjalan di latar belakang.
+- Tombol "Lanjutkan" (bila ada progres valid) dan tombol suara belum
+  ditampilkan karena progres `localStorage` serta state audio belum ada.
 
 ### Playing
 

@@ -6,7 +6,8 @@ import { DEMO_STORY } from "@/game/demoStory";
 import type { PlayResult } from "@/story/scoring";
 
 // Phaser tidak bisa hidup di jsdom. Yang diuji di sini hanya kontrak
-// bus → React: overlay tantangan, layar hasil, dan "Main lagi".
+// layar → bus → React: layar judul, overlay tantangan, layar hasil, dan
+// "Main lagi".
 const mocks = vi.hoisted(() => ({ createGame: vi.fn() }));
 
 vi.mock("@/game/createGame", () => ({ createGame: mocks.createGame }));
@@ -15,10 +16,12 @@ vi.mock("next/link", () => ({
   default: ({
     href,
     children,
-  }: {
-    href: string;
-    children: React.ReactNode;
-  }) => <a href={href}>{children}</a>,
+    ...rest
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 const { GameShell } = await import("./GameShell");
@@ -38,6 +41,16 @@ async function tungguBusTerpasang() {
   await vi.waitFor(() => expect(mocks.createGame).toHaveBeenCalled());
 }
 
+/**
+ * Render shell, lalu masuk ke permainan lewat layar judul. Sejak layar judul
+ * ada, Phaser memang belum dinyalakan sebelum tombol "Mulai" ditekan.
+ */
+async function mainkan() {
+  render(<GameShell story={DEMO_STORY} />);
+  fireEvent.click(screen.getByRole("button", { name: /^mulai$/i }));
+  await tungguBusTerpasang();
+}
+
 afterEach(cleanup);
 
 beforeEach(() => {
@@ -46,9 +59,27 @@ beforeEach(() => {
 });
 
 describe("GameShell", () => {
-  it("menampilkan layar hasil saat event finished datang", async () => {
+  it("menampilkan layar judul tanpa menyalakan Phaser", () => {
     render(<GameShell story={DEMO_STORY} />);
+
+    expect(
+      screen.getByRole("heading", { name: DEMO_STORY.meta.title }),
+    ).toBeInTheDocument();
+    expect(mocks.createGame).not.toHaveBeenCalled();
+  });
+
+  it("Mulai menyembunyikan layar judul dan menyalakan Phaser", async () => {
+    render(<GameShell story={DEMO_STORY} />);
+    fireEvent.click(screen.getByRole("button", { name: /^mulai$/i }));
+
     await tungguBusTerpasang();
+    expect(
+      screen.queryByRole("heading", { name: DEMO_STORY.meta.title }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("menampilkan layar hasil saat event finished datang", async () => {
+    await mainkan();
 
     bus.emit({ type: "finished", result: hasilPalsu });
 
@@ -61,8 +92,7 @@ describe("GameShell", () => {
   });
 
   it("Main lagi menyembunyikan layar hasil", async () => {
-    render(<GameShell story={DEMO_STORY} />);
-    await tungguBusTerpasang();
+    await mainkan();
 
     bus.emit({ type: "finished", result: hasilPalsu });
     fireEvent.click(await screen.findByRole("button", { name: /main lagi/i }));
@@ -72,9 +102,22 @@ describe("GameShell", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("Main lagi me-remount Phaser untuk sesi baru", async () => {
+    await mainkan();
+    const panggilanAwal = mocks.createGame.mock.calls.length;
+
+    bus.emit({ type: "finished", result: hasilPalsu });
+    fireEvent.click(await screen.findByRole("button", { name: /main lagi/i }));
+
+    await vi.waitFor(() =>
+      expect(mocks.createGame.mock.calls.length).toBeGreaterThan(
+        panggilanAwal,
+      ),
+    );
+  });
+
   it("overlay tantangan muncul dari event challenge", async () => {
-    render(<GameShell story={DEMO_STORY} />);
-    await tungguBusTerpasang();
+    await mainkan();
 
     bus.emit({
       type: "challenge",
