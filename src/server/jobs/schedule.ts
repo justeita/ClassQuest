@@ -1,45 +1,43 @@
 /**
  * Penjadwal job generasi cerita.
  *
- * **Placeholder — diimplementasikan di task 18.** Route upload (task 16) hanya
- * bergantung pada tanda tangan fungsi ini: ia menerima id job, id story, dan
- * bytes PDF yang sudah divalidasi, lalu menjadwalkan pipeline generasi lewat
- * `after()` dari `next/server` pada invocation yang sama.
+ * Route upload (task 16) hanya bergantung pada tanda tangan fungsi ini: ia
+ * menerima id job, id story, bytes PDF yang sudah divalidasi, dan `tone`
+ * opsional, lalu menjadwalkan `runJob()` lewat `after()` dari `next/server`
+ * pada invocation yang sama (`docs/06-backend/jobs-and-limits.md`).
  *
- * Kontrak yang dipegang sejak task 16:
+ * Kontrak yang dipegang:
  *
  * - Bytes PDF **hanya** dioper lewat memori. Tidak ada path, disk, bucket, atau
  *   penyimpanan database untuk PDF (`docs/01-architecture/data-flow.md`).
- * - Fungsi ini tidak melempar dan tidak menulis database; kegagalan penjadwalan
- *   nyata nanti adalah tanggung jawab task 18.
+ * - `scheduleJob()` tidak melempar. Kegagalan `runJob()` di dalam `after()`
+ *   ditangkap supaya tidak menjadi unhandled rejection; `runJob()` sendiri
+ *   sudah menandai job `failed`.
  * - Modul ini hanya boleh diimpor dari server code.
  */
 
+import { after } from "next/server";
+
+import { runJob, type RunJobDeps, type RunJobInput } from "./run";
+
 /** Input penjadwalan yang diterima route upload. */
-export type ScheduledJobInput = {
-  /** Id baris `jobs` yang baru dibuat bersama story-nya. */
-  jobId: string;
-  /** Id baris `stories` yang baru dibuat. */
-  storyId: string;
-  /** PDF mentah yang sudah lolos validasi upload. Hanya hidup di memori. */
-  pdf: {
-    bytes: Uint8Array;
-    /** Nama file yang sudah disanitasi, hanya untuk tampilan. */
-    filename: string;
-    /** Ukuran isi yang benar-benar dibaca, bukan metadata klien. */
-    sizeBytes: number;
-  };
-};
+export type ScheduledJobInput = RunJobInput;
 
 /**
  * Jadwalkan pipeline generasi untuk job yang baru dibuat.
  *
- * **Diimplementasikan di task 18** lewat `after()`. Untuk sekarang fungsi ini
- * sengaja tidak melakukan apa pun supaya route upload bisa selesai dan dites
- * tanpa pipeline; bytes yang diterima tidak dipakai dan tidak disimpan di mana
- * pun.
+ * `deps` hanya dipakai test; route upload memanggil tanpa argumen kedua.
  */
-export function scheduleJob(input: ScheduledJobInput): void {
-  // Placeholder task 16: tanda tangan mengikat, perilaku menyusul di task 18.
-  void input;
+export function scheduleJob(
+  input: ScheduledJobInput,
+  deps: RunJobDeps = {},
+): void {
+  after(async () => {
+    try {
+      await runJob(input, deps);
+    } catch {
+      // `runJob()` tidak pernah melempar, tetapi `after()` tidak boleh
+      // menerima rejection apa pun. Tidak ada isi PDF yang di-log.
+    }
+  });
 }
