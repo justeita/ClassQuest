@@ -26,7 +26,7 @@ dalam waktu hackathon.
 
 | Properti     | Nilai                                                   |
 | ------------ | ------------------------------------------------------- |
-| Resolusi     | **480×270** (16:9)                                      |
+| Resolusi     | **640×360** (16:9, ADR 0009)                            |
 | Format       | PNG, indexed/24-bit                                     |
 | Transparansi | Tidak perlu                                             |
 | Gaya         | Pixel art, tanpa anti-aliasing                          |
@@ -60,7 +60,30 @@ judul dan layar hasil.
 Portrait memakai `portraitPath` di entri manifest karakter. Kalau tidak ada, game
 tidak menampilkan portrait.
 
-### Musik
+#### Tile
+
+| Properti    | Nilai                                 |
+| ----------- | ------------------------------------- |
+| Ukuran      | **16×16** (satu tile, ADR 0009)       |
+| Format      | PNG, tidak transparan (full-bleed)    |
+| Isi         | Satu tile berulang, tanpa tepi khusus |
+| Ukuran file | ≤ 4 KB                                |
+
+Tile dipasang berulang oleh game; jadi satu tile **tidak boleh** mengandung
+gradien besar atau tepi yang terlihat saat diulang.
+
+### Prop
+
+| Properti    | Nilai                                                |
+| ----------- | ---------------------------------------------------- |
+| Ukuran      | Kelipatan 16 px                                      |
+| Format      | PNG dengan transparansi                              |
+| Anchor      | Alas di tengah bawah (kaki objek)                    |
+| Bayangan    | Elips gelap 1–2 px di bawah alas, bagian dari gambar |
+| Outline     | 1 px gelap, konsisten dengan karakter                |
+| Ukuran file | ≤ 20 KB                                              |
+
+## Musik
 
 | Properti    | Nilai                                |
 | ----------- | ------------------------------------ |
@@ -89,7 +112,7 @@ tidak menampilkan portrait.
 
 ## Aturan pixel art
 
-1. **Satu grid.** Semua gambar digambar pada grid 1 px dari resolusi 480×270.
+1. **Satu grid.** Semua gambar digambar pada grid 1 px dari resolusi 640×360.
    Jangan mengecilkan gambar besar.
 2. **Tanpa anti-aliasing.** Tidak ada blur, gradient halus, atau bayangan lembut.
 3. **Palet terbatas.** Maksimal 8 warna per gambar (6 inti + 2 fungsional), diambil
@@ -97,8 +120,8 @@ tidak menampilkan portrait.
    Untuk background yang butuh variasi terang/gelap, pakai tint dari palet itu —
    jangan menambah warna baru.
 4. **Skala integer saat menggambar.** Semua gambar digambar pada grid 1 px; game
-   yang menampilkan dengan `Scale.FIT`. Pratinjau di ~2.67x (1280×720) untuk
-   memeriksa ketajaman.
+   yang menampilkan dengan `Scale.FIT`. Pratinjau di 2× (1280×720) atau 3×
+   (1920×1080) untuk memeriksa ketajaman.
 5. **Konsisten.** Karakter yang sama harus punya proporsi dan outline sama di
    semua pose.
 
@@ -126,6 +149,8 @@ public/assets/
 ├── bg/
 ├── char/
 ├── portrait/
+├── tile/
+├── prop/
 ├── music/
 ├── sfx/
 └── ui/

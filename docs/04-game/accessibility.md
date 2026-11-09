@@ -113,8 +113,8 @@ menjadi ~9 px. Itu **di bawah** batas minimum yang kita janjikan. Karena itu:
 
 Aturan:
 
-- Jangan memakai font pixel di bawah 12 px pada resolusi internal 480×270 (setara
-  8 px di skala 320×180 lama).
+- Jangan memakai font di bawah 8 px pada resolusi internal 640×360 (setara
+  16 px di 720p — batas minimum keterbacaan).
 - Overlay React memakai `rem`, bukan px tetap.
 - Sediakan pengaturan "teks lebih besar" yang menaikkan ukuran overlay (bukan canvas).
 

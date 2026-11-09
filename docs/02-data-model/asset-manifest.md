@@ -33,7 +33,8 @@ kalau berbeda.
 ## Bentuk manifest
 
 ```ts
-export type AssetKind = "background" | "character" | "music" | "sfx" | "ui";
+export type AssetKind =
+  "background" | "character" | "tile" | "prop" | "music" | "sfx" | "ui";
 
 export type AssetEntry = {
   id: string; // mis. "bg_classroom_day"
@@ -53,8 +54,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/classroom_day.png",
     label: "Kelas, siang",
     tags: ["kelas", "sekolah", "belajar", "siang", "indoor", "classroom"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
   // ...
 ] as const satisfies readonly AssetEntry[];
@@ -74,6 +75,8 @@ editor, dan game.
 | ------------ | ------- | ------------------ |
 | `background` | `bg_`   | `bg_classroom_day` |
 | `character`  | `char_` | `char_pak_bima`    |
+| `tile`       | `tile_` | `tile_floor_wood`  |
+| `prop`       | `prop_` | `prop_desk`        |
 | `music`      | `bgm_`  | `bgm_school_calm`  |
 | `sfx`        | `sfx_`  | `sfx_correct`      |
 | `ui`         | `ui_`   | `ui_textbox`       |
@@ -92,6 +95,8 @@ Selalu ada fallback per kind, supaya game tidak pernah crash:
 | ------------ | ---------------- |
 | `background` | `bg_default`     |
 | `character`  | `char_default`   |
+| `tile`       | `tile_default`   |
+| `prop`       | `prop_default`   |
 | `music`      | `bgm_default`    |
 | `sfx`        | — (boleh senyap) |
 | `ui`         | `ui_default`     |
@@ -134,7 +139,7 @@ yang paling dekat dan mencatatnya di `source.gaps`, bukan mengarang id.
 3. Semua `path` menunjuk file yang ada di `public/`.
 4. Semua aset punya minimal 4 tag.
 5. Fallback tiap kind ada.
-6. `width`/`height` background = 480×270 (lihat
+6. `width`/`height` background = 640×360 (lihat
    [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md)).
 
 Test ini yang membuat "aset hilang" ketahuan saat `bun run test`, bukan saat demo.

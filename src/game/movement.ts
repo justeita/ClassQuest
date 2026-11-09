@@ -10,13 +10,16 @@ import { DEFAULT_CHARACTER_ID } from "./sceneAssets";
  * tidak ada, jatuh ke `char_default` tanpa menghentikan permainan.
  */
 
-/** Kotak tabrakan kecil di kaki sprite 48×72, bukan seluruh badan. */
-export const PLAYER_BODY_WIDTH = 20;
-export const PLAYER_BODY_HEIGHT = 16;
+/**
+ * Kotak tabrakan kecil di kaki sprite 24×32, bukan seluruh badan
+ * (world-design.md § Objek dan collision).
+ */
+export const PLAYER_BODY_WIDTH = 12;
+export const PLAYER_BODY_HEIGHT = 8;
 export const PLAYER_NAMA = "player";
 
-const FRAME_WIDTH = 48;
-const FRAME_HEIGHT = 72;
+const FRAME_WIDTH = 24;
+const FRAME_HEIGHT = 32;
 
 /** Tombol gerak: tiap arah bisa dipicu beberapa tombol (panah + WASD). */
 export type MovementKeys = Record<

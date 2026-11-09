@@ -42,6 +42,23 @@ import {
   textboxPanel,
 } from "./lib/characters.mjs";
 import {
+  propBlackboard,
+  propDefault,
+  propDesk,
+  propFence,
+  propTree,
+  tileCanopy,
+  tileDefault,
+  tileFloorCloud,
+  tileFloorGrass,
+  tileFloorRock,
+  tileFloorWater,
+  tileFloorWood,
+  tileWallHedge,
+  tileWallPlaster,
+  tileWallRock,
+} from "./lib/tiles.mjs";
+import {
   musicAdventure,
   musicDefault,
   musicEnding,
@@ -81,6 +98,25 @@ const IMAGES = [
   ["ui/textbox.png", textboxPanel],
   ["ui/portrait_frame.png", portraitFrame],
   ["ui/default.png", defaultPanel],
+
+  /* Tile lantai dan dinding (map top-down, ADR 0010) */
+  ["tile/floor_wood.png", tileFloorWood],
+  ["tile/floor_grass.png", tileFloorGrass],
+  ["tile/floor_cloud.png", tileFloorCloud],
+  ["tile/floor_rock.png", tileFloorRock],
+  ["tile/floor_water.png", tileFloorWater],
+  ["tile/wall_plaster.png", tileWallPlaster],
+  ["tile/wall_hedge.png", tileWallHedge],
+  ["tile/wall_rock.png", tileWallRock],
+  ["tile/canopy.png", tileCanopy],
+  ["tile/default.png", tileDefault],
+
+  /* Prop padat dengan collider dari data yang sama */
+  ["prop/desk.png", propDesk],
+  ["prop/blackboard.png", propBlackboard],
+  ["prop/tree.png", propTree],
+  ["prop/fence.png", propFence],
+  ["prop/default.png", propDefault],
 ];
 
 const AUDIO = [

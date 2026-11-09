@@ -86,7 +86,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/ai/__fixtures__/outputs`              | ya      | Fixture keluaran mock (valid, rusak, timeout)           |
 | `src/ai/pipeline.ts`                       | ya      | Outline → generate → repair                             |
 | `src/ai/pipeline.test.ts`                  | ya      | Tes pipeline: repair, anggaran, fallback                |
-| `src/game/config.ts`                       | ya      | Konfigurasi Phaser (resolusi diubah oleh ADR 0009)      |
+| `src/game/config.ts`                       | ya      | Konfigurasi Phaser (640×360, ADR 0009)                  |
 | `src/game/createGame.ts`                   | ya      | Entry `createGame(parent)`, dipanggil React             |
 | `src/game/types.ts`                        | ya      | `GameHandle` untuk menutup instance Phaser              |
 | `src/game/scenes`                          | ya      | `PreloadScene` (muat aset) + `GameScene` (cerita)       |

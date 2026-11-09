@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
@@ -54,7 +54,7 @@ mengambil hanya:
 
 - background chapter + override scene + `bg_default`;
 - musik chapter + override scene + `bgm_default`;
-- `spriteId` setiap `cast` (spritesheet 48×72) beserta portrait-nya;
+- `spriteId` setiap `cast` (spritesheet 24×32, 10 frame idle+jalan) beserta portrait-nya;
 - aset UI (`ui_textbox`, `ui_portrait_frame`, `ui_default`) dan SFX
   (`sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`).
 
@@ -71,7 +71,7 @@ Per ADR 0008, scene dirender sebagai **ruangan satu layar** yang bisa dijelajahi
   mengubah kontrak Story JSON**. Struktur datanya dibuat supaya nanti bisa
   diganti tileset nyata tanpa refactor.
 - Map dummy menyimpan lantai/dinding/spawn/zona; Sprite karakter memakai
-  `spriteId` dari `cast` (spritesheet 48×72, 2 frame idle) dan background dari
+  `spriteId` dari `cast` (spritesheet 24×32) dan background dari
   `backgroundId`. Bila texture tidak ada, runtime jatuh ke `char_default` /
   `bg_default` tanpa menghentikan permainan.
 - Collision: dinding keliling ruangan + objek padat; arcade physics gravity 0
@@ -82,18 +82,18 @@ Per ADR 0008, scene dirender sebagai **ruangan satu layar** yang bisa dijelajahi
 
 ## Peta visual
 
-Resolusi 480×270. Layout di bawah berlaku saat fase `dialog` (textbox terbuka);
-saat fase `explore`, textbox tersembunyi dan karakter bebas bergerak. Posisi
-dalam piksel:
+Resolusi 640×360 (ADR 0009). Layout di bawah berlaku saat fase `dialog`
+(textbox terbuka); saat fase `explore`, textbox tersembunyi dan karakter bebas
+bergerak. Posisi dalam piksel:
 
 ```text
-┌──────────────────────────────────────────────────┐ 480×270
+┌──────────────────────────────────────────────────────┐ 640×360
 │                                                  │
 │                BACKGROUND (full)                 │
 │                                                  │
 │     ┌──────┐                                     │
 │     │SPRITE│  ← karakter aktif, kiri bawah       │
-│     │48×72 │                                     │
+│     │24×32 │                                     │
 │     └──────┘                                     │
 │ ┌──────────────────────────────────────────────┐ │
 │ │ TEXTBOX (ui_textbox)                         │ │
@@ -105,10 +105,10 @@ dalam piksel:
 
 | Elemen     | Posisi/ukuran                                              |
 | ---------- | ---------------------------------------------------------- |
-| Background | `0,0`, 480×270, `setOrigin(0)`                             |
-| Sprite     | `x=36`, `y=180`, origin bottom-left (kaki di atas textbox) |
-| Portrait   | Opsional, di atas textbox, 96×96                           |
-| Textbox    | `x=12`, `y=180`, lebar 456, tinggi 78                      |
+| Background | `0,0`, 640×360, `setOrigin(0)`                             |
+| Sprite     | `x=48`, `y=240`, origin bottom-left (kaki di atas textbox) |
+| Portrait   | Opsional, di atas textbox, 64×64                           |
+| Textbox    | `x=16`, `y=240`, lebar 608, tinggi 104                     |
 | Nama       | Di dalam textbox, baris pertama                            |
 | Teks       | Maks 3 baris per halaman, ~60 karakter/baris               |
 | Indikator  | Panah kecil berkedip di kanan bawah saat menunggu          |
@@ -118,8 +118,7 @@ Beginilah hasilnya di layar:
 ![Layar dialog: ruang kelas, dua karakter, textbox di bawah](../assets/game-screen.svg)
 
 > Gambar di atas digambar pada kanvas 320×180 lalu diperbesar agar tajam di
-> layar. Yang berlaku untuk aset dan kode adalah angka di tabel: 480×270. Kalau
-> menggambar aset baru, kalikan koordinat gambar ini dengan 1.5.
+> layar. Yang berlaku untuk aset dan kode adalah angka di tabel: 640×360.
 
 Batas keras **240 karakter per beat** berasal dari schema. Satu halaman textbox
 hanya memuat 3 baris × ~60 karakter ≈ 180 karakter, jadi beat yang lebih panjang

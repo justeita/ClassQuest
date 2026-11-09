@@ -128,7 +128,7 @@ type ValidationResult = {
 | `E_TEXT_EMPTY`    | Semua field teks wajib            | min 1 |
 
 Batas ini bukan selera: textbox game hanya muat ~180 karakter per halaman pada
-resolusi 480×270 dengan font pixel 12 px. Beat yang lebih panjang ditampilkan
+resolusi 640×360 dengan teks 14 px. Beat yang lebih panjang ditampilkan
 sebagai dua halaman, dan batas keras 240 karakter memastikan tidak pernah lebih
 dari itu (lihat [`../04-game/scene-format.md`](../04-game/scene-format.md#peta-visual)).
 

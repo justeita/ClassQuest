@@ -28,8 +28,8 @@ import {
   resolveSceneLook,
 } from "../sceneAssets";
 
-/** Kecepatan pemain placeholder (piksel/detik) hingga ada pengaturan. */
-const PLAYER_CONFIG: PlayerConfig = { speed: 120 };
+/** Kecepatan pemain: 5 tile/detik = 80 px/detik (world-design.md § Satuan dasar). */
+const PLAYER_CONFIG: PlayerConfig = { speed: 80 };
 
 /** Non-speaker diredupkan sesuai scene-format.md (0x9a9a9a). */
 const NPC_DIM_COLOR = 0x9a9a9a;
