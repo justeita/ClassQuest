@@ -28,8 +28,7 @@ Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
 > **Yang ada hari ini:** `TitleScreen`, `GameShell`, `GameCanvas`,
-> `ChallengeOverlay`, dan `ResultScreen` sudah ada. `HUD` dan `PauseMenu` masih
-> rencana.
+> `ChallengeOverlay`, `HUD`, `PauseMenu`, dan `ResultScreen` sudah ada.
 >
 > `/play/[storyId]` sudah berjalan, tetapi cerita masih dibaca dari fixture
 > (`src/game/demoStory.ts`), bukan dari `getPublishedStory()`. Hanya id cerita
@@ -73,6 +72,11 @@ Ini **state layar**, bukan state cerita. Soal yang sedang terbuka dilacak oleh
 `GameShell` hanya menampilkan overlay-nya. Pemetaan lengkap ada di
 [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#dua-state-bukan-satu).
 
+Implementasi sekarang memegang `judul | main | hasil` di `GameShell`, sedangkan
+`paused` dipegang `GameCanvas` karena menu jeda hanya relevan selama sesi
+permainan aktif. HUD menerima nomor bab lewat event `progress` dari Phaser, bukan
+menebak dari DOM.
+
 State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 [`../04-game/engine.md`](../04-game/engine.md)). Sumber kebenaran progres:
 `localStorage`, bukan Phaser.
@@ -82,7 +86,8 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 ### Loading
 
 - Latar gelap sesuai palet game.
-- Judul cerita + progress aset yang jujur.
+- Canvas menampilkan teks progres `Memuat… N%` selama aset cerita dimuat;
+  layar loading DOM dengan judul cerita belum dibuat.
 - Tombol "Batal" kembali ke halaman awal.
 
 ### Ready / judul
@@ -94,13 +99,16 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   fokus, Enter menjalankan pilihan.
 - Phaser **baru** dipasang setelah "Mulai" ditekan; sebelum itu tidak ada
   kanvas yang berjalan di latar belakang.
-- Tombol "Lanjutkan" (bila ada progres valid) dan tombol suara belum
-  ditampilkan karena progres `localStorage` serta state audio belum ada.
+- Tombol "Lanjutkan" (bila ada progres valid) belum ditampilkan karena progres
+  `localStorage` belum ada.
 
 ### Playing
 
 - Canvas fullscreen (letterbox bila rasio beda).
-- HUD minimal: `Chapter 1/3`, tombol jeda, tombol suara.
+- HUD minimal: `Chapter 1/3` + judul bab, tombol jeda, tombol suara.
+- Tombol suara mengatur `sound.mute` Phaser; preferensi berlaku untuk musik dan
+  SFX. Musik mulai setelah "Mulai" ditekan (aturan autoplay browser), lalu
+  berganti hanya saat `musicId` scene berubah.
 - Klik di mana saja untuk lanjut.
 
 ### Challenge
@@ -116,7 +124,10 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 ### Paused
 
 - Lanjut, ulangi chapter, suara, keluar.
-- Game di-pause, musik volume turun.
+- Game di-pause (`scene.pause()`), input dialog berhenti.
+- Musik tidak dihentikan, hanya dikecilkan (volume 0,35 → 0,12) agar jeda tidak
+  terasa memutus suasana; volume kembali saat lanjut atau ulangi chapter.
+- Fokus masuk ke tombol "Lanjut" dan kembali ke tombol HUD saat menu ditutup.
 
 ### Finished
 
