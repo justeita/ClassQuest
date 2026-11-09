@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
-import demoStoryJson from "../fixture/demo-story.json";
 import { DUMMY_ROOM, type RoomMap } from "../map";
 import {
   applyMovement,
@@ -17,6 +16,7 @@ import {
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import type { PlayerConfig } from "../types";
 import { StoryRunner } from "../StoryRunner";
+import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
 import type { GameBus } from "../gameBus";
 import { scoreAnswer, type Answer } from "@/story/scoring";
@@ -33,26 +33,31 @@ const NPC_DIM_COLOR = 0x9a9a9a;
 /** Debounce input lanjut agar satu tekanan tidak melewati dua beat. */
 const DEBOUNCE_MS = 150;
 
-const DUMMY_STORY = demoStoryJson as unknown as Story;
-
 export class GameScene extends Phaser.Scene {
   private readonly bus?: GameBus;
+  private readonly story: Story;
   private room: RoomMap = DUMMY_ROOM;
   private player?: Phaser.GameObjects.Rectangle;
   private keys?: MovementKeys;
   private lanjutKeys?: Record<"space" | "enter", Phaser.Input.Keyboard.Key>;
-  private runner = new StoryRunner(DUMMY_STORY);
-  private castNames = new Map<string, string>(
-    DUMMY_STORY.cast.map((member) => [member.id, member.name]),
-  );
+  private runner: StoryRunner;
+  private castNames: Map<string, string>;
   private npcBoxes = new Map<string, Phaser.GameObjects.Rectangle>();
   private textbox?: Textbox;
   private prompt?: InteractPrompt;
   private lastAdvance = 0;
+  /** Jawaban percobaan pertama per challenge; jawaban ulang tidak menimpa. */
+  private readonly answers = new AnswerLog();
+  private selesaiDikirim = false;
 
-  constructor(bus?: GameBus) {
+  constructor(story: Story, bus?: GameBus) {
     super("GameScene");
+    this.story = story;
     this.bus = bus;
+    this.runner = new StoryRunner(story);
+    this.castNames = new Map(
+      story.cast.map((member) => [member.id, member.name]),
+    );
   }
 
   create() {
@@ -169,6 +174,9 @@ export class GameScene extends Phaser.Scene {
     const challenge = this.runner.getChallenge(answer.challengeId);
     if (!challenge) return;
 
+    // Skor memakai percobaan pertama; jawaban ulang tidak menimpa (interaction-loop.md).
+    this.answers.record(answer);
+
     const hasil = scoreAnswer(challenge, answer);
     this.bus?.emit({
       type: "graded",
@@ -182,11 +190,14 @@ export class GameScene extends Phaser.Scene {
   private presentBeat() {
     const state = this.runner.getState();
 
-    if (
-      state.phase === "explore" ||
-      state.phase === "chapter_end" ||
-      state.phase === "done"
-    ) {
+    if (state.phase === "done") {
+      this.textbox?.hide();
+      this.dimNpc(null);
+      this.kirimHasil();
+      return;
+    }
+
+    if (state.phase === "explore" || state.phase === "chapter_end") {
       this.textbox?.hide();
       this.dimNpc(null);
       return;
@@ -218,6 +229,19 @@ export class GameScene extends Phaser.Scene {
       view = { name: null, text: beat.text };
     }
     this.textbox?.show(view);
+  }
+
+  /**
+   * Kirim ringkasan sekali main ke React saat cerita selesai. `scoreStory`
+   * menghitung poin, jumlah benar, dan konsep lemah dari percobaan pertama.
+   */
+  private kirimHasil() {
+    if (this.selesaiDikirim) return;
+    this.selesaiDikirim = true;
+    this.bus?.emit({
+      type: "finished",
+      result: this.answers.result(this.story),
+    });
   }
 
   /** Dialog ditahan (bukan ditutup) saat overlay tantangan tampil. */
