@@ -120,6 +120,16 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Fokus keyboard masuk ke overlay.
 - `Esc` tidak menutup overlay sebelum soal dijawab; lihat
   [`../04-game/accessibility.md`](../04-game/accessibility.md#keyboard).
+- Keempat tipe soal punya UI jawaban sendiri:
+  - `multiple_choice` / `true_false`: daftar opsi; angka `1`–`5` memilih,
+    panah atas/bawah memindah sorotan, `Enter` mengirim.
+  - `ordering`: tombol naik/turun per item (bukan drag), urutan awal diacak
+    deterministik per `challengeId` agar tidak sama dengan urutan cerita.
+  - `short_answer`: satu input teks; `Enter` atau tombol "Jawab" mengirim.
+- Overlay hanya mengirim jawaban mentah. Trim, lowercase, dan pembuangan tanda
+  baca akhir dilakukan `src/story/scoring.ts`, bukan di komponen.
+- `hints` tampil sebagai catatan kecil bila ada; jawaban benar tidak pernah ikut
+  ke `ChallengeView`.
 
 ### Paused
 

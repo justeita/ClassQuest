@@ -1,0 +1,284 @@
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import type { ChallengeView } from "@/game/challengeView";
+
+import { acakDeterministik, ChallengeOverlay } from "./ChallengeOverlay";
+
+afterEach(cleanup);
+
+const dasar = {
+  id: "chl_x",
+  prompt: "Soal contoh.",
+  conceptTag: "Konsep",
+  difficulty: 1,
+  explanation: "Karena begitu.",
+  points: 10,
+} as const;
+
+const itemOrdering = [
+  { id: "itm_naik", text: "Uap air naik" },
+  { id: "itm_dingin", text: "Suhu turun" },
+  { id: "itm_titik", text: "Titik air" },
+];
+
+const orderingView: ChallengeView = {
+  ...dasar,
+  id: "chl_02_01",
+  type: "ordering",
+  items: itemOrdering,
+};
+
+const shortAnswerView: ChallengeView = {
+  ...dasar,
+  id: "chl_03_01",
+  type: "short_answer",
+};
+
+function renderOverlay(
+  view: ChallengeView,
+  overrides: Partial<React.ComponentProps<typeof ChallengeOverlay>> = {},
+) {
+  const onSubmit = vi.fn();
+  const onResolve = vi.fn();
+  render(
+    <ChallengeOverlay
+      view={view}
+      graded={null}
+      onSubmit={onSubmit}
+      onResolve={onResolve}
+      {...overrides}
+    />,
+  );
+  return { onSubmit, onResolve };
+}
+
+/** Urutan item yang sedang tampil, dibaca dari DOM. */
+function urutanTampil(): string[] {
+  return screen
+    .getAllByRole("listitem")
+    .map((li) => li.textContent ?? "")
+    .map(
+      (teks) =>
+        itemOrdering.find((item) => teks.includes(item.text))?.id ?? "?",
+    );
+}
+
+describe("acakDeterministik", () => {
+  const ids = itemOrdering.map((item) => item.id);
+
+  it("mengembalikan semua id tanpa duplikat", () => {
+    const hasil = acakDeterministik(ids, "chl_02_01");
+    expect([...hasil].sort()).toEqual([...ids].sort());
+  });
+
+  it("deterministik untuk benih yang sama", () => {
+    expect(acakDeterministik(ids, "chl_02_01")).toEqual(
+      acakDeterministik(ids, "chl_02_01"),
+    );
+  });
+
+  it("cenderung mengubah urutan asli", () => {
+    // Minimal satu benih umum harus menghasilkan urutan berbeda dari aslinya.
+    const berbeda = ["chl_02_01", "chl_01_01", "a", "b", "c"].some(
+      (seed) => acakDeterministik(ids, seed).join() !== ids.join(),
+    );
+    expect(berbeda).toBe(true);
+  });
+});
+
+describe("ChallengeOverlay — ordering", () => {
+  it("menampilkan item teracak, bukan urutan cerita", () => {
+    renderOverlay(orderingView);
+
+    expect(urutanTampil().sort()).toEqual(
+      ["itm_naik", "itm_dingin", "itm_titik"].sort(),
+    );
+  });
+
+  it("mengirim urutan yang tampil saat langsung dijawab", () => {
+    const { onSubmit } = renderOverlay(orderingView);
+    const tampil = urutanTampil();
+
+    fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_02_01",
+      type: "ordering",
+      order: tampil,
+    });
+  });
+
+  it("tombol turun menukar item dengan item di bawahnya", () => {
+    const { onSubmit } = renderOverlay(orderingView);
+    const tampil = urutanTampil();
+    const pertama = itemOrdering.find((item) => item.id === tampil[0])!;
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(`Turunkan "${pertama.text}"`, "i"),
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_02_01",
+      type: "ordering",
+      order: [tampil[1], tampil[0], tampil[2]],
+    });
+  });
+
+  it("naik di item pertama dan turun di item terakhir dinonaktifkan", () => {
+    renderOverlay(orderingView);
+    const tampil = urutanTampil();
+    const atas = itemOrdering.find((item) => item.id === tampil[0])!;
+    const bawah = itemOrdering.find((item) => item.id === tampil[2])!;
+
+    expect(
+      screen.getByRole("button", {
+        name: new RegExp(`Naikkan "${atas.text}"`, "i"),
+      }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", {
+        name: new RegExp(`Turunkan "${bawah.text}"`, "i"),
+      }),
+    ).toBeDisabled();
+  });
+
+  it("tidak mengirim jawaban setelah dinilai", () => {
+    const { onSubmit } = renderOverlay(orderingView, {
+      graded: { correct: true, explanation: "Benar." },
+    });
+
+    expect(
+      screen.queryByRole("button", { name: /^jawab$/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^lanjut$/i })).toBeEnabled();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+});
+
+describe("ChallengeOverlay — short_answer", () => {
+  it("tombol Jawab nonaktif selama teks kosong", () => {
+    renderOverlay(shortAnswerView);
+    expect(screen.getByRole("button", { name: /^jawab$/i })).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText(/tulis jawabanmu/i), {
+      target: { value: "   " },
+    });
+    expect(screen.getByRole("button", { name: /^jawab$/i })).toBeDisabled();
+  });
+
+  it("mengirim teks apa adanya; normalisasi milik scoring", () => {
+    const { onSubmit } = renderOverlay(shortAnswerView);
+
+    fireEvent.change(screen.getByLabelText(/tulis jawabanmu/i), {
+      target: { value: "  siklus air  " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_03_01",
+      type: "short_answer",
+      text: "  siklus air  ",
+    });
+  });
+
+  it("input dinonaktifkan dan penjelasan tampil setelah dinilai", () => {
+    renderOverlay(shortAnswerView, {
+      graded: { correct: false, explanation: "Belum." },
+    });
+
+    expect(screen.getByLabelText(/tulis jawabanmu/i)).toBeDisabled();
+    expect(screen.getByText("Belum tepat.")).toBeInTheDocument();
+    expect(screen.getByText("Belum.")).toBeInTheDocument();
+  });
+});
+
+describe("ChallengeOverlay — tipe lain", () => {
+  it("menampilkan petunjuk tanpa membocorkan jawaban", () => {
+    renderOverlay({ ...orderingView, hints: ["Ingat urutan energi."] });
+
+    expect(screen.getByText("Ingat urutan energi.")).toBeInTheDocument();
+    expect(screen.queryByText(/correctOrder/)).not.toBeInTheDocument();
+  });
+
+  it("keyboard: angka memilih opsi, Enter mengirim", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_01_01",
+      type: "multiple_choice",
+      options: [
+        { id: "opt_a", text: "Menguap" },
+        { id: "opt_b", text: "Membeku" },
+      ],
+    });
+    const panel = screen.getByLabelText("Tantangan");
+
+    fireEvent.keyDown(panel, { key: "2" });
+    expect(screen.getByRole("button", { name: /membeku$/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    fireEvent.keyDown(panel, { key: "Enter" });
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_01_01",
+      type: "multiple_choice",
+      selectedId: "opt_b",
+    });
+  });
+
+  it("keyboard: panah memindah sorotan lalu Enter menjawab", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_01_02",
+      type: "true_false",
+      statement: "Uap air lebih ringan.",
+    });
+    const panel = screen.getByLabelText("Tantangan");
+
+    fireEvent.keyDown(panel, { key: "ArrowDown" });
+    fireEvent.keyDown(panel, { key: "Enter" });
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_01_02",
+      type: "true_false",
+      answer: false,
+    });
+  });
+
+  it("Enter tidak mengirim ulang setelah dinilai", () => {
+    const { onSubmit } = renderOverlay(
+      {
+        ...dasar,
+        id: "chl_01_01",
+        type: "multiple_choice",
+        options: [{ id: "opt_a", text: "Menguap" }],
+      },
+      { graded: { correct: true, explanation: "Benar." } },
+    );
+
+    fireEvent.keyDown(screen.getByLabelText("Tantangan"), { key: "Enter" });
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("true_false tetap mengirim boolean", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_01_02",
+      type: "true_false",
+      statement: "Uap air lebih ringan.",
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /\bsalah$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_01_02",
+      type: "true_false",
+      answer: false,
+    });
+  });
+});

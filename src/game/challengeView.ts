@@ -17,6 +17,8 @@ export type ChallengeView = {
   statement?: string;
   /** Hanya untuk ordering. */
   items?: { id: string; text: string }[];
+  /** Petunjuk opsional untuk semua tipe; tidak membocorkan jawaban. */
+  hints?: string[];
 };
 
 export function buildChallengeView(challenge: Challenge): ChallengeView {
@@ -25,6 +27,7 @@ export function buildChallengeView(challenge: Challenge): ChallengeView {
     type: challenge.type,
     prompt: challenge.prompt,
     conceptTag: challenge.conceptTag,
+    ...(challenge.hints ? { hints: challenge.hints } : {}),
   };
 
   switch (challenge.type) {
@@ -35,7 +38,7 @@ export function buildChallengeView(challenge: Challenge): ChallengeView {
     case "ordering":
       return { ...base, items: challenge.items };
     case "short_answer":
-      // Input teks menyusul; view tetap valid untuk placeholder.
+      // Jawaban diterima sengaja tidak ikut: penilaian hanya di sisi game.
       return base;
   }
 }
