@@ -190,7 +190,7 @@ const textLength = (value: unknown) =>
 /* Lapis struktural: Ajv                                                     */
 /* -------------------------------------------------------------------------- */
 
-type AjvIssue = {
+export type AjvIssue = {
   instancePath: string;
   schemaPath: string;
   keyword: string;
@@ -244,6 +244,11 @@ const countCodeFor = (path: string): ErrorCode | null => {
   if (/^chapters\[\d+\]\.scenes$/.test(path)) return "E_SCENE_COUNT";
   if (/^chapters\[\d+\]\.scenes\[\d+\]\.beats$/.test(path))
     return "E_BEAT_COUNT";
+  // Payload per chapter (`{ chapter, challenges, continuity }`) yang divalidasi
+  // `validateChapter` di `validate-parts.ts`; akar path-nya `chapter`, bukan
+  // `chapters[i]`. Tidak dipakai `validateStory`.
+  if (path === "chapter.scenes") return "E_SCENE_COUNT";
+  if (/^chapter\.scenes\[\d+\]\.beats$/.test(path)) return "E_BEAT_COUNT";
   if (/^challenges\[\d+\]\.options$/.test(path)) return "E_OPTION_COUNT";
   if (/^challenges\[\d+\]\.acceptedAnswers$/.test(path))
     return "E_EMPTY_ANSWERS";
@@ -574,20 +579,37 @@ const dedupeIssues = (issues: ValidationIssue[]): ValidationIssue[] => {
   });
 };
 
+/**
+ * Terjemahkan error Ajv menjadi issue dokumen: pilih cabang `oneOf` yang paling
+ * cocok, ringkas error tantangan, buang duplikat.
+ *
+ * Dipakai `validateStory` dan `validate-parts.ts`, supaya kedua jalur memakai
+ * pemetaan kode dan path yang sama.
+ */
+export const issuesFromAjv = (
+  data: unknown,
+  errors: readonly AjvIssue[],
+): ValidationIssue[] =>
+  dedupeIssues(
+    selectBestOneOfBranch(normalizeChallengeErrors(data, [...errors])).map(
+      (issue) => structuralIssue(data, issue),
+    ),
+  );
+
 /* -------------------------------------------------------------------------- */
 /* Lapis semantik                                                             */
 /* -------------------------------------------------------------------------- */
 
 type ErrorCollector = (issue: ValidationIssue) => void;
 
-const errorIssue = (
+export const errorIssue = (
   code: ErrorCode,
   path: string,
   message: string,
   hint: string,
 ): ValidationIssue => ({ code, severity: "error", path, message, hint });
 
-const warningIssue = (
+export const warningIssue = (
   code: WarningCode,
   path: string,
   message: string,
@@ -837,7 +859,7 @@ const manifestIdsByKind = (manifest: AssetManifest) => {
   return ids;
 };
 
-const checkAssetExists = (
+export const checkAssetExists = (
   manifest: AssetManifest,
   kind: AssetKind,
   id: string,
@@ -1412,11 +1434,7 @@ export function validateStory(
 
   if (!storyValidator(value)) {
     const ajvErrors = (storyValidator.errors ?? []) as AjvIssue[];
-    const issues = dedupeIssues(
-      selectBestOneOfBranch(normalizeChallengeErrors(value, ajvErrors)).map(
-        (issue) => structuralIssue(value, issue),
-      ),
-    );
+    const issues = issuesFromAjv(value, ajvErrors);
 
     return {
       ok: false,

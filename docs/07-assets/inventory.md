@@ -66,16 +66,16 @@ Legenda status:
 | id            | Label         | Path                      | Tags                            | Status |
 | ------------- | ------------- | ------------------------- | ------------------------------- | ------ |
 | `sfx_click`   | Klik          | `/assets/sfx/click.ogg`   | klik, pilih, ui, click          | todo   |
-| `sfx_correct` | Jawaban benar | `/assets/sfx/correct.ogg` | benar, berhasil, benar, correct | todo   |
-| `sfx_wrong`   | Jawaban salah | `/assets/sfx/wrong.ogg`   | salah, lembut, wrong            | todo   |
-| `sfx_page`    | Ganti scene   | `/assets/sfx/page.ogg`    | transisi, halaman, page         | todo   |
+| `sfx_correct` | Jawaban benar | `/assets/sfx/correct.ogg` | benar, berhasil, tepat, correct | todo   |
+| `sfx_wrong`   | Jawaban salah | `/assets/sfx/wrong.ogg`   | salah, lembut, keliru, wrong    | todo   |
+| `sfx_page`    | Ganti scene   | `/assets/sfx/page.ogg`    | transisi, halaman, pindah, page | todo   |
 
 ## UI
 
 | id                  | Label          | Path                            | Tags                             | Status |
 | ------------------- | -------------- | ------------------------------- | -------------------------------- | ------ |
 | `ui_textbox`        | Kotak dialog   | `/assets/ui/textbox.png`        | dialog, teks, panel, textbox     | todo   |
-| `ui_portrait_frame` | Bingkai potret | `/assets/ui/portrait_frame.png` | potret, bingkai, frame           | todo   |
+| `ui_portrait_frame` | Bingkai potret | `/assets/ui/portrait_frame.png` | potret, bingkai, karakter, frame | todo   |
 | `ui_default`        | UI default     | `/assets/ui/default.png`        | default, cadangan, panel, netral | todo   |
 
 ## Ringkasan

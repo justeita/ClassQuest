@@ -1,0 +1,92 @@
+{
+  "chapter": {
+    "id": "ch_02",
+    "title": "Warna Hijau Rahasia",
+    "concept": "Klorofil",
+    "summary": "Di halaman sekolah, Nara menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
+    "backgroundId": "bg_schoolyard_day",
+    "musicId": "bgm_adventure",
+    "scenes": [
+      {
+        "id": "sc_02_01",
+        "title": "Daun di Halaman",
+        "beats": [
+          {
+            "type": "narration",
+            "text": "Nara membawa daun ke halaman sekolah dan meletakkannya di bangku kayu."
+          },
+          {
+            "type": "dialogue",
+            "speakerId": "char_pak_bima",
+            "text": "Warna hijau itu berasal dari klorofil. Zat itu menangkap cahaya matahari."
+          },
+          {
+            "type": "challenge",
+            "challengeId": "chl_02_01"
+          }
+        ]
+      },
+      {
+        "id": "sc_02_02",
+        "title": "Butir Hijau",
+        "beats": [
+          {
+            "type": "dialogue",
+            "speakerId": "char_tirta",
+            "text": "Jadi butir hijau itu yang membuat daun bisa memakai cahaya?"
+          },
+          {
+            "type": "dialogue",
+            "speakerId": "char_nara",
+            "text": "Iya, klorofil ada di dalam daun dan membantu menangkap cahaya."
+          },
+          {
+            "type": "narration",
+            "text": "Mereka mengamati daun itu sekali lagi sebelum bel berbunyi."
+          }
+        ]
+      }
+    ]
+  },
+  "challenges": [
+    {
+      "id": "chl_02_01",
+      "type": "multiple_choice",
+      "prompt": "Zat apa yang membuat daun berwarna hijau dan menangkap cahaya?",
+      "conceptTag": "Klorofil",
+      "difficulty": 2,
+      "explanation": "Klorofil adalah zat hijau daun yang menangkap cahaya matahari untuk fotosintesis.",
+      "points": 10,
+      "options": [
+        { "id": "opt_a", "text": "Klorofil" },
+        { "id": "opt_b", "text": "Tanah" },
+        { "id": "opt_c", "text": "Air hujan" }
+      ],
+      "correctOptionId": "opt_a"
+    }
+  ],
+  "continuity": {
+    "previousChapterSummary": "Nara belajar bahwa daun membuat makanan dengan bantuan cahaya matahari.",
+    "characterStates": [
+      {
+        "id": "char_nara",
+        "location": "halaman sekolah",
+        "knows": [
+          "daun membutuhkan cahaya matahari",
+          "klorofil menangkap cahaya"
+        ]
+      },
+      {
+        "id": "char_pak_bima",
+        "location": "halaman sekolah",
+        "knows": ["klorofil ada di dalam daun"]
+      },
+      {
+        "id": "char_tirta",
+        "location": "halaman sekolah",
+        "knows": ["klorofil membantu daun memakai cahaya"]
+      }
+    ],
+    "openThreads": ["Apa yang dihasilkan fotosintesis?"]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "meta": {
+    "id": "st_mock_fotosintesis",
+    "title": "Rahasia Daun Hijau",
+    "subject": "IPA",
+    "gradeLevel": "SMP 7",
+    "language": "id",
+    "tone": "hangat dan penasaran",
+    "synopsis": "Nara mengamati daun di kelas dan halaman sekolah. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
+    "estimatedMinutes": 7
+  },
+  "source": {
+    "fileName": "fotosintesis.pdf",
+    "pageCount": 4,
+    "concepts": [
+      "Fotosintesis",
+      "Klorofil",
+      "Glukosa"
+    ],
+    "gaps": []
+  },
+  "cast": [
+    {
+      "id": "char_nara",
+      "name": "Nara",
+      "role": "player",
+      "spriteId": "char_nara",
+ 
