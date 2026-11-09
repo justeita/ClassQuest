@@ -9,8 +9,11 @@ import {
   BACKGROUNDS,
   CHARACTERS,
   MUSIC,
+  PROPS,
   SFX,
+  TILES,
   UI,
+  STORY_ASSET_KINDS,
   type AssetEntry,
   type AssetKind,
   toAssetManifest,
@@ -31,6 +34,8 @@ const PUBLIC_DIR = join(REPO, "public");
 const PREFIX: Record<AssetKind, string> = {
   background: "bg_",
   character: "char_",
+  tile: "tile_",
+  prop: "prop_",
   music: "bgm_",
   sfx: "sfx_",
   ui: "ui_",
@@ -39,6 +44,8 @@ const PREFIX: Record<AssetKind, string> = {
 const EXTENSION: Record<AssetKind, string> = {
   background: "png",
   character: "png",
+  tile: "png",
+  prop: "png",
   music: "ogg",
   sfx: "ogg",
   ui: "png",
@@ -48,6 +55,8 @@ const EXTENSION: Record<AssetKind, string> = {
 const INVENTORY_COUNTS: Record<AssetKind, number> = {
   background: 8,
   character: 5,
+  tile: 10,
+  prop: 5,
   music: 5,
   sfx: 4,
   ui: 3,
@@ -57,6 +66,8 @@ const INVENTORY_COUNTS: Record<AssetKind, number> = {
 const REQUIRED_FALLBACKS: Partial<Record<AssetKind, string>> = {
   background: "bg_default",
   character: "char_default",
+  tile: "tile_default",
+  prop: "prop_default",
   music: "bgm_default",
   ui: "ui_default",
 };
@@ -71,7 +82,23 @@ const REQUIRED_FALLBACKS: Partial<Record<AssetKind, string>> = {
  * jadi tidak ada aset yang hilang diam-diam. Begitu file aset dibuat, hapus
  * barisnya di sini.
  */
-const PENDING_FILES: readonly string[] = [];
+const PENDING_FILES: readonly string[] = [
+  "tile_floor_wood",
+  "tile_floor_grass",
+  "tile_floor_cloud",
+  "tile_floor_rock",
+  "tile_floor_water",
+  "tile_wall_plaster",
+  "tile_wall_hedge",
+  "tile_wall_rock",
+  "tile_canopy",
+  "tile_default",
+  "prop_desk",
+  "prop_blackboard",
+  "prop_tree",
+  "prop_fence",
+  "prop_default",
+];
 
 const fileEntries = (asset: AssetEntry) => [
   { key: asset.id, path: asset.path },
@@ -177,6 +204,23 @@ describe("manifest — fallback dan ukuran", () => {
     }
   });
 
+  it("tile memakai 16×16", () => {
+    const wrong = TILES.filter(
+      (asset) => asset.width !== 16 || asset.height !== 16,
+    ).map((asset) => `${asset.id} (${asset.width}×${asset.height})`);
+
+    expect(wrong).toEqual([]);
+  });
+
+  it("prop memakai kelipatan 16", () => {
+    const wrong = PROPS.filter(
+      (asset) =>
+        (asset.width ?? 0) % 16 !== 0 || (asset.height ?? 0) % 16 !== 0,
+    ).map((asset) => `${asset.id} (${asset.width}×${asset.height})`);
+
+    expect(wrong).toEqual([]);
+  });
+
   it("background memakai 480×270", () => {
     const wrong = BACKGROUNDS.filter(
       (asset) => asset.width !== 480 || asset.height !== 270,
@@ -194,13 +238,20 @@ describe("manifest — fallback dan ukuran", () => {
 });
 
 describe("manifest — bentuk untuk validator", () => {
-  it("toAssetManifest mengembalikan id dan kind yang sama", () => {
+  it("toAssetManifest hanya memuat kind yang boleh dirujuk cerita", () => {
     const manifest = toAssetManifest();
-
-    expect(manifest).toHaveLength(ASSETS.length);
-    expect(manifest).toEqual(
-      ASSETS.map((asset) => ({ id: asset.id, kind: asset.kind })),
+    const storyAssets = ASSETS.filter((asset) =>
+      STORY_ASSET_KINDS.includes(asset.kind),
     );
+
+    expect(manifest).toHaveLength(storyAssets.length);
+    expect(manifest).toEqual(
+      storyAssets.map((asset) => ({ id: asset.id, kind: asset.kind })),
+    );
+    // Tile dan prop milik map game (ADR 0010), bukan kontrak cerita.
+    for (const asset of [...TILES, ...PROPS]) {
+      expect(manifest.find((entry) => entry.id === asset.id)).toBeUndefined();
+    }
   });
 
   it("toAssetManifest bisa menerima daftar bagian", () => {
@@ -260,6 +311,8 @@ describe("manifest — pemakai", () => {
 function folderOf(kind: AssetKind): string {
   if (kind === "background") return "bg";
   if (kind === "character") return "char";
+  if (kind === "tile") return "tile";
+  if (kind === "prop") return "prop";
   return kind;
 }
 

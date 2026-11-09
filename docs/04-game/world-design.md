@@ -156,17 +156,17 @@ Aturan animasi:
 
 Latar tidak lagi satu gambar pemandangan 1 lapis. Setiap ruangan disusun dari:
 
-| Lapisan         | Isi                                                        | Contoh id manifest               |
-| --------------- | ---------------------------------------------------------- | -------------------------------- |
-| Lantai          | Tile lantai yang diulang                                   | `tile_floor_wood` (rencana)      |
-| Dinding         | Pita dinding + tepi atas                                   | `tile_wall_plaster` (rencana)    |
-| Objek           | Meja, papan tulis, pohon, dekorasi                         | `obj_desk`, `obj_tree` (rencana) |
-| Atas (opsional) | Kanopi pohon atau ujung langit-langit yang menutupi pemain | `tile_canopy` (rencana)          |
+| Lapisan         | Isi                                                        | Contoh id manifest                                                                               |
+| --------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Lantai          | Tile lantai yang diulang                                   | `tile_floor_wood`, `tile_floor_grass`, `tile_floor_cloud`, `tile_floor_rock`, `tile_floor_water` |
+| Dinding         | Pita dinding + tepi atas                                   | `tile_wall_plaster`, `tile_wall_hedge`, `tile_wall_rock`                                         |
+| Objek           | Meja, papan tulis, pohon, pagar                            | `prop_desk`, `prop_blackboard`, `prop_tree`, `prop_fence`                                        |
+| Atas (opsional) | Kanopi pohon atau ujung langit-langit yang menutupi pemain | `tile_canopy`                                                                                    |
 
-> **TBD — id aset tile.** Tabel di atas memakai nama sementara. Id final baru
-> boleh dipakai setelah masuk `src/assets/manifest.ts` dan
-> [`../07-assets/inventory.md`](../07-assets/inventory.md). Jangan mengarang
-> `assetId` di kode sebelum itu.
+> Id aset tile dan prop di atas sudah **final** dan terdaftar di
+> `src/assets/manifest.ts` serta [`../07-assets/inventory.md`](../07-assets/inventory.md).
+> Menambah tile atau prop berikutnya berarti menambah entri di kedua tempat itu
+> di PR yang sama.
 
 Latar "pemandangan" yang ada sekarang (`bg_classroom_day`, `bg_river_day`, dan
 seterusnya) **dipertahankan sebagai latar layar judul dan layar hasil**, karena

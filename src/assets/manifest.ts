@@ -13,7 +13,8 @@
 
 import type { AssetManifest } from "../story/validate";
 
-export type AssetKind = "background" | "character" | "music" | "sfx" | "ui";
+export type AssetKind =
+  "background" | "character" | "tile" | "prop" | "music" | "sfx" | "ui";
 
 export type AssetEntry = {
   id: string;
@@ -240,6 +241,145 @@ export const ASSETS: readonly AssetEntry[] = [
     label: "UI default",
     tags: ["default", "cadangan", "panel", "netral"],
   },
+
+  /* Tile lantai dan dinding (top-down, ADR 0009/0010) */
+  {
+    id: "tile_floor_wood",
+    kind: "tile",
+    path: "/assets/tile/floor_wood.png",
+    label: "Lantai kayu",
+    tags: ["lantai", "kayu", "kelas", "indoor", "floor", "wood"],
+    width: 16,
+    height: 16,
+  },
+  {
+    id: "tile_floor_grass",
+    kind: "tile",
+    path: "/assets/tile/floor_grass.png",
+    label: "Rumput",
+    tags: ["lantai", "rumput", "halaman", "luar", "grass", "outdoor"],
+    width: 16,
+    height: 16,
+  },
+  {
+    id: "tile_floor_cloud",
+    kind: "tile",
+    path: "/assets/tile/floor_cloud.png",
+    label: "Lantai awan",
+    tags: ["lantai", "awan", "langit", "terang", "cloud", "sky"],
+    width: 16,
+    height: 16,
+  },
+  {
+    id: "tile_floor_rock",
+    kind: "tile",
+    path: "/assets/tile/floor_rock.png",
+    label: "Batu",
+    tags: ["lantai", "batu", "gunung", "gelap", "rock", "mountain"],
+    width: 16,
+    height: 16,
+  },
+  {
+    id: "tile_floor_water",
+    kind: "tile",
+    path: "/assets/tile/floor_water.png",
+    label: "Air",
+    tags: ["lantai", "air", "sungai", "dingin", "water", "river"],
+    width: 16,
+    height: 16,
+  },
+  {
+    id: "tile_wall_plaster",
+    kind: "tile",
+    path: "/assets/tile/wall_plaster.png",
+    label: "Dinding plester",
+    tags: ["dinding", "plester", "kelas", "indoor", "wall", "interior"],
+    width: 16,
+    height: 16,
+  },
+  {
+    id: "tile_wall_hedge",
+    kind: "tile",
+    path: "/assets/tile/wall_hedge.png",
+    label: "Pagar tanaman",
+    tags: ["dinding", "tanaman", "halaman", "luar", "hedge", "outdoor"],
+    width: 16,
+    height: 16,
+  },
+  {
+    id: "tile_wall_rock",
+    kind: "tile",
+    path: "/assets/tile/wall_rock.png",
+    label: "Dinding batu",
+    tags: ["dinding", "batu", "gunung", "gelap", "rock", "outdoor"],
+    width: 16,
+    height: 16,
+  },
+  {
+    id: "tile_canopy",
+    kind: "tile",
+    path: "/assets/tile/canopy.png",
+    label: "Kanopi penutup",
+    tags: ["kanopi", "pohon", "langit-langit", "penutup", "canopy", "overlay"],
+    width: 16,
+    height: 16,
+  },
+  {
+    id: "tile_default",
+    kind: "tile",
+    path: "/assets/tile/default.png",
+    label: "Tile default",
+    tags: ["default", "cadangan", "netral", "fallback"],
+    width: 16,
+    height: 16,
+  },
+
+  /* Prop: objek padat dengan collider dari data yang sama (ADR 0010) */
+  {
+    id: "prop_desk",
+    kind: "prop",
+    path: "/assets/prop/desk.png",
+    label: "Meja kelas",
+    tags: ["meja", "kelas", "belajar", "indoor", "desk", "school"],
+    width: 48,
+    height: 32,
+  },
+  {
+    id: "prop_blackboard",
+    kind: "prop",
+    path: "/assets/prop/blackboard.png",
+    label: "Papan tulis",
+    tags: ["papan", "tulisan", "kelas", "mengajar", "blackboard", "school"],
+    width: 112,
+    height: 48,
+  },
+  {
+    id: "prop_tree",
+    kind: "prop",
+    path: "/assets/prop/tree.png",
+    label: "Pohon",
+    tags: ["pohon", "halaman", "alam", "luar", "tree", "nature"],
+    width: 32,
+    height: 48,
+  },
+  {
+    id: "prop_fence",
+    kind: "prop",
+    path: "/assets/prop/fence.png",
+    label: "Pagar kayu",
+    tags: ["pagar", "halaman", "luar", "kayu", "fence", "outdoor"],
+    width: 48,
+    height: 16,
+  },
+  {
+    id: "prop_default",
+    kind: "prop",
+    path: "/assets/prop/default.png",
+    label: "Prop default",
+    tags: ["default", "cadangan", "netral", "fallback"],
+    width: 16,
+    height: 16,
+  },
 ] as const satisfies readonly AssetEntry[];
 
 export const ASSETS_BY_ID = new Map(ASSETS.map((asset) => [asset.id, asset]));
@@ -251,13 +391,34 @@ export const CHARACTERS = ASSETS.filter((asset) => asset.kind === "character");
 export const MUSIC = ASSETS.filter((asset) => asset.kind === "music");
 export const SFX = ASSETS.filter((asset) => asset.kind === "sfx");
 export const UI = ASSETS.filter((asset) => asset.kind === "ui");
+export const TILES = ASSETS.filter((asset) => asset.kind === "tile");
+export const PROPS = ASSETS.filter((asset) => asset.kind === "prop");
 
 /**
  * Bentuk minimal yang dipakai `validateStory` (`AssetManifest`): hanya `id` dan
  * `kind`. Murni dan sinkron, jadi aman dipanggil di browser.
  */
+/**
+ * Bentuk minimal untuk `validateStory`. Tile dan prop **sengaja dikeluarkan**:
+ * keduanya dipakai sisi game (map top-down, ADR 0010) dan tidak pernah dirujuk
+ * Story JSON, sedangkan `AssetKind` di `src/story/validate.ts` milik backend
+ * dan tidak boleh diperluas dari sini.
+ */
+export const STORY_ASSET_KINDS: readonly string[] = [
+  "background",
+  "character",
+  "music",
+  "sfx",
+  "ui",
+];
+
 export function toAssetManifest(
-  assets: readonly AssetEntry[] = ASSETS,
+  assets: readonly AssetEntry[] = ASSETS.filter((asset) =>
+    STORY_ASSET_KINDS.includes(asset.kind),
+  ),
 ): AssetManifest {
-  return assets.map((asset) => ({ id: asset.id, kind: asset.kind }));
+  return assets.map((asset) => ({
+    id: asset.id,
+    kind: asset.kind as AssetManifest[number]["kind"],
+  }));
 }

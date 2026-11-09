@@ -60,7 +60,30 @@ judul dan layar hasil.
 Portrait memakai `portraitPath` di entri manifest karakter. Kalau tidak ada, game
 tidak menampilkan portrait.
 
-### Musik
+#### Tile
+
+| Properti    | Nilai                                 |
+| ----------- | ------------------------------------- |
+| Ukuran      | **16×16** (satu tile, ADR 0009)       |
+| Format      | PNG, tidak transparan (full-bleed)    |
+| Isi         | Satu tile berulang, tanpa tepi khusus |
+| Ukuran file | ≤ 4 KB                                |
+
+Tile dipasang berulang oleh game; jadi satu tile **tidak boleh** mengandung
+gradien besar atau tepi yang terlihat saat diulang.
+
+### Prop
+
+| Properti    | Nilai                                                |
+| ----------- | ---------------------------------------------------- |
+| Ukuran      | Kelipatan 16 px                                      |
+| Format      | PNG dengan transparansi                              |
+| Anchor      | Alas di tengah bawah (kaki objek)                    |
+| Bayangan    | Elips gelap 1–2 px di bawah alas, bagian dari gambar |
+| Outline     | 1 px gelap, konsisten dengan karakter                |
+| Ukuran file | ≤ 20 KB                                              |
+
+## Musik
 
 | Properti    | Nilai                                |
 | ----------- | ------------------------------------ |
@@ -126,6 +149,8 @@ public/assets/
 ├── bg/
 ├── char/
 ├── portrait/
+├── tile/
+├── prop/
 ├── music/
 ├── sfx/
 └── ui/
