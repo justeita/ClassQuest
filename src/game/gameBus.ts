@@ -1,0 +1,71 @@
+import type { Answer } from "@/story/scoring";
+
+import type { ChallengeView } from "./challengeView";
+
+/**
+ * Bridge Phaser ↔ React sesuai docs/04-game/engine.md:
+ * - Event **dari** Phaser ke React: tantangan dibuka, hasil penilaian, error.
+ * - Command **ke** Phaser: jawaban siswa, lanjut setelah feedback.
+ * Penilaian dijalankan di sisi game (pemegang Story), bukan di overlay.
+ */
+
+export type GameEvent =
+  | { type: "challenge"; view: ChallengeView }
+  | {
+      type: "graded";
+      challengeId: string;
+      correct: boolean;
+      explanation: string;
+    }
+  | { type: "error"; code: string };
+
+export type GameCommand =
+  | { type: "submit_answer"; challengeId: string; answer: Answer }
+  | { type: "resolve_challenge"; challengeId: string; correct: boolean };
+
+export class GameBus {
+  private listeners = new Map<string, Set<(payload: unknown) => void>>();
+
+  /** Daftarkan pendengar; kembalikan fungsi untuk berhenti mendengarkan. */
+  on<T extends GameEvent["type"]>(
+    type: T,
+    handler: (payload: Extract<GameEvent, { type: T }>) => void,
+  ): () => void {
+    const set = this.listeners.get(type) ?? new Set();
+    set.add(handler as (payload: unknown) => void);
+    this.listeners.set(type, set);
+    return () => {
+      set.delete(handler as (payload: unknown) => void);
+    };
+  }
+
+  emit(event: GameEvent): void {
+    const set = this.listeners.get(event.type);
+    if (!set) return;
+    for (const handler of set) {
+      handler(event);
+    }
+  }
+
+  /** Kirim command ke sisi Phaser (React → game). Bentuk sama dengan emit. */
+  send(command: GameCommand): void {
+    const set = this.listeners.get(command.type);
+    if (!set) return;
+    for (const handler of set) {
+      handler(command);
+    }
+  }
+
+  /** Phaser mendaftar pendengar command dari React. */
+  onCommand<T extends GameCommand["type"]>(
+    type: T,
+    handler: (payload: Extract<GameCommand, { type: T }>) => void,
+  ): () => void {
+    const set = this.listeners.get(type) ?? new Set();
+    set.add(handler as (payload: unknown) => void);
+    this.listeners.set(type, set);
+    return () => {
+      set.delete(handler as (payload: unknown) => void);
+    };
+  }
+}
