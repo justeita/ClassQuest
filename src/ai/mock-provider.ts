@@ -61,6 +61,15 @@ export const MOCK_STAGES = ["outline", "chapter", "repair", "story"] as const;
 
 export type MockStage = (typeof MOCK_STAGES)[number];
 
+/**
+ * Satu langkah skrip per panggilan. String berarti skenario (tahap disimpulkan
+ * dari prompt); objek menunjuk fixture relatif terhadap `outputs/`.
+ *
+ * Dipakai test pipeline yang butuh chapter berbeda per panggilan, tanpa
+ * mengubah antarmuka `LlmProvider`.
+ */
+export type MockProviderStep = MockScenario | { readonly fixture: string };
+
 export type MockProviderOptions = {
   /** Skenario untuk semua tahap yang tidak diatur di `stages`. Bawaan `valid`. */
   scenario?: MockScenario;
@@ -73,6 +82,11 @@ export type MockProviderOptions = {
    * Bawaan `0` supaya test tidak menunggu.
    */
   timeoutMs?: number;
+  /**
+   * Skrip per panggilan, dikonsumsi berurutan. Setelah habis, perilaku kembali
+   * ke `stage`/`scenario` biasa.
+   */
+  sequence?: readonly MockProviderStep[];
 };
 
 const DEFAULT_SCENARIO: MockScenario = "valid";
@@ -167,12 +181,15 @@ export class MockProvider implements LlmProvider {
   private readonly stage: MockStage | null;
   private readonly stages: Partial<Record<MockStage, MockScenario>>;
   private readonly timeoutMs: number;
+  private readonly sequence: readonly MockProviderStep[];
+  private stepIndex = 0;
 
   constructor(options: MockProviderOptions = {}) {
     this.scenario = options.scenario ?? DEFAULT_SCENARIO;
     this.stage = options.stage ?? null;
     this.stages = options.stages ?? {};
     this.timeoutMs = options.timeoutMs ?? 0;
+    this.sequence = options.sequence ?? [];
   }
 
   async complete(req: LlmRequest, signal?: AbortSignal): Promise<LlmResponse> {
@@ -180,8 +197,17 @@ export class MockProvider implements LlmProvider {
       throw timeoutError("Mock provider dibatalkan sebelum panggilan selesai.");
     }
 
+    const step = this.sequence[this.stepIndex];
+    if (step !== undefined) this.stepIndex += 1;
+
     const stage = this.stage ?? stageFromPrompt(req) ?? DEFAULT_STAGE;
-    const scenario = this.stages[stage] ?? this.scenario;
+    const scenario =
+      typeof step === "string" ? step : (this.stages[stage] ?? this.scenario);
+
+    if (typeof step === "object") {
+      const text = readFileSync(join(OUTPUTS_DIR, step.fixture), "utf8");
+      return { text, usage: { input: 0, output: 0 }, model: "mock" };
+    }
 
     if (scenario === "timeout") {
       await waitForTimeout(this.timeoutMs, signal);
