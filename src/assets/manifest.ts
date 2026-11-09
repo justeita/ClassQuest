@@ -32,7 +32,8 @@ export type AssetEntry = {
 /**
  * Aset dari `docs/07-assets/inventory.md`, dalam urutan tabelnya.
  *
- * Background memakai resolusi tetap 480×270 (`docs/07-assets/asset-guide.md`).
+ * Background memakai resolusi tetap 640×360 (`docs/07-assets/asset-guide.md`,
+ * ADR 0009).
  * Sprite karakter sengaja tanpa `width`/`height`: file-nya spritesheet
  * horizontal, jadi angka per frame tidak sama dengan ukuran file.
  */
@@ -44,8 +45,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/classroom_day.png",
     label: "Kelas, siang",
     tags: ["kelas", "sekolah", "belajar", "siang", "classroom", "indoor"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
   {
     id: "bg_schoolyard_day",
@@ -53,8 +54,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/schoolyard_day.png",
     label: "Halaman sekolah, siang",
     tags: ["halaman", "sekolah", "luar", "siang", "schoolyard", "outdoor"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
   {
     id: "bg_schoolyard_evening",
@@ -62,8 +63,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/schoolyard_evening.png",
     label: "Halaman sekolah, sore",
     tags: ["halaman", "sekolah", "sore", "senja", "sunset", "outdoor"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
   {
     id: "bg_cloud_sky",
@@ -71,8 +72,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/cloud_sky.png",
     label: "Langit di atas awan",
     tags: ["langit", "awan", "tinggi", "terang", "sky", "cloud"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
   {
     id: "bg_mountain_night",
@@ -80,8 +81,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/mountain_night.png",
     label: "Gunung, malam",
     tags: ["gunung", "malam", "gelap", "dingin", "mountain", "night"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
   {
     id: "bg_river_day",
@@ -89,8 +90,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/river_day.png",
     label: "Sungai, siang",
     tags: ["sungai", "air", "alam", "siang", "river", "nature"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
   {
     id: "bg_library_evening",
@@ -98,8 +99,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/library_evening.png",
     label: "Perpustakaan, sore",
     tags: ["perpustakaan", "buku", "sore", "tenang", "library", "indoor"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
   {
     id: "bg_default",
@@ -107,8 +108,8 @@ export const ASSETS: readonly AssetEntry[] = [
     path: "/assets/bg/default.png",
     label: "Latar default",
     tags: ["default", "cadangan", "netral", "fallback"],
-    width: 480,
-    height: 270,
+    width: 640,
+    height: 360,
   },
 
   /* Karakter */

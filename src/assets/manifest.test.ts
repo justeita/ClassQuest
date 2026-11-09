@@ -82,23 +82,7 @@ const REQUIRED_FALLBACKS: Partial<Record<AssetKind, string>> = {
  * jadi tidak ada aset yang hilang diam-diam. Begitu file aset dibuat, hapus
  * barisnya di sini.
  */
-const PENDING_FILES: readonly string[] = [
-  "tile_floor_wood",
-  "tile_floor_grass",
-  "tile_floor_cloud",
-  "tile_floor_rock",
-  "tile_floor_water",
-  "tile_wall_plaster",
-  "tile_wall_hedge",
-  "tile_wall_rock",
-  "tile_canopy",
-  "tile_default",
-  "prop_desk",
-  "prop_blackboard",
-  "prop_tree",
-  "prop_fence",
-  "prop_default",
-];
+const PENDING_FILES: readonly string[] = [];
 
 const fileEntries = (asset: AssetEntry) => [
   { key: asset.id, path: asset.path },
@@ -221,9 +205,9 @@ describe("manifest — fallback dan ukuran", () => {
     expect(wrong).toEqual([]);
   });
 
-  it("background memakai 480×270", () => {
+  it("background memakai 640×360", () => {
     const wrong = BACKGROUNDS.filter(
-      (asset) => asset.width !== 480 || asset.height !== 270,
+      (asset) => asset.width !== 640 || asset.height !== 360,
     ).map((asset) => `${asset.id} (${asset.width}×${asset.height})`);
 
     expect(wrong).toEqual([]);

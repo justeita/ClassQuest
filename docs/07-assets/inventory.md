@@ -20,7 +20,9 @@ Urutan kebenaran:
 Legenda status:
 
 - `todo` — belum dibuat.
-- `placeholder` — file ada, isinya sementara.
+- `placeholder` — file ada, isinya sementara. Saat ini **semua** aset adalah
+  placeholder yang digambar generator (`scripts/generate-assets.mjs`), termasuk
+  tile dan prop untuk map top-down (ADR 0009/0010).
 - `ready` — final, sesuai spesifikasi.
 
 > `ready` di sini adalah status **aset**, bukan status cerita. Status cerita hanya
@@ -58,28 +60,28 @@ dijamin identik.
 
 ## Tile
 
-| id                  | Label           | Path                            | Tags                                                   | Status |
-| ------------------- | --------------- | ------------------------------- | ------------------------------------------------------ | ------ |
-| `tile_floor_wood`   | Lantai kayu     | `/assets/tile/floor_wood.png`   | lantai, kayu, kelas, indoor, floor, wood               | todo   |
-| `tile_floor_grass`  | Rumput          | `/assets/tile/floor_grass.png`  | lantai, rumput, halaman, luar, grass, outdoor          | todo   |
-| `tile_floor_cloud`  | Lantai awan     | `/assets/tile/floor_cloud.png`  | lantai, awan, langit, terang, cloud, sky               | todo   |
-| `tile_floor_rock`   | Batu            | `/assets/tile/floor_rock.png`   | lantai, batu, gunung, gelap, rock, mountain            | todo   |
-| `tile_floor_water`  | Air             | `/assets/tile/floor_water.png`  | lantai, air, sungai, dingin, water, river              | todo   |
-| `tile_wall_plaster` | Dinding plester | `/assets/tile/wall_plaster.png` | dinding, plester, kelas, indoor, wall, interior        | todo   |
-| `tile_wall_hedge`   | Pagar tanaman   | `/assets/tile/wall_hedge.png`   | dinding, tanaman, halaman, luar, hedge, outdoor        | todo   |
-| `tile_wall_rock`    | Dinding batu    | `/assets/tile/wall_rock.png`    | dinding, batu, gunung, gelap, rock, outdoor            | todo   |
-| `tile_canopy`       | Kanopi penutup  | `/assets/tile/canopy.png`       | kanopi, pohon, langit-langit, penutup, canopy, overlay | todo   |
-| `tile_default`      | Tile default    | `/assets/tile/default.png`      | default, cadangan, netral, fallback                    | todo   |
+| id                  | Label           | Path                            | Tags                                                   | Status      |
+| ------------------- | --------------- | ------------------------------- | ------------------------------------------------------ | ----------- |
+| `tile_floor_wood`   | Lantai kayu     | `/assets/tile/floor_wood.png`   | lantai, kayu, kelas, indoor, floor, wood               | placeholder |
+| `tile_floor_grass`  | Rumput          | `/assets/tile/floor_grass.png`  | lantai, rumput, halaman, luar, grass, outdoor          | placeholder |
+| `tile_floor_cloud`  | Lantai awan     | `/assets/tile/floor_cloud.png`  | lantai, awan, langit, terang, cloud, sky               | placeholder |
+| `tile_floor_rock`   | Batu            | `/assets/tile/floor_rock.png`   | lantai, batu, gunung, gelap, rock, mountain            | placeholder |
+| `tile_floor_water`  | Air             | `/assets/tile/floor_water.png`  | lantai, air, sungai, dingin, water, river              | placeholder |
+| `tile_wall_plaster` | Dinding plester | `/assets/tile/wall_plaster.png` | dinding, plester, kelas, indoor, wall, interior        | placeholder |
+| `tile_wall_hedge`   | Pagar tanaman   | `/assets/tile/wall_hedge.png`   | dinding, tanaman, halaman, luar, hedge, outdoor        | placeholder |
+| `tile_wall_rock`    | Dinding batu    | `/assets/tile/wall_rock.png`    | dinding, batu, gunung, gelap, rock, outdoor            | placeholder |
+| `tile_canopy`       | Kanopi penutup  | `/assets/tile/canopy.png`       | kanopi, pohon, langit-langit, penutup, canopy, overlay | placeholder |
+| `tile_default`      | Tile default    | `/assets/tile/default.png`      | default, cadangan, netral, fallback                    | placeholder |
 
 ## Prop
 
-| id                | Label        | Path                          | Tags                                                | Status |
-| ----------------- | ------------ | ----------------------------- | --------------------------------------------------- | ------ |
-| `prop_desk`       | Meja kelas   | `/assets/prop/desk.png`       | meja, kelas, belajar, indoor, desk, school          | todo   |
-| `prop_blackboard` | Papan tulis  | `/assets/prop/blackboard.png` | papan, tulisan, kelas, mengajar, blackboard, school | todo   |
-| `prop_tree`       | Pohon        | `/assets/prop/tree.png`       | pohon, halaman, alam, luar, tree, nature            | todo   |
-| `prop_fence`      | Pagar kayu   | `/assets/prop/fence.png`      | pagar, halaman, luar, kayu, fence, outdoor          | todo   |
-| `prop_default`    | Prop default | `/assets/prop/default.png`    | default, cadangan, netral, fallback                 | todo   |
+| id                | Label        | Path                          | Tags                                                | Status      |
+| ----------------- | ------------ | ----------------------------- | --------------------------------------------------- | ----------- |
+| `prop_desk`       | Meja kelas   | `/assets/prop/desk.png`       | meja, kelas, belajar, indoor, desk, school          | placeholder |
+| `prop_blackboard` | Papan tulis  | `/assets/prop/blackboard.png` | papan, tulisan, kelas, mengajar, blackboard, school | placeholder |
+| `prop_tree`       | Pohon        | `/assets/prop/tree.png`       | pohon, halaman, alam, luar, tree, nature            | placeholder |
+| `prop_fence`      | Pagar kayu   | `/assets/prop/fence.png`      | pagar, halaman, luar, kayu, fence, outdoor          | placeholder |
+| `prop_default`    | Prop default | `/assets/prop/default.png`    | default, cadangan, netral, fallback                 | placeholder |
 
 ## Musik
 
