@@ -17,9 +17,9 @@ Dokumen pedamping:
 - Keputusan resolusi: [`../09-decisions/0009-resolution-and-scale.md`](../09-decisions/0009-resolution-and-scale.md)
 - Keputusan data map dan kamera: [`../09-decisions/0010-map-data-and-camera.md`](../09-decisions/0010-map-data-and-camera.md)
 
-> **Status:** draft. Angka di sini mengikuti ADR 0009 dan 0010 yang masih
-> **Proposed**. Kalau angka ADR berubah, tabel di bawah ikut berubah di PR yang
-> sama.
+> **Status:** draft. Angka di sini mengikuti ADR 0009 dan 0010 yang sudah
+> **Accepted**; implementasinya berjalan per PR sesuai urutan di bagian
+> [Urutan pengerjaan](#urutan-pengerjaan).
 
 ## Masalah yang diperbaiki
 

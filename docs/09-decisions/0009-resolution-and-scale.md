@@ -1,12 +1,12 @@
 ---
-status: tbd
+status: stable
 last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
 # 0009 — Resolusi Internal dan Skala Karakter
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Tanggal:** 2026-11-09
 - **Pengambil keputusan:** developer frontend game + track aset
 - **Menggantikan:** — (melengkapi ADR 0008)
@@ -60,8 +60,8 @@ Skala karakter (pada opsi B):
 ## Keputusan
 
 **Kami memilih opsi B: resolusi internal 640×360, ukuran tile 16×16, frame
-sprite karakter 24×32, dan portrait 64×64.** Status keputusan ini masih
-**Proposed** — angkanya mengikat implementasi hanya setelah disepakati di PR.
+sprite karakter 24×32, dan portrait 64×64.** Keputusan ini **Accepted** dan
+angkanya mengikat PR implementasi.
 
 Alasan:
 

@@ -1,12 +1,12 @@
 ---
-status: tbd
+status: stable
 last_reviewed: 2026-11-09
 owner: tim ClassQuest
 ---
 
 # 0010 — Map Data-Driven, Kamera Mengikuti Pemain, Collision dari Data
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Tanggal:** 2026-11-09
 - **Pengambil keputusan:** developer frontend game
 - **Menggantikan:** — (memperluas ADR 0008, tidak membatalkannya)
@@ -57,7 +57,7 @@ Untuk kamera:
 
 **Kami memilih opsi B: map data per scene, kamera mengikuti pemain dengan batas
 map, dan collision yang diturunkan dari data objek yang sama dengan yang
-digambar.** Status: **Proposed**.
+digambar.** Status: **Accepted**.
 
 Aturan bentuk datanya:
 
