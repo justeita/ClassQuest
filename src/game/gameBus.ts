@@ -1,10 +1,11 @@
-import type { Answer } from "@/story/scoring";
+import type { Answer, PlayResult } from "@/story/scoring";
 
 import type { ChallengeView } from "./challengeView";
 
 /**
  * Bridge Phaser ↔ React sesuai docs/04-game/engine.md:
- * - Event **dari** Phaser ke React: tantangan dibuka, hasil penilaian, error.
+ * - Event **dari** Phaser ke React: tantangan dibuka, hasil penilaian, cerita
+ *   selesai, error.
  * - Command **ke** Phaser: jawaban siswa, lanjut setelah feedback.
  * Penilaian dijalankan di sisi game (pemegang Story), bukan di overlay.
  */
@@ -17,6 +18,8 @@ export type GameEvent =
       correct: boolean;
       explanation: string;
     }
+  /** Cerita selesai; `result` dihitung dari percobaan pertama tiap tantangan. */
+  | { type: "finished"; result: PlayResult }
   | { type: "error"; code: string };
 
 export type GameCommand =

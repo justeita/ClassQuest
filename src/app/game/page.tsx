@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-import { GameCanvas } from "@/components/game/GameCanvas";
+import { GameShell } from "@/components/game/GameShell";
+import { DEMO_STORY } from "@/game/demoStory";
 
 export const metadata: Metadata = {
   title: "Dev game — ClassQuest",
@@ -13,7 +14,7 @@ export default function GameDevPage() {
       <h1 className="sr-only">ClassQuest</h1>
       <div className="relative aspect-video w-full max-w-5xl">
         <div className="absolute inset-0">
-          <GameCanvas />
+          <GameShell story={DEMO_STORY} />
         </div>
       </div>
     </main>

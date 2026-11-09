@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 
+import type { Story } from "@/story/schema";
+
 import type { GameBus } from "./gameBus";
 import { GameScene } from "./scenes/GameScene";
 import { PreloadScene } from "./scenes/PreloadScene";
@@ -9,6 +11,7 @@ export const GAME_HEIGHT = 270;
 
 export function createGameConfig(
   parent: HTMLElement,
+  story: Story,
   bus?: GameBus,
 ): Phaser.Types.Core.GameConfig {
   return {
@@ -30,6 +33,6 @@ export function createGameConfig(
         debug: false,
       },
     },
-    scene: [PreloadScene, new GameScene(bus)],
+    scene: [PreloadScene, new GameScene(story, bus)],
   };
 }

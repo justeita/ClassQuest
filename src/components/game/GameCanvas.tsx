@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   ChallengeOverlay,
@@ -9,38 +9,62 @@ import {
 import type { ChallengeView } from "@/game/challengeView";
 import type { GameBus } from "@/game/gameBus";
 import type { GameHandle } from "@/game/types";
-import type { Answer } from "@/story/scoring";
+import type { Story } from "@/story/schema";
+import type { Answer, PlayResult } from "@/story/scoring";
 
-export function GameCanvas() {
+type GameCanvasProps = {
+  /** Cerita yang dimainkan; scene tidak lagi memuat fixture sendiri. */
+  story: Story;
+  /** Dipanggil sekali saat cerita selesai, membawa ringkasan hasil. */
+  onFinished?: (result: PlayResult) => void;
+};
+
+export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<GameHandle | null>(null);
   const busRef = useRef<GameBus | null>(null);
   const [tantangan, setTantangan] = useState<ChallengeView | null>(null);
   const [hasil, setHasil] = useState<GradedView | null>(null);
 
+  // Callback disimpan di ref agar pergantian identitas tidak memuat ulang Phaser.
+  const onFinishedRef = useRef(onFinished);
+  useEffect(() => {
+    onFinishedRef.current = onFinished;
+  }, [onFinished]);
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     let cancelled = false;
-    let lepasChallenge: (() => void) | undefined;
-    let lepasGraded: (() => void) | undefined;
+    const lepas: (() => void)[] = [];
 
     void import("@/game/createGame")
       .then(({ createGame }) => {
         if (cancelled) return;
-        const game = createGame(container);
+        const game = createGame(container, story);
         gameRef.current = game;
         busRef.current = game.bus;
 
         // Overlay hanya menerima view tanpa jawaban; penilaian di sisi game.
-        lepasChallenge = game.bus.on("challenge", ({ view }) => {
-          setHasil(null);
-          setTantangan(view);
-        });
-        lepasGraded = game.bus.on("graded", ({ correct, explanation }) => {
-          setHasil({ correct, explanation });
-        });
+        lepas.push(
+          game.bus.on("challenge", ({ view }) => {
+            setHasil(null);
+            setTantangan(view);
+          }),
+        );
+        lepas.push(
+          game.bus.on("graded", ({ correct, explanation }) => {
+            setHasil({ correct, explanation });
+          }),
+        );
+        lepas.push(
+          game.bus.on("finished", ({ result }) => {
+            setTantangan(null);
+            setHasil(null);
+            onFinishedRef.current?.(result);
+          }),
+        );
       })
       .catch((error: unknown) => {
         console.error("Gagal memuat game:", error);
@@ -48,23 +72,22 @@ export function GameCanvas() {
 
     return () => {
       cancelled = true;
-      lepasChallenge?.();
-      lepasGraded?.();
+      for (const berhenti of lepas) berhenti();
       gameRef.current?.destroy();
       gameRef.current = null;
       busRef.current = null;
     };
-  }, []);
+  }, [story]);
 
-  function kirimJawaban(answer: Answer) {
+  const kirimJawaban = useCallback((answer: Answer) => {
     busRef.current?.send({
       type: "submit_answer",
       challengeId: answer.challengeId,
       answer,
     });
-  }
+  }, []);
 
-  function lanjut() {
+  const lanjut = useCallback(() => {
     const challengeId = tantangan?.id;
     setTantangan(null);
     setHasil(null);
@@ -74,7 +97,7 @@ export function GameCanvas() {
       challengeId,
       correct: hasil?.correct ?? false,
     });
-  }
+  }, [tantangan, hasil]);
 
   return (
     <div className="relative h-full w-full">
