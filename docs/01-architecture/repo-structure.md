@@ -113,7 +113,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/api`                              | ya      | Route handler                                       |
 | `src/app/api/health/route.ts`              | ya      | `GET /api/health`: cek hidup + versi build          |
 | `src/app/api/health/route.test.ts`         | ya      | Tes kontrak respons health                          |
-| `public/assets`                            | rencana | File aset game                                      |
+| `public/assets`                            | ya      | File aset game (dibuat `bun run assets:generate`)   |
+| `scripts/generate-assets.mjs`              | ya      | Generator aset pixel + audio, tanpa dependensi      |
 
 ## Struktur target
 
