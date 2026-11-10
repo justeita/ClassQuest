@@ -77,7 +77,7 @@ export function TitleScreen({ story, onStart }: TitleScreenProps) {
     >
       <div className="absolute inset-0 bg-gradient-to-r from-[#0b120e]/95 via-[#14201a]/85 to-[#14201a]/30" />
 
-      <div className="relative flex h-full w-full flex-col justify-between gap-4 overflow-y-auto p-4 font-mono text-[#F7F4EC] sm:p-6">
+      <div className="relative flex h-full w-full flex-col justify-between gap-4 overflow-y-auto p-4 font-sans text-[#F7F4EC] sm:p-6">
         <header className="max-w-xl">
           <p className="text-[10px] uppercase tracking-[0.3em] text-[#E8A87C]">
             ClassQuest

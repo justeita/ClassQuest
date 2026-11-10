@@ -15,14 +15,14 @@ menerima hasil. Tidak ada Phaser di server, tidak ada `window` saat SSR.
 
 ## Pembagian tanggung jawab
 
-| Bagian                      | Teknologi        | Isi                                          |
-| --------------------------- | ---------------- | -------------------------------------------- |
-| Dunia, background, karakter | Phaser           | Sprite, posisi, animasi, transisi            |
-| Dialog                      | Phaser           | Textbox, typewriter, portrait                |
-| Tantangan                   | React DOM        | Form, tombol, input, feedback, aksesibilitas |
-| HUD, menu, hasil            | React DOM        | Chapter indicator, jeda, layar hasil         |
-| State cerita                | TypeScript murni | `StoryRunner` (tanpa Phaser)                 |
-| Persistensi progres         | `localStorage`   | Ditulis oleh React, dibaca saat mulai        |
+| Bagian                      | Teknologi        | Isi                                             |
+| --------------------------- | ---------------- | ----------------------------------------------- |
+| Dunia, background, karakter | Phaser           | Sprite, posisi, animasi, transisi               |
+| Dialog                      | Hybrid           | Panel + portrait Phaser, teks typewriter di DOM |
+| Tantangan                   | React DOM        | Form, tombol, input, feedback, aksesibilitas    |
+| HUD, menu, hasil            | React DOM        | Chapter indicator, jeda, layar hasil            |
+| State cerita                | TypeScript murni | `StoryRunner` (tanpa Phaser)                    |
+| Persistensi progres         | `localStorage`   | Ditulis oleh React, dibaca saat mulai           |
 
 Alasannya: input teks dan aksesibilitas jauh lebih baik di DOM, sementara dunia
 game butuh render loop. Memaksakan semuanya ke canvas akan memperlambat
@@ -220,7 +220,10 @@ ditandai `"use client"` dan diimpor dinamis.
 `GameScene` menjalankan siklus ADR 0008: fase `explore` (ruangan dari `map.ts`,
 pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()`
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
-(Space/Enter/klik). Speaker disorot, beat `transition` fade otomatis, beat
+(Space/Enter/klik). Teks dialog dikirim ke React sebagai event `dialogue` dan
+dirender `DialogueBox.tsx`; React membalas command `advance`. Prompt interaksi
+memakai event `prompt` dan chip DOM `InteractHint.tsx` (ADR 0007). Speaker
+disorot, beat `transition` fade otomatis, beat
 `challenge` masih placeholder teks sampai overlay React tersambung. Saat
 manifest aset ada, placeholder kotak/til warna diganti — bukan ditambah scene
 baru dengan nama lain.
@@ -266,17 +269,15 @@ Aturan:
 
 Implementasi: `src/game/gameBus.ts` — emitter kecil bertipe (bukan
 `EventEmitter` global) agar mudah dites dan tidak bocor antar-instance.
-Sudah diimplementasikan: event `challenge`, `graded`; command `submit_answer`,
-`resolve_challenge`. Sisanya masih rencana.
+Semua event/command di bawah sudah dipakai; `DialogueView` dan `PromptView`
+didefinisikan di `gameBus.ts` dan dirender komponen DOM.
 
 Event yang dikirim **dari** Phaser:
 
 ```ts
 type GameEvent =
-  | { type: "ready" }
-  | { type: "chapter_start"; chapterId: string; index: number; total: number }
-  | { type: "scene_start"; sceneId: string }
-  | { type: "beat"; beat: BeatView }
+  | { type: "dialogue"; view: DialogueView }
+  | { type: "prompt"; hint: PromptView | null }
   | { type: "challenge"; view: ChallengeView }
   | {
       type: "graded";
@@ -284,10 +285,19 @@ type GameEvent =
       correct: boolean;
       explanation: string;
     }
-  | { type: "chapter_complete"; chapterId: string }
-  | { type: "story_complete" }
+  | { type: "finished"; result: PlayResult }
+  | {
+      type: "progress";
+      chapterNumber: number;
+      chapterTotal: number;
+      chapterTitle: string;
+    }
   | { type: "error"; code: string };
 ```
+
+`DialogueView` = `{ visible, name, text, waiting }`; `PromptView` =
+`{ text, x, y }` dalam piksel internal. Teks dialog dikirim bertahap saat
+typewriter berjalan, dan React tidak perlu tahu beat mana yang aktif.
 
 Perintah **ke** Phaser:
 
@@ -298,7 +308,8 @@ type GameCommand =
   | { type: "resolve_challenge"; challengeId: string; correct: boolean }
   | { type: "pause" }
   | { type: "resume" }
-  | { type: "restart_chapter" };
+  | { type: "restart_chapter" }
+  | { type: "set_muted"; muted: boolean };
 ```
 
 Aturan yang mengikat:

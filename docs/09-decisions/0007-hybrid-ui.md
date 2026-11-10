@@ -1,10 +1,10 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
-# 0007 — UI Hybrid: Phaser untuk Dunia, DOM untuk Tantangan
+# 0007 — UI Hybrid: Phaser untuk Dunia, DOM untuk Teks dan Tantangan
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-08
@@ -68,6 +68,36 @@ Alasan:
 
 Jika overlay DOM menghambat animasi tertentu, atau jika mode "semua canvas"
 dibutuhkan untuk performa di perangkat sangat lemah.
+
+## Pembaruan 2026-11-10 — teks dialog dan prompt pindah ke DOM
+
+**Masalah.** `pixelArt: true` memaksa `image-rendering: pixelated` pada seluruh
+canvas. Canvas 640×360 di-upscale non-integer (±1,6×), jadi setiap huruf yang
+digambar Phaser — termasuk dengan `setResolution` tinggi — tetap bergerigi.
+Mengganti font di canvas tidak bisa memperbaikinya.
+
+**Keputusan.** Yang dirender Phaser tinggal **panel dan portrait** dialog
+(`ui_textbox`, `ui_portrait_frame`, gambar portrait 64×64). Nama speaker, isi
+dialog, dan indikator "lanjut" dirender `DialogueBox.tsx`; chip prompt `Space`
+dirender `InteractHint.tsx`. Typewriter tetap di sisi game
+(`textbox.ts` + `typewriter.ts`), yang dikirim ke React hanyalah
+`DialogueView` bertahap lewat event `dialogue`.
+
+**Detail kontrak.**
+
+- Event: `{ type: "dialogue", view: DialogueView }` dan
+  `{ type: "prompt", hint: PromptView | null }`.
+- Command: `{ type: "advance" }` dari klik panel/tekanan tombol.
+- Geometri panel, portrait, dan rumus ukuran huruf tinggal di
+  `src/game/layout.ts`; DOM memakai persen dari angka internal itu dan `cqw`
+  untuk ukuran huruf.
+- Font game: **Patrick Hand** (OFL) via `next/font/local`, token `font-game`.
+  Phaser memakai nama keluarga literal (`fontGame()`) untuk label kecil seperti
+  "Memuat…".
+
+**Konsekuensi.** Dialog jadi tajam dan bisa dibaca screen reader
+(`aria-live="polite"`), tetapi posisi teks harus dijaga sejalur dengan panel
+Phaser lewat `layout.ts`. Jangan menambah teks game baru di canvas.
 
 ## Referensi
 

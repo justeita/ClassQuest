@@ -179,22 +179,32 @@ permainan, latar diganti susunan lantai + dinding + objek.
 
 ## Teks dan font
 
-Font monospace sistem yang dipakai sekarang (`textbox.ts`, `interaction.ts`)
-tidak konsisten dengan pixel art: lebar huruf tidak kelipatan piksel, sehingga
-teks di canvas terlihat kabur.
+Font monospace sistem yang dulu dipakai (`textbox.ts`, `interaction.ts`) tidak
+cocok dengan pixel art dan, lebih penting, teks yang digambar di canvas 640×360
+selalu bergerigi setelah upscale `image-rendering: pixelated`.
 
-- Font pixel **bitmap**, satu ukuran dasar **8 px**, ditampilkan pada kelipatan
-  2 (16 px) atau 3 (24 px).
-- Sumber font: pixel font berlisensi OFL yang disimpan lokal di
-  `public/fonts/` dan dimuat lewat `next/font/local` untuk elemen DOM.
-- Phaser memakai atlas bitmap yang dibuat generator dari font yang sama, supaya
-  teks dialog di canvas dan overlay DOM terlihat satu keluarga.
-- Ukuran minimum teks dialog di layar: setara 16 px di layar ≥ 640 px;
-  perhitungan ulang ada di [`accessibility.md`](./accessibility.md#ukuran-teks).
+Keputusan (ADR 0007): **teks permainan pindah ke DOM**.
 
-> **TBD — font final.** Pilihan font pixel belum diputuskan. Kandidat dan
-> lisensinya dicatat di PR font; setelah dipilih, tambahkan baris di
-> `inventory.md` (kategori baru) dan `src/assets/manifest.ts`.
+- Panel `ui_textbox` dan portrait tetap digambar Phaser; nama, isi dialog, dan
+  indikator "lanjut" dirender React (`DialogueBox.tsx`) di atas panel itu.
+  Prompt interaksi `Space` juga DOM (`InteractHint.tsx`).
+- Font: **Patrick Hand** (SIL Open Font License), disimpan lokal di
+  `public/fonts/` (`patrick-hand-latin.woff2`,
+  `patrick-hand-latin-ext.woff2`, `OFL.txt`) dan dimuat lewat `next/font/local`
+  sebagai variabel `--font-handwriting`.
+- Token Tailwind `--font-game` (utility `font-game`) dipakai HUD, dialog, prompt,
+  dan layar overlay supaya satu keluarga huruf di seluruh permukaan game.
+- Phaser tetap memakai nama keluarga literal (`fontGame()` di `src/game/font.ts`)
+  untuk label kecil seperti "Memuat…", karena `fontFamily` Phaser tidak membaca
+  CSS variable. Label itu tetap dibantu `teksTajam()`.
+- Geometri panel/portrait dan rumus ukuran huruf tinggal di `src/game/layout.ts`
+  supaya canvas dan DOM memakai angka yang sama; ukuran huruf memakai
+  `clamp()` berbasis `cqw` (lihat
+  [`accessibility.md`](./accessibility.md#ukuran-teks)).
+
+> Kandidat font pixel bitmap **dibatalkan**: teks bitmap di canvas tetap terkena
+> upscale non-integer. `Patrick Hand` dipilih karena handwriting-nya jelas,
+> punya `latin-ext`, dan lisensinya OFL.
 
 ## Urutan pengerjaan
 
@@ -206,7 +216,7 @@ Ini bukan janji jadwal, hanya urutan yang aman. Setiap langkah satu PR kecil.
 3. **Data map per scene** + collider dari data objek + tes.
 4. **Kamera dan depth sorting.**
 5. **Animasi jalan 4 arah.**
-6. **Font pixel** dan penyelarasan textbox/HUD.
+6. **Font game (Patrick Hand) + dialog DOM** dan penyelarasan textbox/HUD.
 7. **Layar judul dan hasil** memakai latar pemandangan (tidak berubah).
 
 Langkah 2 dan 3 bisa dikerjakan paralel oleh dua orang karena kontaknya cuma

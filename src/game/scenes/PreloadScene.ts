@@ -5,6 +5,8 @@ import type { Story } from "@/story/schema";
 import { ASSETS_BY_ID } from "@/assets/manifest";
 
 import { collectStoryAssets } from "../sceneAssets";
+import { fontGame } from "../font";
+import { teksTajam } from "../text";
 import { listRoomAssets } from "../maps/roomData";
 
 /** Ukuran satu frame spritesheet karakter (docs/07-assets/asset-guide.md). */
@@ -27,14 +29,15 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   preload() {
-    const label = this.add
-      .text(320, 180, "Memuat… 0%", {
-        fontFamily: "monospace",
-        fontSize: "11px",
-        color: "#F7F4EC",
-      })
-      .setOrigin(0.5)
-      .setDepth(1000);
+    const label = teksTajam(
+      this.add
+        .text(320, 180, "Memuat… 0%", {
+          fontFamily: fontGame(),
+          fontSize: "14px",
+          color: "#F7F4EC",
+        })
+        .setOrigin(0.5),
+    ).setDepth(1000);
 
     this.load.on("progress", (nilai: number) => {
       label.setText(`Memuat… ${Math.round(nilai * 100)}%`);

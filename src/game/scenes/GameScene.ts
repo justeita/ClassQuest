@@ -17,11 +17,7 @@ import {
   type ArahGerak,
   type MovementKeys,
 } from "../movement";
-import {
-  findNpcInZone,
-  createInteractPrompt,
-  type InteractPrompt,
-} from "../interaction";
+import { findNpcInZone, posisiPrompt } from "../interaction";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import type { PlayerConfig } from "../types";
 import { StoryRunner } from "../StoryRunner";
@@ -64,7 +60,8 @@ export class GameScene extends Phaser.Scene {
   private wallBodies?: Phaser.Physics.Arcade.StaticGroup;
   private colliderRuangan?: Phaser.Physics.Arcade.Collider;
   private textbox?: Textbox;
-  private prompt?: InteractPrompt;
+  /** NPC yang prompt-nya sedang tampil; null saat tidak ada. */
+  private promptNpcId: string | null = null;
   private music?: Phaser.Sound.BaseSound;
   private musicKey: string | null = null;
   private sceneAktif: string | null = null;
@@ -118,8 +115,11 @@ export class GameScene extends Phaser.Scene {
       "space" | "enter",
       Phaser.Input.Keyboard.Key
     >;
-    this.textbox = createTextbox(this);
-    this.prompt = createInteractPrompt(this, this.room);
+    // Teks dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene tetap
+    // pemegang state typewriter dan mengirim potongannya lewat bus.
+    this.textbox = createTextbox(this, (state) => {
+      this.bus?.emit({ type: "dialogue", view: state });
+    });
 
     this.input.on("pointerdown", () => this.onLanjutInput());
 
@@ -132,6 +132,9 @@ export class GameScene extends Phaser.Scene {
       this.runner.resolveChallenge();
       this.presentBeat();
     });
+    // Klik pada panel dialog DOM (atau tombol lanjut) masuk lewat jalur yang
+    // sama dengan Space/Enter, jadi aturan "satu tekanan satu langkah" tetap.
+    this.bus?.onCommand("advance", () => this.onLanjutInput());
 
     // Menu jeda di DOM menghentikan/melanjutkan loop scene. State cerita tetap
     // di beat yang sama; hanya presentasi yang membeku. Musik dikecilkan, bukan
@@ -177,16 +180,24 @@ export class GameScene extends Phaser.Scene {
     const npcId = this.player
       ? findNpcInZone(this.room, this.player.x, this.player.y)
       : null;
-    if (npcId) {
-      this.prompt?.showAt(npcId);
-    } else {
-      this.prompt?.hide();
-    }
+    this.perbaruiPrompt(npcId);
 
     if (npcId && this.lanjutKeysBaruDitekan()) {
       this.runner.interact();
       this.presentBeat();
     }
+  }
+
+  /**
+   * Kirim posisi chip "Space" ke React hanya saat NPC target berubah, supaya
+   * tidak memicu render DOM tiap frame.
+   */
+  private perbaruiPrompt(npcId: string | null) {
+    if (npcId === this.promptNpcId) return;
+    this.promptNpcId = npcId;
+
+    const hint = npcId ? posisiPrompt(this.room, npcId) : null;
+    this.bus?.emit({ type: "prompt", hint });
   }
 
   /** Space/Enter saat fase beat: selesaikan teks atau lanjut beat. */
@@ -327,7 +338,7 @@ export class GameScene extends Phaser.Scene {
   private ulangiChapter() {
     this.runner.restartChapter();
     this.textbox?.hide();
-    this.prompt?.hide();
+    this.perbaruiPrompt(null);
     this.sorotSpeaker(null);
     this.chapterTerakhir = -1;
     this.sceneAktif = null;
@@ -341,6 +352,7 @@ export class GameScene extends Phaser.Scene {
   /** Dialog ditahan (bukan ditutup) saat overlay tantangan tampil. */
   private bukaTantangan(challengeId: string) {
     this.textbox?.hide();
+    this.perbaruiPrompt(null);
     this.sorotSpeaker(null);
 
     const challenge = this.runner.getChallenge(challengeId);

@@ -22,7 +22,7 @@ export function ResultScreen({ result, onMainLagi }: ResultScreenProps) {
     <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0b120e]/90 p-3">
       <section
         aria-labelledby="judul-hasil"
-        className="w-full max-w-md border-2 border-[#F7F4EC] bg-[#14201a] p-5 font-mono text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]"
+        className="w-full max-w-md border-2 border-[#F7F4EC] bg-[#14201a] p-5 font-sans text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]"
       >
         <p className="mb-1 text-[10px] uppercase tracking-widest text-[#8FA396]">
           Cerita selesai

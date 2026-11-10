@@ -27,7 +27,7 @@ salah. Yang benar:
 | —                   | `loading`              | progress bar aset                 |
 | —                   | `ready`                | layar judul, tombol Mulai         |
 | `explore`           | `playing`              | ruangan map + pemain + NPC        |
-| `dialog`            | `playing`              | canvas + textbox                  |
+| `dialog`            | `playing`              | canvas + panel dialog + teks DOM  |
 | `challenge`         | `playing`              | canvas + `ChallengeOverlay` (DOM) |
 | `chapter_end`       | `playing`              | kartu ringkasan chapter           |
 | `done`              | `finished`             | `ResultScreen` (DOM)              |

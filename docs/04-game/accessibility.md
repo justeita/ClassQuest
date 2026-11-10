@@ -91,31 +91,28 @@ Catatan:
 
 ## Ukuran teks
 
-Canvas berukuran sesuai resolusi internal (sekarang 480×270) dan diskalakan
-dengan `Phaser.Scale.FIT`, jadi skalanya mengikuti lebar kontainer. Di layar
-1280×720 skala ~2.67x: font pixel 12 px menjadi ~32 px — nyaman.
+Canvas berukuran sesuai resolusi internal (sekarang 640×360, ADR 0009) dan
+diskalakan dengan `Phaser.Scale.FIT`, jadi skalanya mengikuti lebar kontainer.
 
-> Perhitungan ini ikut berubah jika ADR
-> [`0009`](../09-decisions/0009-resolution-and-scale.md) diterima. Angka baru
-> (resolusi, tile, font pixel) ada di
-> [`world-design.md`](./world-design.md#satuan-dasar); bagian ini diperbarui di
-> PR implementasinya, bukan sekarang.
+Teks dialog, nama speaker, indikator lanjut, dan prompt interaksi **tidak**
+digambar di canvas: semuanya DOM di atas canvas (ADR 0007), sehingga huruf
+dirender browser pada resolusi layar asli dan tidak ikut bergerigi bersama pixel
+art.
 
-Masalahnya di layar kecil: pada HP 360 px, skala hanya 0.75x, sehingga font 12 px
-menjadi ~9 px. Itu **di bawah** batas minimum yang kita janjikan. Karena itu:
-
-- Target "setara ≥ 16 px" hanya berlaku untuk layar ≥ 640 px (skala ≥ 1.33x).
-- Di bawah itu, canvas tidak dipaksa memuat semuanya: tampilkan saran memutar
-  layar, dan sediakan tombol "perbesar teks" yang memperbesar canvas melebihi
-  lebar layar (scroll horizontal), bukan mengecilkan teks.
-- Overlay tantangan adalah DOM, jadi ukurannya tetap bisa dinaikkan lewat `rem`
-  tanpa ikut mengecil bersama canvas. Ini alasan kuat UI hybrid.
+- Ukuran huruf memakai `clamp(min, Ncqw, max)` dari `src/game/layout.ts`, jadi
+  teks ikut membesar bersama canvas tetapi tidak pernah turun di bawah `min`.
+- Di layar 1280 px, satu baris dialog setara ~30 px; minimum 13 px berlaku di
+  layar sempit.
+- Font yang dipakai adalah **Patrick Hand** (OFL, lokal di `public/fonts/`,
+  dimuat `next/font/local`) — lihat
+  [`world-design.md`](./world-design.md#teks-dan-font).
 
 Aturan:
 
-- Jangan memakai font di bawah 8 px pada resolusi internal 640×360 (setara
-  16 px di 720p — batas minimum keterbacaan).
-- Overlay React memakai `rem`, bukan px tetap.
+- Jangan memakai teks Phaser di bawah 8 px pada resolusi internal 640×360
+  (setara 16 px di 720p — batas minimum keterbacaan). Teks permainan sebaiknya
+  pindah ke DOM, bukan dinaikkan resolusinya di canvas.
+- Overlay React memakai `rem`/`cqw`, bukan px tetap yang tidak ikut skala.
 - Sediakan pengaturan "teks lebih besar" yang menaikkan ukuran overlay (bukan canvas).
 
 ## Gerak

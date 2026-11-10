@@ -38,7 +38,7 @@ export function PauseMenu({
         role="dialog"
         aria-modal="true"
         aria-labelledby="judul-jeda"
-        className="w-full max-w-xs border-2 border-[#F7F4EC] bg-[#14201a] p-4 font-mono text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]"
+        className="w-full max-w-xs border-2 border-[#F7F4EC] bg-[#14201a] p-4 font-sans text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]"
       >
         <p className="mb-1 text-[10px] uppercase tracking-[0.3em] text-[#8FA396]">
           Permainan dijeda
