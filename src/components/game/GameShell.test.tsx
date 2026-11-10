@@ -289,6 +289,61 @@ describe("GameShell", () => {
     lepas();
   });
 
+  it("buku log mencatat dialog dan jurnal konsep", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "log",
+      name: "Pak Bima",
+      text: "Genangan air menguap karena panas matahari.",
+      sceneJudul: "Pagi yang Menguap",
+    });
+
+    // Buka buku lewat tombol Log di HUD.
+    fireEvent.click(screen.getByRole("button", { name: /^log$/i }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Buku catatan" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Genangan air menguap/i)).toBeInTheDocument();
+    expect(screen.getByText("Pak Bima")).toBeInTheDocument();
+
+    // Tab konsep kosong sebelum ada jawaban.
+    fireEvent.click(screen.getByRole("tab", { name: /konsep/i }));
+    expect(screen.getByText(/Belum ada konsep/i)).toBeInTheDocument();
+  });
+
+  it("jawaban soal mengisi jurnal konsep", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "challenge",
+      view: {
+        id: "chl_01_01",
+        type: "true_false",
+        prompt: "Uap air lebih ringan.",
+        conceptTag: "Evaporasi",
+        statement: "Uap air lebih ringan daripada air cair.",
+      },
+    });
+    bus.emit({
+      type: "graded",
+      challengeId: "chl_01_01",
+      correct: true,
+      explanation: "Uap air naik karena lebih ringan.",
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /^log$/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: /konsep/i }));
+
+    expect(await screen.findByText("Evaporasi")).toBeInTheDocument();
+    expect(screen.getByText("Tepat")).toBeInTheDocument();
+    // Penjelasan muncul dua kali: panel tantangan dan buku catatan.
+    expect(
+      screen.getAllByText(/Uap air naik karena lebih ringan/),
+    ).toHaveLength(2);
+  });
+
   it("menampilkan layar hasil saat event finished datang", async () => {
     await mainkan();
 

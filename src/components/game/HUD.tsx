@@ -6,6 +6,8 @@ type HudProps = {
   /** Musik nyala = volume musik > 0. Efek suara diatur di menu jeda. */
   musikAktif: boolean;
   onToggleMusik: () => void;
+  /** Buka buku catatan (log dialog + jurnal konsep). */
+  onBukaLog: () => void;
   onJeda: () => void;
   /** Dipakai `GameCanvas` untuk mengembalikan fokus setelah menu jeda tutup. */
   tombolJedaRef?: RefObject<HTMLButtonElement | null>;
@@ -23,6 +25,7 @@ type HudProps = {
 export function Hud({
   musikAktif,
   onToggleMusik,
+  onBukaLog,
   onJeda,
   tombolJedaRef,
 }: HudProps) {
@@ -41,6 +44,18 @@ export function Hud({
           className="border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
         >
           {musikAktif ? "♪ Musik" : "♪ Musik mati"}
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.currentTarget.blur();
+            onBukaLog();
+          }}
+          aria-keyshortcuts="b"
+          title="Buku catatan dialog dan konsep"
+          className="border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
+        >
+          Log
         </button>
         <button
           ref={tombolJedaRef}

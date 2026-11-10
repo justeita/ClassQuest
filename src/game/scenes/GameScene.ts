@@ -176,6 +176,9 @@ export class GameScene extends Phaser.Scene {
       this.terapkanVolume();
     });
     this.bus?.onCommand("restart_chapter", () => this.ulangiChapter());
+    // Buku log membekukan dunia tanpa mengecilkan musik (PR D).
+    this.bus?.onCommand("freeze", () => this.scene.pause());
+    this.bus?.onCommand("unfreeze", () => this.scene.resume());
     // Preferensi suara dari HUD/menu jeda diterapkan ke SoundManager global.
     // Musik dan SFX dipisah: mute musik tidak mematikan efek suara
     // (interaction-loop.md → Menu jeda).
@@ -412,6 +415,12 @@ export class GameScene extends Phaser.Scene {
       view = { name: null, text: beat.text };
     }
     this.textbox?.show(view);
+    this.bus?.emit({
+      type: "log",
+      name: view.name,
+      text: beat.text,
+      sceneJudul: state.sceneJudul,
+    });
   }
 
   /**
