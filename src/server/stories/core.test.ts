@@ -130,12 +130,24 @@ describe("listStories", () => {
   });
 
   it("melaporkan usedFallback dari versi terbaru dan mematuhi limit/offset", async () => {
+    const now = Date.now();
+
     await insertStory({ storyId: "st_a1", teacherId: TEACHER_A });
     await insertVersion({ storyId: "st_a1", version: 1, usedFallback: true });
     await insertVersion({ storyId: "st_a1", version: 2, usedFallback: false });
+    // st_a1 lebih lama → akan muncul di offset 1
+    await db.execute({
+      sql: "update stories set updated_at = ? where id = ?",
+      args: [new Date(now).toISOString(), "st_a1"],
+    });
 
     await insertStory({ storyId: "st_a2", teacherId: TEACHER_A });
     await insertVersion({ storyId: "st_a2", version: 1 });
+    // st_a2 lebih baru → akan muncul di offset 0
+    await db.execute({
+      sql: "update stories set updated_at = ? where id = ?",
+      args: [new Date(now + 1000).toISOString(), "st_a2"],
+    });
 
     const page = await listStories(db, {
       teacherId: TEACHER_A,
