@@ -109,6 +109,7 @@ export class GameScene extends Phaser.Scene {
       this.player,
       this.wallBodies!,
     );
+    this.pasangKamera();
     this.mainkanIdle(this.player, spritePemain);
 
     this.keys = ambilTombolGerak(this);
@@ -382,16 +383,16 @@ export class GameScene extends Phaser.Scene {
       this.sceneAktif !== null &&
       sceneId !== null &&
       this.sceneAktif !== sceneId;
-    if (gantiScene) {
-      this.mainkanSfx("sfx_page");
-      this.kembalikanPemain();
-    }
+    if (gantiScene) this.mainkanSfx("sfx_page");
     if (sceneId !== null) this.sceneAktif = sceneId;
 
     // Ruangan dibangun dari data map scene aktif (ADR 0010); scene tanpa map
-    // khusus memakai template default.
-    if (gantiScene || !this.room) {
+    // khusus memakai template default. Pemain kembali ke spawn hanya saat
+    // layout ruangan benar-benar berubah — bukan setiap pindah scene.
+    const dataRuang = resolveRoomData(sceneId);
+    if (dataRuang !== this.roomData) {
       this.pasangRuangan(state);
+      this.kembalikanPemain();
     }
 
     this.putarMusik(look.musicId);
@@ -661,7 +662,8 @@ export class GameScene extends Phaser.Scene {
 
   private mainkanIdle(sprite: Phaser.GameObjects.Sprite, spriteId: string) {
     const key = `idle-${spriteId}`;
-    if (this.anims.exists(key)) sprite.play(key);
+    // ignoreIfPlaying: tanpa ini idle direstart tiap frame dan terlihat macet.
+    if (this.anims.exists(key)) sprite.play(key, true);
   }
 
   /**
