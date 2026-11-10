@@ -17,6 +17,7 @@ function stateDari(overrides: Partial<StoryRunnerState>): StoryRunnerState {
     chapter,
     chapterNumber: 1,
     chapterTotal: DEMO_STORY.chapters.length,
+    sceneJudul: sceneAwal.title ?? null,
     ...overrides,
   };
 }

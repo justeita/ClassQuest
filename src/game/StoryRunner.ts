@@ -18,6 +18,8 @@ export interface StoryRunnerState {
   /** Nomor bab 1-based untuk HUD. */
   chapterNumber: number;
   chapterTotal: number;
+  /** Judul scene aktif; null saat explore/akhir bab/selesai atau scene tanpa judul. */
+  sceneJudul: string | null;
 }
 
 /**
@@ -47,6 +49,12 @@ export class StoryRunner {
   getState(): StoryRunnerState {
     const chapters = this.story.chapters;
     const total = chapters.length;
+    const sceneJudul = (): string | null => {
+      const chapter = chapters[this.chapterIndex];
+      if (!chapter) return null;
+      const scene = chapter.scenes[this.sceneIndex];
+      return scene?.title ?? chapter.title;
+    };
 
     if (this.chapterIndex >= total) {
       return {
@@ -58,6 +66,7 @@ export class StoryRunner {
         chapter: null,
         chapterNumber: total,
         chapterTotal: total,
+        sceneJudul: null,
       };
     }
 
@@ -73,6 +82,7 @@ export class StoryRunner {
         chapter,
         chapterNumber: this.chapterIndex + 1,
         chapterTotal: total,
+        sceneJudul: sceneJudul(),
       };
     }
 
@@ -86,6 +96,7 @@ export class StoryRunner {
         chapter,
         chapterNumber: this.chapterIndex + 1,
         chapterTotal: total,
+        sceneJudul: sceneJudul(),
       };
     }
 
@@ -101,6 +112,7 @@ export class StoryRunner {
       chapter,
       chapterNumber: this.chapterIndex + 1,
       chapterTotal: total,
+      sceneJudul: sceneJudul(),
     };
   }
 

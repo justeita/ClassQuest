@@ -52,6 +52,13 @@ export type GameEvent =
     }
   /** Cerita selesai; `result` dihitung dari percobaan pertama tiap tantangan. */
   | { type: "finished"; result: PlayResult }
+  /** Satu beat dialog/narasi tampil penuh; dipakai log dialog (PR D). */
+  | {
+      type: "log";
+      name: string | null;
+      text: string;
+      sceneJudul: string | null;
+    }
   /** Quest chapter aktif berubah; dipakai panel quest di DOM. */
   | { type: "quest"; view: QuestState }
   | { type: "error"; code: string };
@@ -67,7 +74,10 @@ export type GameCommand =
   /** Kembali ke awal bab aktif tanpa menghapus catatan jawaban. */
   | { type: "restart_chapter" }
   /** Bisukan/bunyikan seluruh audio Phaser. */
-  | { type: "set_audio"; music: number; sfx: number };
+  | { type: "set_audio"; music: number; sfx: number }
+  /** Bekukan dunia saat buku log terbuka; musik tetap diputar penuh. */
+  | { type: "freeze" }
+  | { type: "unfreeze" };
 
 export class GameBus {
   private listeners = new Map<string, Set<(payload: unknown) => void>>();

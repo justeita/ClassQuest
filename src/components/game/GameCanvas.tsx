@@ -7,6 +7,7 @@ import {
   type GradedView,
 } from "@/components/game/ChallengeOverlay";
 import { DialogueBox } from "@/components/game/DialogueBox";
+import { DialogueLog } from "@/components/game/DialogueLog";
 import {
   ChapterCard,
   type ChapterCardView,
@@ -23,6 +24,12 @@ import {
   type PengaturanAudio,
 } from "@/game/audioSettings";
 import type { ChallengeView } from "@/game/challengeView";
+import {
+  tambahEntriDialog,
+  tambahEntriKonsep,
+  type EntriDialog,
+  type EntriKonsep,
+} from "@/game/dialogLog";
 import type {
   DialogueView,
   GameBus,
@@ -58,6 +65,9 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [toastQuest, setToastQuest] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogueView | null>(null);
   const [hint, setHint] = useState<PromptView | null>(null);
+  const [entriLog, setEntriLog] = useState<EntriDialog[]>([]);
+  const [jurnal, setJurnal] = useState<EntriKonsep[]>([]);
+  const [bukuLog, setBukuLog] = useState(false);
   const [jeda, setJeda] = useState(false);
   const [bukuQuest, setBukuQuest] = useState(false);
   /** Pengaturan audio pengguna; persist di localStorage, dibaca saat mount. */
@@ -93,6 +103,13 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
 
         // Overlay hanya menerima view tanpa jawaban; penilaian di sisi game.
         lepas.push(
+          game.bus.on("log", ({ name, text, sceneJudul }) => {
+            setEntriLog((daftar) =>
+              tambahEntriDialog(daftar, { name, text, sceneJudul }),
+            );
+          }),
+        );
+        lepas.push(
           game.bus.on("challenge", ({ view }) => {
             setHasil(null);
             setTantangan(view);
@@ -103,6 +120,17 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         lepas.push(
           game.bus.on("graded", ({ correct, explanation }) => {
             setHasil({ correct, explanation });
+            setTantangan((soal) => {
+              if (!soal) return soal;
+              setJurnal((daftar) =>
+                tambahEntriKonsep(daftar, {
+                  conceptTag: soal.conceptTag,
+                  benar: correct,
+                  explanation,
+                }),
+              );
+              return soal;
+            });
           }),
         );
         lepas.push(
@@ -253,6 +281,9 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     setHasil(null);
     setToastQuest(null);
     setKartuChapter(null);
+    setEntriLog([]);
+    setJurnal([]);
+    setBukuLog(false);
     // Quest pertama setelah restart bukan "quest baru"; jangan munculkan toast.
     questTerakhir.current = null;
     busRef.current?.send({ type: "restart_chapter" });
@@ -281,6 +312,18 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       const tag = (event.target as HTMLElement)?.tagName;
       const isInput = tag === "INPUT" || tag === "TEXTAREA";
 
+      if (event.key === "b" || event.key === "B") {
+        if (isInput) return;
+        if (tantangan || jeda || quest) return;
+        event.preventDefault();
+        setBukuLog((sebelum) => {
+          // Dunia dibekukan selama buku terbuka; musik tetap diputar penuh.
+          busRef.current?.send({ type: sebelum ? "unfreeze" : "freeze" });
+          return !sebelum;
+        });
+        return;
+      }
+
       if (event.key === "q" || event.key === "Q") {
         if (isInput) return;
         if (!quest || jeda || tantangan) return;
@@ -290,6 +333,13 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       }
 
       if (event.key !== "Escape") return;
+
+      if (bukuLog) {
+        event.preventDefault();
+        setBukuLog(false);
+        busRef.current?.send({ type: "unfreeze" });
+        return;
+      }
 
       if (bukuQuest) {
         event.preventDefault();
@@ -379,6 +429,10 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         <Hud
           musikAktif={audio.music > 0}
           onToggleMusik={() => ubahAudio("music", audio.music > 0 ? 0 : 1)}
+          onBukaLog={() => {
+            setBukuLog(true);
+            busRef.current?.send({ type: "freeze" });
+          }}
           onJeda={bukaJeda}
           tombolJedaRef={tombolJedaRef}
         />
@@ -389,6 +443,16 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           graded={hasil}
           onSubmit={kirimJawaban}
           onResolve={lanjut}
+        />
+      )}
+      {bukuLog && (
+        <DialogueLog
+          entriDialog={entriLog}
+          entriKonsep={jurnal}
+          onTutup={() => {
+            setBukuLog(false);
+            busRef.current?.send({ type: "unfreeze" });
+          }}
         />
       )}
       {jeda && (
