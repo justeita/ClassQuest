@@ -141,6 +141,143 @@ describe("loadAiConfig — anthropic", () => {
   });
 });
 
+describe("loadAiConfig — openai-compatible", () => {
+  it("menerima konfigurasi lengkap dengan kunci", () => {
+    const config = loadAiConfig({
+      AI_PROVIDER: "openai-compatible",
+      AI_API_KEY: FAKE_KEY,
+      AI_MODEL: "model-contoh",
+      AI_BASE_URL: "https://router.example.test/v1",
+      AI_TIMEOUT_MS: "45000",
+    });
+
+    expect(config).toEqual({
+      provider: "openai-compatible",
+      apiKey: FAKE_KEY,
+      model: "model-contoh",
+      baseUrl: "https://router.example.test/v1",
+      timeoutMs: 45_000,
+    });
+  });
+
+  it("AI_API_KEY opsional untuk server lokal tanpa kunci", () => {
+    const config = loadAiConfig({
+      AI_PROVIDER: "openai-compatible",
+      AI_MODEL: "model-contoh",
+      AI_BASE_URL: "http://localhost:20128/v1",
+    });
+
+    expect(config).toEqual({
+      provider: "openai-compatible",
+      apiKey: null,
+      model: "model-contoh",
+      baseUrl: "http://localhost:20128/v1",
+      timeoutMs: DEFAULT_AI_TIMEOUT_MS,
+    });
+  });
+
+  it("kunci kosong atau hanya spasi diperlakukan sebagai tidak ada", () => {
+    for (const value of ["", "   "]) {
+      const config = loadAiConfig({
+        AI_PROVIDER: "openai-compatible",
+        AI_API_KEY: value,
+        AI_MODEL: "model-contoh",
+        AI_BASE_URL: "https://router.example.test/v1",
+      });
+
+      expect(config.apiKey).toBeNull();
+    }
+  });
+
+  it("membuang trailing slash dari AI_BASE_URL", () => {
+    const config = loadAiConfig({
+      AI_PROVIDER: "openai-compatible",
+      AI_MODEL: "model-contoh",
+      AI_BASE_URL: "https://router.example.test/v1///",
+    });
+
+    expect(config.baseUrl).toBe("https://router.example.test/v1");
+  });
+
+  it("menerima nama provider dengan huruf besar", () => {
+    expect(
+      loadAiConfig({
+        AI_PROVIDER: "OpenAI-Compatible",
+        AI_MODEL: "model-contoh",
+        AI_BASE_URL: "https://router.example.test/v1",
+      }).provider,
+    ).toBe("openai-compatible");
+  });
+
+  it("gagal menyebut AI_BASE_URL saat base URL kosong", () => {
+    try {
+      loadAiConfig({
+        AI_PROVIDER: "openai-compatible",
+        AI_MODEL: "model-contoh",
+      });
+      expect.unreachable("harus melempar AiConfigError");
+    } catch (error) {
+      expect(error).toBeInstanceOf(AiConfigError);
+      expect((error as AiConfigError).variables).toEqual(["AI_BASE_URL"]);
+      expect((error as Error).message).toContain("AI_BASE_URL");
+    }
+  });
+
+  it("gagal menyebut AI_MODEL saat model kosong", () => {
+    try {
+      loadAiConfig({
+        AI_PROVIDER: "openai-compatible",
+        AI_MODEL: "  ",
+        AI_BASE_URL: "https://router.example.test/v1",
+      });
+      expect.unreachable("harus melempar AiConfigError");
+    } catch (error) {
+      expect(error).toBeInstanceOf(AiConfigError);
+      expect((error as AiConfigError).variables).toEqual(["AI_MODEL"]);
+      expect((error as Error).message).toContain("AI_MODEL");
+    }
+  });
+
+  it("gagal menyebut kedua variabel bila dua-duanya kosong", () => {
+    expect(() => loadAiConfig({ AI_PROVIDER: "openai-compatible" })).toThrow(
+      /AI_BASE_URL dan AI_MODEL/,
+    );
+  });
+
+  it.each([
+    "bukan-url",
+    "ftp://router.example.test/v1",
+    "mailto:guru@example.test",
+    "//router.example.test/v1",
+    "http://",
+  ])("menolak AI_BASE_URL %j", (value) => {
+    expect(() =>
+      loadAiConfig({
+        AI_PROVIDER: "openai-compatible",
+        AI_MODEL: "model-contoh",
+        AI_BASE_URL: value,
+      }),
+    ).toThrow(/AI_BASE_URL/);
+  });
+
+  it("pesan error AI_BASE_URL tidak memuat nilai URL", () => {
+    let message = "";
+
+    try {
+      loadAiConfig({
+        AI_PROVIDER: "openai-compatible",
+        AI_MODEL: "model-contoh",
+        AI_BASE_URL: "bukan-url-RAHASIA-5a1b",
+      });
+    } catch (error) {
+      message = (error as Error).message;
+    }
+
+    expect(message).toContain("AI_BASE_URL");
+    expect(message).not.toContain("RAHASIA-5a1b");
+  });
+});
+
 describe("loadAiConfig — provider tidak didukung", () => {
   it.each(["gemini", "openai", "openrouter", "ollama", "groq"])(
     "menolak %s dengan pesan 'belum didukung'",
@@ -155,6 +292,9 @@ describe("loadAiConfig — provider tidak didukung", () => {
     expect(() => loadAiConfig({ AI_PROVIDER: "gemini" })).toThrow(
       /mock, anthropic/,
     );
+    expect(() => loadAiConfig({ AI_PROVIDER: "gemini" })).toThrow(
+      /openai-compatible/,
+    );
   });
 
   it("pesan error tidak memuat AI_API_KEY walau variabelnya terisi", () => {
@@ -164,6 +304,19 @@ describe("loadAiConfig — provider tidak didukung", () => {
     expect(() =>
       loadAiConfig({ AI_PROVIDER: "gemini", AI_API_KEY: FAKE_KEY }),
     ).not.toThrow(new RegExp(FAKE_KEY));
+  });
+
+  it("pesan error tidak memuat nilai AI_PROVIDER yang tidak dikenal", () => {
+    let message = "";
+
+    try {
+      loadAiConfig({ AI_PROVIDER: "provider-rahasia-5a1b" });
+    } catch (error) {
+      message = (error as Error).message;
+    }
+
+    expect(message).toContain("AI_PROVIDER");
+    expect(message).not.toContain("provider-rahasia-5a1b");
   });
 });
 
