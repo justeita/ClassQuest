@@ -4,6 +4,7 @@ import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { Story } from "@/story/schema";
 
 import { CAMERA_LERP, deadzonePx, kameraMode } from "../camera";
+import { DEPTH_DINDING, DEPTH_LANTAI } from "../depth";
 import { roomForScene, type RoomMap } from "../map";
 import { resolveRoomData } from "../maps/roomData";
 import { TILE_SIZE, type RoomData, type RoomObject } from "../maps/types";
@@ -462,7 +463,7 @@ export class GameScene extends Phaser.Scene {
         this.add
           .tileSprite(0, 0, room.width, room.height, room.floorTile)
           .setOrigin(0)
-          .setDepth(-20),
+          .setDepth(DEPTH_LANTAI),
       );
     } else {
       this.ruanganObjects.push(
@@ -474,7 +475,7 @@ export class GameScene extends Phaser.Scene {
             room.height,
             room.floorColor,
           )
-          .setDepth(-20),
+          .setDepth(DEPTH_LANTAI),
       );
     }
 
@@ -494,7 +495,7 @@ export class GameScene extends Phaser.Scene {
               height,
               room.wallColor,
             );
-        this.ruanganObjects.push(visual.setDepth(-10));
+        this.ruanganObjects.push(visual.setDepth(DEPTH_DINDING));
         continue;
       }
       if (object.kind === "prop") this.renderProp(object);

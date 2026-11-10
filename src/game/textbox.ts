@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { DEPTH_UI } from "./depth";
 import { Typewriter } from "./typewriter";
 
 /**
@@ -57,7 +58,7 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
   const container = scene.add
     .container(0, 0)
     .setVisible(false)
-    .setDepth(100)
+    .setDepth(DEPTH_UI)
     .setScrollFactor(0);
 
   const background = scene.textures.exists("ui_textbox")
