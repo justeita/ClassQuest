@@ -20,7 +20,7 @@ menerima hasil. Tidak ada Phaser di server, tidak ada `window` saat SSR.
 | Dunia, background, karakter | Phaser           | Sprite, posisi, animasi, transisi               |
 | Dialog                      | Hybrid           | Panel + portrait Phaser, teks typewriter di DOM |
 | Tantangan                   | React DOM        | Form, tombol, input, feedback, aksesibilitas    |
-| HUD, menu, hasil            | React DOM        | Chapter indicator, jeda, layar hasil            |
+| HUD, menu, hasil            | React DOM        | Panel quest, jeda, layar hasil                  |
 | State cerita                | TypeScript murni | `StoryRunner` (tanpa Phaser)                    |
 | Persistensi progres         | `localStorage`   | Ditulis oleh React, dibaca saat mulai           |
 
@@ -211,22 +211,29 @@ ditandai `"use client"` dan diimpor dinamis.
 
 ## Scene Phaser
 
-| Scene          | Tanggung jawab sekarang                                                                                        | Target                                 |
-| -------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| `PreloadScene` | Langsung pindah ke `GameScene`                                                                                 | Muat aset cerita + progress bar        |
-| `GameScene`    | Ruangan dari `maps/` (tile + prop + NPC per scene), gerak, interaksi NPC, dialog typewriter dari `StoryRunner` | Kamera follow + transisi antar-ruangan |
-| `ResultScene`  | Belum ada                                                                                                      | (Opsional) transisi akhir              |
+| Scene          | Tanggung jawab sekarang                                                                                           | Target                                 |
+| -------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| `PreloadScene` | Langsung pindah ke `GameScene`                                                                                    | Muat aset cerita + progress bar        |
+| `GameScene`    | Ruangan dari `maps/` (tile + prop + NPC per `roomId`), gerak, interaksi NPC, dialog typewriter dari `StoryRunner` | Kamera follow + transisi antar-ruangan |
+| `ResultScene`  | Belum ada                                                                                                         | (Opsional) transisi akhir              |
 
 `GameScene` menjalankan siklus ADR 0008: fase `explore` (ruangan dari `map.ts`,
 pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()`
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). Teks dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx`; React membalas command `advance`. Prompt interaksi
-memakai event `prompt` dan chip DOM `InteractHint.tsx` (ADR 0007). Speaker
-disorot, beat `transition` fade otomatis, beat
-`challenge` masih placeholder teks sampai overlay React tersambung. Saat
-manifest aset ada, placeholder kotak/til warna diganti — bukan ditambah scene
-baru dengan nama lain.
+memakai event `prompt` dan chip DOM `InteractHint.tsx` (ADR 0007). Hanya NPC
+pemberi quest scene aktif yang memunculkan prompt dan bisa memulai dialog; NPC
+lain tetap menjadi penghalang. Penanda `!` dikirim lewat event `markers` dan
+dirender `NpcMarker.tsx`. Posisi prompt dan penanda dikonversi dari koordinat
+dunia ke layar memakai `camera.scrollX/scrollY` (`layar.ts`), lalu diperbarui
+maksimal ~11 kali per detik — bukan tiap frame. Speaker disorot, beat
+`transition` fade otomatis, beat `challenge` dibuka sebagai overlay React.
+
+Ruangan punya identitas `roomId`, terpisah dari `sceneId`. Perpindahan scene
+dalam ruangan yang sama **tidak** membangun ulang peta dan **tidak**
+mengembalikan pemain ke spawn; posisi terakhir dipertahankan. Spawn hanya dipakai
+saat masuk `roomId` baru atau saat "Ulangi chapter".
 
 `ChallengeScene` **tidak ada** — tantangan adalah overlay React.
 
@@ -278,6 +285,7 @@ Event yang dikirim **dari** Phaser:
 type GameEvent =
   | { type: "dialogue"; view: DialogueView }
   | { type: "prompt"; hint: PromptView | null }
+  | { type: "markers"; markers: NpcMarker[] }
   | { type: "challenge"; view: ChallengeView }
   | {
       type: "graded";
@@ -286,18 +294,17 @@ type GameEvent =
       explanation: string;
     }
   | { type: "finished"; result: PlayResult }
-  | {
-      type: "progress";
-      chapterNumber: number;
-      chapterTotal: number;
-      chapterTitle: string;
-    }
+  | { type: "quest"; view: QuestState }
   | { type: "error"; code: string };
 ```
 
 `DialogueView` = `{ visible, name, text, waiting }`; `PromptView` =
-`{ text, x, y }` dalam piksel internal. Teks dialog dikirim bertahap saat
-typewriter berjalan, dan React tidak perlu tahu beat mana yang aktif.
+`{ text, x, y }` dan `NpcMarker` = `{ npcId, x, y }`, keduanya dalam koordinat
+layar internal 640×360 (sudah dikurangi scroll kamera). `QuestState` berisi
+chapter, scene aktif, daftar quest turunan scene, dan `activeQuestId`; status
+`selesai | aktif | terkunci` dihitung dari posisi `StoryRunner`, bukan ditulis
+di Story JSON. Teks dialog dikirim bertahap saat typewriter berjalan, dan React
+tidak perlu tahu beat mana yang aktif.
 
 Perintah **ke** Phaser:
 

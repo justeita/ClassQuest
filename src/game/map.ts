@@ -32,7 +32,8 @@ export type MapNpc = {
 };
 
 export type RoomMap = {
-  sceneId: string;
+  /** Identitas ruangan; dipakai untuk memutuskan kapan pemain perlu spawn. */
+  roomId: string;
   /** Ukuran ruangan dalam piksel (kelipatan TILE_SIZE). */
   width: number;
   height: number;
@@ -104,7 +105,7 @@ export function buildRoomMap(data: RoomData, story: Story): RoomMap {
   }
 
   return {
-    sceneId: data.sceneId,
+    roomId: data.roomId,
     width,
     height,
     floorTile: data.floorTile,

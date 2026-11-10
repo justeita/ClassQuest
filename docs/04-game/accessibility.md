@@ -94,10 +94,16 @@ Catatan:
 Canvas berukuran sesuai resolusi internal (sekarang 640×360, ADR 0009) dan
 diskalakan dengan `Phaser.Scale.FIT`, jadi skalanya mengikuti lebar kontainer.
 
-Teks dialog, nama speaker, indikator lanjut, dan prompt interaksi **tidak**
-digambar di canvas: semuanya DOM di atas canvas (ADR 0007), sehingga huruf
-dirender browser pada resolusi layar asli dan tidak ikut bergerigi bersama pixel
-art.
+Teks dialog, nama speaker, indikator lanjut, prompt interaksi, penanda `!`, dan
+panel quest **tidak** digambar di canvas: semuanya DOM di atas canvas (ADR 0007),
+sehingga huruf dirender browser pada resolusi layar asli dan tidak ikut
+bergerigi bersama pixel art.
+
+- Panel quest memakai `aria-label="Daftar quest"` dan status tiap baris
+  disampaikan lewat teks tersembunyi (`Selesai`/`Aktif`/`Terkunci`), bukan hanya
+  ikon.
+- Penanda `!` murni dekoratif (`aria-hidden`); informasinya sudah ada di panel
+  quest dan chip `Space`.
 
 - Ukuran huruf memakai `clamp(min, Ncqw, max)` dari `src/game/layout.ts`, jadi
   teks ikut membesar bersama canvas tetapi tidak pernah turun di bawah `min`.
@@ -123,6 +129,7 @@ Hormati `prefers-reduced-motion: reduce`:
 - Fade transisi → cut.
 - Getar/shake → nonaktif.
 - Parallax → nonaktif.
+- Animasi naik-turun penanda `!` → nonaktif.
 
 ## Audio
 

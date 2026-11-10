@@ -7,11 +7,24 @@ import {
   type GradedView,
 } from "@/components/game/ChallengeOverlay";
 import { DialogueBox } from "@/components/game/DialogueBox";
-import { Hud, type ProgresBab } from "@/components/game/HUD";
+import {
+  ChapterCard,
+  type ChapterCardView,
+} from "@/components/game/ChapterCard";
+import { NpcMarker } from "@/components/game/NpcMarker";
+import { QuestToast } from "@/components/game/QuestToast";
+import { QuestTracker } from "@/components/game/QuestTracker";
+import { Hud } from "@/components/game/HUD";
 import { InteractHint } from "@/components/game/InteractHint";
 import { PauseMenu } from "@/components/game/PauseMenu";
 import type { ChallengeView } from "@/game/challengeView";
-import type { DialogueView, GameBus, PromptView } from "@/game/gameBus";
+import type {
+  DialogueView,
+  GameBus,
+  NpcMarker as NpcMarkerView,
+  PromptView,
+} from "@/game/gameBus";
+import type { QuestState } from "@/game/questLog";
 import type { GameHandle } from "@/game/types";
 import type { Story } from "@/story/schema";
 import type { Answer, PlayResult } from "@/story/scoring";
@@ -31,11 +44,19 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const pernahJeda = useRef(false);
   const [tantangan, setTantangan] = useState<ChallengeView | null>(null);
   const [hasil, setHasil] = useState<GradedView | null>(null);
-  const [progres, setProgres] = useState<ProgresBab | null>(null);
+  const [quest, setQuest] = useState<QuestState | null>(null);
+  const [penanda, setPenanda] = useState<NpcMarkerView[]>([]);
+  const [kartuChapter, setKartuChapter] = useState<ChapterCardView | null>(
+    null,
+  );
+  const [toastQuest, setToastQuest] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogueView | null>(null);
   const [hint, setHint] = useState<PromptView | null>(null);
   const [jeda, setJeda] = useState(false);
   const [suaraAktif, setSuaraAktif] = useState(true);
+  /** Pelacak perubahan chapter/quest untuk memicu kartu dan toast sekali. */
+  const chapterTerakhir = useRef<number | null>(null);
+  const questTerakhir = useRef<string | null>(null);
 
   // Callback disimpan di ref agar pergantian identitas tidak memuat ulang Phaser.
   const onFinishedRef = useRef(onFinished);
@@ -62,6 +83,8 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           game.bus.on("challenge", ({ view }) => {
             setHasil(null);
             setTantangan(view);
+            setHint(null);
+            setPenanda([]);
           }),
         );
         lepas.push(
@@ -73,12 +96,38 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           game.bus.on("finished", ({ result }) => {
             setTantangan(null);
             setHasil(null);
+            setHint(null);
+            setPenanda([]);
             onFinishedRef.current?.(result);
           }),
         );
         lepas.push(
-          game.bus.on("progress", (bab) => {
-            setProgres(bab);
+          game.bus.on("quest", ({ view }) => {
+            setQuest(view);
+
+            if (chapterTerakhir.current !== view.chapterNumber) {
+              chapterTerakhir.current = view.chapterNumber;
+              setKartuChapter({
+                chapterNumber: view.chapterNumber,
+                chapterTotal: view.chapterTotal,
+                chapterTitle: view.chapterTitle,
+              });
+            }
+
+            // Toast hanya untuk quest berikutnya, bukan quest pertama sesi.
+            if (
+              view.activeQuestId &&
+              questTerakhir.current !== null &&
+              questTerakhir.current !== view.activeQuestId
+            ) {
+              setToastQuest(view.sceneTitle);
+            }
+            questTerakhir.current = view.activeQuestId;
+          }),
+        );
+        lepas.push(
+          game.bus.on("markers", ({ markers }) => {
+            setPenanda(markers);
           }),
         );
         lepas.push(
@@ -152,9 +201,26 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const ulangiChapter = useCallback(() => {
     setTantangan(null);
     setHasil(null);
+    setToastQuest(null);
+    setKartuChapter(null);
+    // Quest pertama setelah restart bukan "quest baru"; jangan munculkan toast.
+    questTerakhir.current = null;
     busRef.current?.send({ type: "restart_chapter" });
     tutupJeda();
   }, [tutupJeda]);
+
+  // Kartu chapter dan toast hilang sendiri; tidak ada tombol tutup.
+  useEffect(() => {
+    if (!kartuChapter) return;
+    const timer = setTimeout(() => setKartuChapter(null), 4500);
+    return () => clearTimeout(timer);
+  }, [kartuChapter]);
+
+  useEffect(() => {
+    if (!toastQuest) return;
+    const timer = setTimeout(() => setToastQuest(null), 3200);
+    return () => clearTimeout(timer);
+  }, [toastQuest]);
 
   // Esc: buka/tutup jeda. Saat tantangan terbuka, Esc hanya berlaku setelah
   // dijawab (docs/04-game/interaction-loop.md) — sebelum itu diabaikan.
@@ -197,13 +263,23 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         role="region"
         aria-label="Area permainan ClassQuest"
       />
-      {!jeda && !tantangan && hint && <InteractHint hint={hint} />}
+      {!jeda && !tantangan && <QuestTracker view={quest} />}
+      {!jeda &&
+        !tantangan &&
+        !dialog?.visible &&
+        penanda.map((marker) => (
+          <NpcMarker key={marker.npcId} marker={marker} />
+        ))}
+      {!jeda && !tantangan && <ChapterCard view={kartuChapter} />}
+      {!jeda && !tantangan && <QuestToast title={toastQuest} />}
+      {!jeda && !tantangan && !dialog?.visible && hint && (
+        <InteractHint hint={hint} />
+      )}
       {!jeda && !tantangan && dialog && (
         <DialogueBox view={dialog} onAdvance={lanjutDialog} />
       )}
       {!jeda && !tantangan && (
         <Hud
-          progres={progres}
           suaraAktif={suaraAktif}
           onToggleSuara={gantiSuara}
           onJeda={bukaJeda}

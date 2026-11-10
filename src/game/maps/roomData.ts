@@ -58,7 +58,7 @@ function dindingKeliling() {
 
 /** Template untuk scene yang belum punya map khusus. */
 const DEFAULT_ROOM: RoomData = {
-  sceneId: "default",
+  roomId: "default",
   floorTile: "tile_floor_wood",
   wallTile: "tile_wall_plaster",
   widthTiles: RUANG_LEBAR,
@@ -120,7 +120,7 @@ const DEFAULT_ROOM: RoomData = {
 
 /** Kelas: meja berjajar menghadap papan, guru di depan. */
 const CLASSROOM: RoomData = {
-  sceneId: "sc_01_01",
+  roomId: "kelas",
   floorTile: "tile_floor_wood",
   wallTile: "tile_wall_plaster",
   widthTiles: RUANG_LEBAR,
@@ -188,7 +188,7 @@ const CLASSROOM: RoomData = {
 
 /** Halaman sekolah: rumput, pagar tanaman, pohon, dan pagar kayu. */
 const SCHOOLYARD: RoomData = {
-  sceneId: "sc_03_03",
+  roomId: "halaman",
   floorTile: "tile_floor_grass",
   wallTile: "tile_wall_hedge",
   widthTiles: RUANG_LEBAR,
@@ -264,9 +264,20 @@ const SCHOOLYARD: RoomData = {
   ],
 };
 
-const ROOMS_BY_SCENE = new Map<string, RoomData>(
-  [CLASSROOM, SCHOOLYARD].map((room) => [room.sceneId, room]),
-);
+/** Semua template ruangan; dipakai juga untuk memuat aset tile/prop. */
+const ROOM_PRESETS = [DEFAULT_ROOM, CLASSROOM, SCHOOLYARD];
+
+/**
+ * Scene → ruangan. Scene yang terjadi di lokasi sama sengaja berbagi objek
+ * ruangan yang sama, supaya berpindah scene tidak membangun ulang peta dan
+ * tidak mengembalikan pemain ke spawn.
+ */
+const ROOMS_BY_SCENE = new Map<string, RoomData>([
+  ["sc_01_01", CLASSROOM],
+  ["sc_01_02", CLASSROOM],
+  ["sc_01_03", CLASSROOM],
+  ["sc_03_03", SCHOOLYARD],
+]);
 
 /**
  * Map untuk satu scene. Scene tanpa map khusus jatuh ke template `default`,
@@ -279,7 +290,7 @@ export function resolveRoomData(sceneId: string | null | undefined): RoomData {
 
 /** Semua map yang terdaftar — dipakai PreloadScene untuk memuat tile/prop. */
 export function listRoomAssets(): { tiles: string[]; props: string[] } {
-  const rooms = [DEFAULT_ROOM, ...ROOMS_BY_SCENE.values()];
+  const rooms = ROOM_PRESETS;
   const tiles = [
     ...new Set(rooms.flatMap((room) => [room.floorTile, room.wallTile])),
   ];
