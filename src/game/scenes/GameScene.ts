@@ -650,7 +650,17 @@ export class GameScene extends Phaser.Scene {
         });
       }
 
-      for (const arah of ["down", "up", "left", "right"] as const) {
+      const arahJalan = [
+        "down",
+        "up",
+        "left",
+        "right",
+        "down-left",
+        "down-right",
+        "up-left",
+        "up-right",
+      ] as const;
+      for (const arah of arahJalan) {
         const key = `jalan-${id}-${arah}`;
         if (this.anims.exists(key)) continue;
         const [start, end] = FRAME_ANIMASI.jalan[arah];

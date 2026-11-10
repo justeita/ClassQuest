@@ -27,27 +27,79 @@ export type MovementKeys = Record<
   Phaser.Input.Keyboard.Key[]
 >;
 
-export type ArahGerak = "left" | "right" | "up" | "down";
+/** Delapan arah hadap: empat arah utama + empat diagonal. */
+export type ArahGerak =
+  | "down"
+  | "up"
+  | "left"
+  | "right"
+  | "down-left"
+  | "down-right"
+  | "up-left"
+  | "up-right";
 
 /**
- * Layout sheet karakter 24×32 (10 frame, generator `scripts/lib/characters.mjs`):
- * 0–1 idle menghadap kamera, lalu 2 frame jalan per arah. `diam` adalah frame
- * berdiri per arah non-kamera — pemain yang berhenti menghadap samping tidak
- * berbalik ke depan (world-design.md § Sprite karakter).
+ * Layout sheet karakter 24×32 (18 frame, generator `scripts/lib/characters.mjs`):
+ * 0–1 idle menghadap kamera, lalu 2 frame jalan untuk 8 arah. `diam` adalah
+ * frame berdiri per arah non-kamera — pemain yang berhenti menghadap samping
+ * atau diagonal tidak berbalik ke depan (world-design.md § Sprite karakter).
  */
 export const FRAME_ANIMASI = {
   idle: { start: 0, end: 1 },
-  jalan: { down: [2, 3], up: [4, 5], left: [6, 7], right: [8, 9] },
-  diam: { up: 4, left: 6, right: 8 },
+  jalan: {
+    down: [2, 3],
+    up: [4, 5],
+    left: [6, 7],
+    right: [8, 9],
+    "down-left": [10, 11],
+    "down-right": [12, 13],
+    "up-left": [14, 15],
+    "up-right": [16, 17],
+  },
+  diam: {
+    up: 4,
+    left: 6,
+    right: 8,
+    "down-left": 10,
+    "down-right": 12,
+    "up-left": 14,
+    "up-right": 16,
+  },
 } as const;
 
-/** Arah yang sedang ditekan; `null` bila tidak ada tombol gerak. */
+/**
+ * Arah hadap dari tombol yang sedang ditekan. Diagonal dihitung dari kombinasi
+ * horizontal + vertikal; `null` bila tidak ada tombol gerak.
+ */
 export function arahGerak(keys?: MovementKeys): ArahGerak | null {
-  if (keys?.left.some((key) => key.isDown)) return "left";
-  if (keys?.right.some((key) => key.isDown)) return "right";
-  if (keys?.up.some((key) => key.isDown)) return "up";
-  if (keys?.down.some((key) => key.isDown)) return "down";
-  return null;
+  const kiri = keys?.left.some((key) => key.isDown) ?? false;
+  const kanan = keys?.right.some((key) => key.isDown) ?? false;
+  const atas = keys?.up.some((key) => key.isDown) ?? false;
+  const bawah = keys?.down.some((key) => key.isDown) ?? false;
+
+  const horizontal = kiri ? "left" : kanan ? "right" : null;
+  const vertikal = atas ? "up" : bawah ? "down" : null;
+
+  if (horizontal && vertikal) {
+    return `${vertikal}-${horizontal}` as ArahGerak;
+  }
+  return horizontal ?? vertikal;
+}
+
+/** Vektor gerak dari tombol; diagonal dinormalisasi agar kecepatannya sama. */
+function vektorGerak(keys?: MovementKeys): { vx: number; vy: number } {
+  const arah = arahGerak(keys);
+  if (!arah) return { vx: 0, vy: 0 };
+
+  const horizontal = arah.endsWith("left")
+    ? -1
+    : arah.endsWith("right")
+      ? 1
+      : 0;
+  const vertikal = arah.startsWith("up") ? -1 : arah.startsWith("down") ? 1 : 0;
+  const diagonal = horizontal !== 0 && vertikal !== 0 ? Math.SQRT1_2 : 1;
+
+  return { vx: horizontal * diagonal, vy: vertikal * diagonal };
 }
 
 export function ambilTombolGerak(
@@ -110,21 +162,6 @@ export function applyMovement(
   const body = player.body as Phaser.Physics.Arcade.Body;
   const speed = (player.getData("speed") as number) ?? 0;
 
-  const arah = arahGerak(keys);
-
-  let vx = 0;
-  let vy = 0;
-  if (arah === "left") vx -= speed;
-  if (arah === "right") vx += speed;
-  if (arah === "up") vy -= speed;
-  if (arah === "down") vy += speed;
-
-  if (vx !== 0 && vy !== 0) {
-    // 1 / sqrt(2): diagonal tetap bergerak secepat gerak lurus.
-    const diagonal = Math.SQRT1_2;
-    vx *= diagonal;
-    vy *= diagonal;
-  }
-
-  body.setVelocity(vx, vy);
+  const { vx, vy } = vektorGerak(keys);
+  body.setVelocity(vx * speed, vy * speed);
 }
