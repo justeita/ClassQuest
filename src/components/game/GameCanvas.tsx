@@ -6,10 +6,12 @@ import {
   ChallengeOverlay,
   type GradedView,
 } from "@/components/game/ChallengeOverlay";
+import { DialogueBox } from "@/components/game/DialogueBox";
 import { Hud, type ProgresBab } from "@/components/game/HUD";
+import { InteractHint } from "@/components/game/InteractHint";
 import { PauseMenu } from "@/components/game/PauseMenu";
 import type { ChallengeView } from "@/game/challengeView";
-import type { GameBus } from "@/game/gameBus";
+import type { DialogueView, GameBus, PromptView } from "@/game/gameBus";
 import type { GameHandle } from "@/game/types";
 import type { Story } from "@/story/schema";
 import type { Answer, PlayResult } from "@/story/scoring";
@@ -30,6 +32,8 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [tantangan, setTantangan] = useState<ChallengeView | null>(null);
   const [hasil, setHasil] = useState<GradedView | null>(null);
   const [progres, setProgres] = useState<ProgresBab | null>(null);
+  const [dialog, setDialog] = useState<DialogueView | null>(null);
+  const [hint, setHint] = useState<PromptView | null>(null);
   const [jeda, setJeda] = useState(false);
   const [suaraAktif, setSuaraAktif] = useState(true);
 
@@ -75,6 +79,16 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         lepas.push(
           game.bus.on("progress", (bab) => {
             setProgres(bab);
+          }),
+        );
+        lepas.push(
+          game.bus.on("dialogue", ({ view }) => {
+            setDialog(view);
+          }),
+        );
+        lepas.push(
+          game.bus.on("prompt", (payload) => {
+            setHint(payload.hint);
           }),
         );
       })
@@ -168,14 +182,25 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [tantangan, hasil, jeda, lanjut, bukaJeda, tutupJeda]);
 
+  const lanjutDialog = useCallback(() => {
+    busRef.current?.send({ type: "advance" });
+  }, []);
+
   return (
-    <div className="relative h-full w-full">
+    <div
+      className="relative h-full w-full"
+      style={{ containerType: "inline-size" }}
+    >
       <div
         ref={containerRef}
         className="h-full w-full"
         role="region"
         aria-label="Area permainan ClassQuest"
       />
+      {!jeda && !tantangan && hint && <InteractHint hint={hint} />}
+      {!jeda && !tantangan && dialog && (
+        <DialogueBox view={dialog} onAdvance={lanjutDialog} />
+      )}
       {!jeda && !tantangan && (
         <Hud
           progres={progres}

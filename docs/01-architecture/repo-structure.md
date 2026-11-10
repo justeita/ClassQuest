@@ -97,8 +97,11 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/sceneAssets.test.ts`             | ya      | Tes resolusi look dan pemilihan aset cerita           |
 | `src/game/StoryRunner.ts`                  | ya      | State machine pemutar cerita (murni, tanpa Phaser)    |
 | `src/game/typewriter.ts`                   | ya      | Efek ketik murni (30–40 karakter/detik)               |
-| `src/game/textbox.ts`                      | ya      | Textbox dialog sesuai scene-format.md                 |
-| `src/game/interaction.ts`                  | ya      | Zona interaksi NPC + prompt (ADR 0008)                |
+| `src/game/textbox.ts`                      | ya      | Panel + portrait dialog; state typewriter → DOM       |
+| `src/game/layout.ts`                       | ya      | Geometri UI 640×360 untuk Phaser dan DOM              |
+| `src/game/font.ts`                         | ya      | Nama keluarga font game untuk Phaser                  |
+| `src/game/text.ts`                         | ya      | `teksTajam()` untuk label kecil di canvas             |
+| `src/game/interaction.ts`                  | ya      | Zona interaksi NPC + posisi prompt (ADR 0008)         |
 | `src/game/map.ts`                          | ya      | Konverter RoomData (tile) → peta runtime piksel       |
 | `src/game/maps`                            | ya      | Data ruangan per scene + template default (ADR 0010)  |
 | `src/game/map.test.ts`                     | ya      | Tes resolver map dan konverter collider               |
@@ -114,6 +117,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/fixture`                         | ya      | Cerita demo untuk pengembangan frontend game          |
 | `src/components/game/GameCanvas.tsx`       | ya      | Host Phaser + overlay tantangan di React              |
 | `src/components/game/ChallengeOverlay.tsx` | ya      | Overlay tantangan DOM di atas canvas                  |
+| `src/components/game/DialogueBox.tsx`      | ya      | Teks dialog DOM di atas panel Phaser (ADR 0007)       |
+| `src/components/game/InteractHint.tsx`     | ya      | Chip prompt "Space" DOM di atas canvas                |
 | `src/components/game/GameShell.tsx`        | ya      | Shell halaman game + state layar judul/main/hasil     |
 | `src/components/game/TitleScreen.tsx`      | ya      | Layar judul: ringkasan cerita + menu Mulai            |
 | `src/components/game/HUD.tsx`              | ya      | HUD: chapter aktif, tombol suara, tombol jeda         |
@@ -137,6 +142,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/server/jobs/schedule.ts`              | ya      | `scheduleJob()`: jalankan runner lewat `after()`      |
 | `src/server/jobs/schedule.test.ts`         | ya      | Tes penjadwalan `after()` dan penanganan kegagalan    |
 | `public/assets`                            | ya      | File aset game (dibuat `bun run assets:generate`)     |
+| `public/fonts`                             | ya      | Font Patrick Hand (OFL) + lisensi untuk `next/font`   |
 | `scripts/generate-assets.mjs`              | ya      | Generator aset pixel + audio, tanpa dependensi        |
 
 > > > > > > > origin/main

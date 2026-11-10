@@ -10,6 +10,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Font teks game (handwriting OFL); lihat src/app/layout.tsx. */
+  --font-game: var(--font-handwriting);
 }
 
 @media (prefers-color-scheme: dark) {

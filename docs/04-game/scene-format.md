@@ -110,9 +110,17 @@ bergerak. Posisi dalam piksel:
 | Sprite     | `x=48`, `y=240`, origin bottom-left (kaki di atas textbox) |
 | Portrait   | Opsional, di atas textbox, 64×64                           |
 | Textbox    | `x=16`, `y=240`, lebar 608, tinggi 104                     |
-| Nama       | Di dalam textbox, baris pertama                            |
-| Teks       | Maks 3 baris per halaman, ~60 karakter/baris               |
-| Indikator  | Panah kecil berkedip di kanan bawah saat menunggu          |
+| Nama       | Di dalam textbox, baris pertama (DOM)                      |
+| Teks       | Maks 3 baris per halaman, ~60 karakter/baris (DOM)         |
+| Indikator  | Panah kecil berkedip di kanan bawah saat menunggu (DOM)    |
+
+> **Panel di Phaser, teks di DOM (ADR 0007).** Phaser hanya menggambar
+> `ui_textbox`, bingkai portrait, dan portrait-nya. Nama, isi dialog, dan
+> indikator "lanjut" dirender `DialogueBox.tsx` di lapisan DOM dengan posisi
+> persen dari `src/game/layout.ts`, sehingga huruf tajam di layar. Prompt
+> interaksi `Space` juga DOM (`InteractHint.tsx`). Jangan menambah teks game
+> baru di canvas: canvas 640×360 di-upscale `pixelated`, jadi semua huruf di
+> dalamnya bergerigi.
 
 Beginilah hasilnya di layar:
 

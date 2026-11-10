@@ -4,13 +4,36 @@ import type { ChallengeView } from "./challengeView";
 
 /**
  * Bridge Phaser ↔ React sesuai docs/04-game/engine.md:
- * - Event **dari** Phaser ke React: tantangan dibuka, hasil penilaian, cerita
- *   selesai, error.
- * - Command **ke** Phaser: jawaban siswa, lanjut setelah feedback.
+ * - Event **dari** Phaser ke React: isi dialog, prompt interaksi, tantangan
+ *   dibuka, hasil penilaian, cerita selesai, error.
+ * - Command **ke** Phaser: lanjut dialog, jawaban siswa, jeda.
  * Penilaian dijalankan di sisi game (pemegang Story), bukan di overlay.
  */
 
+/**
+ * Isi kotak dialog. Teksnya dirender DOM (`DialogueBox.tsx`) supaya tajam;
+ * Phaser hanya menggambar panel pixel-nya (ADR 0007).
+ */
+export type DialogueView = {
+  visible: boolean;
+  /** Nama speaker; null untuk beat narration. */
+  name: string | null;
+  /** Bagian teks yang sudah terungkap typewriter. */
+  text: string;
+  /** Teks sudah penuh dan menunggu pemain melanjutkan. */
+  waiting: boolean;
+};
+
+/** Chip prompt interaksi; koordinat dalam piksel internal 640×360. */
+export type PromptView = {
+  text: string;
+  x: number;
+  y: number;
+};
+
 export type GameEvent =
+  | { type: "dialogue"; view: DialogueView }
+  | { type: "prompt"; hint: PromptView | null }
   | { type: "challenge"; view: ChallengeView }
   | {
       type: "graded";
@@ -32,6 +55,8 @@ export type GameEvent =
 export type GameCommand =
   | { type: "submit_answer"; challengeId: string; answer: Answer }
   | { type: "resolve_challenge"; challengeId: string; correct: boolean }
+  /** Satu langkah dialog: selesaikan ketikan atau lanjut beat berikutnya. */
+  | { type: "advance" }
   /** Hentikan sementara loop scene; state cerita tetap di tempatnya. */
   | { type: "pause" }
   | { type: "resume" }

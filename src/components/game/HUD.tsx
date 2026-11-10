@@ -34,18 +34,15 @@ export function Hud({
   tombolJedaRef,
 }: HudProps) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2 font-mono text-[#F7F4EC]">
-      <div className="border border-[#3D4B41] bg-[#0b120e]/85 px-2 py-1">
-        <p
-          aria-live="polite"
-          className="text-[10px] font-bold uppercase tracking-[0.18em]"
-        >
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2 font-game text-base leading-tight text-[#F7F4EC]">
+      <div className="border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5">
+        <p aria-live="polite" className="uppercase tracking-[0.12em]">
           {progres
             ? `Chapter ${progres.chapterNumber}/${progres.chapterTotal}`
             : "Chapter …"}
         </p>
         {progres && (
-          <p className="mt-0.5 max-w-[16rem] truncate text-[10px] text-[#D9E4DA]">
+          <p className="mt-0.5 max-w-[18rem] truncate text-[#D9E4DA]">
             {progres.chapterTitle}
           </p>
         )}
@@ -57,7 +54,7 @@ export function Hud({
           onClick={onToggleSuara}
           aria-pressed={suaraAktif}
           aria-label={`Suara ${suaraAktif ? "aktif" : "nonaktif"}`}
-          className="border border-[#3D4B41] bg-[#0b120e]/85 px-2 py-1 text-[10px] font-bold uppercase tracking-wider hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
+          className="border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
         >
           Suara: {suaraAktif ? "aktif" : "mati"}
         </button>
@@ -66,7 +63,7 @@ export function Hud({
           type="button"
           onClick={onJeda}
           aria-keyshortcuts="Escape"
-          className="border border-[#3D4B41] bg-[#0b120e]/85 px-2 py-1 text-[10px] font-bold uppercase tracking-wider hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
+          className="border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
         >
           Jeda
         </button>

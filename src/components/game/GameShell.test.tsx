@@ -239,4 +239,72 @@ describe("GameShell", () => {
 
     expect(await screen.findByLabelText("Tantangan")).toBeInTheDocument();
   });
+
+  it("event dialogue menampilkan teks dan klik mengirim command advance", async () => {
+    await mainkan();
+    const advance = vi.fn();
+    const lepas = bus.onCommand("advance", advance);
+
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Air di bumi tidak pernah hilang.",
+        waiting: true,
+      },
+    });
+
+    fireEvent.click(await screen.findByText(/Air di bumi tidak pernah hilang/));
+
+    expect(advance).toHaveBeenCalledTimes(1);
+    lepas();
+  });
+
+  it("dialog tersembunyi saat view visible false", async () => {
+    await mainkan();
+    bus.emit({
+      type: "dialogue",
+      view: { visible: true, name: null, text: "Hujan turun.", waiting: true },
+    });
+    await screen.findByText("Hujan turun.");
+
+    bus.emit({
+      type: "dialogue",
+      view: { visible: false, name: null, text: "", waiting: false },
+    });
+
+    await vi.waitFor(() =>
+      expect(screen.queryByText("Hujan turun.")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("event prompt menampilkan chip Space dan null menyembunyikannya", async () => {
+    await mainkan();
+
+    bus.emit({ type: "prompt", hint: { text: "Space", x: 320, y: 180 } });
+    expect(await screen.findByText("Space")).toBeInTheDocument();
+
+    bus.emit({ type: "prompt", hint: null });
+    await vi.waitFor(() =>
+      expect(screen.queryByText("Space")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("dialog dan prompt disembunyikan selama menu jeda", async () => {
+    await mainkan();
+    bus.emit({
+      type: "dialogue",
+      view: { visible: true, name: null, text: "Hujan turun.", waiting: true },
+    });
+    bus.emit({ type: "prompt", hint: { text: "Space", x: 320, y: 180 } });
+    await screen.findByText("Hujan turun.");
+
+    bukaJeda();
+
+    await vi.waitFor(() =>
+      expect(screen.queryByText("Hujan turun.")).not.toBeInTheDocument(),
+    );
+    expect(screen.queryByText("Space")).not.toBeInTheDocument();
+  });
 });

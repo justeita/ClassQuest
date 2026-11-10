@@ -1,35 +1,24 @@
 import Phaser from "phaser";
 
 import { DEPTH_UI } from "./depth";
+import { PORTRAIT, TEXTBOX } from "./layout";
 import { Typewriter } from "./typewriter";
 
 /**
- * Textbox dialog sesuai docs/04-game/scene-format.md (skala 640×360, ADR 0009):
- * kotak di x=16, y=240, lebar 608, tinggi 104; nama di baris pertama;
- * teks maks 3 baris (~80 karakter/baris); indikator berkedip saat menunggu.
+ * Panel textbox sesuai docs/04-game/scene-format.md (skala 640×360, ADR 0009).
  *
- * Panel memakai `ui_textbox` dari manifest. Kalau texture gagal dimuat,
- * kotak warna lama dipakai supaya dialog tetap terbaca.
+ * Yang digambar Phaser hanya **panel dan portrait**: aset pixel `ui_textbox`
+ * dan `ui_portrait_frame`. Nama, isi dialog, dan indikator "lanjut" dirender
+ * DOM (`DialogueBox.tsx`) supaya tajam — canvas 640×360 di-upscale dengan
+ * `image-rendering: pixelated`, jadi huruf di dalamnya selalu bergerigi
+ * (lihat ADR 0007 dan `docs/04-game/world-design.md`).
+ *
+ * Modul ini tetap pemegang state dialog di sisi game: typewriter berjalan di
+ * `update()` scene, lalu potongan teks dikirim ke React lewat callback.
  */
-
-const TEXTBOX_X = 16;
-const TEXTBOX_Y = 240;
-const TEXTBOX_WIDTH = 608;
-const TEXTBOX_HEIGHT = 104;
-const PADDING = 16;
-const WRAP_WIDTH = 576;
-
-const PORTRAIT_X = 26;
-const PORTRAIT_Y = 164;
-const PORTRAIT_SIZE = 64;
-const PORTRAIT_FRAME_INSET = 4;
 
 const WARNA_LATAR = 0x14201a;
 const WARNA_BINGKAI = 0xf7f4ec;
-const WARNA_NAMA = "#F7F4EC";
-const WARNA_TEKS = "#D9E4DA";
-
-const FONT_FAMILY = "monospace";
 
 export type BeatView = {
   /** Nama speaker; null untuk beat narration. */
@@ -37,6 +26,14 @@ export type BeatView = {
   text: string;
   /** Key texture portrait (`<charId>:portrait`), null bila tidak ada. */
   portraitKey?: string | null;
+};
+
+/** Keadaan textbox yang dikirim ke React setiap kali berubah. */
+export type DialogueState = {
+  visible: boolean;
+  name: string | null;
+  text: string;
+  waiting: boolean;
 };
 
 export type Textbox = {
@@ -52,9 +49,15 @@ export type Textbox = {
   hide: () => void;
 };
 
-export function createTextbox(scene: Phaser.Scene): Textbox {
-  // `setScrollFactor(0)` membuat textbox menempel di layar. Tanpa ini, textbox
-  // ikut tergeser kamera (kamera mengikuti pemain) sehingga teks terpotong.
+/**
+ * @param onPerubahan Dipanggil saat isi textbox berubah, untuk dikirim ke DOM.
+ */
+export function createTextbox(
+  scene: Phaser.Scene,
+  onPerubahan: (state: DialogueState) => void,
+): Textbox {
+  // `setScrollFactor(0)` membuat panel menempel di layar. Tanpa ini, panel ikut
+  // tergeser kamera (kamera mengikuti pemain) sehingga terpotong.
   const container = scene.add
     .container(0, 0)
     .setVisible(false)
@@ -62,13 +65,13 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
     .setScrollFactor(0);
 
   const background = scene.textures.exists("ui_textbox")
-    ? scene.add.image(TEXTBOX_X, TEXTBOX_Y, "ui_textbox").setOrigin(0)
+    ? scene.add.image(TEXTBOX.x, TEXTBOX.y, "ui_textbox").setOrigin(0)
     : scene.add
         .rectangle(
-          TEXTBOX_X + TEXTBOX_WIDTH / 2,
-          TEXTBOX_Y + TEXTBOX_HEIGHT / 2,
-          TEXTBOX_WIDTH,
-          TEXTBOX_HEIGHT,
+          TEXTBOX.x + TEXTBOX.width / 2,
+          TEXTBOX.y + TEXTBOX.height / 2,
+          TEXTBOX.width,
+          TEXTBOX.height,
           WARNA_LATAR,
           0.92,
         )
@@ -76,64 +79,40 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
 
   const portrait = scene.add
     .image(
-      PORTRAIT_X + PORTRAIT_FRAME_INSET,
-      PORTRAIT_Y + PORTRAIT_FRAME_INSET,
+      PORTRAIT.x + PORTRAIT.imageInset,
+      PORTRAIT.y + PORTRAIT.imageInset,
       scene.textures.exists("ui_default") ? "ui_default" : "__MISSING",
     )
     .setOrigin(0)
-    .setDisplaySize(PORTRAIT_SIZE, PORTRAIT_SIZE)
+    .setDisplaySize(PORTRAIT.imageSize, PORTRAIT.imageSize)
     .setVisible(false);
 
   const portraitFrame = scene.textures.exists("ui_portrait_frame")
-    ? scene.add
-        .image(PORTRAIT_X, PORTRAIT_Y, "ui_portrait_frame")
-        .setOrigin(0)
-        .setVisible(false)
+    ? scene.add.image(PORTRAIT.x, PORTRAIT.y, "ui_portrait_frame").setOrigin(0)
     : null;
 
-  const nameText = scene.add
-    .text(TEXTBOX_X + PADDING, TEXTBOX_Y + 6, "", {
-      fontFamily: FONT_FAMILY,
-      fontSize: "13px",
-      color: WARNA_NAMA,
-      fontStyle: "bold",
-    })
-    .setAlpha(0.85);
-
-  const bodyText = scene.add.text(TEXTBOX_X + PADDING, TEXTBOX_Y + 22, "", {
-    fontFamily: FONT_FAMILY,
-    fontSize: "14px",
-    color: WARNA_TEKS,
-    wordWrap: { width: WRAP_WIDTH },
-    lineSpacing: 6,
-  });
-
-  const indicator = scene.add
-    .text(
-      TEXTBOX_X + TEXTBOX_WIDTH - 18,
-      TEXTBOX_Y + TEXTBOX_HEIGHT - 16,
-      "▼",
-      {
-        fontFamily: FONT_FAMILY,
-        fontSize: "12px",
-        color: WARNA_NAMA,
-      },
-    )
-    .setVisible(false);
-
-  container.add([background, portrait, nameText, bodyText, indicator]);
+  container.add([background, portrait]);
   if (portraitFrame) container.add(portraitFrame);
 
-  // Kedip lambat ala pixel game; hanya tampak saat menunggu input.
-  scene.tweens.add({
-    targets: indicator,
-    alpha: { from: 1, to: 0.15 },
-    duration: 450,
-    yoyo: true,
-    repeat: -1,
-  });
-
   let typewriter = new Typewriter("");
+  let nama: string | null = null;
+  /** Teks terakhir yang dikirim; cegah render DOM tiap frame. */
+  let terakhirDikirim: string | null = null;
+
+  function kirim() {
+    const text = typewriter.current();
+    // Typewriter hanya menambah karakter, jadi teks yang sama berarti tidak ada
+    // perubahan yang perlu dirender ulang React.
+    if (container.visible && text === terakhirDikirim) return;
+    terakhirDikirim = container.visible ? text : null;
+
+    onPerubahan({
+      visible: container.visible,
+      name: nama,
+      text,
+      waiting: container.visible && typewriter.isDone(),
+    });
+  }
 
   function sembunyikanPortrait() {
     portrait.setVisible(false);
@@ -142,30 +121,30 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
 
   return {
     show(beat) {
-      nameText.setText(beat.name ?? "");
+      nama = beat.name;
       typewriter = new Typewriter(beat.text);
-      bodyText.setText("");
+      terakhirDikirim = null;
       container.setVisible(true);
-      indicator.setVisible(false);
 
       if (beat.portraitKey && scene.textures.exists(beat.portraitKey)) {
         portrait.setTexture(beat.portraitKey);
-        portrait.setDisplaySize(PORTRAIT_SIZE, PORTRAIT_SIZE);
+        portrait.setDisplaySize(PORTRAIT.imageSize, PORTRAIT.imageSize);
         portrait.setVisible(true);
         portraitFrame?.setVisible(true);
       } else {
         sembunyikanPortrait();
       }
+
+      kirim();
     },
     tick(deltaMs) {
       if (typewriter.isDone()) return;
       typewriter.tick(deltaMs);
-      bodyText.setText(typewriter.current());
-      indicator.setVisible(false);
+      kirim();
     },
     complete() {
       typewriter.finish();
-      bodyText.setText(typewriter.current());
+      kirim();
     },
     isTyping() {
       return !typewriter.isDone();
@@ -175,7 +154,10 @@ export function createTextbox(scene: Phaser.Scene): Textbox {
     },
     hide() {
       container.setVisible(false);
-      indicator.setVisible(false);
+      nama = null;
+      terakhirDikirim = null;
+      sembunyikanPortrait();
+      kirim();
     },
   };
 }
