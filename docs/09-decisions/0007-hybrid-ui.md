@@ -99,6 +99,27 @@ dirender `InteractHint.tsx`. Typewriter tetap di sisi game
 (`aria-live="polite"`), tetapi posisi teks harus dijaga sejalur dengan panel
 Phaser lewat `layout.ts`. Jangan menambah teks game baru di canvas.
 
+## Pembaruan 2026-11-10 — panel tantangan di atas dialog
+
+**Masalah.** Tantangan sebagai jendela tengah dengan latar gelap penuh menutupi
+dialog, sehingga kalimat terakhir yang menjadi konteks soal hilang. Siswa harus
+mengingat dialog sambil menjawab.
+
+**Keputusan.** Panel tantangan tetap DOM (ADR 0007 tidak berubah), tetapi
+posisinya turun ke **atas dialog**: lebar 95%, tepi bawah 8 px di atas panel
+dialog, dan tanpa lapisan gelap penuh. Dialog **dipause, bukan ditutup** —
+typewriter dibekukan selama fase `challenge`, dan baris terakhir tetap terlihat.
+
+**Konsekuensi.**
+
+- Isi soal yang panjang digulir di dalam area isi; tombol aksi menempel di
+  footer supaya tidak ikut tergulir.
+- Geometri panel ditaruh di `CHALLENGE` pada `src/game/layout.ts` supaya Phaser
+  dan DOM memakai angka yang sama.
+- Di ruang game yang sangat pendek, panel memakai hampir seluruh tinggi dan
+  boleh menutup dialog (fallback) agar soal tetap terbaca.
+- Fokus pindah ke panel saat muncul dan kembali ke area game saat ditutup.
+
 ## Referensi
 
 - [`../04-game/engine.md`](../04-game/engine.md)

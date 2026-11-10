@@ -30,7 +30,10 @@ export function Hud({
       <div className="pointer-events-auto flex gap-1.5">
         <button
           type="button"
-          onClick={onToggleSuara}
+          onClick={(e) => {
+            e.currentTarget.blur();
+            onToggleSuara();
+          }}
           aria-pressed={suaraAktif}
           aria-label={`Suara ${suaraAktif ? "aktif" : "nonaktif"}`}
           className="border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
@@ -40,7 +43,10 @@ export function Hud({
         <button
           ref={tombolJedaRef}
           type="button"
-          onClick={onJeda}
+          onClick={(e) => {
+            e.currentTarget.blur();
+            onJeda();
+          }}
           aria-keyshortcuts="Escape"
           className="border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
         >

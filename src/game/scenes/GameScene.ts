@@ -78,6 +78,8 @@ export class GameScene extends Phaser.Scene {
   private roomAktif: string | null = null;
   /** NPC pemegang quest scene aktif; hanya dia yang bisa memicu dialog. */
   private pemberiQuest: string | null = null;
+  /** Pembicara beat dialog terakhir; dipakai sebagai nama speaker saat tantangan. */
+  private pembicaraTerakhir: string | null = null;
   private readonly playerId: string;
   private spritePemainId = "";
   private arahTerakhir: ArahGerak = "down";
@@ -132,6 +134,8 @@ export class GameScene extends Phaser.Scene {
       "space" | "enter",
       Phaser.Input.Keyboard.Key
     >;
+    this.input.keyboard?.disableGlobalCapture();
+    this.input.keyboard?.clearCaptures();
     // Teks dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene tetap
     // pemegang state typewriter dan mengirim potongannya lewat bus.
     this.textbox = createTextbox(this, (state) => {
@@ -179,7 +183,9 @@ export class GameScene extends Phaser.Scene {
 
     if (phase === "explore") {
       this.updateExplore(time);
-    } else {
+    } else if (phase !== "challenge") {
+      // Tantangan membekukan typewriter dan input lanjut: dialog terakhir tetap
+      // terlihat di belakang panel soal (docs/04-game/scene-format.md § challenge).
       this.textbox?.tick(delta);
       this.checkLanjutKeys();
     }
@@ -383,6 +389,7 @@ export class GameScene extends Phaser.Scene {
 
     let view: BeatView;
     if (beat.type === "dialogue") {
+      this.pembicaraTerakhir = beat.speakerId;
       this.sorotSpeaker(beat.speakerId);
       view = {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
@@ -436,6 +443,7 @@ export class GameScene extends Phaser.Scene {
     this.sorotSpeaker(null);
     this.sceneAktif = null;
     this.questTerakhir = "";
+    this.pembicaraTerakhir = null;
     // Spawn ulang di ruangan yang sudah terbangun. Kalau scene pertama chapter
     // ini memakai ruangan lain, `terapkanLook()` yang membangun ulang peta.
     this.kembalikanPemain();
@@ -445,14 +453,42 @@ export class GameScene extends Phaser.Scene {
     this.aturVolumeMusik(MUSIC_VOLUME);
   }
 
-  /** Dialog ditahan (bukan ditutup) saat overlay tantangan tampil. */
+  /**
+   * Soal tantangan tampil di dalam kotak dialog (DialogueBox), dengan pilihan
+   * respons melayang di atasnya (docs/05-frontend/game-player.md § Challenge).
+   * Panel textbox Phaser dijamin aktif dan menampilkan teks soal tantangan.
+   */
   private bukaTantangan(challengeId: string) {
-    this.textbox?.hide();
     this.sembunyikanPetunjuk();
-    this.sorotSpeaker(null);
 
     const challenge = this.runner.getChallenge(challengeId);
     if (!challenge || !this.bus) return;
+
+    const speakerId =
+      this.pembicaraTerakhir ??
+      this.pemberiQuest ??
+      this.story.cast.find((c) => c.role === "mentor")?.id ??
+      null;
+    const name = speakerId
+      ? (this.castNames.get(speakerId) ?? speakerId)
+      : null;
+    const portraitKey = speakerId ? this.portraitKey(speakerId) : null;
+
+    if (speakerId) {
+      this.sorotSpeaker(speakerId);
+    }
+
+    const text =
+      challenge.type === "true_false" && challenge.statement
+        ? `${challenge.prompt}\n\n"${challenge.statement}"`
+        : challenge.prompt;
+
+    this.textbox?.show({
+      name,
+      text,
+      portraitKey,
+    });
+    this.textbox?.complete();
 
     this.bus.emit({ type: "challenge", view: buildChallengeView(challenge) });
   }

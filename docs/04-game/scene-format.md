@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
@@ -187,9 +187,13 @@ terjadi sebelum beat pertama scene.
 
 ### `challenge`
 
-![Overlay tantangan di atas dunia yang diredupkan](../assets/challenge-overlay.svg)
+![Panel tantangan di atas dialog](../assets/challenge-overlay.svg)
 
-- Dialog **dipause**, bukan ditutup. Setelah dijawab, dialog kembali.
+- Panel tantangan muncul **di atas dialog**, bukan sebagai jendela tengah yang
+  menutupi seluruh layar. Tidak ada lapisan gelap penuh.
+- Dialog **dipause**, bukan ditutup: baris terakhir tetap terlihat sebagai
+  konteks soal, dan typewriter dibekukan selama fase `challenge`.
+- Isi soal yang panjang digulir di dalam panel; tombol aksi menempel di bawah.
 - Event `challenge` dikirim ke React dengan `challengeId`.
 - Phaser menunggu perintah `resolve_challenge` sebelum lanjut.
 

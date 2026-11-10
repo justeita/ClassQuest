@@ -26,6 +26,28 @@
   }
 }
 
+/*
+ * Panel tantangan duduk di atas dialog, bukan menutupi seluruh layar
+ * (docs/05-frontend/game-player.md § Challenge). Nilai `--challenge-*` diisi
+ * inline oleh `ChallengeOverlay` dari geometri 640×360.
+ */
+.challenge-panel {
+  position: absolute;
+  bottom: var(--challenge-bottom);
+  max-height: var(--challenge-max-h);
+}
+
+/*
+ * Fallback layar pendek: beri panel hampir seluruh tinggi ruang game supaya isi
+ * soal tetap terbaca. Dialog boleh tertutup di mode ini.
+ */
+@container (max-height: 320px) {
+  .challenge-panel {
+    bottom: 2%;
+    max-height: 96%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-quest-bob {
     animation: none;

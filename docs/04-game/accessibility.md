@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
@@ -45,8 +45,9 @@ Aturan:
 - Urutan fokus logis: prompt → opsi → tombol jawab → feedback → lanjut.
 - Jangan memasang `tabindex` positif.
 - Jangan menangkap `Tab`; biarkan browser memindahkan fokus.
-- Saat overlay muncul, fokus pindah ke judul/opsi pertama.
-- Saat overlay ditutup, fokus kembali ke elemen yang membukanya.
+- Saat panel tantangan muncul, fokus pindah ke panel itu sendiri (`tabIndex={-1}`).
+- Saat panel ditutup, fokus kembali ke area permainan (canvas), bukan hilang ke
+  `body`.
 - **`Esc` tidak bisa dipakai untuk keluar dari soal yang belum dijawab.** Kalau
   overlay belum dijawab, `Esc` diabaikan (atau hanya mengumumkan "jawab dulu").
   Setelah dijawab, `Esc` sama dengan menekan "Lanjut".
@@ -80,6 +81,12 @@ Catatan:
 - Gunakan `fieldset`/`legend` untuk grup opsi.
 - `short_answer` memakai `<input type="text">` dengan `<label>`.
 - `ordering` menyediakan tombol naik/turun, bukan hanya drag-and-drop.
+- Panel diletakkan **di atas dialog**, bukan di tengah layar: baris dialog
+  terakhir tetap terlihat sebagai konteks, jadi panel bukan modal penuh layar.
+- Isi yang panjang digulir di dalam area isi; tombol aksi menempel di footer
+  supaya tidak ikut tergulir.
+- Di ruang game yang sangat pendek, panel boleh memakai hampir seluruh tinggi
+  dan menutup dialog (fallback) supaya soal tetap terbaca.
 
 ## Warna dan kontras
 

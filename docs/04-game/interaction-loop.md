@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
@@ -115,17 +115,18 @@ Aturan input:
 
 ```text
 1. Phaser kirim { type: "challenge", challengeId }
-2. React menampilkan overlay:
+2. React menampilkan panel di atas dialog (dialog tetap terlihat, typewriter
+   dibekukan):
    - prompt
    - opsi/statement/item/input
    - tombol "Jawab" (disabled sampai ada pilihan)
 3. Siswa memilih → tombol aktif
 4. Siswa submit
 5. scoring.isCorrect(challenge, answer)  ← fungsi murni
-6. Overlay menampilkan feedback:
+6. Panel menampilkan feedback:
    - benar/salah (tanpa warna menyala)
    - explanation (selalu)
-   - tombol "Lanjut"
+   - tombol "Lanjut" di footer
 7. Klik "Lanjut" → kirim { type: "resolve_challenge", correct }
 8. Phaser menutup pause, lanjut beat berikutnya
 ```

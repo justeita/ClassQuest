@@ -30,7 +30,10 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
         paddingRight: cqw(TEXTBOX.padding),
         paddingTop: cqw(TEXTBOX.paddingTop),
       }}
-      onClick={onAdvance}
+      onClick={() => {
+        (document.activeElement as HTMLElement)?.blur?.();
+        onAdvance();
+      }}
       // Panel bukan tombol: keyboard sudah ditangani scene (Space/Enter), jadi
       // jangan menambah elemen fokus baru di urutan Tab.
       role="presentation"
@@ -54,15 +57,18 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
         }}
       >
         {view.text}
-        {view.waiting && (
-          <span
-            aria-hidden="true"
-            className="ml-1 inline-block animate-pulse text-[#E8A87C] motion-reduce:animate-none"
-          >
-            ▼
-          </span>
-        )}
       </p>
+
+      {/* Segitiga lanjut dialog diposisikan di sudut kanan bawah kotak dialog */}
+      {view.waiting && (
+        <span
+          aria-hidden="true"
+          className="absolute bottom-2.5 right-4 animate-pulse select-none text-[#E8A87C] motion-reduce:animate-none"
+          style={{ fontSize: ukuranHuruf(16, 14, 24) }}
+        >
+          ▼
+        </span>
+      )}
     </div>
   );
 }

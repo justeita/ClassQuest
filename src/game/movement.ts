@@ -108,6 +108,9 @@ export function ambilTombolGerak(
   const keyboard = scene.input.keyboard;
   if (!keyboard) return undefined;
 
+  // Nonaktifkan global capture agar input teks HTML (DOM) tidak diblokir oleh Phaser
+  keyboard.disableGlobalCapture();
+
   const wasd = keyboard.addKeys("W,A,S,D") as Record<
     "W" | "A" | "S" | "D",
     Phaser.Input.Keyboard.Key
@@ -116,6 +119,9 @@ export function ambilTombolGerak(
     "up" | "down" | "left" | "right",
     Phaser.Input.Keyboard.Key
   >;
+
+  // Bersihkan capture browser agar pengetikan huruf W, A, S, D di DOM berjalan normal
+  keyboard.clearCaptures();
 
   return {
     left: [wasd.A, panah.left],

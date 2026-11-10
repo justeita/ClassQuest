@@ -38,6 +38,7 @@ type GameCanvasProps = {
 
 export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const adaTantangan = useRef(false);
   const gameRef = useRef<GameHandle | null>(null);
   const busRef = useRef<GameBus | null>(null);
   const tombolJedaRef = useRef<HTMLButtonElement>(null);
@@ -53,6 +54,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [dialog, setDialog] = useState<DialogueView | null>(null);
   const [hint, setHint] = useState<PromptView | null>(null);
   const [jeda, setJeda] = useState(false);
+  const [bukuQuest, setBukuQuest] = useState(false);
   const [suaraAktif, setSuaraAktif] = useState(true);
   /** Pelacak perubahan chapter/quest untuk memicu kartu dan toast sekali. */
   const chapterTerakhir = useRef<number | null>(null);
@@ -75,6 +77,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       .then(({ createGame }) => {
         if (cancelled) return;
         const game = createGame(container, story);
+        container.focus({ preventScroll: true });
         gameRef.current = game;
         busRef.current = game.bus;
 
@@ -164,13 +167,21 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     setJeda(false);
   }, []);
 
-  /** Fokus kembali ke tombol Jeda setelah menu ditutup, bukan hilang ke body. */
+  /** Fokus kembali ke area permainan setelah menu jeda ditutup (bukan tombol Jeda agar Space/Enter tidak memicu jeda). */
   useEffect(() => {
     if (pernahJeda.current && !jeda) {
-      tombolJedaRef.current?.focus({ preventScroll: true });
+      containerRef.current?.focus({ preventScroll: true });
     }
     pernahJeda.current = jeda;
   }, [jeda]);
+
+  const pernahBukuQuest = useRef(false);
+  useEffect(() => {
+    if (pernahBukuQuest.current && !bukuQuest) {
+      containerRef.current?.focus({ preventScroll: true });
+    }
+    pernahBukuQuest.current = bukuQuest;
+  }, [bukuQuest]);
 
   const kirimJawaban = useCallback((answer: Answer) => {
     busRef.current?.send({
@@ -179,6 +190,14 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       answer,
     });
   }, []);
+
+  // Fokus kembali ke area game setelah panel tantangan ditutup (accessibility.md).
+  useEffect(() => {
+    if (adaTantangan.current && !tantangan) {
+      containerRef.current?.focus({ preventScroll: true });
+    }
+    adaTantangan.current = tantangan !== null;
+  }, [tantangan]);
 
   const lanjut = useCallback(() => {
     const challengeId = tantangan?.id;
@@ -222,11 +241,30 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     return () => clearTimeout(timer);
   }, [toastQuest]);
 
-  // Esc: buka/tutup jeda. Saat tantangan terbuka, Esc hanya berlaku setelah
-  // dijawab (docs/04-game/interaction-loop.md) — sebelum itu diabaikan.
+  // Keyboard shortcut:
+  // - Q: buka/tutup buku catatan quest (hanya saat bermain dan tidak sedang mengetik).
+  // - Esc: tutup buku quest (jika terbuka), atau buka/tutup jeda.
+  //   Saat tantangan aktif, Esc hanya berlaku setelah dijawab (docs/04-game/interaction-loop.md).
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
+      const tag = (event.target as HTMLElement)?.tagName;
+      const isInput = tag === "INPUT" || tag === "TEXTAREA";
+
+      if (event.key === "q" || event.key === "Q") {
+        if (isInput) return;
+        if (!quest || jeda || tantangan) return;
+        event.preventDefault();
+        setBukuQuest((sebelum) => !sebelum);
+        return;
+      }
+
       if (event.key !== "Escape") return;
+
+      if (bukuQuest) {
+        event.preventDefault();
+        setBukuQuest(false);
+        return;
+      }
 
       if (tantangan) {
         if (hasil) {
@@ -246,24 +284,29 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [tantangan, hasil, jeda, lanjut, bukaJeda, tutupJeda]);
+  }, [bukuQuest, quest, tantangan, hasil, jeda, lanjut, bukaJeda, tutupJeda]);
 
   const lanjutDialog = useCallback(() => {
     busRef.current?.send({ type: "advance" });
   }, []);
 
   return (
-    <div
-      className="relative h-full w-full"
-      style={{ containerType: "inline-size" }}
-    >
+    <div className="relative h-full w-full" style={{ containerType: "size" }}>
       <div
         ref={containerRef}
-        className="h-full w-full"
+        tabIndex={-1}
+        className="h-full w-full focus:outline-none"
         role="region"
         aria-label="Area permainan ClassQuest"
       />
-      {!jeda && !tantangan && <QuestTracker view={quest} />}
+      {!jeda && !tantangan && (
+        <QuestTracker
+          view={quest}
+          terbuka={bukuQuest}
+          onToggle={() => setBukuQuest((sebelum) => !sebelum)}
+          onTutup={() => setBukuQuest(false)}
+        />
+      )}
       {!jeda &&
         !tantangan &&
         !dialog?.visible &&
@@ -275,8 +318,31 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       {!jeda && !tantangan && !dialog?.visible && hint && (
         <InteractHint hint={hint} />
       )}
-      {!jeda && !tantangan && dialog && (
-        <DialogueBox view={dialog} onAdvance={lanjutDialog} />
+      {!jeda && (dialog?.visible || tantangan) && (
+        <DialogueBox
+          view={
+            tantangan
+              ? {
+                  visible: true,
+                  name:
+                    dialog?.name ??
+                    story.cast.find((c) => c.role === "mentor")?.name ??
+                    "Tantangan",
+                  text:
+                    tantangan.type === "true_false" && tantangan.statement
+                      ? `${tantangan.prompt}\n\n"${tantangan.statement}"`
+                      : tantangan.prompt,
+                  waiting: false,
+                }
+              : (dialog ?? {
+                  visible: false,
+                  name: null,
+                  text: "",
+                  waiting: false,
+                })
+          }
+          onAdvance={lanjutDialog}
+        />
       )}
       {!jeda && !tantangan && (
         <Hud
