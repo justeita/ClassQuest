@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { ChallengeView } from "@/game/challengeView";
+import { GAME_HEIGHT, GAME_WIDTH } from "@/game/constants";
+import { CHALLENGE, cqw, TEXTBOX } from "@/game/layout";
 import type { Answer } from "@/story/scoring";
 
 export type GradedView = {
@@ -53,6 +55,16 @@ export function ChallengeOverlay({
       view.id,
     ),
   );
+
+  // Fokus masuk ke panel saat muncul (accessibility.md § Keyboard). Panel
+  // memakai `tabIndex={-1}` supaya bisa difokus tanpa masuk urutan Tab.
+  const panelRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    panelRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  /** Jarak tepi bawah panel dari dasar ruang game = atas dialog − celah. */
+  const bawahPanel = GAME_HEIGHT - (TEXTBOX.y - CHALLENGE.gapDialog);
 
   const bisaJawab =
     view.type === "short_answer"
@@ -161,145 +173,162 @@ export function ChallengeOverlay({
   }
 
   return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0b120e]/75 p-3">
+    <div className="pointer-events-none absolute inset-0 z-10">
       <section
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
         aria-label="Tantangan"
+        aria-modal="true"
         aria-live="polite"
         onKeyDown={tanganiOpsi}
-        className="max-h-full w-full max-w-md overflow-y-auto border-2 border-[#F7F4EC] bg-[#14201a] p-4 font-sans text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]"
+        className="challenge-panel pointer-events-auto flex w-full flex-col border-2 border-[#F7F4EC] bg-[#14201a]/[0.97] font-sans text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
+        style={{
+          left: cqw(CHALLENGE.insetX),
+          width: cqw(GAME_WIDTH - CHALLENGE.insetX * 2),
+          ["--challenge-bottom" as string]: cqw(bawahPanel),
+          ["--challenge-max-h" as string]: cqw(CHALLENGE.maxHeight),
+        }}
       >
-        <p className="mb-1 text-[10px] uppercase tracking-widest text-[#8FA396]">
-          {view.conceptTag}
-        </p>
-        <h2 className="mb-3 text-sm leading-snug">{view.prompt}</h2>
+        <div className="min-h-0 flex-1 overflow-y-auto p-3">
+          <p className="mb-1 text-[10px] uppercase tracking-widest text-[#8FA396]">
+            {view.conceptTag}
+          </p>
+          <h2 className="mb-3 text-sm leading-snug">{view.prompt}</h2>
 
-        {view.hints && view.hints.length > 0 && (
-          <ul className="mb-3 border-l-2 border-[#3D4B41] pl-2 text-[11px] leading-relaxed text-[#8FA396]">
-            {view.hints.map((hint) => (
-              <li key={hint}>{hint}</li>
-            ))}
-          </ul>
-        )}
+          {view.hints && view.hints.length > 0 && (
+            <ul className="mb-3 border-l-2 border-[#3D4B41] pl-2 text-[11px] leading-relaxed text-[#8FA396]">
+              {view.hints.map((hint) => (
+                <li key={hint}>{hint}</li>
+              ))}
+            </ul>
+          )}
 
-        {view.type === "multiple_choice" && (
-          <OpsiList
-            opsi={(view.options ?? []).map((option) => ({
-              id: option.id,
-              label: option.text,
-            }))}
-            pilihan={pilihan}
-            sorot={sorot}
-            onPilih={(id) => {
-              setPilihan(id);
-              setSorot(
-                (view.options ?? []).findIndex((option) => option.id === id),
-              );
-            }}
-            disabled={graded !== null}
-          />
-        )}
-
-        {view.type === "true_false" && (
-          <div className="mb-3">
-            <p className="mb-2 text-xs italic text-[#D9E4DA]">
-              {view.statement}
-            </p>
+          {view.type === "multiple_choice" && (
             <OpsiList
-              opsi={[
-                { id: "benar", label: "Benar" },
-                { id: "salah", label: "Salah" },
-              ]}
+              opsi={(view.options ?? []).map((option) => ({
+                id: option.id,
+                label: option.text,
+              }))}
               pilihan={pilihan}
               sorot={sorot}
               onPilih={(id) => {
                 setPilihan(id);
-                setSorot(id === "benar" ? 0 : 1);
+                setSorot(
+                  (view.options ?? []).findIndex((option) => option.id === id),
+                );
               }}
               disabled={graded !== null}
             />
-          </div>
-        )}
+          )}
 
-        {view.type === "ordering" && (
-          <div className="mb-3">
-            <p className="mb-2 text-[11px] text-[#8FA396]">
-              Susun urutan dengan tombol naik/turun.
-            </p>
-            <ol className="space-y-1.5">
-              {urutan.map((itemId, index) => (
-                <li
-                  key={itemId}
-                  className="flex items-center gap-1.5 border border-[#3D4B41] px-2 py-1.5"
-                >
-                  <span className="text-[11px] text-[#8FA396]">
-                    {index + 1}.
-                  </span>
-                  <span className="flex-1 text-xs leading-snug">
-                    {itemById.get(itemId)?.text ?? itemId}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => geser(index, -1)}
-                    disabled={graded !== null || index === 0}
-                    aria-label={`Naikkan "${itemById.get(itemId)?.text ?? itemId}"`}
-                    className="border border-[#3D4B41] px-1.5 text-xs leading-5 hover:border-[#8FA396] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#E8A87C]"
+          {view.type === "true_false" && (
+            <div className="mb-3">
+              <p className="mb-2 text-xs italic text-[#D9E4DA]">
+                {view.statement}
+              </p>
+              <OpsiList
+                opsi={[
+                  { id: "benar", label: "Benar" },
+                  { id: "salah", label: "Salah" },
+                ]}
+                pilihan={pilihan}
+                sorot={sorot}
+                onPilih={(id) => {
+                  setPilihan(id);
+                  setSorot(id === "benar" ? 0 : 1);
+                }}
+                disabled={graded !== null}
+              />
+            </div>
+          )}
+
+          {view.type === "ordering" && (
+            <div className="mb-3">
+              <p className="mb-2 text-[11px] text-[#8FA396]">
+                Susun urutan dengan tombol naik/turun.
+              </p>
+              <ol className="space-y-1.5">
+                {urutan.map((itemId, index) => (
+                  <li
+                    key={itemId}
+                    className="flex items-center gap-1.5 border border-[#3D4B41] px-2 py-1.5"
                   >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => geser(index, 1)}
-                    disabled={graded !== null || index === urutan.length - 1}
-                    aria-label={`Turunkan "${itemById.get(itemId)?.text ?? itemId}"`}
-                    className="border border-[#3D4B41] px-1.5 text-xs leading-5 hover:border-[#8FA396] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#E8A87C]"
-                  >
-                    ↓
-                  </button>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
+                    <span className="text-[11px] text-[#8FA396]">
+                      {index + 1}.
+                    </span>
+                    <span className="flex-1 text-xs leading-snug">
+                      {itemById.get(itemId)?.text ?? itemId}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => geser(index, -1)}
+                      disabled={graded !== null || index === 0}
+                      aria-label={`Naikkan "${itemById.get(itemId)?.text ?? itemId}"`}
+                      className="border border-[#3D4B41] px-1.5 text-xs leading-5 hover:border-[#8FA396] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#E8A87C]"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => geser(index, 1)}
+                      disabled={graded !== null || index === urutan.length - 1}
+                      aria-label={`Turunkan "${itemById.get(itemId)?.text ?? itemId}"`}
+                      className="border border-[#3D4B41] px-1.5 text-xs leading-5 hover:border-[#8FA396] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#E8A87C]"
+                    >
+                      ↓
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
 
-        {view.type === "short_answer" && (
-          <div className="mb-3">
-            <label
-              htmlFor="jawaban-singkat"
-              className="mb-1 block text-[11px] text-[#8FA396]"
-            >
-              Tulis jawabanmu
-            </label>
-            <input
-              id="jawaban-singkat"
-              type="text"
-              value={teks}
-              onChange={(event) => setTeks(event.target.value)}
-              disabled={graded !== null}
-              autoComplete="off"
-              maxLength={60}
-              className="w-full border border-[#3D4B41] bg-[#0b120e] px-2 py-1.5 text-xs text-[#F7F4EC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#E8A87C] disabled:opacity-60"
-            />
-          </div>
-        )}
+          {view.type === "short_answer" && (
+            <div className="mb-3">
+              <label
+                htmlFor="jawaban-singkat"
+                className="mb-1 block text-[11px] text-[#8FA396]"
+              >
+                Tulis jawabanmu
+              </label>
+              <input
+                id="jawaban-singkat"
+                type="text"
+                value={teks}
+                onChange={(event) => setTeks(event.target.value)}
+                disabled={graded !== null}
+                autoComplete="off"
+                maxLength={60}
+                className="w-full border border-[#3D4B41] bg-[#0b120e] px-2 py-1.5 text-xs text-[#F7F4EC] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#E8A87C] disabled:opacity-60"
+              />
+            </div>
+          )}
 
-        {!BISA_DIJAWAB.has(view.type) && (
-          <p className="mb-3 text-xs text-[#8FA396]">
-            Tipe soal ini belum tersedia di overlay. Lanjutkan untuk melewati.
-          </p>
-        )}
-
-        {graded ? (
-          <div className="mt-2">
-            <p
-              className={`mb-1 text-xs font-bold ${
-                graded.correct ? "text-[#6F9B7A]" : "text-[#C9A227]"
-              }`}
-            >
-              {graded.correct ? "Tepat." : "Belum tepat."}
+          {!BISA_DIJAWAB.has(view.type) && (
+            <p className="mb-3 text-xs text-[#8FA396]">
+              Tipe soal ini belum tersedia di overlay. Lanjutkan untuk melewati.
             </p>
-            <p className="mb-3 text-xs leading-relaxed text-[#D9E4DA]">
-              {graded.explanation}
-            </p>
+          )}
+
+          {graded && (
+            <div className="mt-2">
+              <p
+                className={`mb-1 text-xs font-bold ${
+                  graded.correct ? "text-[#6F9B7A]" : "text-[#C9A227]"
+                }`}
+              >
+                {graded.correct ? "Tepat." : "Belum tepat."}
+              </p>
+              <p className="text-xs leading-relaxed text-[#D9E4DA]">
+                {graded.explanation}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2 border-t border-[#3D4B41] px-3 py-2">
+          {graded ? (
             <button
               type="button"
               onClick={onResolve}
@@ -307,17 +336,17 @@ export function ChallengeOverlay({
             >
               Lanjut
             </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={BISA_DIJAWAB.has(view.type) ? kirimJawaban : onResolve}
-            disabled={BISA_DIJAWAB.has(view.type) && !bisaJawab}
-            className="mt-1 w-full border-2 border-[#F7F4EC] px-3 py-2 text-xs font-bold uppercase tracking-wider enabled:hover:bg-[#F7F4EC] enabled:hover:text-[#14201a] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
-          >
-            {BISA_DIJAWAB.has(view.type) ? "Jawab" : "Lewati"}
-          </button>
-        )}
+          ) : (
+            <button
+              type="button"
+              onClick={BISA_DIJAWAB.has(view.type) ? kirimJawaban : onResolve}
+              disabled={BISA_DIJAWAB.has(view.type) && !bisaJawab}
+              className="w-full border-2 border-[#F7F4EC] px-3 py-2 text-xs font-bold uppercase tracking-wider enabled:hover:bg-[#F7F4EC] enabled:hover:text-[#14201a] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
+            >
+              {BISA_DIJAWAB.has(view.type) ? "Jawab" : "Lewati"}
+            </button>
+          )}
+        </div>
       </section>
     </div>
   );

@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
@@ -126,11 +126,16 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ### Challenge
 
-![Overlay tantangan di atas dunia yang diredupkan](../assets/challenge-overlay.svg)
+![Panel tantangan di atas dialog](../assets/challenge-overlay.svg)
 
-- Overlay DOM di tengah, latar gelap transparan.
-- Tidak menutupi seluruh layar agar konteks cerita masih terlihat.
-- Fokus keyboard masuk ke overlay.
+- Panel DOM selebar 95% diletakkan **di atas dialog**, bukan di tengah layar.
+  Dialog terakhir tetap terlihat dan typewriter-nya dibekukan.
+- Tidak ada lapisan gelap penuh; hanya panel gelap hampir pekat.
+- Isi soal digulir di dalam panel bila panjang; tombol aksi menempel di bawah.
+- Di layar sangat pendek, panel memakai hampir seluruh tinggi ruang game dan
+  boleh menutup dialog (fallback) supaya soal tetap terbaca.
+- Fokus keyboard masuk ke panel saat muncul dan kembali ke area game saat
+  ditutup.
 - `Esc` tidak menutup overlay sebelum soal dijawab; lihat
   [`../04-game/accessibility.md`](../04-game/accessibility.md#keyboard).
 - Keempat tipe soal punya UI jawaban sendiri:

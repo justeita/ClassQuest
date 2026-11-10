@@ -38,6 +38,7 @@ type GameCanvasProps = {
 
 export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const adaTantangan = useRef(false);
   const gameRef = useRef<GameHandle | null>(null);
   const busRef = useRef<GameBus | null>(null);
   const tombolJedaRef = useRef<HTMLButtonElement>(null);
@@ -180,6 +181,14 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     });
   }, []);
 
+  // Fokus kembali ke area game setelah panel tantangan ditutup (accessibility.md).
+  useEffect(() => {
+    if (adaTantangan.current && !tantangan) {
+      containerRef.current?.focus({ preventScroll: true });
+    }
+    adaTantangan.current = tantangan !== null;
+  }, [tantangan]);
+
   const lanjut = useCallback(() => {
     const challengeId = tantangan?.id;
     setTantangan(null);
@@ -253,13 +262,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   }, []);
 
   return (
-    <div
-      className="relative h-full w-full"
-      style={{ containerType: "inline-size" }}
-    >
+    <div className="relative h-full w-full" style={{ containerType: "size" }}>
       <div
         ref={containerRef}
-        className="h-full w-full"
+        tabIndex={-1}
+        className="h-full w-full focus:outline-none"
         role="region"
         aria-label="Area permainan ClassQuest"
       />
@@ -275,8 +282,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       {!jeda && !tantangan && !dialog?.visible && hint && (
         <InteractHint hint={hint} />
       )}
-      {!jeda && !tantangan && dialog && (
-        <DialogueBox view={dialog} onAdvance={lanjutDialog} />
+      {!jeda && dialog && (
+        <DialogueBox
+          view={tantangan ? { ...dialog, waiting: false } : dialog}
+          onAdvance={lanjutDialog}
+        />
       )}
       {!jeda && !tantangan && (
         <Hud

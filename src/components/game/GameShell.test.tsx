@@ -370,3 +370,57 @@ describe("GameShell", () => {
     expect(screen.queryByText("Space")).not.toBeInTheDocument();
   });
 });
+
+describe("GameShell — soal di atas dialog", () => {
+  const challenge = {
+    id: "chl_01_01",
+    type: "true_false" as const,
+    prompt: "Uap air naik karena lebih ringan.",
+    conceptTag: "Evaporasi",
+    statement: "Uap air lebih ringan daripada air cair.",
+  };
+
+  it("dialog tetap terlihat saat tantangan terbuka", async () => {
+    await mainkan();
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Air di bumi tidak pernah hilang.",
+        waiting: true,
+      },
+    });
+    await screen.findByText("Air di bumi tidak pernah hilang.");
+
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    // Panel soal tidak menutup dialog; baris terakhir tetap jadi konteks.
+    expect(
+      screen.getByText("Air di bumi tidak pernah hilang."),
+    ).toBeInTheDocument();
+    // Indikator "lanjut" disembunyikan selama soal, karena dialog dibekukan.
+    expect(screen.queryByText("▼")).not.toBeInTheDocument();
+  });
+
+  it("fokus kembali ke area game setelah tantangan ditutup", async () => {
+    await mainkan();
+    bus.emit({ type: "challenge", view: challenge });
+    expect(await screen.findByLabelText("Tantangan")).toHaveFocus();
+
+    bus.emit({
+      type: "graded",
+      challengeId: "chl_01_01",
+      correct: true,
+      explanation: "Benar.",
+    });
+    fireEvent.click(await screen.findByRole("button", { name: /^lanjut$/i }));
+
+    await vi.waitFor(() =>
+      expect(
+        screen.getByRole("region", { name: "Area permainan ClassQuest" }),
+      ).toHaveFocus(),
+    );
+  });
+});

@@ -20,6 +20,21 @@ export const TEXTBOX = {
   paddingTop: 8,
 } as const;
 
+/**
+ * Panel tantangan (docs/05-frontend/game-player.md § Challenge).
+ *
+ * Panel duduk **di atas** dialog, bukan menutupi seluruh layar: baris dialog
+ * terakhir tetap terlihat sebagai konteks soal.
+ */
+export const CHALLENGE = {
+  /** Jarak dari tepi kiri/kanan ruang game; menyisakan 95% lebar. */
+  insetX: 16,
+  /** Jarak tepi bawah panel ke tepi atas dialog. */
+  gapDialog: 8,
+  /** Tinggi maksimum panel sebelum isinya digulir. */
+  maxHeight: 200,
+} as const;
+
 /** Portrait di atas panel: bingkai 72×72, gambar 64×64 di dalamnya. */
 export const PORTRAIT = {
   x: 26,

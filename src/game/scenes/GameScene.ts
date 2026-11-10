@@ -179,7 +179,9 @@ export class GameScene extends Phaser.Scene {
 
     if (phase === "explore") {
       this.updateExplore(time);
-    } else {
+    } else if (phase !== "challenge") {
+      // Tantangan membekukan typewriter dan input lanjut: dialog terakhir tetap
+      // terlihat di belakang panel soal (docs/04-game/scene-format.md § challenge).
       this.textbox?.tick(delta);
       this.checkLanjutKeys();
     }
@@ -445,11 +447,13 @@ export class GameScene extends Phaser.Scene {
     this.aturVolumeMusik(MUSIC_VOLUME);
   }
 
-  /** Dialog ditahan (bukan ditutup) saat overlay tantangan tampil. */
+  /**
+   * Soal tampil di atas dialog, bukan menutupinya: baris dialog terakhir tetap
+   * jadi konteks (docs/05-frontend/game-player.md § Challenge). Typewriter
+   * dibekukan oleh `update()` selama fase `challenge`, jadi teks tidak berubah.
+   */
   private bukaTantangan(challengeId: string) {
-    this.textbox?.hide();
     this.sembunyikanPetunjuk();
-    this.sorotSpeaker(null);
 
     const challenge = this.runner.getChallenge(challengeId);
     if (!challenge || !this.bus) return;

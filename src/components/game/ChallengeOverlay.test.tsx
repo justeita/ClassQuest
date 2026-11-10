@@ -282,3 +282,34 @@ describe("ChallengeOverlay — tipe lain", () => {
     });
   });
 });
+
+describe("ChallengeOverlay — panel di atas dialog", () => {
+  it("memindahkan fokus ke panel saat muncul", () => {
+    renderOverlay(orderingView);
+
+    expect(screen.getByLabelText("Tantangan")).toHaveFocus();
+  });
+
+  it("memisahkan isi yang bisa digulir dari tombol aksi", () => {
+    renderOverlay(orderingView, {
+      graded: { correct: true, explanation: "Penjelasan yang panjang." },
+    });
+
+    const panel = screen.getByLabelText("Tantangan");
+    const isi = panel.querySelector(".overflow-y-auto");
+
+    expect(isi).not.toBeNull();
+    expect(isi).toContainElement(screen.getByText("Penjelasan yang panjang."));
+    // Tombol tetap di footer, di luar area gulir.
+    expect(isi).not.toContainElement(
+      screen.getByRole("button", { name: /^lanjut$/i }),
+    );
+  });
+
+  it("tidak memakai lapisan gelap penuh di luar panel", () => {
+    renderOverlay(orderingView);
+
+    const panel = screen.getByLabelText("Tantangan");
+    expect(panel.parentElement).not.toHaveClass("bg-[#0b120e]/75");
+  });
+});
