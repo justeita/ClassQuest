@@ -67,7 +67,7 @@ export type GameCommand =
   /** Kembali ke awal bab aktif tanpa menghapus catatan jawaban. */
   | { type: "restart_chapter" }
   /** Bisukan/bunyikan seluruh audio Phaser. */
-  | { type: "set_muted"; muted: boolean };
+  | { type: "set_audio"; music: number; sfx: number };
 
 export class GameBus {
   private listeners = new Map<string, Set<(payload: unknown) => void>>();
