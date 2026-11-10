@@ -39,8 +39,12 @@ export type RoomObject = {
 };
 
 export type RoomData = {
-  /** `sceneId` dari Story, atau `"default"` sebagai template fallback. */
-  sceneId: string;
+  /**
+   * Identitas ruangan, bukan identitas scene. Beberapa scene yang terjadi di
+   * lokasi sama memakai `roomId` yang sama, sehingga posisi pemain tidak
+   * di-reset saat cerita pindah scene.
+   */
+  roomId: string;
   /** Tile lantai yang diulang di seluruh peta (id manifest `tile_*`). */
   floorTile: string;
   /** Tile dinding untuk keliling dan pita atas (id manifest `tile_*`). */

@@ -19,6 +19,10 @@ src/app/play/[storyId]/page.tsx        (Server Component)
         ├─ <TitleScreen />             (DOM, sebelum Mulai)
         ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
         ├─ <ChallengeOverlay />        (DOM)
+        ├─ <QuestTracker />            (DOM)
+        ├─ <NpcMarker />               (DOM)
+        ├─ <ChapterCard />             (DOM, transisi)
+        ├─ <QuestToast />              (DOM, transisi)
         ├─ <HUD />                     (DOM)
         ├─ <PauseMenu />               (DOM)
         └─ <ResultScreen />            (DOM, saat selesai)
@@ -28,7 +32,8 @@ Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
 > **Yang ada hari ini:** `TitleScreen`, `GameShell`, `GameCanvas`,
-> `ChallengeOverlay`, `HUD`, `PauseMenu`, dan `ResultScreen` sudah ada.
+> `ChallengeOverlay`, `QuestTracker`, `NpcMarker`, `ChapterCard`, `QuestToast`,
+> `HUD`, `PauseMenu`, dan `ResultScreen` sudah ada.
 >
 > `/play/[storyId]` sudah berjalan, tetapi cerita masih dibaca dari fixture
 > (`src/game/demoStory.ts`), bukan dari `getPublishedStory()`. Hanya id cerita
@@ -74,8 +79,8 @@ Ini **state layar**, bukan state cerita. Soal yang sedang terbuka dilacak oleh
 
 Implementasi sekarang memegang `judul | main | hasil` di `GameShell`, sedangkan
 `paused` dipegang `GameCanvas` karena menu jeda hanya relevan selama sesi
-permainan aktif. HUD menerima nomor bab lewat event `progress` dari Phaser, bukan
-menebak dari DOM.
+permainan aktif. `QuestTracker` menerima daftar quest lewat event `quest` dari
+Phaser, diturunkan dari scene dan status runner — bukan ditebak dari DOM.
 
 State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 [`../04-game/engine.md`](../04-game/engine.md)). Sumber kebenaran progres:
@@ -105,7 +110,15 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 ### Playing
 
 - Canvas fullscreen (letterbox bila rasio beda).
-- HUD minimal: `Chapter 1/3` + judul bab, tombol jeda, tombol suara.
+- Panel quest di kiri atas: `Chapter n/total`, judul scene aktif, dan daftar
+  scene chapter itu dengan status `Aktif`/`Selesai`/`Terkunci` plus hitungan
+  tantangan yang sudah dijawab.
+- HUD kanan atas: tombol jeda dan tombol suara. Judul chapter tidak menetap di
+  HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
+  `QuestToast` memberi tahu saat quest baru dimulai.
+- Penanda `!` hanya ada di atas NPC pemberi quest. Saat pemain mendekat, chip
+  `Space` menggantikan penanda itu. Keduanya memakai koordinat layar yang ikut
+  kamera dan disembunyikan selama dialog, tantangan, atau menu jeda.
 - Tombol suara mengatur `sound.mute` Phaser; preferensi berlaku untuk musik dan
   SFX. Musik mulai setelah "Mulai" ditekan (aturan autoplay browser), lalu
   berganti hanya saat `musicId` scene berubah.
