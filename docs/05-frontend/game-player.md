@@ -110,9 +110,7 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 ### Playing
 
 - Canvas fullscreen (letterbox bila rasio beda).
-- Panel quest di kiri atas: `Chapter n/total`, judul scene aktif, dan daftar
-  scene chapter itu dengan status `Aktif`/`Selesai`/`Terkunci` plus hitungan
-  tantangan yang sudah dijawab.
+- Tombol buku quest di kiri atas (`📖 Quest [Q]`): membuka jendela buku catatan ala Minecraft journal dengan 2 halaman perkamen yang menampilkan bab, judul scene, daftar tugas dengan status `Aktif`/`Selesai`/`Terkunci`, dan hitungan tantangan. Dapat dibuka/tutup dengan tombol `Q` atau `Esc`.
 - HUD kanan atas: tombol jeda dan tombol suara. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
@@ -128,9 +126,24 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ![Panel tantangan di atas dialog](../assets/challenge-overlay.svg)
 
-- Panel DOM selebar 95% diletakkan **di atas dialog**, bukan di tengah layar.
-  Dialog terakhir tetap terlihat dan typewriter-nya dibekukan.
-- Tidak ada lapisan gelap penuh; hanya panel gelap hampir pekat.
+- Teks soal/pertanyaan ditampilkan langsung di dalam `DialogueBox` NPC, bukan elemen tambahan di atasnya.
+- Yang melayang di atas dialog HANYA pilihan jawabannya:
+  - Opsi pendek (seperti "1", "2", "4"): ditata 1 baris horizontal di kanan atas dialog.
+  - Opsi teks panjang: ditata bertumpuk vertikal di kanan atas dialog; lebar seluruh box seragam mengikuti opsi terpanjang.
+  - Persoalan matematika / matriks: ditata sebagai kartu berjejer agar formula terlihat jelas.
+- Konsistensi visual HCI dengan DialogueBox:
+  - Gaya box jawaban dan kartu umpan balik setelah dijawab persis seperti DialogueBox (`bg-[#14201a]/95` dengan `border-2 border-[#F7F4EC]`), flat tanpa drop shadow.
+  - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar.
+  - Ukuran huruf dan line-height opsi dan penjelasan umpan balik proporsional dan nyaman dibaca (`ukuranHuruf(13.5, 12, 20)` & `lineHeight: 1.3`).
+  - Segitiga kursor penunjuk `▶` berada di **luar box jawaban, di sebelah kirinya**, dan saat aktif diwarnai gelap/hitam (`#0b120e`) agar terlihat jelas dan kontras terhadap pemandangan dunia game.
+  - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya.
+  - Teks petunjuk tombol shortcut (`hints`) diberi latar gelap (`bg-[#0b120e]`) dengan font putih (`#F7F4EC`) untuk keterbacaan tinggi.
+- Segitiga lanjut dialog `▼` diposisikan di **sudut kanan bawah kotak dialog**.
+- Tanpa background kotak pembungkus hitam luar (hanya baris pilihan yang memiliki latar), tanpa tombol jawab/lanjut terpisah. Memilih opsi langsung mengirim respon dialog, dan kartu umpan balik cerita dapat diklik atau ditekan Spasi/Enter untuk lanjut.
+- Kontrol keyboard-first meminimalkan ketergantungan mouse/touchpad:
+  - `multiple_choice` / `true_false`: angka `1`–`5` langsung memilih & mengirim, panah/WASD menggeser sorotan, `Enter`/`Spasi` memilih.
+  - `ordering`: panah atas/bawah atau `W`/`S` memilih baris, panah kiri/kanan atau `A`/`D` menggeser posisi naik/turun, angka `1`–`N` loncat baris, `Enter` mengirim jawaban.
+  - `short_answer`: input otomatis fokus saat muncul; `Enter` langsung mengirim jawaban.
 - Isi soal digulir di dalam panel bila panjang; tombol aksi menempel di bawah.
 - Di layar sangat pendek, panel memakai hampir seluruh tinggi ruang game dan
   boleh menutup dialog (fallback) supaya soal tetap terbaca.

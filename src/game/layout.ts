@@ -23,16 +23,20 @@ export const TEXTBOX = {
 /**
  * Panel tantangan (docs/05-frontend/game-player.md § Challenge).
  *
- * Panel duduk **di atas** dialog, bukan menutupi seluruh layar: baris dialog
- * terakhir tetap terlihat sebagai konteks soal.
+ * Ditata sebagai kotak pilihan dialog RPG di **kanan atas dialog**, menyisakan
+ * sisi kiri tetap terbuka agar portrait dan dialog NPC tetap terlihat.
  */
 export const CHALLENGE = {
-  /** Jarak dari tepi kiri/kanan ruang game; menyisakan 95% lebar. */
+  /** Jarak dari tepi kanan ruang game; sejajar dengan tepi kanan dialog. */
+  insetRight: 16,
+  /** Lebar kotak pilihan RPG di kanan atas dialog. */
+  width: 380,
+  /** Jarak dari tepi kiri/kanan ruang game (kompatibilitas). */
   insetX: 16,
   /** Jarak tepi bawah panel ke tepi atas dialog. */
   gapDialog: 8,
   /** Tinggi maksimum panel sebelum isinya digulir. */
-  maxHeight: 200,
+  maxHeight: 210,
 } as const;
 
 /** Portrait di atas panel: bingkai 72×72, gambar 64×64 di dalamnya. */

@@ -199,6 +199,46 @@ describe("GameShell", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("Esc saat buku quest terbuka hanya menutup buku dan tidak membuka menu jeda", async () => {
+    await mainkan();
+    bus.emit({
+      type: "quest",
+      view: {
+        chapterNumber: 1,
+        chapterTotal: 3,
+        chapterTitle: "Siklus Air",
+        sceneTitle: "Genangan yang Menghilang",
+        activeQuestId: "qst_01",
+        quests: [
+          {
+            id: "qst_01",
+            title: "Amati genangan air",
+            status: "aktif",
+            tantangan: { total: 1, dijawab: 0 },
+          },
+        ],
+      },
+    });
+
+    await screen.findByRole("button", { name: "Buka buku catatan quest" });
+
+    // Buka buku quest dengan shortcut keyboard Q
+    fireEvent.keyDown(window, { key: "q" });
+    expect(
+      screen.getByRole("dialog", { name: "Buku Catatan Quest" }),
+    ).toBeInTheDocument();
+
+    // Tekan Escape: buku quest harus tertutup, menu jeda TIDAK boleh terbuka
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(
+      screen.queryByRole("dialog", { name: "Jeda" }),
+    ).not.toBeInTheDocument();
+
+    // Tekan Escape kedua kali setelah buku tertutup: sekarang menu jeda terbuka
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.getByRole("dialog", { name: "Jeda" })).toBeInTheDocument();
+  });
+
   it("Esc diabaikan saat tantangan belum dijawab", async () => {
     await mainkan();
     bus.emit({
@@ -396,10 +436,10 @@ describe("GameShell — soal di atas dialog", () => {
     bus.emit({ type: "challenge", view: challenge });
     await screen.findByLabelText("Tantangan");
 
-    // Panel soal tidak menutup dialog; baris terakhir tetap jadi konteks.
+    // Soal berada di dalam dialogue box, bukan elemen tambahan di atasnya
     expect(
-      screen.getByText("Air di bumi tidak pernah hilang."),
-    ).toBeInTheDocument();
+      screen.getAllByText(/Uap air naik karena lebih ringan/).length,
+    ).toBeGreaterThan(0);
     // Indikator "lanjut" disembunyikan selama soal, karena dialog dibekukan.
     expect(screen.queryByText("▼")).not.toBeInTheDocument();
   });
