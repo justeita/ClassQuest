@@ -117,6 +117,11 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Penanda `!` hanya ada di atas NPC pemberi quest. Saat pemain mendekat, chip
   `Space` menggantikan penanda itu. Keduanya memakai koordinat layar yang ikut
   kamera dan disembunyikan selama dialog, tantangan, atau menu jeda.
+- Tombol `Log` (`B`) membuka buku catatan dua halaman: riwayat dialog
+  (dikelompokkan per scene, dengan chip nama pembicara) dan jurnal konsep
+  (conceptTag, status benar/perlu diulang, penjelasan). Dunia dibekukan
+  selama buku terbuka; musik tetap diputar penuh. Buku dibersihkan saat
+  "Ulangi chapter" atau sesi baru.
 - Tombol musik (`♪`) mengatur volume musik saja: nyala/mati. Efek suara
   diatur terpisah di panel pengaturan menu jeda; keduanya dipisah supaya
   siswa bisa mematikan musik tanpa kehilangan umpan balik jawaban. Preferensi
@@ -215,12 +220,12 @@ Siswa tidak perlu akun. Nama panggilan opsional, disimpan lokal.
 
 ## Performa
 
-| Target                         | Cara                                                 |
-| ------------------------------ | ---------------------------------------------------- |
-| First content < 2 s            | Shell HTML + skeleton; Phaser dimuat setelahnya      |
-| Aset hanya yang dipakai        | `assetUsage`                                         |
-| Tidak ada layout shift         | Host canvas punya rasio tetap (`aspect-ratio: 16/9`) |
-| Bundle Phaser tidak di landing | Dynamic import hanya di halaman game                 |
+| Target                         | Cara                                            |
+| ------------------------------ | ----------------------------------------------- |
+| First content < 2 s            | Shell HTML + skeleton; Phaser dimuat setelahnya |
+| Aset hanya yang dipakai        | `assetUsage`                                    |
+| Tidak ada layout shift         | Kanvas berukuran tetap mengikuti mode `ENVELOP` |
+| Bundle Phaser tidak di landing | Dynamic import hanya di halaman game            |
 
 Ukuran Phaser besar (~1 MB+). Jangan mengimpor Phaser di halaman guru atau
 landing.

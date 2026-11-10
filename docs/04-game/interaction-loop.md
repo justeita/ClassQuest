@@ -200,6 +200,9 @@ dialog diabaikan. Nilai tersimpan di `localStorage`
 (`classquest:settings:v1`) dan dipakai lagi saat game dibuat. Mute musik tidak
 mematikan efek suara; HUD hanya menampung toggle musik, SFX diatur di menu.
 
+Buku catatan (`B`): dunia dibekukan (`scene.pause()`) **tanpa** menurunkan
+musik; log tidak bisa dibuka saat soal aktif; `Esc` atau `B` menutupnya.
+
 ## Penanganan error runtime
 
 | Error                         | Perilaku                                                        |
