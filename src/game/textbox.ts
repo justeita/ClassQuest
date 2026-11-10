@@ -52,7 +52,13 @@ export type Textbox = {
 };
 
 export function createTextbox(scene: Phaser.Scene): Textbox {
-  const container = scene.add.container(0, 0).setVisible(false).setDepth(100);
+  // `setScrollFactor(0)` membuat textbox menempel di layar. Tanpa ini, textbox
+  // ikut tergeser kamera (kamera mengikuti pemain) sehingga teks terpotong.
+  const container = scene.add
+    .container(0, 0)
+    .setVisible(false)
+    .setDepth(100)
+    .setScrollFactor(0);
 
   const background = scene.textures.exists("ui_textbox")
     ? scene.add.image(TEXTBOX_X, TEXTBOX_Y, "ui_textbox").setOrigin(0)
