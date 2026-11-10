@@ -106,6 +106,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/camera.test.ts`                  | ya      | Tes mode kamera, dead zone, dan lerp                  |
 | `src/game/constants.ts`                    | ya      | Konstanta resolusi + tile tanpa dependensi            |
 | `src/game/movement.ts`                     | ya      | Gerak pemain 4 arah + collision top-down (ADR 0008)   |
+| `src/game/movement.test.ts`                | ya      | Tes arah gerak dan layout frame animasi               |
 | `src/game/gameBus.ts`                      | ya      | Bridge bertipe Phaser ↔ React (event + command)       |
 | `src/game/challengeView.ts`                | ya      | Data tantangan aman untuk overlay (tanpa jawaban)     |
 | `src/game/answerLog.ts`                    | ya      | Catatan jawaban percobaan pertama + ringkasan hasil   |

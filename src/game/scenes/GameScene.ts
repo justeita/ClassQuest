@@ -11,6 +11,9 @@ import {
   applyMovement,
   createPlayer,
   ambilTombolGerak,
+  arahGerak,
+  FRAME_ANIMASI,
+  type ArahGerak,
   type MovementKeys,
 } from "../movement";
 import {
@@ -65,6 +68,8 @@ export class GameScene extends Phaser.Scene {
   private musicKey: string | null = null;
   private sceneAktif: string | null = null;
   private readonly playerId: string;
+  private spritePemainId = "";
+  private arahTerakhir: ArahGerak = "down";
   private lastAdvance = 0;
   /** Jawaban percobaan pertama per challenge; jawaban ulang tidak menimpa. */
   private readonly answers = new AnswerLog();
@@ -97,6 +102,8 @@ export class GameScene extends Phaser.Scene {
     )
       ? (pemain?.spriteId ?? DEFAULT_CHARACTER_ID)
       : DEFAULT_CHARACTER_ID;
+    this.spritePemainId = spritePemain;
+    this.arahTerakhir = "down";
     this.player = createPlayer(this, this.room, PLAYER_CONFIG, spritePemain);
     this.colliderRuangan = this.physics.add.collider(
       this.player,
@@ -162,6 +169,7 @@ export class GameScene extends Phaser.Scene {
       applyMovement(this.player, this.keys);
       // Urutan gambar mengikuti kaki (world-design.md § Perspektif).
       this.player.setDepth(this.player.y);
+      this.perbaruiAnimasi(arahGerak(this.keys));
     }
 
     const npcId = this.player
@@ -616,26 +624,68 @@ export class GameScene extends Phaser.Scene {
     return entry?.portraitPath ? `${entry.id}:portrait` : null;
   }
 
-  /** Animasi idle 2 frame dari spritesheet horizontal. */
+  /** Animasi idle 2 frame (2 fps) + jalan 2 frame per arah (6 fps). */
   private buatAnimasiKarakter() {
     const ids = new Set<string>([DEFAULT_CHARACTER_ID]);
     for (const karakter of this.story.cast) ids.add(karakter.spriteId);
 
     for (const id of ids) {
-      const key = `idle-${id}`;
-      if (!this.textures.exists(id) || this.anims.exists(key)) continue;
-      this.anims.create({
-        key,
-        frames: this.anims.generateFrameNumbers(id, { start: 0, end: 1 }),
-        frameRate: 2,
-        repeat: -1,
-      });
+      if (!this.textures.exists(id)) continue;
+
+      const idle = `idle-${id}`;
+      if (!this.anims.exists(idle)) {
+        this.anims.create({
+          key: idle,
+          frames: this.anims.generateFrameNumbers(id, {
+            start: FRAME_ANIMASI.idle.start,
+            end: FRAME_ANIMASI.idle.end,
+          }),
+          frameRate: 2,
+          repeat: -1,
+        });
+      }
+
+      for (const arah of ["down", "up", "left", "right"] as const) {
+        const key = `jalan-${id}-${arah}`;
+        if (this.anims.exists(key)) continue;
+        const [start, end] = FRAME_ANIMASI.jalan[arah];
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(id, { start, end }),
+          frameRate: 6,
+          repeat: -1,
+        });
+      }
     }
   }
 
   private mainkanIdle(sprite: Phaser.GameObjects.Sprite, spriteId: string) {
     const key = `idle-${spriteId}`;
     if (this.anims.exists(key)) sprite.play(key);
+  }
+
+  /**
+   * Animasi pemain sesuai arah gerak (world-design.md § Sprite karakter):
+   * bergerak → animasi jalan arah itu; berhenti → arah `down` kembali ke idle,
+   * arah lain membeku di frame diam supaya tidak berbalik ke depan.
+   */
+  private perbaruiAnimasi(arah: ArahGerak | null) {
+    const sprite = this.player;
+    if (!sprite || !this.spritePemainId) return;
+
+    if (!arah) {
+      if (this.arahTerakhir === "down") {
+        this.mainkanIdle(sprite, this.spritePemainId);
+      } else {
+        sprite.anims.stop();
+        sprite.setFrame(FRAME_ANIMASI.diam[this.arahTerakhir]);
+      }
+      return;
+    }
+
+    this.arahTerakhir = arah;
+    const key = `jalan-${this.spritePemainId}-${arah}`;
+    if (this.anims.exists(key)) sprite.play(key, true);
   }
 
   private kembalikanPemain() {
