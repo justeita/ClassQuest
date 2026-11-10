@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { DEPTH_UI } from "./depth";
 import type { RoomMap } from "./map";
 
 /**
@@ -55,7 +56,7 @@ export function createInteractPrompt(
     })
     .setOrigin(0.5)
     .setVisible(false)
-    .setDepth(50);
+    .setDepth(DEPTH_UI);
 
   return {
     showAt(npcId) {

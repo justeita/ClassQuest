@@ -1,18 +1,17 @@
 /**
  * Sprite karakter 24×32 (ADR 0009), portrait 64×64, dan panel UI.
  *
- * Sheet per karakter: **10 frame horizontal** (240×32):
+ * Sheet per karakter: **18 frame horizontal** (432×32) — delapan arah hadap:
  *
- *   0–1  idle (menghadap kamera, bernapas)
- *   2–3  jalan ke bawah
- *   4–5  jalan ke atas
- *   6–7  jalan ke kiri
- *   8–9  jalan ke kanan
+ *   0–1    idle (menghadap kamera, bernapas)
+ *   2–3    jalan bawah            4–5    jalan atas
+ *   6–7    jalan kiri             8–9    jalan kanan
+ *  10–11   jalan bawah-kiri      12–13   jalan bawah-kanan
+ *  14–15   jalan atas-kiri       16–17   jalan atas-kanan
  *
- * Frame 24×32 terlalu kecil untuk skala 2×, jadi karakter digambar langsung
- * pada grid 1 px lewat koordinat eksplisit supaya bentuknya terkontrol. Karakter
- * kanan adalah cermin kiri, sesuai permintaan developer: jalan kiri memakai
- * frame kiri, jalan kanan memakai frame kanan sendiri (bukan flip runtime).
+ * Diagonal digambar sebagai tampak tiga-perempat: badan menyamping, tetapi
+ * wajah menghadap sebagian ke kamera (dua mata) untuk arah bawah, dan hanya
+ * rambut untuk arah atas. Sisi kanan adalah cermin sisi kiri.
  */
 
 import { createCanvas, mix } from "./pixel.mjs";
@@ -20,8 +19,8 @@ import { PALETTE, RAMP } from "./palette.mjs";
 
 export const FRAME_WIDTH = 24;
 export const FRAME_HEIGHT = 32;
-/** 2 idle + 2 jalan × 4 arah. */
-export const FRAME_COUNT = 10;
+/** 2 idle + 2 jalan × 8 arah. */
+export const FRAME_COUNT = 18;
 
 const OUTLINE = PALETTE.ink;
 
@@ -95,8 +94,8 @@ function createGrid(width = FRAME_WIDTH, height = FRAME_HEIGHT) {
 /** Resep warna per karakter. */
 const RECIPES = {
   nara: {
-    hair: RAMP.nightMid,
-    hairLight: mix(PALETTE.cool, PALETTE.night, 0.6),
+    hair: mix(PALETTE.cool, PALETTE.night, 0.42),
+    hairLight: mix(PALETTE.cool, PALETTE.night, 0.15),
     skin: RAMP.skin,
     skinShade: RAMP.skinShade,
     eye: PALETTE.ink,
@@ -109,8 +108,8 @@ const RECIPES = {
     hairStyle: "long",
   },
   bima: {
-    hair: RAMP.nightMid,
-    hairLight: mix(PALETTE.cool, PALETTE.night, 0.45),
+    hair: mix(PALETTE.cool, PALETTE.night, 0.42),
+    hairLight: mix(PALETTE.cool, PALETTE.night, 0.15),
     skin: RAMP.skin,
     skinShade: RAMP.skinShade,
     eye: PALETTE.ink,
@@ -163,7 +162,13 @@ function buildHumanFrame(recipe, dir, step) {
   const grid = createGrid();
   const moving = step !== null;
   const bob = moving && step === 1 ? 1 : 0;
-  const side = dir === "left";
+  // Delapan arah: "left"/"right" murni menyamping, "down-left" dst. diagonal.
+  const parts = dir.split("-");
+  const vertical = parts.length === 2 ? parts[0] : null; // "up" | "down" | null
+  const horizontal = parts[parts.length - 1]; // "left" | "right"
+  const side = horizontal === "left" || horizontal === "right";
+  const diagonal = vertical !== null;
+  const facingDown = dir === "down" || vertical === "down";
 
   /* Rambut belakang — sebelum badan */
   if (recipe.hairStyle === "long") {
@@ -188,7 +193,7 @@ function buildHumanFrame(recipe, dir, step) {
       second.x -= 1; // kaki belakang ke belakang
     } else {
       first.yBottom -= 2;
-      first.x += dir === "down" ? 1 : -1;
+      first.x += facingDown ? 1 : -1;
     }
   }
 
@@ -241,7 +246,8 @@ function buildHumanFrame(recipe, dir, step) {
   grid.rect(4, 3 - bob, 2, 5, recipe.hair);
   grid.rect(18, 3 - bob, 2, 5, recipe.hair);
 
-  if (side) {
+  if (side && !diagonal) {
+    // Menyamping murni: satu mata, hidung, mulut di sisi hadap.
     grid.rect(13, 1 - bob, 7, 8, recipe.hair);
     grid.rect(12, 2 - bob, 2, 6, recipe.hair);
     grid.rect(5, 2 - bob, 2, 4, recipe.hair);
@@ -250,6 +256,36 @@ function buildHumanFrame(recipe, dir, step) {
     grid.set(7, 10 - bob, recipe.mouth);
     grid.set(8, 10 - bob, recipe.mouth);
     if (recipe.beard) grid.rect(6, 11 - bob, 4, 2, recipe.hair);
+  } else if (side && diagonal && facingDown) {
+    // Diagonal bawah: tiga-perempat — badan menyamping, wajah ke kamera.
+    grid.rect(14, 1 - bob, 6, 8, recipe.hair);
+    grid.rect(13, 2 - bob, 2, 6, recipe.hair);
+    grid.rect(5, 2 - bob, 2, 4, recipe.hair);
+    // Poni hanya di sisi belakang supaya dua mata terlihat.
+    grid.rect(5, 4 - bob, 8, 1, recipe.hair);
+    grid.rect(7, 4 - bob, 2, 2, recipe.hair);
+    grid.rect(11, 4 - bob, 2, 2, recipe.hair);
+    grid.rect(8, 6 - bob, 2, 2, recipe.eye);
+    grid.rect(12, 6 - bob, 2, 2, recipe.eye);
+    grid.set(8, 6 - bob, PALETTE.bone);
+    grid.set(12, 6 - bob, PALETTE.bone);
+    grid.set(10, 8 - bob, recipe.skinShade);
+    grid.rect(9, 9 - bob, 2, 1, recipe.mouth);
+    if (recipe.beard) {
+      grid.set(7, 9 - bob, recipe.hair);
+      grid.set(13, 9 - bob, recipe.hair);
+      grid.rect(8, 10 - bob, 4, 1, recipe.hair);
+    }
+  } else if (side && diagonal) {
+    // Diagonal atas: badan menyamping, kepala dari belakang (tanpa wajah).
+    grid.ellipse(12, 6 - bob, 7, 5.5, recipe.hair);
+    grid.rect(7, 2 - bob, 4, 1, recipe.hairLight);
+    grid.rect(12, 1 - bob, 3, 1, recipe.hairLight);
+    grid.rect(5, 6 - bob, 2, 5, recipe.hair);
+    grid.rect(17, 6 - bob, 2, 5, recipe.hair);
+    if (recipe.hairStyle === "ponytail") {
+      grid.rect(11, 10 - bob, 3, 4, recipe.hair);
+    }
   } else if (dir === "up") {
     grid.ellipse(12, 6 - bob, 7, 5.5, recipe.hair);
     grid.rect(7, 2 - bob, 4, 1, recipe.hairLight);
@@ -351,43 +387,38 @@ const FRAME_PLAN = [
   { dir: "left", step: 1 },
   { dir: "right", step: 0 },
   { dir: "right", step: 1 },
+  { dir: "down-left", step: 0 },
+  { dir: "down-left", step: 1 },
+  { dir: "down-right", step: 0 },
+  { dir: "down-right", step: 1 },
+  { dir: "up-left", step: 0 },
+  { dir: "up-left", step: 1 },
+  { dir: "up-right", step: 0 },
+  { dir: "up-right", step: 1 },
 ];
 
-/** Satu frame → kanvas sheet, lalu outline 1 px di dalam area frame itu. */
+/** Sisi kanan digambar sebagai cermin kiri (termasuk diagonal). */
+const CERMIN = new Set(["right", "down-right", "up-right"]);
+
+/**
+ * Satu frame → kanvas sheet, lalu outline 1 px di sekeliling siluet.
+ *
+ * Frame digambar dulu ke kanvas kecil, outline dihitung dari **salinan** buffer
+ * (bukan buffer yang sama). Kalau membaca dan menulis buffer yang sama, tiap
+ * piksel outline baru dianggap tetangga opaque sehingga outline menyebar sampai
+ * tepi frame — itulah yang dulu tampak sebagai kotak hitam di sekitar karakter.
+ */
 function paintFrame(sheet, grid, offsetX, alt) {
+  const frame = createCanvas(FRAME_WIDTH, FRAME_HEIGHT);
   for (let y = 0; y < grid.height; y += 1) {
     for (let x = 0; x < grid.width; x += 1) {
       const color = grid.cells[y][x];
       if (!color || color === ".") continue;
-      sheet.rect(offsetX + x, y + (alt ? 1 : 0), 1, 1, color);
+      frame.px(x, y + (alt ? 1 : 0), color);
     }
   }
-
-  const opaque = (px, py) => {
-    if (
-      px < offsetX ||
-      px >= offsetX + FRAME_WIDTH ||
-      py < 0 ||
-      py >= FRAME_HEIGHT
-    ) {
-      return false;
-    }
-    return sheet.data[(py * sheet.width + px) * 4 + 3] > 0;
-  };
-  for (let y = 0; y < FRAME_HEIGHT; y += 1) {
-    for (let x = 0; x < FRAME_WIDTH; x += 1) {
-      const ax = offsetX + x;
-      if (opaque(ax, y)) continue;
-      if (
-        opaque(ax - 1, y) ||
-        opaque(ax + 1, y) ||
-        opaque(ax, y - 1) ||
-        opaque(ax, y + 1)
-      ) {
-        sheet.px(ax, y, OUTLINE);
-      }
-    }
-  }
+  frame.outline(OUTLINE);
+  sheet.blit(frame, offsetX, 0);
   return sheet;
 }
 
@@ -401,7 +432,7 @@ export function characterSheet(name) {
         ? buildSpiritFrame(recipe, plan.dir, plan.step)
         : buildHumanFrame(recipe, plan.dir, plan.step);
     const frame =
-      plan.dir === "right" && recipe.hairStyle !== "spirit"
+      CERMIN.has(plan.dir) && recipe.hairStyle !== "spirit"
         ? grid.mirrored()
         : grid;
     paintFrame(sheet, frame, index * FRAME_WIDTH, plan.alt === true);
@@ -413,7 +444,7 @@ export function characterSheet(name) {
 export function characterDefaultSheet() {
   const recipe = {
     hair: RAMP.neutral700,
-    hairLight: RAMP.neutral500,
+    hairLight: RAMP.neutral300,
     skin: RAMP.neutral300,
     skinShade: RAMP.neutral500,
     eye: PALETTE.night,
@@ -428,7 +459,7 @@ export function characterDefaultSheet() {
   const sheet = createCanvas(FRAME_WIDTH * FRAME_COUNT, FRAME_HEIGHT);
   FRAME_PLAN.forEach((plan, index) => {
     const grid = buildHumanFrame(recipe, plan.dir, plan.step);
-    const frame = plan.dir === "right" ? grid.mirrored() : grid;
+    const frame = CERMIN.has(plan.dir) ? grid.mirrored() : grid;
     paintFrame(sheet, frame, index * FRAME_WIDTH, plan.alt === true);
   });
   return sheet;

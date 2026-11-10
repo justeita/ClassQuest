@@ -40,20 +40,20 @@ judul dan layar hasil.
 
 ### Sprite karakter
 
-| Properti     | Nilai                                              |
-| ------------ | -------------------------------------------------- |
-| Ukuran frame | **48×72**                                          |
-| Format       | PNG spritesheet, horizontal                        |
-| Frame        | 2 frame idle (bernafas), opsional 2 frame berjalan |
-| Anchor       | Kaki di tengah bawah                               |
-| Outline      | 1 px gelap, konsisten di semua karakter            |
-| Ukuran file  | ≤ 40 KB                                            |
+| Properti     | Nilai                                           |
+| ------------ | ----------------------------------------------- |
+| Ukuran frame | **24×32**                                       |
+| Format       | PNG spritesheet, horizontal (18 frame = 432×32) |
+| Frame        | 2 idle (bernafas) + 2 jalan untuk 8 arah hadap  |
+| Anchor       | Kaki di tengah bawah                            |
+| Outline      | 1 px gelap, konsisten di semua karakter         |
+| Ukuran file  | ≤ 40 KB                                         |
 
 ### Portrait
 
 | Properti  | Nilai                      |
 | --------- | -------------------------- |
-| Resolusi  | **96×96**                  |
+| Resolusi  | **64×64**                  |
 | Format    | PNG dengan transparansi    |
 | Pemakaian | Opsional, muncul di dialog |
 
