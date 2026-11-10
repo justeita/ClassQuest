@@ -14,8 +14,8 @@
  *
  * - Nilai default adalah `mock`. Provider sungguhan belum diputuskan
  *   (ADR 0006), jadi `mock` harus bisa jalan tanpa kunci apa pun.
- * - Provider di luar `mock` dan `anthropic` gagal dengan pesan yang jelas,
- *   bukan diterima lalu gagal saat demo.
+ * - Provider di luar daftar yang didukung gagal dengan pesan yang jelas, bukan
+ *   diterima lalu gagal saat demo.
  * - `AI_API_KEY` **tidak pernah** ikut di pesan error. Pesan ke guru/operator
  *   hanya menyebut nama variabel.
  * - Modul ini sengaja tidak memanggil `process.exit()` dan tidak mencetak apa
@@ -32,7 +32,11 @@
 import "server-only";
 
 /** Provider yang sah. Daftar ini sengaja pendek sampai ADR 0006 selesai. */
-export const SUPPORTED_AI_PROVIDERS = ["mock", "anthropic"] as const;
+export const SUPPORTED_AI_PROVIDERS = [
+  "mock",
+  "anthropic",
+  "openai-compatible",
+] as const;
 
 export type AiProviderName = (typeof SUPPORTED_AI_PROVIDERS)[number];
 
@@ -60,6 +64,19 @@ export type AiConfig =
       apiKey: string;
       model: string;
       baseUrl: string | null;
+      timeoutMs: number;
+    }
+  | {
+      /**
+       * Endpoint yang kompatibel dengan [OI] (`POST {baseUrl}/chat/completions`),
+       * mis. router, OpenRouter, Groq, atau Ollama. `apiKey` opsional karena
+       * sebagian server lokal tidak memakai kunci.
+       */
+      provider: "openai-compatible";
+      apiKey: string | null;
+      model: string;
+      /** Sudah divalidasi http/https dan tanpa trailing slash. */
+      baseUrl: string;
       timeoutMs: number;
     };
 
@@ -132,6 +149,34 @@ const readTimeout = (env: EnvSource): number => {
 };
 
 /**
+ * Validasi `AI_BASE_URL` untuk provider `openai-compatible`.
+ *
+ * Hanya `http`/`https` yang diterima; trailing slash dibuang supaya provider
+ * tidak membentuk `//chat/completions`. Pesan error tidak pernah memuat nilai
+ * URL — URL bisa mengandung token di query atau userinfo.
+ */
+const normalizeBaseUrl = (value: string): string => {
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new AiConfigError(
+      "AI_BASE_URL harus berupa URL http atau https yang valid. Periksa nama variabel ini di .env.local.",
+      ["AI_BASE_URL"],
+    );
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new AiConfigError(
+      "AI_BASE_URL harus berupa URL http atau https yang valid. Periksa nama variabel ini di .env.local.",
+      ["AI_BASE_URL"],
+    );
+  }
+
+  return value.replace(/\/+$/, "");
+};
+
+/**
  * Baca konfigurasi database.
  *
  * `DATABASE_URL` kosong berarti database file lokal `file:./local.db` supaya
@@ -188,7 +233,7 @@ export function loadAiConfig(env: EnvSource = process.env): AiConfig {
 
   if (!isSupportedProvider(providerName)) {
     throw new AiConfigError(
-      `Provider AI "${providerName}" belum didukung. Nilai yang bisa dipakai: ${SUPPORTED_AI_PROVIDERS.join(", ")}.`,
+      `Nilai AI_PROVIDER belum didukung. Nilai yang bisa dipakai: ${SUPPORTED_AI_PROVIDERS.join(", ")}.`,
       ["AI_PROVIDER"],
     );
   }
@@ -199,6 +244,33 @@ export function loadAiConfig(env: EnvSource = process.env): AiConfig {
       apiKey: null,
       model: null,
       baseUrl: null,
+      timeoutMs,
+    };
+  }
+
+  if (providerName === "openai-compatible") {
+    // Router/endpoint [OI]-compatible: `AI_BASE_URL` dan `AI_MODEL` wajib,
+    // `AI_API_KEY` opsional (beberapa server lokal tidak memakai kunci).
+    const apiKey = read(env, "AI_API_KEY");
+    const model = read(env, "AI_MODEL");
+    const baseUrlValue = read(env, "AI_BASE_URL");
+    const missing: string[] = [];
+
+    if (baseUrlValue === null) missing.push("AI_BASE_URL");
+    if (model === null) missing.push("AI_MODEL");
+
+    if (baseUrlValue === null || model === null) {
+      throw new AiConfigError(
+        `Provider openai-compatible membutuhkan ${missing.join(" dan ")} yang tidak boleh kosong. Isi di .env.local.`,
+        missing,
+      );
+    }
+
+    return {
+      provider: "openai-compatible",
+      apiKey,
+      model,
+      baseUrl: normalizeBaseUrl(baseUrlValue),
       timeoutMs,
     };
   }

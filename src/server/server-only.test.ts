@@ -28,6 +28,7 @@ const GUARDED_MODULES = [
   "server/auth.ts",
   "server/db/client.ts",
   "ai/providers/anthropic.ts",
+  "ai/providers/openai-compatible.ts",
 ] as const;
 
 const GUARD = 'import "server-only";';

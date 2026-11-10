@@ -8,17 +8,28 @@
  * - `mock` (atau `AI_PROVIDER` kosong) → `MockProvider`, tanpa kunci dan tanpa
  *   jaringan.
  * - `anthropic` → `AnthropicProvider` (`./providers/anthropic`).
+ * - `openai-compatible` → `OpenAiCompatibleProvider`
+ *   (`./providers/openai-compatible`), untuk router/endpoint [OI]-compatible.
  *
- * Validasi kelengkapan konfigurasi tetap di `loadAiConfig()`: `AI_PROVIDER=anthropic`
- * tanpa `AI_API_KEY` atau `AI_MODEL` sudah melempar `AiConfigError` yang menyebut
- * nama variabel sebelum sampai ke sini. Factory tidak pernah diam-diam jatuh ke
+ * Validasi kelengkapan konfigurasi tetap di `loadAiConfig()`: provider nyata
+ * tanpa variabel wajib sudah melempar `AiConfigError` yang menyebut nama
+ * variabel sebelum sampai ke sini. Factory tidak pernah diam-diam jatuh ke
  * mock.
  */
 
 import type { AiConfig } from "../server/config";
 import { MockProvider } from "./mock-provider";
 import { AnthropicProvider } from "./providers/anthropic";
+import {
+  OpenAiCompatibleProvider,
+  type FetchLike,
+} from "./providers/openai-compatible";
 import type { LlmProvider } from "./provider";
+
+/** Opsi test; hanya provider `openai-compatible` yang memakai `fetch`. */
+export type CreateLlmProviderOptions = {
+  fetch?: FetchLike;
+};
 
 /**
  * Buat provider sesuai `config.provider`.
@@ -27,11 +38,19 @@ import type { LlmProvider } from "./provider";
  * Pemeriksaan di sini hanya jaring pengaman untuk pemanggil yang mengarang
  * `AiConfig` sendiri; jalur normal sudah divalidasi `loadAiConfig()`.
  */
-export function createLlmProvider(config: AiConfig): LlmProvider {
+export function createLlmProvider(
+  config: AiConfig,
+  options: CreateLlmProviderOptions = {},
+): LlmProvider {
   switch (config.provider) {
     case "mock":
       return new MockProvider();
     case "anthropic":
       return new AnthropicProvider(config);
+    case "openai-compatible":
+      return new OpenAiCompatibleProvider(
+        config,
+        options.fetch === undefined ? {} : { fetch: options.fetch },
+      );
   }
 }

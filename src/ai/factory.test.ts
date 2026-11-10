@@ -6,6 +6,10 @@ import { AiConfigError, loadAiConfig } from "../server/config";
 import { createLlmProvider } from "./factory";
 import { MockProvider } from "./mock-provider";
 import { AnthropicProvider } from "./providers/anthropic";
+import {
+  OpenAiCompatibleProvider,
+  type FetchLike,
+} from "./providers/openai-compatible";
 import type { LlmRequest } from "./provider";
 
 /**
@@ -120,6 +124,77 @@ describe("createLlmProvider", () => {
   it("anthropic tanpa kunci dan model tidak jatuh diam-diam ke mock", () => {
     expect(() =>
       createLlmProvider(loadAiConfig({ AI_PROVIDER: "anthropic" })),
+    ).toThrow(AiConfigError);
+  });
+
+  it("memilih OpenAiCompatibleProvider untuk AI_PROVIDER=openai-compatible", () => {
+    const provider = createLlmProvider(
+      loadAiConfig({
+        AI_PROVIDER: "openai-compatible",
+        AI_MODEL: "model-contoh",
+        AI_BASE_URL: "https://router.example.test/v1",
+      }),
+    );
+
+    expect(provider).toBeInstanceOf(OpenAiCompatibleProvider);
+    expect(provider).not.toBeInstanceOf(MockProvider);
+    expect(provider).not.toBeInstanceOf(AnthropicProvider);
+  });
+
+  it("membuat provider openai-compatible tanpa memanggil jaringan", () => {
+    const fetchSpy = vi.fn(() => {
+      throw new Error("jaringan tidak boleh dipanggil di test");
+    });
+    vi.stubGlobal("fetch", fetchSpy);
+
+    createLlmProvider(
+      loadAiConfig({
+        AI_PROVIDER: "openai-compatible",
+        AI_MODEL: "model-contoh",
+        AI_BASE_URL: "https://router.example.test/v1",
+      }),
+    );
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("meneruskan fetch yang disuntikkan ke provider openai-compatible", async () => {
+    const fetchSpy = vi.fn(async () =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            choices: [{ message: { content: "{}" } }],
+            usage: { prompt_tokens: 3, completion_tokens: 4 },
+          }),
+          { status: 200 },
+        ),
+      ),
+    );
+
+    const provider = createLlmProvider(
+      loadAiConfig({
+        AI_PROVIDER: "openai-compatible",
+        AI_MODEL: "model-contoh",
+        AI_BASE_URL: "https://router.example.test/v1",
+      }),
+      { fetch: fetchSpy as unknown as FetchLike },
+    );
+
+    const response = await provider.complete(request);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(response.text).toBe("{}");
+    expect(response.usage).toEqual({ input: 3, output: 4 });
+  });
+
+  it("openai-compatible tanpa AI_BASE_URL tidak jatuh diam-diam ke mock", () => {
+    expect(() =>
+      createLlmProvider(
+        loadAiConfig({
+          AI_PROVIDER: "openai-compatible",
+          AI_MODEL: "model-contoh",
+        }),
+      ),
     ).toThrow(AiConfigError);
   });
 });
