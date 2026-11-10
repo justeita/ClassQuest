@@ -27,6 +27,29 @@ export type MovementKeys = Record<
   Phaser.Input.Keyboard.Key[]
 >;
 
+export type ArahGerak = "left" | "right" | "up" | "down";
+
+/**
+ * Layout sheet karakter 24×32 (10 frame, generator `scripts/lib/characters.mjs`):
+ * 0–1 idle menghadap kamera, lalu 2 frame jalan per arah. `diam` adalah frame
+ * berdiri per arah non-kamera — pemain yang berhenti menghadap samping tidak
+ * berbalik ke depan (world-design.md § Sprite karakter).
+ */
+export const FRAME_ANIMASI = {
+  idle: { start: 0, end: 1 },
+  jalan: { down: [2, 3], up: [4, 5], left: [6, 7], right: [8, 9] },
+  diam: { up: 4, left: 6, right: 8 },
+} as const;
+
+/** Arah yang sedang ditekan; `null` bila tidak ada tombol gerak. */
+export function arahGerak(keys?: MovementKeys): ArahGerak | null {
+  if (keys?.left.some((key) => key.isDown)) return "left";
+  if (keys?.right.some((key) => key.isDown)) return "right";
+  if (keys?.up.some((key) => key.isDown)) return "up";
+  if (keys?.down.some((key) => key.isDown)) return "down";
+  return null;
+}
+
 export function ambilTombolGerak(
   scene: Phaser.Scene,
 ): MovementKeys | undefined {
@@ -87,17 +110,14 @@ export function applyMovement(
   const body = player.body as Phaser.Physics.Arcade.Body;
   const speed = (player.getData("speed") as number) ?? 0;
 
-  const kiri = keys?.left.some((key) => key.isDown) ?? false;
-  const kanan = keys?.right.some((key) => key.isDown) ?? false;
-  const atas = keys?.up.some((key) => key.isDown) ?? false;
-  const bawah = keys?.down.some((key) => key.isDown) ?? false;
+  const arah = arahGerak(keys);
 
   let vx = 0;
   let vy = 0;
-  if (kiri) vx -= speed;
-  if (kanan) vx += speed;
-  if (atas) vy -= speed;
-  if (bawah) vy += speed;
+  if (arah === "left") vx -= speed;
+  if (arah === "right") vx += speed;
+  if (arah === "up") vy -= speed;
+  if (arah === "down") vy += speed;
 
   if (vx !== 0 && vy !== 0) {
     // 1 / sqrt(2): diagonal tetap bergerak secepat gerak lurus.
