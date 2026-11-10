@@ -14,6 +14,11 @@
  * docs Next 16 dengan Cache Components, route ini **sengaja tidak** mengekspor
  * `export const runtime` — ekspor itu tidak didukung, termasuk `runtime =
  * "nodejs"`. Runtime default sudah Node.js.
+ *
+ * `maxDuration` mengikuti docs Next 16 (`after` berjalan selama batas durasi
+ * route). Nilai 300 detik adalah asumsi: pipeline punya deadline 120 detik dan
+ * satu panggilan bisa menggantung sampai 60 detik, jadi 300 memberi ruang
+ * untuk ekstraksi + penyimpanan. Batas hosting bisa lebih kecil.
  */
 
 import { z } from "zod";
@@ -28,6 +33,8 @@ import { getReadyDb } from "@/server/db";
 import { scheduleJob } from "@/server/jobs/schedule";
 import { MAX_PDF_BYTES, readPdfUpload, UploadError } from "@/server/upload";
 import type { PdfUploadInput } from "@/server/upload";
+
+export const maxDuration = 300;
 
 /**
  * Margin di atas `MAX_PDF_BYTES` untuk overhead multipart (boundary dan field
@@ -173,7 +180,7 @@ export async function POST(request: Request): Promise<Response> {
       throw error;
     }
 
-    // f. Serahkan bytes PDF ke penjadwal job (task 18 mengimplementasikannya).
+    // f. Serahkan bytes PDF ke penjadwal job (dijalankan lewat `after()`).
     scheduleJob({
       jobId,
       storyId,
@@ -182,6 +189,7 @@ export async function POST(request: Request): Promise<Response> {
         filename: upload.filename,
         sizeBytes: upload.sizeBytes,
       },
+      tone: fields.data.tone,
     });
 
     // g. Bentuk 202 persis dari api-contract.md.
