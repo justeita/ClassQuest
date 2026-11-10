@@ -102,6 +102,9 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/map.ts`                          | ya      | Konverter RoomData (tile) → peta runtime piksel       |
 | `src/game/maps`                            | ya      | Data ruangan per scene + template default (ADR 0010)  |
 | `src/game/map.test.ts`                     | ya      | Tes resolver map dan konverter collider               |
+| `src/game/camera.ts`                       | ya      | Keputusan kamera per ruangan: lock/follow (ADR 0010)  |
+| `src/game/camera.test.ts`                  | ya      | Tes mode kamera, dead zone, dan lerp                  |
+| `src/game/constants.ts`                    | ya      | Konstanta resolusi + tile tanpa dependensi            |
 | `src/game/movement.ts`                     | ya      | Gerak pemain 4 arah + collision top-down (ADR 0008)   |
 | `src/game/gameBus.ts`                      | ya      | Bridge bertipe Phaser ↔ React (event + command)       |
 | `src/game/challengeView.ts`                | ya      | Data tantangan aman untuk overlay (tanpa jawaban)     |

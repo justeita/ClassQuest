@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { Story } from "@/story/schema";
 
+import { CAMERA_LERP, deadzonePx, kameraMode } from "../camera";
 import { roomForScene, type RoomMap } from "../map";
 import { resolveRoomData } from "../maps/roomData";
 import { TILE_SIZE, type RoomData, type RoomObject } from "../maps/types";
@@ -405,8 +406,26 @@ export class GameScene extends Phaser.Scene {
     this.hancurkanRuang();
     this.renderRuang();
 
-    // Ruangan lebih luas dari layar: kamera di tengah map sampai PR kamera.
-    this.cameras.main.centerOn(this.room.width / 2, this.room.height / 2);
+    this.pasangKamera();
+  }
+
+  /**
+   * Kamera per ruangan (world-design.md § Kamera): batas = ukuran map, ikuti
+   * pemain dengan dead zone 8×6 tile dan lerp 0.12 bila map lebih luas dari
+   * layar; ruangan seukuran layar dikunci ke tengah.
+   */
+  private pasangKamera() {
+    const cam = this.cameras.main;
+    cam.setBounds(0, 0, this.room.width, this.room.height);
+
+    if (kameraMode(this.roomData) === "follow" && this.player) {
+      cam.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
+      const zona = deadzonePx();
+      cam.setDeadzone(zona.width, zona.height);
+    } else {
+      cam.stopFollow();
+    }
+    cam.centerOn(this.room.width / 2, this.room.height / 2);
   }
 
   private hancurkanRuang() {
