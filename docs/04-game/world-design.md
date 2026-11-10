@@ -138,8 +138,8 @@ dunia.
 | Hal         | Nilai                                                              |
 | ----------- | ------------------------------------------------------------------ |
 | Frame       | 24×32 px                                                           |
-| Sheet       | Horizontal: idle 2 frame, jalan 2 frame **per arah** (4 arah)      |
-| Total frame | 10 (2 idle + 8 jalan)                                              |
+| Sheet       | Horizontal: idle 2 frame, jalan 2 frame **per arah** (8 arah)      |
+| Total frame | 18 (2 idle + 16 jalan)                                             |
 | Anchor      | Tengah bawah (kaki)                                                |
 | Outline     | 1 px gelap, konsisten dengan latar                                 |
 | Bayangan    | Elips 12×4 px di bawah kaki (gambar terpisah, bukan bagian frame)  |
@@ -148,9 +148,13 @@ dunia.
 Aturan animasi:
 
 - Animasi jalan 6 frame/detik, idle 2 frame/detik.
-- Idle cukup satu arah (menghadap kamera); jalan butuh 4 arah.
+- Idle cukup satu arah (menghadap kamera); jalan butuh **8 arah** (empat utama
+  - empat diagonal).
+- Diagonal digambar sebagai tampak tiga-perempat: badan menyamping dengan wajah
+  sebagian menghadap kamera untuk arah bawah, dan kepala dari belakang untuk
+  arah atas. Sisi kanan adalah cermin sisi kiri.
 - Saat berhenti, frame terakhir di arah terakhir — jangan kembali ke idle
-  menghadap depan untuk arah samping.
+  menghadap depan untuk arah samping maupun diagonal.
 
 ## Lampiran aset latar
 
@@ -213,7 +217,7 @@ nama id tile.
 - World terbuka yang tersambung bebas antar ruangan (ditolak ADR 0008).
 - Tilemap buatan alat eksternal (ditolak ADR 0010).
 - Parallax lebih dari dua lapisan; satu lapisan latar belakang sudah cukup.
-- Karakter menghadap diagonal; cukup 4 arah.
+- Animasi diagonal lebih dari 2 frame (jalan diagonal memakai 2 frame cermin).
 
 ## Referensi
 

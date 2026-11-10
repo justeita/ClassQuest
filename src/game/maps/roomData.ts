@@ -95,11 +95,12 @@ const DEFAULT_ROOM: RoomData = {
       tileH: 2,
       solid: true,
     },
-    // Guru di dekat papan, teman di kiri.
+    // Guru di depan papan (tengah atas), teman di kiri. Sengaja tidak di
+    // sudut kanan-atas: area itu tertutup HUD dan dekat tepi kamera.
     {
       kind: "npc",
       id: "char_pak_bima",
-      tileX: 34,
+      tileX: 24,
       tileY: 6,
       tileW: 1,
       tileH: 2,
@@ -145,15 +146,7 @@ const CLASSROOM: RoomData = {
       tileH: 2,
       solid: true,
     },
-    {
-      kind: "prop",
-      id: "prop_desk",
-      tileX: 16,
-      tileY: 12,
-      tileW: 3,
-      tileH: 2,
-      solid: true,
-    },
+    // Lorong tengah (tile 16–19) sengaja kosong agar guru bisa dijangkau.
     {
       kind: "prop",
       id: "prop_desk",
@@ -173,18 +166,9 @@ const CLASSROOM: RoomData = {
       solid: true,
     },
     {
-      kind: "prop",
-      id: "prop_desk",
-      tileX: 24,
-      tileY: 19,
-      tileW: 3,
-      tileH: 2,
-      solid: true,
-    },
-    {
       kind: "npc",
       id: "char_pak_bima",
-      tileX: 36,
+      tileX: 23,
       tileY: 6,
       tileW: 1,
       tileH: 2,
@@ -262,8 +246,8 @@ const SCHOOLYARD: RoomData = {
     {
       kind: "npc",
       id: "char_pak_bima",
-      tileX: 42,
-      tileY: 6,
+      tileX: 24,
+      tileY: 8,
       tileW: 1,
       tileH: 2,
       solid: true,

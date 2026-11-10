@@ -4,6 +4,7 @@ import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { Story } from "@/story/schema";
 
 import { CAMERA_LERP, deadzonePx, kameraMode } from "../camera";
+import { DEPTH_DINDING, DEPTH_LANTAI } from "../depth";
 import { roomForScene, type RoomMap } from "../map";
 import { resolveRoomData } from "../maps/roomData";
 import { TILE_SIZE, type RoomData, type RoomObject } from "../maps/types";
@@ -109,6 +110,7 @@ export class GameScene extends Phaser.Scene {
       this.player,
       this.wallBodies!,
     );
+    this.pasangKamera();
     this.mainkanIdle(this.player, spritePemain);
 
     this.keys = ambilTombolGerak(this);
@@ -382,16 +384,16 @@ export class GameScene extends Phaser.Scene {
       this.sceneAktif !== null &&
       sceneId !== null &&
       this.sceneAktif !== sceneId;
-    if (gantiScene) {
-      this.mainkanSfx("sfx_page");
-      this.kembalikanPemain();
-    }
+    if (gantiScene) this.mainkanSfx("sfx_page");
     if (sceneId !== null) this.sceneAktif = sceneId;
 
     // Ruangan dibangun dari data map scene aktif (ADR 0010); scene tanpa map
-    // khusus memakai template default.
-    if (gantiScene || !this.room) {
+    // khusus memakai template default. Pemain kembali ke spawn hanya saat
+    // layout ruangan benar-benar berubah — bukan setiap pindah scene.
+    const dataRuang = resolveRoomData(sceneId);
+    if (dataRuang !== this.roomData) {
       this.pasangRuangan(state);
+      this.kembalikanPemain();
     }
 
     this.putarMusik(look.musicId);
@@ -410,6 +412,10 @@ export class GameScene extends Phaser.Scene {
         : null;
     this.room = roomForScene(sceneId, this.story);
     this.roomData = resolveRoomData(sceneId);
+
+    // Dunia fisika mengikuti ukuran map, bukan layar — kalau tidak, pemain
+    // terjepit di kotak tak terlihat 640×360 dan "melompat" ke tepi bawah.
+    this.physics.world.setBounds(0, 0, this.room.width, this.room.height);
 
     this.hancurkanRuang();
     this.renderRuang();
@@ -457,7 +463,7 @@ export class GameScene extends Phaser.Scene {
         this.add
           .tileSprite(0, 0, room.width, room.height, room.floorTile)
           .setOrigin(0)
-          .setDepth(-20),
+          .setDepth(DEPTH_LANTAI),
       );
     } else {
       this.ruanganObjects.push(
@@ -469,7 +475,7 @@ export class GameScene extends Phaser.Scene {
             room.height,
             room.floorColor,
           )
-          .setDepth(-20),
+          .setDepth(DEPTH_LANTAI),
       );
     }
 
@@ -489,7 +495,7 @@ export class GameScene extends Phaser.Scene {
               height,
               room.wallColor,
             );
-        this.ruanganObjects.push(visual.setDepth(-10));
+        this.ruanganObjects.push(visual.setDepth(DEPTH_DINDING));
         continue;
       }
       if (object.kind === "prop") this.renderProp(object);
@@ -645,7 +651,17 @@ export class GameScene extends Phaser.Scene {
         });
       }
 
-      for (const arah of ["down", "up", "left", "right"] as const) {
+      const arahJalan = [
+        "down",
+        "up",
+        "left",
+        "right",
+        "down-left",
+        "down-right",
+        "up-left",
+        "up-right",
+      ] as const;
+      for (const arah of arahJalan) {
         const key = `jalan-${id}-${arah}`;
         if (this.anims.exists(key)) continue;
         const [start, end] = FRAME_ANIMASI.jalan[arah];
@@ -661,7 +677,8 @@ export class GameScene extends Phaser.Scene {
 
   private mainkanIdle(sprite: Phaser.GameObjects.Sprite, spriteId: string) {
     const key = `idle-${spriteId}`;
-    if (this.anims.exists(key)) sprite.play(key);
+    // ignoreIfPlaying: tanpa ini idle direstart tiap frame dan terlihat macet.
+    if (this.anims.exists(key)) sprite.play(key, true);
   }
 
   /**
