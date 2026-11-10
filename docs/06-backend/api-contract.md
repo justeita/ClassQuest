@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
@@ -33,19 +33,20 @@ type ApiError = {
 
 Kode error yang dipakai:
 
-| Kode             | HTTP | Arti                            |
-| ---------------- | ---- | ------------------------------- |
-| `UNAUTHORIZED`   | 401  | Tidak ada/kedaluwarsa sesi guru |
-| `FORBIDDEN`      | 403  | Bukan pemilik cerita            |
-| `NOT_FOUND`      | 404  | Cerita/job tidak ada            |
-| `FILE_MISSING`   | 400  | Tidak ada file di form          |
-| `FILE_TOO_LARGE` | 413  | Melebihi batas                  |
-| `FILE_TYPE`      | 415  | Bukan PDF                       |
-| `PDF_UNREADABLE` | 422  | PDF rusak/terenkripsi           |
-| `NO_TEXT_LAYER`  | 422  | PDF scan, tidak ada teks        |
-| `TOO_MANY_PAGES` | 422  | Melebihi batas halaman          |
-| `RATE_LIMITED`   | 429  | Terlalu banyak permintaan       |
-| `INTERNAL`       | 500  | Kesalahan tak terduga           |
+| Kode             | HTTP | Arti                                                  |
+| ---------------- | ---- | ----------------------------------------------------- |
+| `UNAUTHORIZED`   | 401  | Sesi tidak ada/kedaluwarsa; kode akses guru tidak sah |
+| `FORBIDDEN`      | 403  | Bukan pemilik cerita                                  |
+| `NOT_FOUND`      | 404  | Cerita/job tidak ada (termasuk bukan milik guru)      |
+| `INVALID_INPUT`  | 400  | Body/field request tidak valid                        |
+| `FILE_MISSING`   | 400  | Tidak ada file di form                                |
+| `FILE_TOO_LARGE` | 413  | Melebihi batas                                        |
+| `FILE_TYPE`      | 415  | Bukan PDF                                             |
+| `PDF_UNREADABLE` | 422  | PDF rusak/terenkripsi                                 |
+| `NO_TEXT_LAYER`  | 422  | PDF scan, tidak ada teks                              |
+| `TOO_MANY_PAGES` | 422  | Melebihi batas halaman                                |
+| `RATE_LIMITED`   | 429  | Terlalu banyak permintaan                             |
+| `INTERNAL`       | 500  | Kesalahan tak terduga                                 |
 
 ---
 
@@ -119,6 +120,26 @@ Status generasi untuk polling.
 }
 ```
 
+**Response saat selesai:**
+
+```json
+{
+  "id": "job_def456",
+  "storyId": "st_abc123",
+  "stage": "done",
+  "progress": 100,
+  "message": "Selesai",
+  "startedAt": "2026-11-08T10:00:00.000Z",
+  "finishedAt": "2026-11-08T10:01:40.000Z",
+  "version": 1,
+  "usedFallback": false
+}
+```
+
+`version` dan `usedFallback` diambil dari baris `story_versions` **terbaru** milik
+`storyId`; `usedFallback: true` memicu banner "cerita cadangan" di dashboard. Isi
+cerita (JSON) **tidak** dikirim di sini — JSON itu hanya lewat server component.
+
 **Response saat gagal:**
 
 ```json
@@ -139,7 +160,21 @@ Status generasi untuk polling.
 Aturan:
 
 - `Cache-Control: no-store`.
-- Hanya pemilik (guru) yang bisa melihat.
+- Hanya pemilik (guru) yang bisa melihat: job harus milik story yang
+  `teacher_id`-nya sama dengan sesi. Job yang tidak ada dan job milik guru lain
+  dijawab **sama**: `404 NOT_FOUND` dengan body identik, supaya keberadaan job
+  tidak bocor. `jobId` yang tidak valid (kosong/terlalu panjang) juga `404`.
+- Tanpa sesi: `401 UNAUTHORIZED`.
+- `message` opsional. Saat `stage: "failed"`, alasan ada di
+  `error: { code, message }` dengan `code` salah satu `PDF_UNREADABLE`,
+  `TOO_MANY_PAGES`, `NO_TEXT_LAYER`, `INTERNAL`; `message` selalu teks statis
+  dari server, bukan kolom database mentah.
+- **Job basi.** Job yang masih berjalan lebih dari 330 detik
+  (300 detik `maxDuration` route upload + 30 detik margin) sejak `started_at`
+  dianggap gagal: dijawab `stage: "failed"` dengan `error.code: "INTERNAL"`,
+  lalu kegagalannya **disimpan** (job → `failed`, story `processing` → `failed`).
+  Kontrak belum punya kode khusus timeout; usul: `TIMEOUT`. Implementasi:
+  `src/server/jobs/status.ts` + `src/server/jobs/limits.ts`.
 - `stage` ∈ `queued | extracting | outlining | generating | validating | repairing | saving | done | failed`.
 - `progress` hanya salah satu dari `5, 15, 30, 55, 75, 90, 100` (lihat
   [`jobs-and-limits.md`](./jobs-and-limits.md#progress)). Jangan mengirim angka
@@ -148,6 +183,59 @@ Aturan:
   `error: { code, message }`. Di database, ia satu kolom `error_code` (dan
   `error_message` bila perlu). Nama field JSON **tidak** harus sama dengan nama
   kolom; yang mengikat adalah bentuk JSON di dokumen ini.
+
+---
+
+## `POST /api/auth/login`
+
+Tukar kode akses guru dengan cookie sesi. Satu kode berlaku untuk semua guru
+(demo). Detail auth: [`persistence.md`](./persistence.md#auth-tbd).
+
+**Request:** `application/json`
+
+```json
+{ "code": "<kode akses guru>" }
+```
+
+**Response `200`:**
+
+```json
+{ "ok": true }
+```
+
+Cookie sesi (`classquest_teacher_session`) di-set `httpOnly`, `sameSite=lax`,
+`path=/`, `secure` hanya di production, `maxAge` 8 jam. Isinya token bertanda
+tangan; token tidak pernah dikirim di body.
+
+**Kegagalan:**
+
+| Kondisi                                                 | Response            |
+| ------------------------------------------------------- | ------------------- |
+| Body bukan JSON, tanpa `code`, atau `code` bukan string | `400 INVALID_INPUT` |
+| `code` kosong                                           | `401 UNAUTHORIZED`  |
+| `code` salah                                            | `401 UNAUTHORIZED`  |
+| `TEACHER_ACCESS_CODE`/secret belum diisi                | `401 UNAUTHORIZED`  |
+
+Tiga baris `401` di atas memakai **pesan yang sama**. Klien tidak boleh bisa
+membedakan "salah" dari "belum dikonfigurasi". Tidak ada kode akses, token, atau
+secret di respons.
+
+Catatan: **rate limit belum ada**; menyusul (lihat bagian Rate limit).
+
+---
+
+## `POST /api/auth/logout`
+
+Hapus cookie sesi guru. Aman dipanggil tanpa sesi.
+
+**Response `200`:**
+
+```json
+{ "ok": true }
+```
+
+Tanpa sesi pun hasilnya sama; tombol keluar tidak boleh gagal hanya karena cookie
+sudah tidak ada. `Cache-Control: no-store` di kedua endpoint auth.
 
 ---
 
@@ -236,11 +324,12 @@ yang sudah ada.
 
 ## Rate limit
 
-| Endpoint             | Batas awal                 |
-| -------------------- | -------------------------- |
-| `POST /api/upload`   | 5 per 10 menit per sesi/IP |
-| `GET /api/jobs/*`    | 60 per menit per sesi      |
-| `GET /api/stories/*` | 120 per menit per IP       |
+| Endpoint               | Batas awal                 |
+| ---------------------- | -------------------------- |
+| `POST /api/auth/login` | TBD (task 24)              |
+| `POST /api/upload`     | 5 per 10 menit per sesi/IP |
+| `GET /api/jobs/*`      | 60 per menit per sesi      |
+| `GET /api/stories/*`   | 120 per menit per IP       |
 
 Implementasi: `TBD` (in-memory untuk demo, Redis/DB untuk produksi).
 

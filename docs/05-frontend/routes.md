@@ -38,6 +38,8 @@ landing atau dashboard guru. Target siswa tetap `/play/[storyId]`.
 
 | Method | Route                    | Fungsi                                   |
 | ------ | ------------------------ | ---------------------------------------- |
+| `POST` | `/api/auth/login`        | Tukar kode akses dengan cookie sesi      |
+| `POST` | `/api/auth/logout`       | Hapus cookie sesi                        |
 | `POST` | `/api/upload`            | Terima PDF, buat story + job             |
 | `GET`  | `/api/jobs/[jobId]`      | Status generasi                          |
 | `GET`  | `/api/stories/[storyId]` | Cerita `published` untuk game (no-store) |
