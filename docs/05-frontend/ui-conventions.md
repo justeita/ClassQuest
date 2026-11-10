@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
@@ -53,15 +53,28 @@ Aturan:
 
 ## Tipografi
 
-| Peran              | Font              | Ukuran                                |
-| ------------------ | ----------------- | ------------------------------------- |
-| UI guru            | Geist Sans        | `text-sm` (14) body, `text-2xl` judul |
-| Judul halaman      | Geist Sans        | `text-2xl font-semibold`              |
-| Teks game (dialog) | Pixel font (aset) | 8 px internal, diskalakan             |
-| Kode/ID aset       | Geist Mono        | `text-xs`                             |
+| Peran         | Font                       | Ukuran                                |
+| ------------- | -------------------------- | ------------------------------------- |
+| UI guru       | Geist Sans                 | `text-sm` (14) body, `text-2xl` judul |
+| Judul halaman | Geist Sans                 | `text-2xl font-semibold`              |
+| Teks game     | Patrick Hand (`font-game`) | `clamp()` dari `src/game/layout.ts`   |
+| Kode/ID aset  | Geist Mono                 | `text-xs`                             |
 
-Font sudah dimuat di `src/app/layout.tsx` lewat `next/font/google`. Jangan
-memuat font lewat `<link>` manual.
+- `--font-game` = `var(--font-handwriting)` didefinisikan di `@theme inline`
+  `src/app/globals.css`; utility `font-game` dipakai HUD, dialog, prompt, dan
+  layar overlay game.
+- **Patrick Hand hanya punya bobot 400.** Jangan memakai `font-bold` untuk teks
+  game — browser akan mensintesis bold dan huruf terlihat kotor. Pakai ukuran,
+  warna, atau `tracking` untuk hierarki.
+- Ukuran teks game memakai `clamp(min, Ncqw, max)` dari `layout.ts`, bukan `rem`
+  tetap, supaya ikut skala canvas tanpa turun di bawah batas baca. Jangan
+  menyalin angka internal ke komponen.
+- Teks dialog **tidak** digambar di canvas (ADR 0007); panel dan portrait tetap
+  Phaser, teksnya DOM. Jangan menambah teks permainan baru di canvas.
+
+Font dimuat di `src/app/layout.tsx`: Geist lewat `next/font/google`, Patrick Hand
+lewat `next/font/local` dari `public/fonts/`. Jangan memuat font lewat `<link>`
+manual.
 
 ## Spacing dan layout
 

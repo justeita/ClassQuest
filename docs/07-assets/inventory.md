@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
@@ -110,6 +110,17 @@ dijamin identik.
 | `ui_portrait_frame` | Bingkai potret | `/assets/ui/portrait_frame.png` | potret, bingkai, karakter, frame | ready  |
 | `ui_default`        | UI default     | `/assets/ui/default.png`        | default, cadangan, panel, netral | ready  |
 
+## Font game
+
+Font teks game **bukan** aset Phaser dan tidak masuk `src/assets/manifest.ts`;
+dimuat `next/font/local` dari `public/fonts/` (ADR 0007).
+
+| File                           | Ukuran   | Kegunaan              |
+| ------------------------------ | -------- | --------------------- |
+| `patrick-hand-latin.woff2`     | 23.944 B | Subset Latin (utama)  |
+| `patrick-hand-latin-ext.woff2` | 20.112 B | Subset Latin Extended |
+| `OFL.txt`                      | 4.376 B  | Lisensi SIL OFL 1.1   |
+
 ## Ringkasan
 
 | Kind         | Jumlah |
@@ -136,9 +147,10 @@ Urutan yang disarankan agar game bisa tampil cepat:
 
 ## Sumber dan lisensi
 
-| id  | Sumber                                                           | Lisensi |
-| --- | ---------------------------------------------------------------- | ------- |
-| —   | Semua aset harus dibuat sendiri atau CC0; catat saat aset dibuat | —       |
+| id  | Sumber                                                           | Lisensi     |
+| --- | ---------------------------------------------------------------- | ----------- |
+| —   | Semua aset harus dibuat sendiri atau CC0; catat saat aset dibuat | —           |
+| —   | Font Patrick Hand (`public/fonts/`)                              | SIL OFL 1.1 |
 
 Jangan mengisi kolom ini dengan "Google Images" atau nama game komersial.
 

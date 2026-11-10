@@ -94,8 +94,11 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/sceneAssets.test.ts`                | ya   | Tes resolusi look dan pemilihan aset cerita           |
 | `src/game/StoryRunner.ts`                     | ya   | State machine pemutar cerita (murni, tanpa Phaser)    |
 | `src/game/typewriter.ts`                      | ya   | Efek ketik murni (30–40 karakter/detik)               |
-| `src/game/textbox.ts`                         | ya   | Textbox dialog sesuai scene-format.md                 |
-| `src/game/interaction.ts`                     | ya   | Zona interaksi NPC + prompt (ADR 0008)                |
+| `src/game/textbox.ts`                         | ya   | Panel + portrait dialog; state typewriter → DOM       |
+| `src/game/layout.ts`                          | ya   | Geometri UI 640×360 untuk Phaser dan DOM              |
+| `src/game/font.ts`                            | ya   | Nama keluarga font game untuk Phaser                  |
+| `src/game/text.ts`                            | ya   | `teksTajam()` untuk label kecil di canvas             |
+| `src/game/interaction.ts`                     | ya   | Zona interaksi NPC + posisi prompt (ADR 0008)         |
 | `src/game/map.ts`                             | ya   | Konverter RoomData (tile) → peta runtime piksel       |
 | `src/game/maps`                               | ya   | Data ruangan per scene + template default (ADR 0010)  |
 | `src/game/map.test.ts`                        | ya   | Tes resolver map dan konverter collider               |
@@ -111,6 +114,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/fixture`                            | ya   | Cerita demo untuk pengembangan frontend game          |
 | `src/components/game/GameCanvas.tsx`          | ya   | Host Phaser + overlay tantangan di React              |
 | `src/components/game/ChallengeOverlay.tsx`    | ya   | Overlay tantangan DOM di atas canvas                  |
+| `src/components/game/DialogueBox.tsx`         | ya   | Teks dialog DOM di atas panel Phaser (ADR 0007)       |
+| `src/components/game/InteractHint.tsx`        | ya   | Chip prompt "Space" DOM di atas canvas                |
 | `src/components/game/GameShell.tsx`           | ya   | Shell halaman game + state layar judul/main/hasil     |
 | `src/components/game/TitleScreen.tsx`         | ya   | Layar judul: ringkasan cerita + menu Mulai            |
 | `src/components/game/HUD.tsx`                 | ya   | HUD: chapter aktif, tombol suara, tombol jeda         |
@@ -121,23 +126,10 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/server/config.test.ts`                   | ya   | Tes konfigurasi env                                   |
 | `src/server/auth.ts`                          | ya   | Auth guru: kode akses, token cookie, `requireTeacher` |
 | `src/server/auth.test.ts`                     | ya   | Tes kode akses, token, cookie, dan sesi guru          |
-| `src/server/contracts.ts`                     | ya   | Kontrak tipe bersama server ↔ client                  |
-| `src/server/stories`                          | ya   | Logika inti manajemen cerita guru                     |
-| `src/server/stories/core.ts`                  | ya   | Logika inti manajemen cerita guru                     |
-| `src/server/stories/core.test.ts`             | ya   | Tes logika inti cerita                                |
-| `src/server/play-results`                     | ya   | Modul penyimpanan hasil bermain siswa                 |
-| `src/server/play-results/save.ts`             | ya   | Validasi, scoring, dan simpan hasil bermain           |
-| `src/server/play-results/save.test.ts`        | ya   | Tes simpan hasil bermain                              |
 | `src/app/guru`                                | ya   | Halaman guru dan Server Actions                       |
-| `src/app/guru/actions.ts`                     | ya   | Server Actions mutasi cerita guru                     |
-| `src/app/guru/actions.test.ts`                | ya   | Tes Server Actions guru                               |
-| `src/app/play/actions.ts`                     | ya   | Server Action simpan hasil bermain                    |
-| `src/app/play/actions.test.ts`                | ya   | Tes Action hasil bermain                              |
 | `src/app/api`                                 | ya   | Route handler                                         |
 | `src/app/api/health/route.ts`                 | ya   | `GET /api/health`: cek hidup + versi build            |
 | `src/app/api/health/route.test.ts`            | ya   | Tes kontrak respons health                            |
-| `src/app/api/stories/[storyId]/route.ts`      | ya   | `GET /api/stories/[storyId]`: cerita versi terbit     |
-| `src/app/api/stories/[storyId]/route.test.ts` | ya   | Tes endpoint cerita publik                            |
 | `src/app/api/upload/route.ts`                 | ya   | `POST /api/upload`: validasi PDF + buat story & job   |
 | `src/app/api/upload/route.test.ts`            | ya   | Tes route upload (libSQL in-memory)                   |
 | `src/server/api-error.ts`                     | ya   | Helper respons error bentuk `ApiError`                |
@@ -146,7 +138,21 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/server/jobs/schedule.ts`                 | ya   | `scheduleJob()`: jalankan runner lewat `after()`      |
 | `src/server/jobs/schedule.test.ts`            | ya   | Tes penjadwalan `after()` dan penanganan kegagalan    |
 | `public/assets`                               | ya   | File aset game (dibuat `bun run assets:generate`)     |
+| `public/fonts`                                | ya   | Font Patrick Hand (OFL) + lisensi untuk `next/font`   |
 | `scripts/generate-assets.mjs`                 | ya   | Generator aset pixel + audio, tanpa dependensi        |
+| `src/server/contracts.ts`                     | ya   | Kontrak tipe bersama server ↔ client                  |
+| `src/server/stories`                          | ya   | Logika inti manajemen cerita guru                     |
+| `src/server/stories/core.ts`                  | ya   | Logika inti manajemen cerita guru                     |
+| `src/server/stories/core.test.ts`             | ya   | Tes logika inti cerita                                |
+| `src/server/play-results`                     | ya   | Modul penyimpanan hasil bermain siswa                 |
+| `src/server/play-results/save.ts`             | ya   | Validasi, scoring, dan simpan hasil bermain           |
+| `src/server/play-results/save.test.ts`        | ya   | Tes simpan hasil bermain                              |
+| `src/app/guru/actions.ts`                     | ya   | Server Actions mutasi cerita guru                     |
+| `src/app/guru/actions.test.ts`                | ya   | Tes Server Actions guru                               |
+| `src/app/play/actions.ts`                     | ya   | Server Action simpan hasil bermain                    |
+| `src/app/play/actions.test.ts`                | ya   | Tes Action hasil bermain                              |
+| `src/app/api/stories/[storyId]/route.ts`      | ya   | `GET /api/stories/[storyId]`: cerita versi terbit     |
+| `src/app/api/stories/[storyId]/route.test.ts` | ya   | Tes endpoint cerita publik                            |
 | `scripts/dev-publish.ts`                      | ya   | Script dev penerbit cerita                            |
 
 ## Struktur target

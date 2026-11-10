@@ -166,7 +166,7 @@ export function ChallengeOverlay({
         aria-label="Tantangan"
         aria-live="polite"
         onKeyDown={tanganiOpsi}
-        className="max-h-full w-full max-w-md overflow-y-auto border-2 border-[#F7F4EC] bg-[#14201a] p-4 font-mono text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]"
+        className="max-h-full w-full max-w-md overflow-y-auto border-2 border-[#F7F4EC] bg-[#14201a] p-4 font-sans text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]"
       >
         <p className="mb-1 text-[10px] uppercase tracking-widest text-[#8FA396]">
           {view.conceptTag}
