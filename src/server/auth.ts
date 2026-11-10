@@ -20,9 +20,11 @@
  *   kebenaran kode ada di environment; menyimpan hash di sana hanya akan menjadi
  *   salinan basi yang tidak dipakai.
  *
- * Modul ini hanya boleh diimpor dari server code. Jangan menambahkan
- * `import "server-only"` sebelum paketnya dipasang (task 5b).
+ * Modul ini hanya boleh diimpor dari server code. `import "server-only"` di
+ * bawah membuat impor dari komponen client gagal saat build.
  */
+
+import "server-only";
 
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 

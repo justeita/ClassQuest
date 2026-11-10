@@ -8,6 +8,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // Paket `server-only` melempar error di luar kondisi `react-server`, dan
+      // Vitest berjalan di Node biasa. Alihkan ke stub kosong supaya modul
+      // server tetap bisa dites. Batas client/server dijaga Next.js saat build
+      // dan test regresi `src/server/server-only.test.ts`.
+      "server-only": fileURLToPath(
+        new URL("./src/test/server-only-stub.ts", import.meta.url),
+      ),
     },
   },
   test: {
