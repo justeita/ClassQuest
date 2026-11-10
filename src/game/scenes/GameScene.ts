@@ -412,6 +412,10 @@ export class GameScene extends Phaser.Scene {
     this.room = roomForScene(sceneId, this.story);
     this.roomData = resolveRoomData(sceneId);
 
+    // Dunia fisika mengikuti ukuran map, bukan layar — kalau tidak, pemain
+    // terjepit di kotak tak terlihat 640×360 dan "melompat" ke tepi bawah.
+    this.physics.world.setBounds(0, 0, this.room.width, this.room.height);
+
     this.hancurkanRuang();
     this.renderRuang();
 

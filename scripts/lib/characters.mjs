@@ -95,8 +95,8 @@ function createGrid(width = FRAME_WIDTH, height = FRAME_HEIGHT) {
 /** Resep warna per karakter. */
 const RECIPES = {
   nara: {
-    hair: RAMP.nightMid,
-    hairLight: mix(PALETTE.cool, PALETTE.night, 0.6),
+    hair: mix(PALETTE.cool, PALETTE.night, 0.42),
+    hairLight: mix(PALETTE.cool, PALETTE.night, 0.15),
     skin: RAMP.skin,
     skinShade: RAMP.skinShade,
     eye: PALETTE.ink,
@@ -109,8 +109,8 @@ const RECIPES = {
     hairStyle: "long",
   },
   bima: {
-    hair: RAMP.nightMid,
-    hairLight: mix(PALETTE.cool, PALETTE.night, 0.45),
+    hair: mix(PALETTE.cool, PALETTE.night, 0.42),
+    hairLight: mix(PALETTE.cool, PALETTE.night, 0.15),
     skin: RAMP.skin,
     skinShade: RAMP.skinShade,
     eye: PALETTE.ink,
@@ -353,41 +353,25 @@ const FRAME_PLAN = [
   { dir: "right", step: 1 },
 ];
 
-/** Satu frame → kanvas sheet, lalu outline 1 px di dalam area frame itu. */
+/**
+ * Satu frame → kanvas sheet, lalu outline 1 px di sekeliling siluet.
+ *
+ * Frame digambar dulu ke kanvas kecil, outline dihitung dari **salinan** buffer
+ * (bukan buffer yang sama). Kalau membaca dan menulis buffer yang sama, tiap
+ * piksel outline baru dianggap tetangga opaque sehingga outline menyebar sampai
+ * tepi frame — itulah yang dulu tampak sebagai kotak hitam di sekitar karakter.
+ */
 function paintFrame(sheet, grid, offsetX, alt) {
+  const frame = createCanvas(FRAME_WIDTH, FRAME_HEIGHT);
   for (let y = 0; y < grid.height; y += 1) {
     for (let x = 0; x < grid.width; x += 1) {
       const color = grid.cells[y][x];
       if (!color || color === ".") continue;
-      sheet.rect(offsetX + x, y + (alt ? 1 : 0), 1, 1, color);
+      frame.px(x, y + (alt ? 1 : 0), color);
     }
   }
-
-  const opaque = (px, py) => {
-    if (
-      px < offsetX ||
-      px >= offsetX + FRAME_WIDTH ||
-      py < 0 ||
-      py >= FRAME_HEIGHT
-    ) {
-      return false;
-    }
-    return sheet.data[(py * sheet.width + px) * 4 + 3] > 0;
-  };
-  for (let y = 0; y < FRAME_HEIGHT; y += 1) {
-    for (let x = 0; x < FRAME_WIDTH; x += 1) {
-      const ax = offsetX + x;
-      if (opaque(ax, y)) continue;
-      if (
-        opaque(ax - 1, y) ||
-        opaque(ax + 1, y) ||
-        opaque(ax, y - 1) ||
-        opaque(ax, y + 1)
-      ) {
-        sheet.px(ax, y, OUTLINE);
-      }
-    }
-  }
+  frame.outline(OUTLINE);
+  sheet.blit(frame, offsetX, 0);
   return sheet;
 }
 
@@ -413,7 +397,7 @@ export function characterSheet(name) {
 export function characterDefaultSheet() {
   const recipe = {
     hair: RAMP.neutral700,
-    hairLight: RAMP.neutral500,
+    hairLight: RAMP.neutral300,
     skin: RAMP.neutral300,
     skinShade: RAMP.neutral500,
     eye: PALETTE.night,
