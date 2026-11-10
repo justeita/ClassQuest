@@ -12,6 +12,24 @@
   --font-mono: var(--font-geist-mono);
   /* Font teks game (handwriting OFL); lihat src/app/layout.tsx. */
   --font-game: var(--font-handwriting);
+  /* Naik-turun halus penanda "!" di atas NPC pemberi quest. */
+  --animate-quest-bob: quest-bob 2.4s ease-in-out infinite;
+}
+
+@keyframes quest-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-quest-bob {
+    animation: none;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

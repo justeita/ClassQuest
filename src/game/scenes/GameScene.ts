@@ -18,12 +18,14 @@ import {
   type MovementKeys,
 } from "../movement";
 import { findNpcInZone, posisiPrompt } from "../interaction";
+import { dalamLayar, duniaKeLayar, type KameraView } from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import type { PlayerConfig } from "../types";
 import { StoryRunner } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
-import type { GameBus } from "../gameBus";
+import type { GameBus, NpcMarker, PromptView } from "../gameBus";
+import { buildQuestState, pilihPemberiQuest } from "../questLog";
 import {
   assetEntry,
   DEFAULT_CHARACTER_ID,
@@ -43,6 +45,15 @@ const SFX_VOLUME = 0.6;
 /** Debounce input lanjut agar satu tekanan tidak melewati dua beat. */
 const DEBOUNCE_MS = 150;
 
+/**
+ * Jarak minimum antar-emisi posisi prompt/penanda. Posisi berubah setiap frame
+ * saat kamera bergeser, tetapi DOM tidak perlu dirender 60 kali per detik.
+ */
+const PETUNJUK_INTERVAL_MS = 90;
+
+/** Jarak penanda "!" di atas ubun-ubun sprite NPC. */
+const MARKER_OFFSET_Y = 22;
+
 export class GameScene extends Phaser.Scene {
   private readonly bus?: GameBus;
   private readonly story: Story;
@@ -60,11 +71,13 @@ export class GameScene extends Phaser.Scene {
   private wallBodies?: Phaser.Physics.Arcade.StaticGroup;
   private colliderRuangan?: Phaser.Physics.Arcade.Collider;
   private textbox?: Textbox;
-  /** NPC yang prompt-nya sedang tampil; null saat tidak ada. */
-  private promptNpcId: string | null = null;
   private music?: Phaser.Sound.BaseSound;
   private musicKey: string | null = null;
   private sceneAktif: string | null = null;
+  /** `roomId` ruangan yang sedang dibangun; menentukan kapan pemain di-spawn. */
+  private roomAktif: string | null = null;
+  /** NPC pemegang quest scene aktif; hanya dia yang bisa memicu dialog. */
+  private pemberiQuest: string | null = null;
   private readonly playerId: string;
   private spritePemainId = "";
   private arahTerakhir: ArahGerak = "down";
@@ -72,8 +85,12 @@ export class GameScene extends Phaser.Scene {
   /** Jawaban percobaan pertama per challenge; jawaban ulang tidak menimpa. */
   private readonly answers = new AnswerLog();
   private selesaiDikirim = false;
-  /** Bab terakhir yang sudah dikirim ke HUD; -1 agar bab pertama ikut terkirim. */
-  private chapterTerakhir = -1;
+  /** Sidik quest terakhir yang dikirim; mencegah render React tiap beat. */
+  private questTerakhir = "";
+  /** Sidik posisi prompt/penanda terakhir; mencegah emisi saat tidak berubah. */
+  private tandaPrompt = "";
+  private tandaMarker = "";
+  private waktuPetunjuk = 0;
 
   constructor(story: Story, bus?: GameBus) {
     super("GameScene");
@@ -153,23 +170,27 @@ export class GameScene extends Phaser.Scene {
       this.sound.mute = muted;
     });
 
-    this.kirimProgres();
+    this.kirimQuest();
     this.terapkanLook(this.runner.getState());
   }
 
-  update(_time: number, delta: number) {
+  update(time: number, delta: number) {
     const phase = this.runner.getState().phase;
 
     if (phase === "explore") {
-      this.updateExplore();
+      this.updateExplore(time);
     } else {
       this.textbox?.tick(delta);
       this.checkLanjutKeys();
     }
   }
 
-  /** Fase explore: gerak bebas, zona interaksi, dan pemicu dialog. */
-  private updateExplore() {
+  /**
+   * Fase explore: gerak bebas, zona interaksi, dan pemicu dialog. Hanya NPC
+   * pemberi quest yang memunculkan prompt dan bisa memulai dialog; NPC lain
+   * tetap berdiri sebagai penghalang tanpa memicu scene yang sama.
+   */
+  private updateExplore(time: number) {
     if (this.player) {
       applyMovement(this.player, this.keys);
       // Urutan gambar mengikuti kaki (world-design.md § Perspektif).
@@ -177,10 +198,11 @@ export class GameScene extends Phaser.Scene {
       this.perbaruiAnimasi(arahGerak(this.keys));
     }
 
-    const npcId = this.player
+    const dekat = this.player
       ? findNpcInZone(this.room, this.player.x, this.player.y)
       : null;
-    this.perbaruiPrompt(npcId);
+    const npcId = dekat && dekat === this.pemberiQuest ? dekat : null;
+    this.perbaruiPetunjuk(npcId, time);
 
     if (npcId && this.lanjutKeysBaruDitekan()) {
       this.runner.interact();
@@ -189,15 +211,80 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Kirim posisi chip "Space" ke React hanya saat NPC target berubah, supaya
-   * tidak memicu render DOM tiap frame.
+   * Kirim posisi chip "Space" dan penanda "!" dalam koordinat layar. Kamera
+   * bisa bergeser, jadi koordinat dunia dikonversi ulang setiap kali emisi.
+   * Interval 90 ms cukup halus untuk mata dan jauh lebih murah daripada
+   * render DOM tiap frame.
    */
-  private perbaruiPrompt(npcId: string | null) {
-    if (npcId === this.promptNpcId) return;
-    this.promptNpcId = npcId;
+  private perbaruiPetunjuk(npcId: string | null, time: number) {
+    if (time - this.waktuPetunjuk < PETUNJUK_INTERVAL_MS) return;
+    this.waktuPetunjuk = time;
 
-    const hint = npcId ? posisiPrompt(this.room, npcId) : null;
+    const kamera = this.cameras.main;
+    const hint = npcId ? this.posisiPromptLayar(npcId, kamera) : null;
+    this.emitPrompt(hint);
+
+    // Saat pemain sudah di zona NPC, chip Space menggantikan "!" supaya
+    // keduanya tidak bertumpuk di kepala karakter yang sama.
+    const marker =
+      this.pemberiQuest && npcId !== this.pemberiQuest
+        ? this.markerLayar(this.pemberiQuest, kamera)
+        : null;
+    this.emitMarkers(marker ? [marker] : []);
+  }
+
+  private emitPrompt(hint: PromptView | null) {
+    const tanda = hint ? `${hint.text}:${hint.x}:${hint.y}` : "";
+    if (tanda === this.tandaPrompt) return;
+    this.tandaPrompt = tanda;
     this.bus?.emit({ type: "prompt", hint });
+  }
+
+  private emitMarkers(markers: NpcMarker[]) {
+    const tanda = markers.map((m) => `${m.npcId}:${m.x}:${m.y}`).join("|");
+    if (tanda === this.tandaMarker) return;
+    this.tandaMarker = tanda;
+    this.bus?.emit({ type: "markers", markers });
+  }
+
+  /** Prompt dunia → layar, dibulatkan ke piksel internal. */
+  private posisiPromptLayar(
+    npcId: string,
+    kamera: KameraView,
+  ): PromptView | null {
+    const dunia = posisiPrompt(this.room, npcId);
+    if (!dunia) return null;
+    const layar = duniaKeLayar(kamera, dunia.x, dunia.y);
+    return {
+      text: dunia.text,
+      x: Math.round(layar.x),
+      y: Math.round(layar.y),
+    };
+  }
+
+  /** Penanda "!" di atas kepala pemberi quest; null bila di luar layar. */
+  private markerLayar(npcId: string, kamera: KameraView): NpcMarker | null {
+    const npc = this.room.npcs.find((entry) => entry.id === npcId);
+    if (!npc) return null;
+
+    const layar = duniaKeLayar(
+      kamera,
+      npc.x,
+      npc.y - npc.height / 2 - MARKER_OFFSET_Y,
+    );
+    if (!dalamLayar(layar)) return null;
+
+    return {
+      npcId,
+      x: Math.round(layar.x),
+      y: Math.round(layar.y),
+    };
+  }
+
+  /** Sembunyikan prompt dan penanda saat dialog, tantangan, atau akhir bab. */
+  private sembunyikanPetunjuk() {
+    this.emitPrompt(null);
+    this.emitMarkers([]);
   }
 
   /** Space/Enter saat fase beat: selesaikan teks atau lanjut beat. */
@@ -245,6 +332,7 @@ export class GameScene extends Phaser.Scene {
 
     // Skor memakai percobaan pertama; jawaban ulang tidak menimpa (interaction-loop.md).
     this.answers.record(answer);
+    this.kirimQuest();
 
     const hasil = scoreAnswer(challenge, answer);
     this.mainkanSfx(hasil.isCorrect ? "sfx_correct" : "sfx_wrong");
@@ -259,8 +347,12 @@ export class GameScene extends Phaser.Scene {
   /** Tampilkan beat aktif sesuai fase runner. */
   private presentBeat() {
     const state = this.runner.getState();
-    this.kirimProgres();
+    this.kirimQuest();
     this.terapkanLook(state);
+
+    // Di luar explore tidak ada yang bisa diajak bicara: sembunyikan semua
+    // penanda. Saat kembali ke explore, `updateExplore()` memunculkannya lagi.
+    if (state.phase !== "explore") this.sembunyikanPetunjuk();
 
     if (state.phase === "done") {
       this.textbox?.hide();
@@ -318,32 +410,36 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Kabari HUD saat bab berganti. Emisi hanya terjadi sekali per bab supaya
-   * setiap beat tidak memicu render React baru.
+   * Kabari React soal daftar quest chapter aktif. Sidik isi dipakai supaya
+   * setiap beat tidak memicu render ulang panel; emisi hanya saat status,
+   * hitungan tantangan, atau scene benar-benar berubah.
    */
-  private kirimProgres() {
-    const state = this.runner.getState();
-    if (!state.chapter || state.chapterIndex === this.chapterTerakhir) return;
+  private kirimQuest() {
+    const view = buildQuestState(
+      this.story,
+      this.runner.getState(),
+      (challengeId) => this.answers.has(challengeId),
+    );
+    if (!view) return;
 
-    this.chapterTerakhir = state.chapterIndex;
-    this.bus?.emit({
-      type: "progress",
-      chapterNumber: state.chapterNumber,
-      chapterTotal: state.chapterTotal,
-      chapterTitle: state.chapter.title,
-    });
+    const sidik = JSON.stringify(view);
+    if (sidik === this.questTerakhir) return;
+    this.questTerakhir = sidik;
+    this.bus?.emit({ type: "quest", view });
   }
 
   /** "Ulangi chapter" dari menu jeda: reset kursor, lalu lanjutkan loop scene. */
   private ulangiChapter() {
     this.runner.restartChapter();
     this.textbox?.hide();
-    this.perbaruiPrompt(null);
+    this.sembunyikanPetunjuk();
     this.sorotSpeaker(null);
-    this.chapterTerakhir = -1;
     this.sceneAktif = null;
+    this.questTerakhir = "";
+    // Spawn ulang di ruangan yang sudah terbangun. Kalau scene pertama chapter
+    // ini memakai ruangan lain, `terapkanLook()` yang membangun ulang peta.
     this.kembalikanPemain();
-    this.kirimProgres();
+    this.kirimQuest();
     this.terapkanLook(this.runner.getState());
     this.scene.resume();
     this.aturVolumeMusik(MUSIC_VOLUME);
@@ -352,7 +448,7 @@ export class GameScene extends Phaser.Scene {
   /** Dialog ditahan (bukan ditutup) saat overlay tantangan tampil. */
   private bukaTantangan(challengeId: string) {
     this.textbox?.hide();
-    this.perbaruiPrompt(null);
+    this.sembunyikanPetunjuk();
     this.sorotSpeaker(null);
 
     const challenge = this.runner.getChallenge(challengeId);
@@ -400,15 +496,29 @@ export class GameScene extends Phaser.Scene {
     if (sceneId !== null) this.sceneAktif = sceneId;
 
     // Ruangan dibangun dari data map scene aktif (ADR 0010); scene tanpa map
-    // khusus memakai template default. Pemain kembali ke spawn hanya saat
-    // layout ruangan benar-benar berubah — bukan setiap pindah scene.
+    // khusus memakai template default. Identitas yang dibandingkan adalah
+    // `roomId`, bukan `sceneId`: beberapa scene bisa terjadi di ruangan yang
+    // sama. Pemain hanya kembali ke spawn saat benar-benar pindah ruangan.
     const dataRuang = resolveRoomData(sceneId);
-    if (dataRuang !== this.roomData) {
+    if (this.roomAktif !== dataRuang.roomId) {
       this.pasangRuangan(state);
       this.kembalikanPemain();
     }
 
+    // Pemberi quest bisa berganti walau ruangannya sama (scene baru).
+    this.perbaruiPemberiQuest();
+
     this.putarMusik(look.musicId);
+  }
+
+  /** Pemberi quest scene aktif: pembicara dialog pertama yang ada di ruangan. */
+  private perbaruiPemberiQuest() {
+    const state = this.runner.getState();
+    const scene =
+      state.sceneIndex >= 0
+        ? (state.chapter?.scenes[state.sceneIndex] ?? null)
+        : null;
+    this.pemberiQuest = pilihPemberiQuest(scene, this.room.npcs);
   }
 
   /**
@@ -424,6 +534,7 @@ export class GameScene extends Phaser.Scene {
         : null;
     this.room = roomForScene(sceneId, this.story);
     this.roomData = resolveRoomData(sceneId);
+    this.roomAktif = this.room.roomId;
 
     // Dunia fisika mengikuti ukuran map, bukan layar — kalau tidak, pemain
     // terjepit di kotak tak terlihat 640×360 dan "melompat" ke tepi bawah.

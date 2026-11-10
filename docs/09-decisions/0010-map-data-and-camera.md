@@ -119,6 +119,13 @@ Alasan:
 > mengikuti pemain (`setBounds` + dead zone 8×6 tile + lerp 0.12) sudah masuk
 > lewat `src/game/camera.ts`. Kind `exit` belum diimplementasi karena
 > transisi antar-scene masih linear otomatis (ADR 0008).
+>
+> **Identitas ruangan:** `RoomData` memakai `roomId`, bukan `sceneId`. Beberapa
+> scene yang terjadi di lokasi yang sama berbagi `roomId`, sehingga perpindahan
+> scene tidak membangun ulang peta dan tidak mengembalikan pemain ke spawn.
+> Spawn hanya dipakai saat masuk `roomId` baru atau saat "Ulangi chapter".
+> Pemetaan scene → `roomId` masih di kode (`src/game/maps/roomData.ts`); memilih
+> preset dari Story JSON adalah pekerjaan lanjutan setelah MVP.
 
 ## Kapan keputusan ini ditinjau ulang
 

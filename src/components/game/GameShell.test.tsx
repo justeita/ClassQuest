@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GameBus } from "@/game/gameBus";
 import { DEMO_STORY } from "@/game/demoStory";
+import type { QuestState } from "@/game/questLog";
 import type { PlayResult } from "@/story/scoring";
 
 // Phaser tidak bisa hidup di jsdom. Yang diuji di sini hanya kontrak
@@ -83,19 +84,80 @@ describe("GameShell", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("HUD menampilkan chapter dari event progress", async () => {
+  it("panel quest muncul dari event quest dan ikut berganti scene", async () => {
     await mainkan();
-    expect(screen.getByText("Chapter …")).toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: "Daftar quest" })).toBe(
+      null,
+    );
 
     bus.emit({
-      type: "progress",
+      type: "quest",
+      view: {
+        chapterNumber: 1,
+        chapterTotal: 3,
+        chapterTitle: "Hujan di Atap Sekolah",
+        sceneTitle: "Genangan yang Menghilang",
+        activeQuestId: "sc_01_01",
+        quests: [
+          {
+            id: "sc_01_01",
+            title: "Genangan yang Menghilang",
+            status: "aktif",
+            tantangan: { total: 0, dijawab: 0 },
+          },
+          {
+            id: "sc_01_02",
+            title: "Uap yang Tak Terlihat",
+            status: "terkunci",
+            tantangan: { total: 1, dijawab: 0 },
+          },
+        ],
+      },
+    });
+
+    expect(
+      await screen.findByRole("complementary", { name: "Daftar quest" }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Chapter 1/3").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("Genangan yang Menghilang").length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText("Uap yang Tak Terlihat")).toBeInTheDocument();
+    expect(screen.getByText("(0/1)")).toBeInTheDocument();
+  });
+
+  it("event markers menampilkan penanda dan daftar kosong menyembunyikannya", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "markers",
+      markers: [{ npcId: "char_pak_bima", x: 200, y: 120 }],
+    });
+    expect(await screen.findByText("!")).toBeInTheDocument();
+
+    bus.emit({ type: "markers", markers: [] });
+    await vi.waitFor(() =>
+      expect(screen.queryByText("!")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("kartu chapter muncul saat nomor chapter berubah", async () => {
+    await mainkan();
+    const view: QuestState = {
       chapterNumber: 2,
       chapterTotal: 3,
       chapterTitle: "Naik ke Langit",
-    });
+      sceneTitle: "Tubuh yang Mengeras",
+      activeQuestId: "sc_02_01",
+      quests: [],
+    };
 
-    expect(await screen.findByText("Chapter 2/3")).toBeInTheDocument();
-    expect(screen.getByText("Naik ke Langit")).toBeInTheDocument();
+    bus.emit({ type: "quest", view });
+    expect(await screen.findByText("Naik ke Langit")).toBeInTheDocument();
+
+    bus.emit({ type: "quest", view });
+    // Chapter yang sama tidak memunculkan kartu baru; teks tetap dari event pertama.
+    expect(screen.getAllByText("Naik ke Langit").length).toBeGreaterThan(0);
   });
 
   it("tombol Jeda membuka menu dan mengirim command pause", async () => {

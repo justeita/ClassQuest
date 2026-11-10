@@ -8,18 +8,24 @@ import { TILE_SIZE } from "./maps/types";
 describe("resolveRoomData", () => {
   it("scene kelas memakai map khusus", () => {
     const room = resolveRoomData("sc_01_01");
-    expect(room.sceneId).toBe("sc_01_01");
+    expect(room.roomId).toBe("kelas");
     expect(room.floorTile).toBe("tile_floor_wood");
+  });
+
+  it("scene lain di kelas memakai ruangan yang sama", () => {
+    for (const sceneId of ["sc_01_01", "sc_01_02", "sc_01_03"]) {
+      expect(resolveRoomData(sceneId).roomId).toBe("kelas");
+    }
   });
 
   it("scene tanpa map khusus jatuh ke template default", () => {
     const room = resolveRoomData("sc_02_01");
-    expect(room.sceneId).toBe("default");
+    expect(room.roomId).toBe("default");
   });
 
   it("tanpa sceneId tetap memberi template default", () => {
-    expect(resolveRoomData(null).sceneId).toBe("default");
-    expect(resolveRoomData(undefined).sceneId).toBe("default");
+    expect(resolveRoomData(null).roomId).toBe("default");
+    expect(resolveRoomData(undefined).roomId).toBe("default");
   });
 });
 

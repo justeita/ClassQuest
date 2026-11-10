@@ -163,12 +163,18 @@ Semua aksi utama harus bisa dilakukan **tanpa mouse**.
 Per ADR 0008, siswa bergerak bebas top-down di dalam scene — ala Undertale,
 bukan dunia terbuka:
 
-- Scene adalah **ruangan satu peta** (min. satu layar, kelipatan tile 16); urutan antar-ruangan
+- Scene adalah unit cerita; **ruangan** adalah unit peta. Beberapa scene boleh
+  terjadi di ruangan yang sama (`roomId`), dan perpindahan di antara scene itu
+  mempertahankan posisi pemain — peta tidak dibangun ulang. Urutan antar-ruangan
   tetap linear mengikuti cerita, bukan pintu yang bebas dipilih.
-- Pemain spawn di titik tetap tiap ruangan dan bergerak 4 arah dengan collision
-  sederhana (arcade physics, gravity 0).
-- NPC/objek interaksi punya zona kecil; saat pemain berada di dalamnya, tombol
-  interaksi muncul dan memicu deretan beat dialog/tantangan.
+- Pemain spawn di titik tetap saat masuk ruangan baru (atau saat "Ulangi
+  chapter"), lalu bergerak 4 arah dengan collision sederhana (arcade physics,
+  gravity 0).
+- NPC/objek interaksi punya zona kecil; saat pemain berada di dalamnya, chip
+  `Space` muncul di atas NPC pemberi quest dan memicu deretan beat
+  dialog/tantangan. NPC lain tidak memicu dialog.
+- Penanda `!` hanya ada di atas pemberi quest scene aktif, mengikuti kamera.
+  Penanda dan chip disembunyikan selama dialog, tantangan, atau menu.
 - Untuk MVP, data map, spawn, penempatan NPC, dan collision didefinisikan **di
   sisi game** (`src/game/`, map dummy) dan tidak mengubah kontrak Story JSON.
 - Gerak terkunci saat textbox, overlay tantangan, atau menu terbuka.
@@ -179,7 +185,7 @@ bukan dunia terbuka:
 | --------- | ---------------------------------------------------------------- |
 | Boot      | Logo kecil, progress bar pemuatan aset                           |
 | Judul     | Judul cerita, "Mulai", "Lanjutkan" (bila ada progres), "Tentang" |
-| Cerita    | Ruangan map, pemain, NPC, textbox, HUD chapter                   |
+| Cerita    | Ruangan map, pemain, NPC, textbox, panel quest                   |
 | Tantangan | Overlay: soal, opsi, tombol jawab, feedback, penjelasan          |
 | Jeda      | Lanjut, ulangi chapter, pengaturan suara, keluar                 |
 | Hasil     | Skor, jumlah benar, konsep yang perlu diulang, "Main lagi"       |

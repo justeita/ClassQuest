@@ -73,6 +73,19 @@ beat habis, kembali ke `explore` (scene berikutnya) atau berhenti di
 `chapter_end`. `explore` hanya pernah dijeda oleh textbox, overlay tantangan,
 atau menu — cerita tetap berhenti di beat yang sama.
 
+Hanya NPC pemberi quest scene aktif yang bisa memicu dialog. Pemberi quest
+adalah pembicara `dialogue` pertama di scene yang ada di daftar NPC ruangan;
+bila tidak ada yang cocok, NPC pertama di ruangan dipakai agar alur tidak macet.
+NPC lain tetap berdiri sebagai penghalang, tetapi tidak memunculkan prompt dan
+tidak memulai scene yang sama.
+
+Scene dan ruangan adalah dua hal berbeda. Scene adalah unit cerita, ruangan
+adalah unit peta (`roomId`). Beberapa scene boleh terjadi di ruangan yang sama;
+perpindahan scene seperti itu mempertahankan posisi pemain dan tidak membangun
+ulang peta. Spawn ruangan hanya dipakai saat masuk `roomId` baru atau saat
+"Ulangi chapter". Ini berlaku juga setelah soal dijawab: duduk di depan NPC yang
+sama, bukan melompat ke tengah ruangan.
+
 `RunnerState` didefinisikan di [`engine.md`](./engine.md#alur-state); dokumen ini
 tidak menyalin tipenya, hanya perilakunya.
 

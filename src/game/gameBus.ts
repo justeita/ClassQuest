@@ -1,6 +1,7 @@
 import type { Answer, PlayResult } from "@/story/scoring";
 
 import type { ChallengeView } from "./challengeView";
+import type { QuestState } from "./questLog";
 
 /**
  * Bridge Phaser ↔ React sesuai docs/04-game/engine.md:
@@ -31,9 +32,17 @@ export type PromptView = {
   y: number;
 };
 
+/** Penanda "!" di atas NPC pemberi quest; koordinat layar internal. */
+export type NpcMarker = {
+  npcId: string;
+  x: number;
+  y: number;
+};
+
 export type GameEvent =
   | { type: "dialogue"; view: DialogueView }
   | { type: "prompt"; hint: PromptView | null }
+  | { type: "markers"; markers: NpcMarker[] }
   | { type: "challenge"; view: ChallengeView }
   | {
       type: "graded";
@@ -43,13 +52,8 @@ export type GameEvent =
     }
   /** Cerita selesai; `result` dihitung dari percobaan pertama tiap tantangan. */
   | { type: "finished"; result: PlayResult }
-  /** Bab aktif berubah; dipakai HUD untuk menampilkan "Chapter n/total". */
-  | {
-      type: "progress";
-      chapterNumber: number;
-      chapterTotal: number;
-      chapterTitle: string;
-    }
+  /** Quest chapter aktif berubah; dipakai panel quest di DOM. */
+  | { type: "quest"; view: QuestState }
   | { type: "error"; code: string };
 
 export type GameCommand =
