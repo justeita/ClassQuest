@@ -75,7 +75,8 @@ Per ADR 0008, scene dirender sebagai **ruangan satu layar** yang bisa dijelajahi
   `backgroundId`. Bila texture tidak ada, runtime jatuh ke `char_default` /
   `bg_default` tanpa menghentikan permainan.
 - Collision: dinding keliling ruangan + objek padat; arcade physics gravity 0
-  (sudah diset di `config.ts`).
+  (sudah diset di `config.ts`). Collider dibangun dari data objek yang sama
+  yang digambar (ADR 0010) — tidak ada collider terpisah dari visual.
 - NPC/objek interaksi punya zona kecil. Pemain di dalam zona → indikator
   interaksi muncul → `Space`/`Enter` memutar deretan beat scene itu (fase
   `dialog`); gerak terkunci sampai deretan beat habis.

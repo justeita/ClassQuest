@@ -114,6 +114,12 @@ Alasan:
 - [`../01-architecture/repo-structure.md`](../01-architecture/repo-structure.md)
   — baris map.
 
+> **Implementasi:** bagian map data-driven dan collider dari objek sudah masuk
+> lewat `src/game/maps/` + `buildRoomMap()` di `src/game/map.ts`. Kamera
+> mengikuti pemain (`setBounds` + dead zone 8×6 tile + lerp 0.12) sudah masuk
+> lewat `src/game/camera.ts`. Kind `exit` belum diimplementasi karena
+> transisi antar-scene masih linear otomatis (ADR 0008).
+
 ## Kapan keputusan ini ditinjau ulang
 
 - Jika data map per scene ternyata menyita lebih dari satu hari kerja: cukup

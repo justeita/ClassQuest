@@ -1,0 +1,53 @@
+/**
+ * Bentuk data map per scene (ADR 0010).
+ *
+ * Semua posisi dinyatakan dalam **tile** (16×16 px, ADR 0009) — tidak ada
+ * piksel lepas di data map. Setiap objek yang `solid` sekaligus menentukan
+ * gambar dan collider-nya, sehingga tidak ada collider yang ditulis terpisah
+ * dari visual (penyebab bug "nabrak benda tak terlihat").
+ *
+ * Lantai tidak masuk daftar objek: ia selalu menutupi seluruh peta, tidak
+ * pernah solid, jadi cukup satu field `floorTile` per ruangan.
+ *
+ * Kind `exit` (world-design.md § Objek) sengaja belum ada: alur antar-scene
+ * masih linear otomatis sesuai ADR 0008; pintu interaktif menyusul saat
+ * transisi antar-scene berbasis jalan diimplementasikan.
+ */
+
+export { TILE_SIZE } from "../constants";
+
+/** Ukuran satu tile dalam piksel: 16 (ADR 0009). */
+
+export type RoomObjectKind = "wall" | "prop" | "npc";
+
+export type RoomObject = {
+  kind: RoomObjectKind;
+  /**
+   - `wall`: tidak dipakai (dinding memakai `wallTile` ruangan).
+   - `prop`: id aset manifest, mis. `prop_desk`.
+   - `npc`: id anggota `story.cast`, bukan id karakter baru.
+   */
+  id?: string;
+  /** Posisi pojok kiri atas dalam tile. */
+  tileX: number;
+  tileY: number;
+  /** Ukuran dalam tile. */
+  tileW: number;
+  tileH: number;
+  /** true = memblok pemain. Dinding selalu solid. */
+  solid: boolean;
+};
+
+export type RoomData = {
+  /** `sceneId` dari Story, atau `"default"` sebagai template fallback. */
+  sceneId: string;
+  /** Tile lantai yang diulang di seluruh peta (id manifest `tile_*`). */
+  floorTile: string;
+  /** Tile dinding untuk keliling dan pita atas (id manifest `tile_*`). */
+  wallTile: string;
+  widthTiles: number;
+  heightTiles: number;
+  /** Tile spawn pemain; kaki pemain di dasar tile ini. */
+  spawnTile: { x: number; y: number };
+  objects: RoomObject[];
+};
