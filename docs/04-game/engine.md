@@ -364,7 +364,8 @@ Yang sudah berlaku di kode hari ini:
 - [x] Phaser diimpor dinamis di dalam `useEffect`.
 - [x] `game.destroy(true)` di cleanup.
 - [x] `pixelArt: true`, `roundPixels: true`.
-- [x] `scale.mode = FIT`, resolusi 640×360 (ADR 0009).
+- [x] `scale.mode = FIT`, resolusi dasar 640×360 (ADR 0009); halaman
+      full-bleed dan kanvas selalu tampil utuh di dalamnya.
 - [x] `bun run build` tidak menghasilkan error `window is not defined`.
 
 Yang belum, karena fiturnya belum ada:

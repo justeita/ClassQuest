@@ -10,13 +10,9 @@ export const metadata: Metadata = {
 
 export default function GameDevPage() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#14201a] p-4">
+    <main className="h-dvh w-full overflow-hidden bg-[#14201a]">
       <h1 className="sr-only">ClassQuest</h1>
-      <div className="relative aspect-video w-full max-w-5xl">
-        <div className="absolute inset-0">
-          <GameShell story={DEMO_STORY} />
-        </div>
-      </div>
+      <GameShell story={DEMO_STORY} />
     </main>
   );
 }

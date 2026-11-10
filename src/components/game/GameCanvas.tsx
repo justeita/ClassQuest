@@ -68,6 +68,12 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [entriLog, setEntriLog] = useState<EntriDialog[]>([]);
   const [jurnal, setJurnal] = useState<EntriKonsep[]>([]);
   const [bukuLog, setBukuLog] = useState(false);
+  /**
+   * Kotak kanvas relatif terhadap kontainer, dalam piksel CSS. Mode `ENVELOP`
+   * membuat kanvas lebih besar dari kontainer (ter-crop di tepi), jadi overlay
+   * yang berjangkar dunia harus menempel ke kanvas — bukan ke kontainer.
+   */
+  const [bingkai, setBingkai] = useState({ x: 0, y: 0, w: 0, h: 0 });
   const [jeda, setJeda] = useState(false);
   const [bukuQuest, setBukuQuest] = useState(false);
   /** Pengaturan audio pengguna; persist di localStorage, dibaca saat mount. */
@@ -85,6 +91,46 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   useEffect(() => {
     onFinishedRef.current = onFinished;
   }, [onFinished]);
+
+  // Lacak kotak kanvas: overlay dunia (dialog, portrait, penanda NPC) ditempel
+  // ke bingkai ini supaya posisinya selalu persis di atas dunia, apa pun
+  // rasio viewport (mode ENVELOP mem-besarkan kanvas melebihi kontainer).
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let pengamatUkuran: ResizeObserver | undefined;
+    const perbarui = () => {
+      const canvas = container.querySelector("canvas");
+      if (!canvas) return;
+      const kotakKanvas = canvas.getBoundingClientRect();
+      const kotakAkar = container.getBoundingClientRect();
+      setBingkai({
+        x: kotakKanvas.left - kotakAkar.left,
+        y: kotakKanvas.top - kotakAkar.top,
+        w: kotakKanvas.width,
+        h: kotakKanvas.height,
+      });
+    };
+
+    // Kanvas muncul setelah import dinamis; tunggu lewat MutationObserver.
+    const pengamatTambahan = new MutationObserver(() => {
+      const canvas = container.querySelector("canvas");
+      if (!canvas) return;
+      perbarui();
+      pengamatUkuran = new ResizeObserver(perbarui);
+      pengamatUkuran.observe(canvas);
+      pengamatTambahan.disconnect();
+    });
+    pengamatTambahan.observe(container, { childList: true });
+    window.addEventListener("resize", perbarui);
+
+    return () => {
+      pengamatTambahan.disconnect();
+      pengamatUkuran?.disconnect();
+      window.removeEventListener("resize", perbarui);
+    };
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -376,75 +422,96 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       <div
         ref={containerRef}
         tabIndex={-1}
-        className="h-full w-full focus:outline-none"
+        className="relative h-full w-full focus:outline-none"
         role="region"
         aria-label="Area permainan ClassQuest"
-      />
-      {!jeda && !tantangan && (
-        <QuestTracker
-          view={quest}
-          terbuka={bukuQuest}
-          onToggle={() => setBukuQuest((sebelum) => !sebelum)}
-          onTutup={() => setBukuQuest(false)}
-        />
-      )}
-      {!jeda &&
-        !tantangan &&
-        !dialog?.visible &&
-        penanda.map((marker) => (
-          <NpcMarker key={marker.npcId} marker={marker} />
-        ))}
-      {!jeda && !tantangan && <ChapterCard view={kartuChapter} />}
-      {!jeda && !tantangan && <QuestToast title={toastQuest} />}
-      {!jeda && !tantangan && !dialog?.visible && hint && (
-        <InteractHint hint={hint} />
-      )}
-      {!jeda && (dialog?.visible || tantangan) && (
-        <DialogueBox
-          view={
-            tantangan
-              ? {
-                  visible: true,
-                  name:
-                    dialog?.name ??
-                    story.cast.find((c) => c.role === "mentor")?.name ??
-                    "Tantangan",
-                  text:
-                    tantangan.type === "true_false" && tantangan.statement
-                      ? `${tantangan.prompt}\n\n"${tantangan.statement}"`
-                      : tantangan.prompt,
-                  waiting: false,
+      >
+        {
+          <div
+            className="absolute"
+            style={{
+              // Sebelum kanvas terukur (mis. di lingkungan uji), bingkai
+              // dipakai seukuran kontainer supaya overlay tetap tampil.
+              left: bingkai.w > 0 ? bingkai.x : 0,
+              top: bingkai.h > 0 ? bingkai.y : 0,
+              width: bingkai.w > 0 ? bingkai.w : "100%",
+              height: bingkai.h > 0 ? bingkai.h : "100%",
+              containerType: "size",
+            }}
+          >
+            {!jeda &&
+              !tantangan &&
+              !dialog?.visible &&
+              penanda.map((marker) => (
+                <NpcMarker key={marker.npcId} marker={marker} />
+              ))}
+            {!jeda && !tantangan && !dialog?.visible && hint && (
+              <InteractHint hint={hint} />
+            )}
+            {!jeda && !tantangan && <ChapterCard view={kartuChapter} />}
+            {!jeda && !tantangan && <QuestToast title={toastQuest} />}
+            {!jeda && (dialog?.visible || tantangan) && (
+              <DialogueBox
+                view={
+                  tantangan
+                    ? {
+                        visible: true,
+                        name:
+                          dialog?.name ??
+                          story.cast.find((c) => c.role === "mentor")?.name ??
+                          "Tantangan",
+                        text:
+                          tantangan.type === "true_false" && tantangan.statement
+                            ? `${tantangan.prompt}
+
+"${tantangan.statement}"`
+                            : tantangan.prompt,
+                        waiting: false,
+                      }
+                    : (dialog ?? {
+                        visible: false,
+                        name: null,
+                        text: "",
+                        waiting: false,
+                      })
                 }
-              : (dialog ?? {
-                  visible: false,
-                  name: null,
-                  text: "",
-                  waiting: false,
-                })
-          }
-          onAdvance={lanjutDialog}
-        />
-      )}
-      {!jeda && !tantangan && (
-        <Hud
-          musikAktif={audio.music > 0}
-          onToggleMusik={() => ubahAudio("music", audio.music > 0 ? 0 : 1)}
-          onBukaLog={() => {
-            setBukuLog(true);
-            busRef.current?.send({ type: "freeze" });
-          }}
-          onJeda={bukaJeda}
-          tombolJedaRef={tombolJedaRef}
-        />
-      )}
-      {tantangan && (
-        <ChallengeOverlay
-          view={tantangan}
-          graded={hasil}
-          onSubmit={kirimJawaban}
-          onResolve={lanjut}
-        />
-      )}
+                onAdvance={lanjutDialog}
+              />
+            )}
+
+            {!jeda && (
+              <Hud
+                musikAktif={audio.music > 0}
+                onToggleMusik={() =>
+                  ubahAudio("music", audio.music > 0 ? 0 : 1)
+                }
+                onBukaLog={() => {
+                  setBukuLog(true);
+                  busRef.current?.send({ type: "freeze" });
+                }}
+                onJeda={bukaJeda}
+                tombolJedaRef={tombolJedaRef}
+              />
+            )}
+            {tantangan && (
+              <ChallengeOverlay
+                view={tantangan}
+                graded={hasil}
+                onSubmit={kirimJawaban}
+                onResolve={lanjut}
+              />
+            )}
+            {!jeda && (
+              <QuestTracker
+                view={quest}
+                terbuka={bukuQuest}
+                onToggle={() => setBukuQuest((sebelum) => !sebelum)}
+                onTutup={() => setBukuQuest(false)}
+              />
+            )}
+          </div>
+        }
+      </div>
       {bukuLog && (
         <DialogueLog
           entriDialog={entriLog}
