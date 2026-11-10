@@ -7,8 +7,9 @@ import { GameScene } from "./scenes/GameScene";
 import { PreloadScene } from "./scenes/PreloadScene";
 
 /** Resolusi internal 640×360, kelipatan tile 16 (ADR 0009). */
-export const GAME_WIDTH = 640;
-export const GAME_HEIGHT = 360;
+export { GAME_WIDTH, GAME_HEIGHT } from "./constants";
+
+import { GAME_WIDTH, GAME_HEIGHT } from "./constants";
 
 export function createGameConfig(
   parent: HTMLElement,

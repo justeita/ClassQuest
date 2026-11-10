@@ -14,8 +14,9 @@
  * transisi antar-scene berbasis jalan diimplementasikan.
  */
 
-/** Ukuran satu tile dalam piksel. */
-export const TILE_SIZE = 16;
+export { TILE_SIZE } from "../constants";
+
+/** Ukuran satu tile dalam piksel: 16 (ADR 0009). */
 
 export type RoomObjectKind = "wall" | "prop" | "npc";
 

@@ -115,10 +115,10 @@ Alasan:
   — baris map.
 
 > **Implementasi:** bagian map data-driven dan collider dari objek sudah masuk
-> lewat `src/game/maps/` + `buildRoomMap()` di `src/game/map.ts`. Bagian
-> kamera mengikuti pemain (`setBounds` + dead zone) masih rencana di PR kamera.
-> Kind `exit` belum diimplementasi karena transisi antar-scene masih linear
-> otomatis (ADR 0008).
+> lewat `src/game/maps/` + `buildRoomMap()` di `src/game/map.ts`. Kamera
+> mengikuti pemain (`setBounds` + dead zone 8×6 tile + lerp 0.12) sudah masuk
+> lewat `src/game/camera.ts`. Kind `exit` belum diimplementasi karena
+> transisi antar-scene masih linear otomatis (ADR 0008).
 
 ## Kapan keputusan ini ditinjau ulang
 
