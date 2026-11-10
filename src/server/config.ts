@@ -25,8 +25,11 @@
  * Batas impor `docs/01-architecture/repo-structure.md`: `src/server` hanya boleh
  * diimpor dari server code. Kunci API diperlakukan sebagai kredensial
  * (`docs/11-logicodix/06-keamanan-kredensial.md`), jadi jangan mengimpor file
- * ini dari komponen client.
+ * ini dari komponen client. `import "server-only"` di bawah membuat pelanggaran
+ * itu gagal saat build, bukan diam-diam ikut ke bundle browser.
  */
+
+import "server-only";
 
 /** Provider yang sah. Daftar ini sengaja pendek sampai ADR 0006 selesai. */
 export const SUPPORTED_AI_PROVIDERS = ["mock", "anthropic"] as const;

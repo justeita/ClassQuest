@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
@@ -31,6 +31,7 @@ memperbarui dependency, perbarui tabel ini di PR yang sama.
 | Testing Library React | `16.3.3`  | Render komponen                          |
 | jsdom                 | `31.0.0`  | Environment test                         |
 | Ajv                   | `8.20.0`  | Validasi `story.schema.json` di tes docs |
+| server-only           | `0.0.1`   | Guard modul server (kredensial/DB)       |
 
 Ajv sengaja dipasang sekarang, sebelum validatornya ada. Alasannya: bentuk cerita
 harus bisa diuji sejak hari pertama, dan tes docs butuh validator JSON Schema

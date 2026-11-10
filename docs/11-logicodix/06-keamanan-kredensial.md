@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-10
 owner: tim ClassQuest
 ---
 
@@ -108,11 +108,14 @@ Kebiasaan yang aman: **setiap kali menambah `process.env.X` di kode, tambahkan
 4. Jangan menaruh nilai env di `next.config.ts` yang terekspos ke client.
 5. Jangan menempelkan nilai env di issue, PR, chat, atau screenshot.
 
-> **Belum sesuai (2026):** `src/server/config.ts` saat ini **belum** memakai
-> `import "server-only"`, karena paket itu belum dipasang dan di test Vitest
-> (jsdom) impornya menggagalkan pemuatan modul. Batas impornya dijaga lewat
-> `src/server/**` yang tidak diimpor komponen client. Menambah `server-only`
-> dicatat sebagai langkah berikutnya.
+> **Sudah sesuai (2026-11-10):** paket `server-only` terpasang dan
+> `src/server/config.ts`, `src/server/auth.ts`, `src/server/db/client.ts`, serta
+> `src/ai/providers/anthropic.ts` memuat `import "server-only"` sebagai import
+> pertama. Di Vitest, specifier itu dialihkan ke stub kosong
+> (`src/test/server-only-stub.ts` lewat `vitest.config.mjs`); skrip Bun yang
+> mengimpor modul server (mis. `bun run db:migrate`) memakai
+> `--conditions=react-server`. Guard-nya dijaga test regresi
+> `src/server/server-only.test.ts`.
 
 ## Cara memeriksa tidak ada yang bocor
 

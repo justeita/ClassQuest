@@ -7,7 +7,11 @@
  *
  * Semua pembacaan environment lewat `loadDatabaseConfig()` di
  * `src/server/config.ts`. Jangan membaca `process.env` di modul lain.
+ *
+ * `import "server-only"` membuat impor dari komponen client gagal saat build.
  */
+
+import "server-only";
 
 import { createClient, type Client } from "@libsql/client";
 
