@@ -275,16 +275,16 @@ describe("GameShell", () => {
     lepas();
   });
 
-  it("tombol suara mengirim command set_muted", async () => {
+  it("tombol musik mengirim command set_audio hanya untuk musik", async () => {
     await mainkan();
-    const mute = vi.fn();
-    const lepas = bus.onCommand("set_muted", mute);
+    const audio = vi.fn();
+    const lepas = bus.onCommand("set_audio", audio);
 
-    fireEvent.click(screen.getByRole("button", { name: /suara aktif/i }));
+    fireEvent.click(screen.getByRole("button", { name: /musik nyala/i }));
 
-    expect(mute).toHaveBeenCalledWith({ type: "set_muted", muted: true });
+    expect(audio).toHaveBeenCalledWith({ type: "set_audio", music: 0, sfx: 1 });
     expect(
-      screen.getByRole("button", { name: /suara nonaktif/i }),
+      screen.getByRole("button", { name: /musik mati/i }),
     ).toBeInTheDocument();
     lepas();
   });

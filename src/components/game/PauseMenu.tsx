@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
+import type { PengaturanAudio } from "@/game/audioSettings";
+
 type PauseMenuProps = {
   onLanjut: () => void;
   onUlangiChapter: () => void;
-  suaraAktif: boolean;
-  onToggleSuara: () => void;
+  pengaturan: PengaturanAudio;
+  /** Perubahan satu kanal audio; nilai sudah di-clamp pemanggil. */
+  onUbahAudio: (kanal: "music" | "sfx", volume: number) => void;
 };
 
 /**
@@ -21,8 +24,8 @@ type PauseMenuProps = {
 export function PauseMenu({
   onLanjut,
   onUlangiChapter,
-  suaraAktif,
-  onToggleSuara,
+  pengaturan,
+  onUbahAudio,
 }: PauseMenuProps) {
   const lanjutRef = useRef<HTMLButtonElement>(null);
 
@@ -47,6 +50,22 @@ export function PauseMenu({
           Jeda
         </h2>
 
+        <fieldset className="mt-3 border border-[#3D4B41] p-2.5">
+          <legend className="px-1 text-[10px] font-bold uppercase tracking-widest text-[#8FA396]">
+            Pengaturan suara
+          </legend>
+          <PengaturanSuara
+            label="Musik"
+            volume={pengaturan.music}
+            onUbah={(v) => onUbahAudio("music", v)}
+          />
+          <PengaturanSuara
+            label="Efek suara"
+            volume={pengaturan.sfx}
+            onUbah={(v) => onUbahAudio("sfx", v)}
+          />
+        </fieldset>
+
         <div className="flex flex-col gap-2">
           <button
             ref={lanjutRef}
@@ -63,14 +82,6 @@ export function PauseMenu({
           >
             Ulangi chapter
           </button>
-          <button
-            type="button"
-            onClick={onToggleSuara}
-            aria-pressed={suaraAktif}
-            className="border-2 border-[#3D4B41] px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#D9E4DA] hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
-          >
-            Suara: {suaraAktif ? "aktif" : "mati"}
-          </button>
           <Link
             href="/"
             className="border-2 border-[#3D4B41] px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-[#D9E4DA] hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
@@ -83,6 +94,56 @@ export function PauseMenu({
           Tekan Esc untuk melanjutkan. Cerita berhenti di tempat yang sama.
         </p>
       </section>
+    </div>
+  );
+}
+
+type PengaturanSuaraProps = {
+  label: string;
+  /** Volume 0-1. */
+  volume: number;
+  onUbah: (volume: number) => void;
+};
+
+/**
+ * Satu baris pengaturan audio: slider dengan persen terlihat + tombol mute.
+ * Slider operable keyboard secara bawaan; `aria-valuetext` menyebut persen
+ * supaya pembaca layar tidak membaca angka mentah (accessibility.md).
+ */
+function PengaturanSuara({ label, volume, onUbah }: PengaturanSuaraProps) {
+  const persen = Math.round(volume * 100);
+  const id = `volume-${label.toLowerCase().replace(/ /g, "-")}`;
+
+  return (
+    <div className="mb-2 last:mb-0">
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor={id} className="text-xs text-[#D9E4DA]">
+          {label}
+        </label>
+        <span className="text-xs tabular-nums text-[#8FA396]">{persen}%</span>
+      </div>
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          id={id}
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={persen}
+          onChange={(e) => onUbah(Number(e.target.value) / 100)}
+          aria-valuetext={`${persen}%`}
+          className="h-1.5 w-full accent-[#E8A87C]"
+        />
+        <button
+          type="button"
+          onClick={() => onUbah(volume > 0 ? 0 : 1)}
+          aria-pressed={volume === 0}
+          aria-label={`${label} ${volume === 0 ? "mati" : "nyala"}`}
+          className="shrink-0 border border-[#3D4B41] px-2 py-1 text-[10px] uppercase tracking-wide text-[#D9E4DA] hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
+        >
+          {volume === 0 ? "Mute" : "Nyala"}
+        </button>
+      </div>
     </div>
   );
 }

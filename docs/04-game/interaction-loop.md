@@ -192,11 +192,13 @@ Isi:
 
 - Lanjut
 - Ulangi chapter
-- Suara: on/off + volume
+- Pengaturan suara: slider **Musik** dan **Efek suara** terpisah (0–100%, step 5) + tombol mute per baris
 - Keluar (kembali ke halaman awal)
 
 Saat menu terbuka: game pause, musik **volume turun** (bukan berhenti), input
-dialog diabaikan. Mematikan audio sepenuhnya hanya lewat tombol suara.
+dialog diabaikan. Nilai tersimpan di `localStorage`
+(`classquest:settings:v1`) dan dipakai lagi saat game dibuat. Mute musik tidak
+mematikan efek suara; HUD hanya menampung toggle musik, SFX diatur di menu.
 
 ## Penanganan error runtime
 

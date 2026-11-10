@@ -17,6 +17,11 @@ import { QuestTracker } from "@/components/game/QuestTracker";
 import { Hud } from "@/components/game/HUD";
 import { InteractHint } from "@/components/game/InteractHint";
 import { PauseMenu } from "@/components/game/PauseMenu";
+import {
+  bacaPengaturanAudio,
+  simpanPengaturanAudio,
+  type PengaturanAudio,
+} from "@/game/audioSettings";
 import type { ChallengeView } from "@/game/challengeView";
 import type {
   DialogueView,
@@ -55,7 +60,12 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [hint, setHint] = useState<PromptView | null>(null);
   const [jeda, setJeda] = useState(false);
   const [bukuQuest, setBukuQuest] = useState(false);
-  const [suaraAktif, setSuaraAktif] = useState(true);
+  /** Pengaturan audio pengguna; persist di localStorage, dibaca saat mount. */
+  const [audio, setAudio] = useState<PengaturanAudio>(() =>
+    bacaPengaturanAudio(
+      typeof window === "undefined" ? null : window.localStorage,
+    ),
+  );
   /** Pelacak perubahan chapter/quest untuk memicu kartu dan toast sekali. */
   const chapterTerakhir = useRef<number | null>(null);
   const questTerakhir = useRef<string | null>(null);
@@ -211,11 +221,32 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     });
   }, [tantangan, hasil]);
 
-  const gantiSuara = useCallback(() => {
-    const berikut = !suaraAktif;
-    setSuaraAktif(berikut);
-    busRef.current?.send({ type: "set_muted", muted: !berikut });
-  }, [suaraAktif]);
+  /** Ubah satu kanal audio, simpan, dan teruskan ke scene. */
+  const ubahAudio = useCallback((kanal: "music" | "sfx", volume: number) => {
+    setAudio((sebelum) => {
+      const berikut = simpanPengaturanAudio(
+        { ...sebelum, [kanal]: volume },
+        window.localStorage,
+      );
+      busRef.current?.send({
+        type: "set_audio",
+        music: berikut.music,
+        sfx: berikut.sfx,
+      });
+      return berikut;
+    });
+  }, []);
+
+  // Kirim pengaturan tersimpan ke scene tepat setelah game dibuat.
+  useEffect(() => {
+    busRef.current?.send({
+      type: "set_audio",
+      music: audio.music,
+      sfx: audio.sfx,
+    });
+    // Hanya sekali per pembuatan game; perubahan lanjutan lewat ubahAudio.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const ulangiChapter = useCallback(() => {
     setTantangan(null);
@@ -346,8 +377,8 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       )}
       {!jeda && !tantangan && (
         <Hud
-          suaraAktif={suaraAktif}
-          onToggleSuara={gantiSuara}
+          musikAktif={audio.music > 0}
+          onToggleMusik={() => ubahAudio("music", audio.music > 0 ? 0 : 1)}
           onJeda={bukaJeda}
           tombolJedaRef={tombolJedaRef}
         />
@@ -364,8 +395,8 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         <PauseMenu
           onLanjut={tutupJeda}
           onUlangiChapter={ulangiChapter}
-          suaraAktif={suaraAktif}
-          onToggleSuara={gantiSuara}
+          pengaturan={audio}
+          onUbahAudio={ubahAudio}
         />
       )}
     </div>

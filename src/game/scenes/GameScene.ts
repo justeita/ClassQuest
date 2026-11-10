@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { Story } from "@/story/schema";
 
+import { clampVolume } from "../audioSettings";
 import { CAMERA_LERP, deadzonePx, kameraMode } from "../camera";
 import { DEPTH_DINDING, DEPTH_LANTAI } from "../depth";
 import { roomForScene, type RoomMap } from "../map";
@@ -38,6 +39,7 @@ const PLAYER_CONFIG: PlayerConfig = { speed: 80 };
 /** Non-speaker diredupkan sesuai scene-format.md (0x9a9a9a). */
 const NPC_DIM_COLOR = 0x9a9a9a;
 
+/** Faktor dasar dari sisi game; volume pengguna mengalikan angka ini. */
 const MUSIC_VOLUME = 0.35;
 const MUSIC_VOLUME_PAUSED = 0.12;
 const SFX_VOLUME = 0.6;
@@ -73,6 +75,9 @@ export class GameScene extends Phaser.Scene {
   private textbox?: Textbox;
   private music?: Phaser.Sound.BaseSound;
   private musicKey: string | null = null;
+  private volumeMusik = 1;
+  private volumeSfx = 1;
+  private volumeSedangJeda = false;
   private sceneAktif: string | null = null;
   /** `roomId` ruangan yang sedang dibangun; menentukan kapan pemain di-spawn. */
   private roomAktif: string | null = null;
@@ -161,17 +166,23 @@ export class GameScene extends Phaser.Scene {
     // di beat yang sama; hanya presentasi yang membeku. Musik dikecilkan, bukan
     // dihentikan (interaction-loop.md).
     this.bus?.onCommand("pause", () => {
-      this.aturVolumeMusik(MUSIC_VOLUME_PAUSED);
+      this.volumeSedangJeda = true;
+      this.terapkanVolume();
       this.scene.pause();
     });
     this.bus?.onCommand("resume", () => {
       this.scene.resume();
-      this.aturVolumeMusik(MUSIC_VOLUME);
+      this.volumeSedangJeda = false;
+      this.terapkanVolume();
     });
     this.bus?.onCommand("restart_chapter", () => this.ulangiChapter());
     // Preferensi suara dari HUD/menu jeda diterapkan ke SoundManager global.
-    this.bus?.onCommand("set_muted", ({ muted }) => {
-      this.sound.mute = muted;
+    // Musik dan SFX dipisah: mute musik tidak mematikan efek suara
+    // (interaction-loop.md → Menu jeda).
+    this.bus?.onCommand("set_audio", ({ music, sfx }) => {
+      this.volumeMusik = clampVolume(music);
+      this.volumeSfx = clampVolume(sfx);
+      this.terapkanVolume();
     });
 
     this.kirimQuest();
@@ -450,7 +461,8 @@ export class GameScene extends Phaser.Scene {
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
     this.scene.resume();
-    this.aturVolumeMusik(MUSIC_VOLUME);
+    this.volumeSedangJeda = false;
+    this.terapkanVolume();
   }
 
   /**
@@ -750,13 +762,20 @@ export class GameScene extends Phaser.Scene {
 
   private mainkanSfx(assetId: string) {
     if (!this.cache.audio.exists(assetId)) return;
-    this.sound.play(assetId, { volume: SFX_VOLUME });
+    if (this.volumeSfx <= 0) return;
+    this.sound.play(assetId, { volume: SFX_VOLUME * this.volumeSfx });
   }
 
   /**
    * `BaseSound` tidak menjanjikan `setVolume` (NoAudioSound tidak punya),
    * jadi panggil hanya bila implementasinya tersedia.
    */
+  /** Volume musik efektif: nilai pengguna × faktor dasar (jeda menurunkan). */
+  private terapkanVolume() {
+    const faktor = this.volumeSedangJeda ? MUSIC_VOLUME_PAUSED : MUSIC_VOLUME;
+    this.aturVolumeMusik(faktor * this.volumeMusik);
+  }
+
   private aturVolumeMusik(volume: number) {
     const musik = this.music as
       | (Phaser.Sound.BaseSound & {

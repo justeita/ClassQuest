@@ -3,8 +3,9 @@
 import type { RefObject } from "react";
 
 type HudProps = {
-  suaraAktif: boolean;
-  onToggleSuara: () => void;
+  /** Musik nyala = volume musik > 0. Efek suara diatur di menu jeda. */
+  musikAktif: boolean;
+  onToggleMusik: () => void;
   onJeda: () => void;
   /** Dipakai `GameCanvas` untuk mengembalikan fokus setelah menu jeda tutup. */
   tombolJedaRef?: RefObject<HTMLButtonElement | null>;
@@ -20,8 +21,8 @@ type HudProps = {
  * ke canvas; hanya tombolnya yang menerima pointer.
  */
 export function Hud({
-  suaraAktif,
-  onToggleSuara,
+  musikAktif,
+  onToggleMusik,
   onJeda,
   tombolJedaRef,
 }: HudProps) {
@@ -32,13 +33,14 @@ export function Hud({
           type="button"
           onClick={(e) => {
             e.currentTarget.blur();
-            onToggleSuara();
+            onToggleMusik();
           }}
-          aria-pressed={suaraAktif}
-          aria-label={`Suara ${suaraAktif ? "aktif" : "nonaktif"}`}
+          aria-pressed={musikAktif}
+          aria-label={`Musik ${musikAktif ? "nyala" : "mati"}`}
+          title="Musik nyala/mati — detail volume di menu jeda"
           className="border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
         >
-          Suara: {suaraAktif ? "aktif" : "mati"}
+          {musikAktif ? "♪ Musik" : "♪ Musik mati"}
         </button>
         <button
           ref={tombolJedaRef}
