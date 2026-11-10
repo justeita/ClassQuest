@@ -117,9 +117,12 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Penanda `!` hanya ada di atas NPC pemberi quest. Saat pemain mendekat, chip
   `Space` menggantikan penanda itu. Keduanya memakai koordinat layar yang ikut
   kamera dan disembunyikan selama dialog, tantangan, atau menu jeda.
-- Tombol suara mengatur `sound.mute` Phaser; preferensi berlaku untuk musik dan
-  SFX. Musik mulai setelah "Mulai" ditekan (aturan autoplay browser), lalu
-  berganti hanya saat `musicId` scene berubah.
+- Tombol musik (`♪`) mengatur volume musik saja: nyala/mati. Efek suara
+  diatur terpisah di panel pengaturan menu jeda; keduanya dipisah supaya
+  siswa bisa mematikan musik tanpa kehilangan umpan balik jawaban. Preferensi
+  tersimpan di `localStorage` (`classquest:settings:v1`) dan dikirim ke scene
+  lewat command `set_audio`. Musik mulai setelah "Mulai" ditekan (aturan
+  autoplay browser), lalu berganti hanya saat `musicId` scene berubah.
 - Klik di mana saja untuk lanjut.
 
 ### Challenge
@@ -164,7 +167,8 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ### Paused
 
-- Lanjut, ulangi chapter, suara, keluar.
+- Lanjut, ulangi chapter, pengaturan suara (slider Musik dan Efek suara
+  terpisah + tombol mute per baris), keluar.
 - Game di-pause (`scene.pause()`), input dialog berhenti.
 - Musik tidak dihentikan, hanya dikecilkan (volume 0,35 → 0,12) agar jeda tidak
   terasa memutus suasana; volume kembali saat lanjut atau ulangi chapter.

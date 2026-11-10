@@ -140,8 +140,12 @@ Hormati `prefers-reduced-motion: reduce`:
 
 ## Audio
 
-- Tombol mute selalu tersedia di HUD dan menu.
-- Volume disimpan di `localStorage`.
+- Tombol mute selalu tersedia: toggle musik di HUD, mute per kanal di menu
+  jeda.
+- Volume per kanal (musik dan SFX terpisah) disimpan di `localStorage`
+  (`classquest:settings:v1`); baca/tulis yang gagal jatuh ke default.
+- Slider volume memakai `input[type=range]` dengan `aria-valuetext` berupa
+  persen, sehingga pembaca layar tidak membaca angka mentah.
 - Jangan memutar suara tiba-tiba keras.
 - Tidak ada informasi penting yang hanya disampaikan lewat suara.
 
