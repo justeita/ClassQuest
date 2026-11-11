@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { Keycap } from "@/components/game/Keycap";
 import { ukuranHuruf } from "@/game/layout";
 import type { QuestState, QuestStatus } from "@/game/questLog";
 
@@ -98,9 +99,11 @@ export function QuestTracker({
           }}
           aria-expanded={terbuka}
           aria-label="Buka buku catatan quest"
-          className="border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
+          aria-keyshortcuts="q"
+          className="flex items-center gap-1.5 border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
         >
-          Quest [Q]
+          <Keycap>Q</Keycap>
+          Quest
         </button>
       </div>
 

@@ -22,7 +22,7 @@ import { findNpcInZone, posisiPrompt } from "../interaction";
 import { dalamLayar, duniaKeLayar, type KameraView } from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import type { PlayerConfig } from "../types";
-import { StoryRunner } from "../StoryRunner";
+import { StoryRunner, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
 import type { GameBus, NpcMarker, PromptView } from "../gameBus";
@@ -46,6 +46,12 @@ const SFX_VOLUME = 0.6;
 
 /** Debounce input lanjut agar satu tekanan tidak melewati dua beat. */
 const DEBOUNCE_MS = 150;
+
+/**
+ * Jarak antar-beat saat mode lewati berjalan. Cukup cepat untuk terasa seperti
+ * time-lapse, cukup lambat agar teks masih sempat terbaca sekilas.
+ */
+const INTERVAL_LEWATI_MS = 100;
 
 /**
  * Jarak minimum antar-emisi posisi prompt/penanda. Posisi berubah setiap frame
@@ -89,6 +95,10 @@ export class GameScene extends Phaser.Scene {
   private spritePemainId = "";
   private arahTerakhir: ArahGerak = "down";
   private lastAdvance = 0;
+  /** Mode lewati ditahan (ala Persona 3 Reload): beat maju cepat selama ditahan. */
+  private lewatiDitahan = false;
+  /** Waktu langkah lewati terakhir, untuk menjeda antar-beat. */
+  private waktuLewati = 0;
   /** Jawaban percobaan pertama per challenge; jawaban ulang tidak menimpa. */
   private readonly answers = new AnswerLog();
   private selesaiDikirim = false;
@@ -161,11 +171,15 @@ export class GameScene extends Phaser.Scene {
     // Klik pada panel dialog DOM (atau tombol lanjut) masuk lewat jalur yang
     // sama dengan Space/Enter, jadi aturan "satu tekanan satu langkah" tetap.
     this.bus?.onCommand("advance", () => this.onLanjutInput());
+    // Tombol/pintasan Percepat: tahan untuk time-lapse, lepas untuk berhenti.
+    this.bus?.onCommand("skip_start", () => this.mulaiLewati());
+    this.bus?.onCommand("skip_stop", () => this.hentikanLewati());
 
     // Menu jeda di DOM menghentikan/melanjutkan loop scene. State cerita tetap
     // di beat yang sama; hanya presentasi yang membeku. Musik dikecilkan, bukan
     // dihentikan (interaction-loop.md).
     this.bus?.onCommand("pause", () => {
+      this.hentikanLewati();
       this.volumeSedangJeda = true;
       this.terapkanVolume();
       this.scene.pause();
@@ -177,7 +191,10 @@ export class GameScene extends Phaser.Scene {
     });
     this.bus?.onCommand("restart_chapter", () => this.ulangiChapter());
     // Buku log membekukan dunia tanpa mengecilkan musik (PR D).
-    this.bus?.onCommand("freeze", () => this.scene.pause());
+    this.bus?.onCommand("freeze", () => {
+      this.hentikanLewati();
+      this.scene.pause();
+    });
     this.bus?.onCommand("unfreeze", () => this.scene.resume());
     // Preferensi suara dari HUD/menu jeda diterapkan ke SoundManager global.
     // Musik dan SFX dipisah: mute musik tidak mematikan efek suara
@@ -190,9 +207,17 @@ export class GameScene extends Phaser.Scene {
 
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
+
+    // Scene dihancurkan (mis. "Main lagi"): mode lewati tidak boleh tertinggal
+    // menunjuk runner yang sudah tidak tampil.
+    this.events.once("shutdown", () => this.hentikanLewati());
   }
 
   update(time: number, delta: number) {
+    // Time-lapse lewati berjalan selama tombol ditahan; diperiksa lebih dulu
+    // supaya langkahnya tetap maju walau fase sempat berganti di antara frame.
+    if (this.lewatiDitahan) this.perbaruiLewati(time);
+
     const phase = this.runner.getState().phase;
 
     if (phase === "explore") {
@@ -321,6 +346,9 @@ export class GameScene extends Phaser.Scene {
 
   /** Satu tekanan = satu langkah: mengetik → selesai; menunggu → lanjut. */
   private onLanjutInput() {
+    // Selama time-lapse, input manual diabaikan agar tidak melompat dua beat.
+    if (this.lewatiDitahan) return;
+
     const now = this.time.now;
     if (now - this.lastAdvance < DEBOUNCE_MS) return;
     this.lastAdvance = now;
@@ -340,6 +368,47 @@ export class GameScene extends Phaser.Scene {
   private lanjutBeat() {
     this.runner.advance();
     this.presentBeat();
+  }
+
+  /**
+   * Mode lewati ala Persona 3 Reload: selama tombol ditahan, beat dialog/narasi
+   * dimajukan cepat satu per satu dan langsung tampil penuh (time-lapse).
+   * Berhenti sendiri di beat challenge (soal wajib dijawab), di beat transition
+   * (fade tetap diputar), atau saat scene habis. Setiap beat tetap dipresentasikan
+   * lewat jalur normal, jadi log dialog tetap lengkap.
+   */
+  private mulaiLewati() {
+    if (this.lewatiDitahan) return;
+    if (!bolehTerusLewati(this.runner.getState())) return;
+
+    this.lewatiDitahan = true;
+    // 0 membuat langkah pertama jatuh di frame berikutnya.
+    this.waktuLewati = 0;
+    this.mainkanSfx("sfx_click");
+    // Beat yang sedang mengetik diselesaikan dulu supaya time-lapse tidak
+    // berhenti di teks setengah jadi.
+    this.textbox?.complete();
+    this.bus?.emit({ type: "skipping", aktif: true });
+  }
+
+  /** Satu langkah time-lapse per interval; berhenti bila tidak boleh lanjut. */
+  private perbaruiLewati(time: number) {
+    if (time - this.waktuLewati < INTERVAL_LEWATI_MS) return;
+    if (!this.runner.lewatiSatuBeat()) {
+      this.hentikanLewati();
+      return;
+    }
+    this.waktuLewati = time;
+    // presentBeat WAJIB: tanpa ini beat baru tidak pernah tampil dan overlay
+    // soal tidak pernah terbuka saat skip mendarat di challenge.
+    this.presentBeat();
+    this.textbox?.complete();
+  }
+
+  private hentikanLewati() {
+    if (!this.lewatiDitahan) return;
+    this.lewatiDitahan = false;
+    this.bus?.emit({ type: "skipping", aktif: false });
   }
 
   /** Nilai jawaban lewat fungsi murni backend, lalu kirim hasil ke React. */
@@ -457,6 +526,7 @@ export class GameScene extends Phaser.Scene {
 
   /** "Ulangi chapter" dari menu jeda: reset kursor, lalu lanjutkan loop scene. */
   private ulangiChapter() {
+    this.hentikanLewati();
     this.runner.restartChapter();
     this.textbox?.hide();
     this.sembunyikanPetunjuk();

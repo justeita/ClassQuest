@@ -162,6 +162,17 @@ export class StoryRunner {
     );
   }
 
+  /**
+   * Satu langkah mode cepat: maju satu beat bila beat itu boleh dilewati.
+   * Kembalikan `false` saat skip harus berhenti (soal, transisi, atau scene
+   * habis) sehingga pemanggil bisa menghentikan timer-nya.
+   */
+  lewatiSatuBeat(): boolean {
+    if (!bolehTerusLewati(this.getState())) return false;
+    this.advance();
+    return true;
+  }
+
   /** Normalisasi kursor setelah beatIndex bertambah. */
   private settle(): void {
     const chapter = this.story.chapters[this.chapterIndex];
@@ -183,4 +194,19 @@ export class StoryRunner {
     this.sceneIndex = 0;
     this.beatIndex = -1;
   }
+}
+
+/**
+ * Apakah kursor boleh melompati beat yang sedang tampil?
+ *
+ * Hanya beat dialog/narasi. Beat `challenge` tidak pernah boleh dilewati —
+ * soal wajib dijawab supaya skor tidak bolong (interaction-loop.md) — dan beat
+ * `transition` tetap diputar karena fade adalah bagian dari perpindahan scene.
+ */
+export function bolehTerusLewati(state: StoryRunnerState): boolean {
+  return (
+    state.phase === "dialog" &&
+    state.beat !== null &&
+    state.beat.type !== "transition"
+  );
 }
