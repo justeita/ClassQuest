@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "db:migrate": "bun --conditions=react-server scripts/db-migrate.ts",
     "assets:generate": "bun scripts/generate-assets.mjs",
+    "assets:map": "bun scripts/compose-map.mjs",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
