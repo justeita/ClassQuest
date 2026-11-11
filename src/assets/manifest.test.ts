@@ -55,8 +55,8 @@ const EXTENSION: Record<AssetKind, string> = {
 const INVENTORY_COUNTS: Record<AssetKind, number> = {
   background: 8,
   character: 5,
-  tile: 10,
-  prop: 5,
+  tile: 11,
+  prop: 13,
   music: 5,
   sfx: 4,
   ui: 3,

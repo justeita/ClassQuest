@@ -46,10 +46,12 @@ import {
   propDefault,
   propDesk,
   propFence,
+  propPond,
   propTree,
   tileCanopy,
   tileDefault,
   tileFloorCloud,
+  tileFloorCorridor,
   tileFloorGrass,
   tileFloorRock,
   tileFloorWater,
@@ -105,6 +107,7 @@ const IMAGES = [
   ["tile/floor_cloud.png", tileFloorCloud],
   ["tile/floor_rock.png", tileFloorRock],
   ["tile/floor_water.png", tileFloorWater],
+  ["tile/floor_corridor.png", tileFloorCorridor],
   ["tile/wall_plaster.png", tileWallPlaster],
   ["tile/wall_hedge.png", tileWallHedge],
   ["tile/wall_rock.png", tileWallRock],
@@ -116,6 +119,7 @@ const IMAGES = [
   ["prop/blackboard.png", propBlackboard],
   ["prop/tree.png", propTree],
   ["prop/fence.png", propFence],
+  ["prop/pond.png", propPond],
   ["prop/default.png", propDefault],
 ];
 
