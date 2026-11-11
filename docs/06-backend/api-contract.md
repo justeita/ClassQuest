@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -220,7 +220,11 @@ Tiga baris `401` di atas memakai **pesan yang sama**. Klien tidak boleh bisa
 membedakan "salah" dari "belum dikonfigurasi". Tidak ada kode akses, token, atau
 secret di respons.
 
-Catatan: **rate limit belum ada**; menyusul (lihat bagian Rate limit).
+**Rate limit:** 10 percobaan per 10 menit per IP, dihitung untuk **semua**
+percobaan dan diperiksa **sebelum** body dibaca dan sebelum kode diverifikasi.
+Melewati batas → `429 RATE_LIMITED` + header `Retry-After` (lihat bagian
+[Rate limit](#rate-limit)). Kalau penghitungnya sendiri gagal, login **fail
+closed**: `500 INTERNAL` dengan pesan generik.
 
 ---
 
@@ -323,7 +327,11 @@ type PlayResultInput = {
 };
 
 type SavePlayResultOutcome =
-  { ok: true } | { ok: false; reason: "not_found" | "invalid" | "too_large" };
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "not_found" | "invalid" | "too_large" | "rate_limited";
+    };
 ```
 
 Aturan:
@@ -331,6 +339,7 @@ Aturan:
 - **Skor dihitung server.** Klien tidak boleh mengirim field skor (`earnedPoints`, `correctCount`, dsb.); field tersebut ditolak (`invalid`). Server menghitung ulang skor via `scoreStory()` dari cerita versi terbit yang tersimpan.
 - Jawaban divalidasi terhadap tantangan cerita: id tantangan atau opsi tidak dikenal, jawaban ganda, atau jumlah jawaban melebihi tantangan ditolak (`invalid`).
 - Data yang disimpan hanya agregat di tabel `play_results` (tanpa data per-opsi, IP, user-agent, atau identitas siswa).
+- **Rate limit:** 120 panggilan per 10 menit per IP, diperiksa paling awal sebelum input disentuh. Melebihi batas menghasilkan `{ ok: false, reason: "rate_limited" }` (Server Action tidak bisa mengirim HTTP 429, jadi tidak ada header `Retry-After`; UI cukup menampilkan pesan "coba lagi sebentar lagi"). Kalau penghitungnya gagal, hasil bermain **tetap diproses** (fail open). Angka ini longgar karena satu kelas bisa berbagi satu IP.
 
 ### Batas ukuran payload
 
@@ -357,14 +366,70 @@ yang sudah ada.
 
 ## Rate limit
 
-| Endpoint               | Batas awal                 |
-| ---------------------- | -------------------------- |
-| `POST /api/auth/login` | TBD (task 24)              |
-| `POST /api/upload`     | 5 per 10 menit per sesi/IP |
-| `GET /api/jobs/*`      | 60 per menit per sesi      |
-| `GET /api/stories/*`   | 120 per menit per IP       |
+Batas yang berlaku sekarang. Angka tinggal di
+`src/server/rate-limit/limits.ts`; kalau berubah, ubah keduanya.
 
-Implementasi: `TBD` (in-memory untuk demo, Redis/DB untuk produksi).
+| Endpoint                     | Batas                                                       | Penyimpanan | Saat limiter gagal |
+| ---------------------------- | ----------------------------------------------------------- | ----------- | ------------------ |
+| `POST /api/auth/login`       | 10 per 10 menit per IP                                      | database    | **fail closed**    |
+| `POST /api/upload`           | 20 per jam per IP, 10 per jam per guru, 100 per hari global | database    | **fail closed**    |
+| `savePlayResult` (action)    | 120 per 10 menit per IP                                     | database    | fail open          |
+| `GET /api/stories/[storyId]` | 120 per menit per IP                                        | memori      | fail open          |
+| `GET /api/jobs/*`            | 60 per menit per sesi                                       | belum ada   | —                  |
+
+### Respons saat batas terlampaui
+
+Route handler memakai bentuk `ApiError` yang sama dengan error lain, ditambah
+header standar `Retry-After` dalam **detik**:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 90
+Cache-Control: no-store
+Content-Type: application/json
+
+{
+  "error": {
+    "code": "RATE_LIMITED",
+    "message": "Terlalu banyak permintaan. Coba lagi beberapa saat lagi.",
+    "details": { "retryAfterSeconds": 90 }
+  }
+}
+```
+
+Aturan:
+
+- `message` **statis**: tidak memuat IP, key, hash, nama limit, atau angka
+  internal apa pun. Pesan yang sama dipakai semua endpoint.
+- `details.retryAfterSeconds` hanya salinan angka `Retry-After` supaya klien yang
+  tidak bisa membaca header (mis. lewat proxy) tetap punya nilainya. Nama
+  `retryAfterSec` di `jobs-and-limits.md` **tidak** dipakai: bentuk `ApiError`
+  tidak punya tempat untuk field itu, dan header sudah standar.
+- Server Action `savePlayResult` tidak memakai bentuk ini: ia mengembalikan
+  `{ ok: false, reason: "rate_limited" }` tanpa angka retry.
+- Kegagalan penghitung pada endpoint **fail closed** dijawab `500 INTERNAL`
+  dengan pesan generik (tanpa detail), bukan `429`: klien tidak boleh
+  menyimpulkan "coba lagi nanti" dari masalah server.
+
+### Identitas dan penyimpanan
+
+- Identitas klien = IP dari header `x-real-ip`, lalu entri pertama
+  `x-forwarded-for`, lalu `"unknown"`. Header ini hanya bisa dipercaya di
+  belakang proxy hosting yang menimpanya; tanpa proxy, klien bisa mengarang
+  nilainya.
+- IP **tidak** disimpan mentah. Key di `rate_limits` berbentuk
+  `"<nama-limit>:<HMAC-SHA256(identitas, TEACHER_SESSION_SECRET)>"`. Batas
+  global memakai identitas tetap, bukan IP.
+- Fixed window: `windowStart = floor(now / window) * window`. Penambahan
+  hitungan atomik dalam satu statement
+  (`insert ... on conflict do update set count = count + 1 returning count`);
+  `rowsAffected` libSQL tidak dipakai karena hanya melaporkan statement terakhir.
+- Baris `rate_limits` yang jendelanya lebih tua dari 1 hari dibersihkan
+  oportunistik (sekitar 1% panggilan); kegagalan pembersihan diabaikan.
+- `GET /api/stories/[storyId]` memakai `Map` per proses: batas berlaku **per
+  instance**, bukan per deploy, dan tidak ada tulis database.
+- Urutan di `POST /api/upload`: batas IP → sesi (`401` tidak menambah hitungan
+  berikutnya) → Content-Length → batas per guru → batas global → file dibaca.
 
 ## Kontrak tipe bersama
 
