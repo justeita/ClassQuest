@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { DEMO_STORY } from "@/game/demoStory";
+import { ASSETS_BY_ID } from "@/assets/manifest";
 import { buildRoomMap, roomForScene } from "./map";
 import { listRoomAssets, resolveRoomData } from "./maps/roomData";
 import { TILE_SIZE } from "./maps/types";
@@ -103,22 +104,46 @@ describe("buildRoomMap", () => {
     expect(wallRect.height).toBe(wall.tileH * TILE_SIZE);
   });
 
-  it("prop besar memakai sub-collider batang, bukan seluruh kanopi", () => {
+  it("prop dengan sub-collider memakai area itu, bukan seluruh kotak", () => {
+    const data = resolveRoomData("sc_01_01");
+    const room = buildRoomMap(data, DEMO_STORY);
+    const shelf = data.objects.find((o) => o.id === "prop_shelf")!;
+    const area = shelf.collider!;
+
+    const rect = room.solids.find(
+      (r) =>
+        r.x === (shelf.tileX + area.x) * TILE_SIZE &&
+        r.y === (shelf.tileY + area.y) * TILE_SIZE,
+    )!;
+    expect(rect.width).toBe(area.w * TILE_SIZE);
+    expect(rect.height).toBe(area.h * TILE_SIZE);
+    // Rak 2×3 tile tidak jadi collider penuh; hanya kakinya yang memblok.
+    expect(rect.height).toBeLessThan(shelf.tileH * TILE_SIZE);
+  });
+
+  it("halaman bergambar penuh memakai mapImage dan zona, bukan prop", () => {
     const data = resolveRoomData("sc_03_03");
     const room = buildRoomMap(data, DEMO_STORY);
-    const tree = data.objects.find((o) => o.id === "prop_tree_large")!;
-    const area = tree.collider!;
 
-    const batang = room.solids.find(
-      (r) =>
-        r.x === (tree.tileX + area.x) * TILE_SIZE &&
-        r.y === (tree.tileY + area.y) * TILE_SIZE,
+    expect(room.mapImage).toBe("map_halaman_sekolah");
+    expect(data.objects.some((o) => o.kind === "prop")).toBe(false);
+    expect(data.objects.some((o) => o.kind === "zone")).toBe(true);
+
+    // Zona dipakai apa adanya sebagai collider, tanpa inset 2 px.
+    const zone = data.objects.find((o) => o.kind === "zone")!;
+    const rect = room.solids.find(
+      (r) => r.x === zone.tileX * TILE_SIZE && r.y === zone.tileY * TILE_SIZE,
     )!;
-    expect(batang.width).toBe(area.w * TILE_SIZE);
-    expect(batang.height).toBe(area.h * TILE_SIZE);
-    // Kanopi 128×128 px tidak boleh menjadi collider penuh.
-    expect(batang.width).toBeLessThan(tree.tileW * TILE_SIZE);
-    expect(batang.height).toBeLessThan(tree.tileH * TILE_SIZE);
+    expect(rect.width).toBe(zone.tileW * TILE_SIZE);
+    expect(rect.height).toBe(zone.tileH * TILE_SIZE);
+
+    // Semua collider tetap di dalam ruangan.
+    for (const solid of room.solids) {
+      expect(solid.x).toBeGreaterThanOrEqual(0);
+      expect(solid.x + solid.width).toBeLessThanOrEqual(room.width);
+      expect(solid.y).toBeGreaterThanOrEqual(0);
+      expect(solid.y + solid.height).toBeLessThanOrEqual(room.height);
+    }
   });
 
   it("sub-collider selalu berada di dalam kotak objeknya", () => {
@@ -181,24 +206,28 @@ describe("roomForScene", () => {
 });
 
 describe("listRoomAssets", () => {
-  it("hanya memuat id tile dan prop dari manifest", () => {
-    const { tiles, props } = listRoomAssets();
+  it("hanya memuat id tile, prop, dan peta dari manifest", () => {
+    const { tiles, props, maps } = listRoomAssets();
     expect(tiles.length).toBeGreaterThan(0);
     expect(props.length).toBeGreaterThan(0);
     for (const id of [...tiles, ...props]) {
       expect(id).toMatch(/^(tile|prop)_/);
     }
+    for (const id of maps) expect(id).toMatch(/^map_/);
   });
 
-  it("memuat prop impor yang dipakai ruangan baru", () => {
-    const { props } = listRoomAssets();
-    for (const id of [
-      "prop_tree_large",
-      "prop_pond",
-      "prop_shelf",
-      "prop_door",
-    ]) {
+  it("memuat peta halaman dan prop impor yang dipakai ruangan", () => {
+    const { props, maps } = listRoomAssets();
+    expect(maps).toContain("map_halaman_sekolah");
+    for (const id of ["prop_shelf", "prop_door"]) {
       expect(props).toContain(id);
+    }
+  });
+
+  it("semua id ruangan ada di manifest", () => {
+    const { tiles, props, maps } = listRoomAssets();
+    for (const id of [...tiles, ...props, ...maps]) {
+      expect(ASSETS_BY_ID.has(id), id).toBe(true);
     }
   });
 });

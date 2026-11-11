@@ -11,6 +11,11 @@
  * seperti pohon memakai `collider` sub-area (ADR 0011) supaya pemain bisa
  * berjalan di bawah kanopi.
  *
+ * Ruangan boleh menggambar dirinya dari satu gambar peta penuh lewat `mapImage`
+ * (ADR 0012). Di sana lantai, dinding, dan prop tidak digambar dari data:
+ * `zone` menjadi collider di posisi visual yang sudah menyatu di gambar, dan
+ * hanya NPC yang tetap berupa sprite.
+ *
  * NPC di data hanya menyebut **di mana** anggota cast berdiri; `buildRoomMap`
  * yang memetakan id ke `story.cast` dan menurunkan fallback bila id tidak
  * dikenal, sehingga map tidak pernah menambah karakter baru.
@@ -270,111 +275,109 @@ const KELAS_A: RoomData = {
   ],
 };
 
-/** Collider batang pohon besar 8×8 tile: 1×2 tile di tengah bawah. */
-const BATANG_POHON_BESAR = { x: 3.5, y: 6, w: 1, h: 2 } as const;
+/**
+ * Zona collider tanpa gambar (ADR 0012). Dipakai ruangan bergambar penuh: visual
+ * sudah menyatu di gambar peta, jadi objek di sini hanya menandai area padat.
+ */
+function zona(
+  tileX: number,
+  tileY: number,
+  tileW: number,
+  tileH: number,
+): RoomObject {
+  return { kind: "zone", tileX, tileY, tileW, tileH, solid: true };
+}
 
 /**
- * Halaman sekolah & taman edukasi 56×34 tile (896×544 px): rumput, pagar
- * tanaman, pohon besar, semak, kolam, dan pagar kayu.
+ * Zona di pangkal sebuah prop. `cx` kolom tengah dan `base` baris dasar tempat
+ * prop dijahit di gambar peta (berjangkar dasar-tengah, `scripts/compose-map.mjs`),
+ * jadi collider ikut bergeser kalau posisinya diubah — bukan angka lepas.
+ */
+function zonaPangkal(
+  cx: number,
+  base: number,
+  tileW: number,
+  tileH: number,
+): RoomObject {
+  return zona(cx - tileW / 2, base + 1 - tileH, tileW, tileH);
+}
+
+/** Pangkal pohon 1×1 tile: pemain bisa lewat di bawah kanopi, tertahan di batang. */
+const pohonPeta = (cx: number, base: number) => zonaPangkal(cx, base, 1, 1);
+
+/** Pangkal semak 1.5×1 tile. */
+const semakPeta = (cx: number, base: number) => zonaPangkal(cx, base, 1.5, 1);
+
+/** Kolom tengah pohon di gambar peta (TREE_SPOTS `compose-map.mjs`). */
+const POHON_PETA: ReadonlyArray<readonly [number, number]> = [
+  [4, 4],
+  [12, 4],
+  [20, 4],
+  [36, 4],
+  [44, 5],
+  [51, 6],
+  [3, 13],
+  [52, 14],
+  [4, 26],
+  [52, 27],
+  [15, 32],
+  [40, 32],
+  [10, 32],
+  [46, 32],
+];
+
+/** Posisi semak di gambar peta (BUSH_SPOTS `compose-map.mjs`). */
+const SEMAK_PETA: ReadonlyArray<readonly [number, number]> = [
+  [16, 3],
+  [24, 3],
+  [32, 3],
+  [48, 3],
+  [2, 19],
+  [53, 21],
+  [16, 32],
+  [42, 32],
+  [30, 30],
+  [34, 22],
+];
+
+/**
+ * Halaman sekolah & taman edukasi 56×34 tile (896×544 px). Digambar dari satu
+ * gambar peta penuh `map_halaman_sekolah` (ADR 0012), jadi objek di bawah bukan
+ * sprite melainkan collider (`zone`) dan NPC. Pangkal tiap zona mengikuti posisi
+ * di `scripts/compose-map.mjs`.
  */
 const HALAMAN: RoomData = {
   roomId: "halaman_sekolah",
   floorTile: "tile_floor_grass",
   wallTile: "tile_wall_hedge",
+  mapImage: "map_halaman_sekolah",
   widthTiles: 56,
   heightTiles: 34,
   spawnTile: { x: 28, y: 30 },
   objects: [
+    // Dinding keliling: di gambar peta tepinya sudah rumput + pohon, jadi tidak
+    // terlihat, tetapi tetap jadi pembatas dunia.
     ...dindingKeliling(56, 34),
-    // Pohon rindang dan pohon berbunga: kanopi 8×8 tile, solid hanya batang.
-    {
-      kind: "prop",
-      id: "prop_tree_large",
-      tileX: 6,
-      tileY: 3,
-      tileW: 8,
-      tileH: 8,
-      solid: true,
-      collider: BATANG_POHON_BESAR,
-    },
-    {
-      kind: "prop",
-      id: "prop_tree_flower",
-      tileX: 42,
-      tileY: 5,
-      tileW: 8,
-      tileH: 8,
-      solid: true,
-      collider: BATANG_POHON_BESAR,
-    },
-    // Pohon sedang 4×4 tile, batang lebih kecil.
-    {
-      kind: "prop",
-      id: "prop_tree_medium",
-      tileX: 28,
-      tileY: 4,
-      tileW: 4,
-      tileH: 4,
-      solid: true,
-      collider: { x: 1.75, y: 2.75, w: 0.75, h: 1.25 },
-    },
-    // Semak bertekstur dan semak bunga: padat hampir seluruh kotaknya.
-    {
-      kind: "prop",
-      id: "prop_bush_small",
-      tileX: 16,
-      tileY: 10,
-      tileW: 4,
-      tileH: 4,
-      solid: true,
-    },
-    {
-      kind: "prop",
-      id: "prop_bush_flower",
-      tileX: 20,
-      tileY: 12,
-      tileW: 4,
-      tileH: 4,
-      solid: true,
-    },
-    // Kolam taman 6×4 tile di sisi kiri-bawah.
-    {
-      kind: "prop",
-      id: "prop_pond",
-      tileX: 8,
-      tileY: 22,
-      tileW: 6,
-      tileH: 4,
-      solid: true,
-    },
-    // Pagar kayu memisahkan area bawah (native 3×1 tile per segmen).
-    {
-      kind: "prop",
-      id: "prop_fence",
-      tileX: 22,
-      tileY: 24,
-      tileW: 3,
-      tileH: 1,
-      solid: true,
-    },
-    {
-      kind: "prop",
-      id: "prop_fence",
-      tileX: 25,
-      tileY: 24,
-      tileW: 3,
-      tileH: 1,
-      solid: true,
-    },
-    {
-      kind: "prop",
-      id: "prop_fence",
-      tileX: 28,
-      tileY: 24,
-      tileW: 3,
-      tileH: 1,
-      solid: true,
-    },
+    // Kolam taman (airnya saja; pasir di sekeliling tetap bisa diinjak).
+    zona(7, 22, 8, 7),
+    // Dua petak bunga di kanan-kiri jalan bawah.
+    zona(19, 26, 5, 5),
+    zona(32, 26, 5, 5),
+    // Pepohonan dan semak di sepanjang tepi.
+    ...POHON_PETA.map(([cx, base]) => pohonPeta(cx, base)),
+    ...SEMAK_PETA.map(([cx, base]) => semakPeta(cx, base)),
+    // Perabot taman yang menonjol.
+    zonaPangkal(20, 19, 1, 1), // bangku kiri
+    zonaPangkal(36, 19, 1, 1), // bangku kanan
+    zonaPangkal(45, 21, 2, 1.5), // sumur
+    zonaPangkal(11, 12, 2.5, 1), // papan pengumuman
+    // Tiang lampu, papan petunjuk, tong, dan keranjang: collider tipis.
+    zonaPangkal(22, 21, 0.5, 1),
+    zonaPangkal(34, 21, 0.5, 1),
+    zonaPangkal(24, 31, 1.5, 1),
+    zonaPangkal(40, 21, 1.5, 1),
+    zonaPangkal(17, 13, 1, 1),
+    zonaPangkal(19, 13, 1.5, 1),
     {
       kind: "npc",
       id: "char_pak_bima",
@@ -434,8 +437,12 @@ export function resolveRoomData(sceneId: string | null | undefined): RoomData {
   return ROOMS_BY_SCENE.get(sceneId) ?? DEFAULT_ROOM;
 }
 
-/** Semua map yang terdaftar — dipakai PreloadScene untuk memuat tile/prop. */
-export function listRoomAssets(): { tiles: string[]; props: string[] } {
+/** Semua aset ruangan yang terdaftar — dipakai PreloadScene untuk memuatnya. */
+export function listRoomAssets(): {
+  tiles: string[];
+  props: string[];
+  maps: string[];
+} {
   const rooms = ROOM_PRESETS;
   const tiles = [
     ...new Set(rooms.flatMap((room) => [room.floorTile, room.wallTile])),
@@ -451,5 +458,12 @@ export function listRoomAssets(): { tiles: string[]; props: string[] } {
       ),
     ),
   ];
-  return { tiles, props };
+  const maps = [
+    ...new Set(
+      rooms
+        .map((room) => room.mapImage)
+        .filter((id): id is string => id !== undefined),
+    ),
+  ];
+  return { tiles, props, maps };
 }

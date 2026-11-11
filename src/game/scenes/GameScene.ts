@@ -649,10 +649,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Bangun ruangan dari data map scene aktif: lantai + dinding tileSprite,
-   * sprite prop dan NPC, lalu collider dari objek yang sama yang digambar.
-   * `look` masih dipakai untuk musik; latar pemandangan hanya di layar
-   * judul/hasil (world-design.md § Lampiran aset latar).
+   * Bangun ruangan dari data map scene aktif: satu gambar peta penuh (ADR 0012)
+   * atau lantai + dinding tileSprite, sprite prop dan NPC, lalu collider dari
+   * objek yang sama yang digambar. `look` masih dipakai untuk musik; latar
+   * pemandangan hanya di layar judul/hasil (world-design.md § Lampiran aset
+   * latar).
    */
   private pasangRuangan(state: ReturnType<StoryRunner["getState"]>) {
     const sceneId =
@@ -710,53 +711,74 @@ export class GameScene extends Phaser.Scene {
     this.wallBodies = undefined;
   }
 
-  /** Gambar lantai/dinding/prop/NPC dari data, lalu bangun collider-nya. */
+  /** Gambar peta/lantai/dinding/prop/NPC dari data, lalu bangun collider-nya. */
   private renderRuang() {
     const room = this.room;
 
-    // Lantai: satu tileSprite penuh; fallback warna bila tile gagal dimuat.
-    if (this.textures.exists(room.floorTile)) {
+    // Ruangan bergambar penuh (ADR 0012): satu gambar jadi lantai sekaligus
+    // dekorasi, jadi lantai tileSprite, dinding, dan prop dilewati. Collider
+    // dan NPC tetap dibangun dari data.
+    const peta = room.mapImage;
+
+    if (peta && this.textures.exists(peta)) {
       this.ruanganObjects.push(
-        this.add
-          .tileSprite(0, 0, room.width, room.height, room.floorTile)
-          .setOrigin(0)
-          .setDepth(DEPTH_LANTAI),
+        this.add.image(0, 0, peta).setOrigin(0).setDepth(DEPTH_LANTAI),
       );
     } else {
-      this.ruanganObjects.push(
-        this.add
-          .rectangle(
-            room.width / 2,
-            room.height / 2,
-            room.width,
-            room.height,
-            room.floorColor,
-          )
-          .setDepth(DEPTH_LANTAI),
-      );
-    }
-
-    // Dinding digambar dari `room.walls` (sudah dilebarkan selebar layar),
-    // bukan dari `roomData.objects` — kalau tidak, dinding kanan tetap di
-    // posisi lama dan menyisakan celah di tepi viewport.
-    for (const wall of room.walls) {
-      const visual = this.textures.exists(room.wallTile)
-        ? this.add
-            .tileSprite(wall.x, wall.y, wall.width, wall.height, room.wallTile)
+      // Lantai: satu tileSprite penuh; fallback warna bila tile gagal dimuat.
+      if (this.textures.exists(room.floorTile)) {
+        this.ruanganObjects.push(
+          this.add
+            .tileSprite(0, 0, room.width, room.height, room.floorTile)
             .setOrigin(0)
-        : this.add.rectangle(
-            wall.x + wall.width / 2,
-            wall.y + wall.height / 2,
-            wall.width,
-            wall.height,
-            room.wallColor,
-          );
-      this.ruanganObjects.push(visual.setDepth(DEPTH_DINDING));
+            .setDepth(DEPTH_LANTAI),
+        );
+      } else {
+        this.ruanganObjects.push(
+          this.add
+            .rectangle(
+              room.width / 2,
+              room.height / 2,
+              room.width,
+              room.height,
+              room.floorColor,
+            )
+            .setDepth(DEPTH_LANTAI),
+        );
+      }
+
+      // Dinding digambar dari `room.walls` (sudah dilebarkan selebar layar),
+      // bukan dari `roomData.objects` — kalau tidak, dinding kanan tetap di
+      // posisi lama dan menyisakan celah di tepi viewport.
+      for (const wall of room.walls) {
+        const visual = this.textures.exists(room.wallTile)
+          ? this.add
+              .tileSprite(
+                wall.x,
+                wall.y,
+                wall.width,
+                wall.height,
+                room.wallTile,
+              )
+              .setOrigin(0)
+          : this.add.rectangle(
+              wall.x + wall.width / 2,
+              wall.y + wall.height / 2,
+              wall.width,
+              wall.height,
+              room.wallColor,
+            );
+        this.ruanganObjects.push(visual.setDepth(DEPTH_DINDING));
+      }
+
+      // Prop dari data hanya digambar di jalur tile, bukan di peta bergambar.
+      for (const object of this.roomData.objects) {
+        if (object.kind === "prop") this.renderProp(object);
+      }
     }
 
-    // Prop dan NPC tetap dari data map (posisinya tidak berubah).
+    // NPC selalu sprite, di jalur tile maupun peta bergambar.
     for (const object of this.roomData.objects) {
-      if (object.kind === "prop") this.renderProp(object);
       if (object.kind === "npc") this.renderNpc(object);
     }
 
