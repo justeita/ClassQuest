@@ -62,9 +62,9 @@ Urutan pengerjaan ada di [docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hac
 | Bahasa               | TypeScript                         | Strict mode                                                    |
 | UI                   | React 19, Tailwind CSS 4           |                                                                |
 | Game                 | Phaser 4.2.1                       | Client-only. Halaman dev `/game`, game siswa `/play/[storyId]` |
-| Database             | libSQL (`@libsql/client`)          | File lokal untuk dev; remote via `DATABASE_URL`                |
+| Database             | libSQL (`@libsql/client`)          | File lokal untuk dev; Turso untuk produksi                     |
 | AI                   | Mock + Anthropic/OpenAI-compatible | Provider dipilih lewat `AI_PROVIDER`; ADR 0006 masih terbuka   |
-| Layanan pihak ketiga | `TBD`                              | Diisi saat deployment ditentukan                               |
+| Layanan pihak ketiga | Vercel Hobby + Turso               | Hosting Vercel; database libSQL Turso (ADR 0013)               |
 | Runtime & package    | Bun 1.4.0                          | Satu-satunya package manager yang dipakai                      |
 
 ## Arsitektur
@@ -139,7 +139,11 @@ bun run build   # build produksi
 
 ## Akun Demo
 
-Belum ada autentikasi pada versi ini.
+Aplikasi live: `TBD` (diisi setelah deploy pertama ke Vercel).
+
+Autentikasi guru memakai satu kode akses dari env `TEACHER_ACCESS_CODE`, tanpa
+pendaftaran. Kode akses demo: `TBD` (diisi setelah deploy). Endpoint masuk:
+`POST /api/auth/login` dengan body `{ "code": "<kode akses>" }`.
 
 ## Penggunaan AI
 

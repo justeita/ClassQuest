@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -50,9 +50,9 @@ AI_TIMEOUT_MS=60000
 TEACHER_ACCESS_CODE=
 TEACHER_SESSION_SECRET=
 
-# Database/storage (TBD, lihat docs/06-backend/persistence.md)
+# Database (libSQL). Lokal: file:./local.db; produksi: Turso.
 DATABASE_URL=
-STORAGE_BUCKET=
+DATABASE_AUTH_TOKEN=
 ```
 
 Aturan:
@@ -71,6 +71,38 @@ AI_PROVIDER=mock bun dev
 
 Mode ini memakai fixture, sehingga seluruh alur bisa dikembangkan tanpa biaya dan
 tanpa jaringan.
+
+## Deploy (Vercel + Turso)
+
+Keputusan hosting dan database ada di
+[ADR 0013](../09-decisions/0013-hosting-vercel-turso.md). Batas body request
+Vercel 4,5 MB adalah alasan batas upload PDF 4 MB.
+
+1. Buat database Turso di region Singapore:
+
+   ```bash
+   turso db create classquest --location aws-ap-southeast-1
+   turso db show classquest --url
+   turso db tokens create classquest
+   ```
+
+2. Jalankan migrasi dari laptop dengan URL dan token dari langkah 1. Jangan
+   menempel token ke repo, commit, atau chat:
+
+   ```bash
+   DATABASE_URL='libsql://...' DATABASE_AUTH_TOKEN='...' bun run db:migrate
+   ```
+
+3. Import repo di Vercel. Framework Next.js terdeteksi otomatis; region function
+   `sin1` diatur lewat `vercel.json`; Node.js 22.x.
+
+4. Set environment Production: `DATABASE_URL`, `DATABASE_AUTH_TOKEN`,
+   `TEACHER_ACCESS_CODE`, `TEACHER_SESSION_SECRET`, lalu variabel `AI_*` sesuai
+   provider. Jangan set `DATABASE_URL` ke `file:./local.db`: filesystem Vercel
+   read-only. `.env.local` tidak ikut ter-deploy.
+
+5. Deploy dari `main`, lalu buka `https://<app>.vercel.app/api/health` dan
+   pastikan `commit` sama dengan SHA yang di-deploy.
 
 ## Struktur perintah
 

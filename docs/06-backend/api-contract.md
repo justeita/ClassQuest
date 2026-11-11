@@ -58,7 +58,7 @@ Menerima PDF, membuat story draft + job generasi.
 
 | Field        | Tipe   | Wajib | Catatan                        |
 | ------------ | ------ | ----- | ------------------------------ |
-| `file`       | File   | Ya    | `application/pdf`              |
+| `file`       | File   | Ya    | `application/pdf`, maks. 4 MB  |
 | `title`      | string | Ya    | 3–80 karakter                  |
 | `subject`    | string | Ya    | 1–40 karakter                  |
 | `gradeLevel` | string | Ya    | 1–40 karakter                  |
@@ -79,6 +79,8 @@ Menerima PDF, membuat story draft + job generasi.
 
 - Validasi file di server (lihat
   [`../01-architecture/security-and-privacy.md`](../01-architecture/security-and-privacy.md)).
+- Ukuran maksimum 4 MB (`MAX_PDF_BYTES`), mengikuti batas body request Vercel
+  4,5 MB yang menyisakan margin untuk overhead multipart (ADR 0013).
 - Simpan file, buat record story (`status: "processing"`), buat job.
 - Jalankan pipeline (lihat [`jobs-and-limits.md`](./jobs-and-limits.md)).
 - Idempotensi: kalau `storyId` sudah ada dan masih `processing`, kembalikan job
@@ -89,7 +91,7 @@ Menerima PDF, membuat story draft + job generasi.
 | Kondisi                 | Response                                     |
 | ----------------------- | -------------------------------------------- |
 | Bukan PDF               | `415 FILE_TYPE`                              |
-| > batas ukuran          | `413 FILE_TOO_LARGE` + `details.maxBytes`    |
+| > 4 MB                  | `413 FILE_TOO_LARGE` + `details.maxBytes`    |
 | PDF rusak / terenkripsi | `422 PDF_UNREADABLE`                         |
 | > batas halaman         | `422 TOO_MANY_PAGES`                         |
 | Rate limit              | `429 RATE_LIMITED` + `details.retryAfterSec` |

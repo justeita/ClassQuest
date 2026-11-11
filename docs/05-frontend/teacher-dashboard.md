@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -129,7 +129,7 @@ Aturan polling:
 | Situasi               | Jangan              | Pakai                                                                                                   |
 | --------------------- | ------------------- | ------------------------------------------------------------------------------------------------------- |
 | Bukan PDF             | "Invalid mime type" | "File ini bukan PDF. Pilih file .pdf ya."                                                               |
-| Terlalu besar         | "413"               | "PDF-nya 24 MB, batasnya 20 MB. Coba kompres dulu."                                                     |
+| Terlalu besar         | "413"               | "PDF-nya 4,5 MB, batasnya 4 MB. Coba kompres dulu."                                                     |
 | PDF scan              | "NO_TEXT_LAYER"     | "PDF ini sepertinya hasil scan, jadi teksnya tidak bisa dibaca. Pakai PDF yang teksnya bisa diseleksi." |
 | AI gagal              | "AI_TIMEOUT"        | "Pembuatan cerita memakan waktu terlalu lama. Coba lagi."                                               |
 | Materi terlalu pendek | "400"               | "Materinya masih sangat sedikit. Tambahkan beberapa halaman agar ceritanya cukup."                      |
