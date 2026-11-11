@@ -2,9 +2,9 @@
  * Data ruangan per scene (ADR 0010).
  *
  * Scene demo yang sudah punya map khusus: lorong sekolah (`sc_01_01`), kelas
- * (`sc_01_02`, `sc_01_03`), dan halaman sekolah (`sc_03_03`). Scene lain jatuh
- * ke template `default` — pola yang sama dengan `resolveSceneLook()` di
- * `src/game/sceneAssets.ts`.
+ * (`sc_01_02`, `sc_01_03`), dan halaman sekolah (`sc_02_*`, `sc_03_*`). Scene
+ * lain jatuh ke template `default` — pola yang sama dengan `resolveSceneLook()`
+ * di `src/game/sceneAssets.ts`.
  *
  * Ukuran `tileW`/`tileH` prop mengikuti ukuran PNG aslinya (16 px per tile),
  * karena `renderProp()` memakai kotak itu sebagai jangkar gambar. Prop besar
@@ -13,8 +13,7 @@
  *
  * NPC di data hanya menyebut **di mana** anggota cast berdiri; `buildRoomMap`
  * yang memetakan id ke `story.cast` dan menurunkan fallback bila id tidak
- * dikenal, sehingga map tidak pernah menambah karakter baru. Rani menyusul di
- * PR cerita karena `char_rani` belum ada di cast demo.
+ * dikenal, sehingga map tidak pernah menambah karakter baru.
  */
 
 import type { RoomData, RoomObject } from "./types";
@@ -184,7 +183,17 @@ const LORONG: RoomData = {
       tileH: 2,
       solid: false,
     },
-    // Pak Bima menunjuk genangan di depan kelas (sc_01_01).
+    // Rani dan Pak Bima berhenti di depan genangan (sc_01_01). Rani yang
+    // menyapa lebih dulu, jadi ia pemberi quest untuk scene itu.
+    {
+      kind: "npc",
+      id: "char_rani",
+      tileX: 10,
+      tileY: 9,
+      tileW: 1,
+      tileH: 2,
+      solid: true,
+    },
     {
       kind: "npc",
       id: "char_pak_bima",
@@ -384,6 +393,15 @@ const HALAMAN: RoomData = {
       tileH: 2,
       solid: true,
     },
+    {
+      kind: "npc",
+      id: "char_rani",
+      tileX: 30,
+      tileY: 20,
+      tileW: 1,
+      tileH: 2,
+      solid: true,
+    },
   ],
 };
 
@@ -399,6 +417,11 @@ const ROOMS_BY_SCENE = new Map<string, RoomData>([
   ["sc_01_01", LORONG],
   ["sc_01_02", KELAS_A],
   ["sc_01_03", KELAS_A],
+  ["sc_02_01", HALAMAN],
+  ["sc_02_02", HALAMAN],
+  ["sc_02_03", HALAMAN],
+  ["sc_03_01", HALAMAN],
+  ["sc_03_02", HALAMAN],
   ["sc_03_03", HALAMAN],
 ]);
 

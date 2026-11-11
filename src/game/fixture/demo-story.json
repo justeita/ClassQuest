@@ -7,7 +7,7 @@
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat dan penasaran",
-    "synopsis": "Nara mengikuti perjalanan setetes air dari halaman sekolah, naik ke awan, lalu kembali ke bumi. Di sepanjang perjalanan, ia belajar tentang evaporasi, kondensasi, dan infiltrasi.",
+    "synopsis": "Nino mengikuti perjalanan setetes air dari genangan di depan kelas, naik menjadi uap, berkumpul di awan, lalu kembali ke bumi sebagai hujan yang meresap ke taman sekolah. Sepanjang jalan, ia belajar tentang evaporasi, kondensasi, dan infiltrasi.",
     "estimatedMinutes": 8
   },
   "source": {
@@ -18,57 +18,64 @@
   },
   "cast": [
     {
-      "id": "char_nara",
-      "name": "Nara",
+      "id": "char_nino",
+      "name": "Nino",
       "role": "player",
-      "spriteId": "char_nara",
-      "description": "Siswa yang penasaran dan suka mengamati hal kecil."
+      "spriteId": "char_nino",
+      "description": "Siswa yang penasaran dan suka mengamati hal kecil di sekitarnya."
     },
     {
       "id": "char_pak_bima",
       "name": "Pak Bima",
       "role": "mentor",
       "spriteId": "char_pak_bima",
-      "description": "Guru IPA yang sabar dan suka memberi pertanyaan."
+      "description": "Guru IPA yang sabar dan suka mengajak muridnya bertanya."
     },
     {
       "id": "char_tirta",
       "name": "Tirta",
       "role": "npc",
       "spriteId": "char_tirta",
-      "description": "Perwujudan setetes air yang menemani Nara."
+      "description": "Perwujudan setetes air yang menemani Nino dalam perjalanan."
+    },
+    {
+      "id": "char_rani",
+      "name": "Rani",
+      "role": "npc",
+      "spriteId": "char_rani",
+      "description": "Teman sekelas Nino yang rapi dan suka mencatat pengamatan."
     }
   ],
   "chapters": [
     {
       "id": "ch_01",
-      "title": "Pagi yang Menguap",
+      "title": "Genangan yang Menyusut",
       "concept": "Evaporasi",
-      "summary": "Nara memperhatikan genangan di halaman sekolah yang menyusut tanpa diseka siapa pun.",
+      "summary": "Nino dan Rani menemukan genangan di depan kelas yang menyusut tanpa diseka. Pak Bima mengajak mereka menyelidiki ke mana airnya pergi.",
       "backgroundId": "bg_classroom_day",
       "musicId": "bgm_school_calm",
       "scenes": [
         {
           "id": "sc_01_01",
-          "title": "Genangan yang Menghilang",
+          "title": "Genangan di Depan Kelas",
           "beats": [
             {
               "type": "narration",
-              "text": "Bel berbunyi. Di depan kelas, Pak Bima menunjuk genangan air yang mulai mengering."
+              "text": "Bel istirahat berbunyi. Di lorong sekolah, Nino berhenti di depan genangan kecil yang menggenangi ubin."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
-              "text": "Genangan itu tadi pagi masih penuh. Sekarang hampir habis. Ke mana airnya?"
+              "speakerId": "char_rani",
+              "text": "Tadi pagi genangan ini masih lebar. Sekarang tinggal bercak tipis, padahal tidak ada yang mengepelnya."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_nara",
-              "text": "Aku tidak melihat ada yang mengepelnya, Pak."
+              "speakerId": "char_nino",
+              "text": "Airnya juga tidak mengalir ke mana-mana. Ke mana perginya, ya?"
             },
             {
               "type": "narration",
-              "text": "Nara menatap atap kelas. Ada titik-titik air di sana, tapi tidak ada hujan."
+              "text": "Rani menunjuk pintu kelas A. Pak Bima berdiri di ambang, memperhatikan mereka berdua."
             }
           ]
         },
@@ -79,7 +86,7 @@
             {
               "type": "dialogue",
               "speakerId": "char_pak_bima",
-              "text": "Air bisa berubah wujud. Saat dipanaskan matahari, air menjadi uap yang tidak terlihat."
+              "text": "Air tidak hilang begitu saja. Saat terkena panas, ia berubah menjadi uap yang tidak terlihat mata."
             },
             {
               "type": "challenge",
@@ -87,12 +94,12 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_tirta",
-              "text": "Aku uap yang baru lepas dari genangan itu. Ringan sekali, sampai aku bisa naik."
+              "speakerId": "char_nino",
+              "text": "Jadi genangan itu naik ke udara sebagai uap, bukan lenyap?"
             },
             {
               "type": "narration",
-              "text": "Nara mengikuti arah naiknya uap, meski matanya tidak bisa melihat apa pun."
+              "text": "Pak Bima mengangguk dan mengajak mereka melihat ke luar jendela kelas."
             }
           ]
         },
@@ -106,17 +113,17 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_nara",
-              "text": "Jadi air yang hilang bukan lenyap. Ia berubah jadi uap dan naik."
+              "speakerId": "char_tirta",
+              "text": "Aku setetes air yang baru lepas dari genangan itu. Badanku ringan, sampai aku bisa naik."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
-              "text": "Tepat. Proses itu disebut evaporasi. Sekarang, ikuti uap itu ke atas."
+              "speakerId": "char_nino",
+              "text": "Berarti air yang menghilang hanya berubah wujud, bukan lenyap."
             },
             {
               "type": "narration",
-              "text": "Angin berhembus, membawa uap menjauh dari halaman sekolah."
+              "text": "Angin pagi berembus, membawa uap itu menuju halaman sekolah."
             }
           ]
         }
@@ -124,9 +131,9 @@
     },
     {
       "id": "ch_02",
-      "title": "Naik ke Langit",
+      "title": "Kabut di Atas Taman",
       "concept": "Kondensasi",
-      "summary": "Di atas awan, Nara melihat uap air berkumpul dan berubah menjadi titik-titik air.",
+      "summary": "Di halaman sekolah, Tirta berubah menjadi titik-titik air dan berkumpul membentuk awan. Nino belajar bahwa awan bukan kapas.",
       "backgroundId": "bg_cloud_sky",
       "musicId": "bgm_adventure",
       "scenes": [
@@ -136,12 +143,12 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Nara berdiri di atas awan. Udara terasa dingin dan basah."
+              "text": "Di tengah halaman, udara terasa lebih dingin. Tirta menggigil di atas kolam taman."
             },
             {
               "type": "dialogue",
               "speakerId": "char_tirta",
-              "text": "Di sini dingin. Tubuhku mulai mengeras dan berkumpul dengan uap lain."
+              "text": "Di sini dingin. Badanku mulai mengeras dan menempel pada uap-uap yang lain."
             },
             {
               "type": "challenge",
@@ -149,8 +156,8 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_tirta",
-              "text": "Kami berubah menjadi titik-titik air, lalu bergabung membentuk awan."
+              "speakerId": "char_nino",
+              "text": "Tadi kamu uap, sekarang kamu titik air. Kenapa bisa berubah seperti itu?"
             }
           ]
         },
@@ -164,42 +171,37 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_nara",
-              "text": "Jadi awan itu kumpulan titik air, bukan kapas."
+              "speakerId": "char_pak_bima",
+              "text": "Uap yang mendingin berubah menjadi titik air. Itulah sebabnya awan terlihat seperti kapas."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
-              "text": "Betul. Perubahan uap menjadi titik air disebut kondensasi."
+              "speakerId": "char_nino",
+              "text": "Jadi awan itu kumpulan titik air, bukan kapas sungguhan."
             },
             {
               "type": "narration",
-              "text": "Awan semakin berat. Warna putihnya berubah menjadi kelabu."
+              "text": "Awan di atas sekolah semakin tebal dan berwarna kelabu."
             }
           ]
         },
         {
           "id": "sc_02_03",
-          "title": "Tetesan Pertama",
-          "backgroundId": "bg_mountain_night",
+          "title": "Awan yang Berat",
           "beats": [
             {
               "type": "narration",
-              "text": "Tetesan pertama jatuh dari awan dan melewati wajah Nara."
+              "text": "Titik-titik air berkumpul sampai awan tak lagi sanggup menahannya."
             },
             {
               "type": "dialogue",
               "speakerId": "char_tirta",
-              "text": "Aku kembali menjadi air. Terima kasih sudah menemaniku."
+              "text": "Aku makin berat. Sebentar lagi aku akan jatuh kembali ke bumi."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_nara",
-              "text": "Tunggu, bagaimana kamu bisa kembali ke tanah?"
-            },
-            {
-              "type": "narration",
-              "text": "Angin membawa awan itu menuju pegunungan di kejauhan."
+              "speakerId": "char_rani",
+              "text": "Lihat, langit makin gelap. Sepertinya hujan akan segera turun!"
             }
           ]
         }
@@ -207,10 +209,10 @@
     },
     {
       "id": "ch_03",
-      "title": "Kembali ke Bumi",
+      "title": "Air Kembali ke Taman",
       "concept": "Infiltrasi",
-      "summary": "Hujan turun di lereng gunung. Nara belajar bahwa air bisa mengalir di permukaan atau meresap ke dalam tanah.",
-      "backgroundId": "bg_river_day",
+      "summary": "Hujan turun di halaman sekolah. Nino mengikuti air yang meresap ke tanah taman dan menyadari siklus air tidak pernah berhenti.",
+      "backgroundId": "bg_schoolyard_day",
       "musicId": "bgm_ending",
       "scenes": [
         {
@@ -218,8 +220,12 @@
           "title": "Dua Jalan Air",
           "beats": [
             {
+              "type": "challenge",
+              "challengeId": "chl_03_01"
+            },
+            {
               "type": "narration",
-              "text": "Hujan turun di lereng gunung. Air mengalir ke sungai kecil."
+              "text": "Hujan turun membasahi halaman. Air menggenang di rumput dan tumpah ke jalan setapak."
             },
             {
               "type": "dialogue",
@@ -227,13 +233,9 @@
               "text": "Air hujan punya dua jalan: mengalir di permukaan, atau meresap ke dalam tanah."
             },
             {
-              "type": "challenge",
-              "challengeId": "chl_03_01"
-            },
-            {
               "type": "dialogue",
-              "speakerId": "char_nara",
-              "text": "Jadi infiltrasi itu air yang masuk ke tanah, bukan yang mengalir di atasnya."
+              "speakerId": "char_nino",
+              "text": "Yang meresap ke dalam tanah itu disebut infiltrasi, ya, Pak?"
             }
           ]
         },
@@ -247,42 +249,36 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
-              "text": "Sebagian air tanah kembali ke sungai perlahan, sebagian disimpan akar tanaman."
+              "speakerId": "char_rani",
+              "text": "Aku catat, ya: sebagian air disimpan akar tanaman, sebagian mengalir pelan kembali ke sungai."
             },
             {
               "type": "narration",
-              "text": "Nara melihat akar pohon menyerap air, lalu daun-daunnya terlihat lebih segar."
+              "text": "Nino melihat tanah taman menyerap air, dan daun-daun pohon terlihat lebih segar."
             },
             {
               "type": "dialogue",
               "speakerId": "char_tirta",
-              "text": "Dan nanti, matahari akan memanggilku lagi. Siklus ini tidak pernah benar-benar berhenti."
+              "text": "Nanti matahari akan memanggilku lagi. Siklus ini tidak pernah benar-benar berhenti."
             }
           ]
         },
         {
           "id": "sc_03_03",
           "title": "Lingkaran Kecil",
-          "backgroundId": "bg_schoolyard_day",
           "beats": [
             {
               "type": "narration",
-              "text": "Bel berbunyi lagi. Nara kembali di halaman sekolah, di depan genangan yang hampir kering."
+              "text": "Hujan reda. Nino berdiri di depan kolam taman yang kembali penuh oleh air hujan."
             },
             {
               "type": "dialogue",
               "speakerId": "char_pak_bima",
-              "text": "Sekarang kamu tahu ke mana air itu pergi."
-            },
-            {
-              "type": "dialogue",
-              "speakerId": "char_nara",
-              "text": "Ia tidak hilang. Ia hanya berjalan dalam lingkaran."
+              "text": "Sekarang kamu tahu ke mana air genangan di depan kelas itu pergi."
             },
             {
               "type": "narration",
-              "text": "Genangan itu mengecil, tapi ceritanya baru saja dimulai."
+              "text": "Nino tersenyum. Air itu tidak hilang, hanya berjalan dalam lingkaran yang sama."
             }
           ]
         }
@@ -371,14 +367,8 @@
     }
   ],
   "assetUsage": {
-    "backgrounds": [
-      "bg_classroom_day",
-      "bg_cloud_sky",
-      "bg_mountain_night",
-      "bg_river_day",
-      "bg_schoolyard_day"
-    ],
+    "backgrounds": ["bg_classroom_day", "bg_cloud_sky", "bg_schoolyard_day"],
     "music": ["bgm_school_calm", "bgm_adventure", "bgm_ending"],
-    "sprites": ["char_nara", "char_pak_bima", "char_tirta"]
+    "sprites": ["char_nino", "char_pak_bima", "char_tirta", "char_rani"]
   }
 }

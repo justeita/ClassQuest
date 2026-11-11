@@ -34,8 +34,21 @@ describe("resolveRoomData", () => {
     expect(room.heightTiles).toBe(34);
   });
 
+  it("scene halaman lain memakai ruangan yang sama", () => {
+    for (const sceneId of [
+      "sc_02_01",
+      "sc_02_02",
+      "sc_02_03",
+      "sc_03_01",
+      "sc_03_02",
+      "sc_03_03",
+    ]) {
+      expect(resolveRoomData(sceneId).roomId).toBe("halaman_sekolah");
+    }
+  });
+
   it("scene tanpa map khusus jatuh ke template default", () => {
-    const room = resolveRoomData("sc_02_01");
+    const room = resolveRoomData("sc_09_09");
     expect(room.roomId).toBe("default");
   });
 
