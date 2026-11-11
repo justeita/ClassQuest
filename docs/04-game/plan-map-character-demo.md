@@ -13,10 +13,10 @@ Dokumen ini merinci rencana teknis dan arsitektur untuk memperbarui dunia permai
 3. **Karakter Baru**: Protagonis (MC) digambar ulang di generator repo dengan siluet terinspirasi Nino (ekor kembar dan pita kupu-kupu), memakai kerangka animasi 8 arah milik proyek.
 4. **Story Demo / Fixture**: Pembaruan cerita demo statis (`demo-story.json`) agar skenario cerita secara alami mengeksplorasi kedua map tersebut.
 
-> **Status implementasi (2026-11-11).** PR 1 (aset + manifest) selesai:
-> tile koridor, prop taman/interior, `char_nino`, dan portrait-nya sudah ada di
-> manifest. PR 2 (data ruangan) dan PR 3 (story demo) belum dikerjakan; ukuran
-> dan detail di bawah adalah target PR 2.
+> **Status implementasi (2026-11-11).** PR 1 (aset + manifest) dan PR 2 (data
+> ruangan) selesai: tile koridor, prop taman/interior, `char_nino`, portrait,
+> serta ruangan `lorong_sekolah`, `kelas_a`, dan `halaman_sekolah` sudah ada.
+> PR 3 (story demo) belum dikerjakan.
 
 ---
 
@@ -33,8 +33,8 @@ Gedung sekolah dibagi menjadi 2 room data terpisah untuk memberikan fokus visual
 - **Fungsi**: Hub penghubung antar ruangan sekolah dan jalan keluar ke halaman.
 - **Ukuran**: 60×24 tile (960×384 px, lorong memanjang horizontal). Tinggi 24 tile dipilih supaya memenuhi minimum 40×23 di [`world-design.md`](./world-design.md) — dengan 18 tile (288 px) kamera 360 px akan memperlihatkan area kosong di luar peta.
 - **Lantai & Dinding**: Lantai ubin koridor (`tile_floor_corridor`), dinding atas 2 tile (`tile_wall_plaster`) dengan pintu-pintu kelas dan jendela kaca.
-- **Objek/Prop**: Mading sekolah, rak (`prop_shelf`), pot tanaman, pintu kelas A (`prop_door` di `tileX: 16`), pintu kelas B (`prop_door` di `tileX: 36`), dan pintu keluar ke halaman di ujung kanan (`tileX: 56`).
-- **NPC**: Siswa lain (Rani) yang memberi petunjuk awal sebelum masuk kelas.
+- **Objek/Prop**: Mading sekolah (memakai `prop_blackboard` sebagai papan dekoratif), rak (`prop_shelf`), pintu kelas A (`prop_door` di `tileX: 16`), pintu kelas B (`prop_door` di `tileX: 36`), dan pintu keluar ke halaman di puncak ujung kanan (`tileX: 56`).
+- **NPC**: Pak Bima di depan kelas untuk scene `sc_01_01`. Rani menyusul di PR 3 setelah `char_rani` masuk cast.
 
 #### 1B. Ruang Kelas (`kelas_a`)
 
@@ -42,7 +42,7 @@ Gedung sekolah dibagi menjadi 2 room data terpisah untuk memberikan fokus visual
 - **Ukuran**: 48×28 tile (768×448 px).
 - **Lantai & Dinding**: Lantai parket kayu, dinding plester.
 - **Objek/Prop**:
-  - Papan tulis besar di dinding depan (`tileX: 20, tileY: 2, tileW: 8, tileH: 2`, `solid: true`).
+  - Papan tulis besar di dinding depan (`tileX: 20, tileY: 2, tileW: 7, tileH: 3`, `solid: true`; ukuran asli `prop_blackboard` 112×48 px).
   - Meja guru di sisi papan tulis.
   - 4–6 pasang meja dan kursi siswa berderet dengan lorong tengah aman (lebar ≥ 2 tile).
   - Pintu keluar di bagian bawah (`tileX: 24, tileY: 27`).
@@ -89,7 +89,7 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 - **Karakteristik**:
   - Garis outline 1 px tegas (_dark outline_) yang konsisten, tanpa anti-aliasing buram.
   - Meja kelas dan lemari digambar dari sudut pandang 3/4 top-down (bagian atas meja terlihat luas, bagian kaki memiliki bayangan alas 1–2 px).
-  - Prop memiliki ukuran proporsional terhadap karakter (misal meja siswa 32×32 atau 48×32 px, papan tulis 96×32 atau 112×32 px).
+  - Prop memiliki ukuran proporsional terhadap karakter (misal meja siswa 48×32 px, papan tulis 112×48 px).
   - Collision padat diset hanya di bagian alas/kaki furnitur, bukan di bagian atas meja, agar karakter terasa berdiri di samping atau di depan meja.
 
 ### 2.3. Standar Karakter (MC Nino & NPC)

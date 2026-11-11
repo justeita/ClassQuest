@@ -20,6 +20,25 @@ export { TILE_SIZE } from "../constants";
 
 export type RoomObjectKind = "wall" | "prop" | "npc";
 
+/**
+ * Collider sub-area untuk prop besar (ADR 0011).
+ *
+ * Offset dan ukuran dinyatakan dalam tile relatif terhadap pojok kiri atas
+ * objek, jadi nilainya boleh pecahan (mis. `0.5`) untuk batang pohon yang lebih
+ * sempit dari satu tile. Tanpa collider ini, seluruh kotak `tileW`×`tileH`
+ * menjadi solid — untuk pohon 8×8 tile itu memblok hampir seluruh taman.
+ */
+export type RoomObjectCollider = {
+  /** Jarak dari tepi kiri objek, dalam tile. */
+  x: number;
+  /** Jarak dari tepi atas objek, dalam tile. */
+  y: number;
+  /** Lebar area solid, dalam tile. */
+  w: number;
+  /** Tinggi area solid, dalam tile. */
+  h: number;
+};
+
 export type RoomObject = {
   kind: RoomObjectKind;
   /**
@@ -36,6 +55,12 @@ export type RoomObject = {
   tileH: number;
   /** true = memblok pemain. Dinding selalu solid. */
   solid: boolean;
+  /**
+   * Area solid opsional di dalam kotak objek. Bila ada, collider memakai area
+   * ini apa adanya (tanpa inset 2 px) dan `tileW`/`tileH` tetap menentukan
+   * jangkar gambar.
+   */
+  collider?: RoomObjectCollider;
 };
 
 export type RoomData = {

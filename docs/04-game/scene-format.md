@@ -62,21 +62,22 @@ Semua key loader memakai `id` manifest, jadi scene tidak menebak path file.
 
 ## Ruangan dan eksplorasi (ADR 0008)
 
-Per ADR 0008, scene dirender sebagai **ruangan satu layar** yang bisa dijelajahi:
+Per ADR 0008 dan 0010, scene dirender sebagai **ruangan satu peta** yang bisa
+dijelajahi (bisa lebih luas dari layar):
 
 - Scene dibuka dalam fase `explore`: pemain spawn di titik tetap, lalu bergerak
   4 arah (`W`/`A`/`S`/`D`, panah) dengan collision.
 - Data map — lantai, dinding, penempatan NPC, spawn, zona interaksi —
-  didefinisikan **di sisi game** (`src/game/`, map dummy per scene) dan **tidak
-  mengubah kontrak Story JSON**. Struktur datanya dibuat supaya nanti bisa
-  diganti tileset nyata tanpa refactor.
-- Map dummy menyimpan lantai/dinding/spawn/zona; Sprite karakter memakai
+  didefinisikan **di sisi game** (`src/game/maps/`, satu `RoomData` per
+  `roomId`) dan **tidak mengubah kontrak Story JSON**.
+- Ruangan menyimpan lantai/dinding/spawn/zona; sprite karakter memakai
   `spriteId` dari `cast` (spritesheet 24×32) dan background dari
   `backgroundId`. Bila texture tidak ada, runtime jatuh ke `char_default` /
   `bg_default` tanpa menghentikan permainan.
 - Collision: dinding keliling ruangan + objek padat; arcade physics gravity 0
   (sudah diset di `config.ts`). Collider dibangun dari data objek yang sama
-  yang digambar (ADR 0010) — tidak ada collider terpisah dari visual.
+  yang digambar (ADR 0010) — tidak ada collider terpisah dari visual. Prop
+  besar boleh memakai sub-collider di dalam kotaknya (ADR 0011).
 - NPC/objek interaksi punya zona kecil. Pemain di dalam zona → indikator
   interaksi muncul → `Space`/`Enter` memutar deretan beat scene itu (fase
   `dialog`); gerak terkunci sampai deretan beat habis.
