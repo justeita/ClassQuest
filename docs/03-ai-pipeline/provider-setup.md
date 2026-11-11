@@ -1,6 +1,6 @@
 ---
 status: tbd
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -176,7 +176,9 @@ AI_PROVIDER=mock bun dev
 ```
 
 `MockProvider` mengembalikan fixture JSON yang sudah valid (dan beberapa fixture
-rusak untuk menguji repair). Ini membuat:
+rusak untuk menguji repair). Dalam mode bawaan, tahap chapter memilih fixture
+sesuai id yang diminta prompt (`ch_02` → `chapter/ch_02.json`) supaya outline
+tiga chapter tidak menerima fixture yang sama tiga kali. Ini membuat:
 
 - onboarding anggota tim baru tidak terhalang kunci API,
 - test CI deterministik,

@@ -145,6 +145,19 @@ describe("jalur bahagia", () => {
     expectValid(result);
   });
 
+  it("mock bawaan menghasilkan cerita valid untuk outline tiga chapter", async () => {
+    const result = await run(new MockProvider());
+
+    expect(result.usedFallback).toBe(false);
+    expect(result.reason).toBeNull();
+    expect(result.story.chapters.map((chapter) => chapter.id)).toEqual([
+      "ch_01",
+      "ch_02",
+      "ch_03",
+    ]);
+    expectValid(result);
+  });
+
   it("menghitung assetUsage di kode, urut dan tanpa duplikat", async () => {
     const result = await run(happy());
 

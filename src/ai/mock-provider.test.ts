@@ -154,6 +154,32 @@ describe("MockProvider — pemilihan tahap", () => {
     expect(response.text).toBe(output("chapter/valid.json"));
   });
 
+  it("memakai fixture chapter sesuai id yang diminta prompt", async () => {
+    const provider = new MockProvider();
+    const response = await provider.complete(
+      request({
+        user: [
+          "SCHEMA CHAPTER (ringkas)",
+          "OUTLINE\n{ ... }",
+          'TASK\nTulis chapter "ch_02" berjudul "Hujan" untuk konsep "presipitasi".',
+        ].join("\n\n"),
+      }),
+    );
+
+    expect(response.text).toBe(output("chapter/ch_02.json"));
+  });
+
+  it("stage eksplisit tidak ikut memilih fixture berdasarkan id", async () => {
+    const provider = new MockProvider({ stage: "chapter" });
+    const response = await provider.complete(
+      request({
+        user: 'SCHEMA CHAPTER\n\nTASK\nTulis chapter "ch_02" berjudul "Hujan".',
+      }),
+    );
+
+    expect(response.text).toBe(output("chapter/valid.json"));
+  });
+
   it("menyimpulkan tahap outline dari blok OUTLINE", async () => {
     const provider = new MockProvider();
     const response = await provider.complete(
