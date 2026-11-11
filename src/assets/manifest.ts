@@ -150,7 +150,7 @@ export const ASSETS: readonly AssetEntry[] = [
     kind: "character",
     path: "/assets/char/nino.png",
     label: "Nino (siswa pindahan)",
-    tags: ["siswa", "perempuan", "ekor kembar", "pita", "remaja", "student"],
+    tags: ["siswa", "perempuan", "ekor kembar", "pita", "rok", "student"],
     portraitPath: "/assets/portrait/nino.png",
   },
   {
