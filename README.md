@@ -3,9 +3,10 @@
 ClassQuest mengubah materi pelajaran yang diunggah guru menjadi game pixel 2D
 bercerita, supaya siswa belajar lewat alur cerita dan tantangan, bukan hafalan.
 
-> **Status:** masih tahap awal. Repo ini baru berisi scaffold Next.js dan
-> dokumentasi kontrak. Belum ada fitur produk yang bisa dicoba. Rencana lengkap
-> ada di [docs/](docs/README.md).
+> **Status:** dalam pengembangan aktif menjelang Hacking Week LOGICODIX 2026.
+> Backend (upload, pipeline AI, cerita, auth guru, hasil main) dan halaman game
+> siswa sudah jalan; UI guru dan landing page belum. Rencana lengkap ada di
+> [docs/](docs/README.md).
 
 ## Tim
 
@@ -32,12 +33,17 @@ repo: [@justeita](https://github.com/justeita) dan
 
 ## Fitur Utama
 
-Belum ada fitur yang berjalan pada versi ini. Tabel akan diisi hanya dengan fitur
-yang benar-benar jalan di commit final.
+Yang sudah berjalan di commit saat ini:
 
-| Fitur | Status | Cara mencoba |
-| ----- | ------ | ------------ |
-| —     | —      | —            |
+| Fitur                                        | Status    | Cara mencoba                                   |
+| -------------------------------------------- | --------- | ---------------------------------------------- |
+| Game siswa dari cerita demo                  | Berjalan  | Buka `/play/<storyId>` cerita demo             |
+| Upload PDF + pembuatan job generasi          | Berjalan  | `POST /api/upload`                             |
+| Pipeline AI: ekstrak teks → outline → cerita | Berjalan  | `AI_PROVIDER=mock` atau provider nyata via env |
+| Login guru (kode akses + cookie sesi)        | Berjalan  | `POST /api/auth/login`                         |
+| Manajemen cerita guru (Server Actions)       | Berjalan  | `src/app/guru/actions.ts`                      |
+| Simpan hasil bermain siswa + ringkasan       | Berjalan  | `src/server/play-results`                      |
+| UI dashboard guru (daftar, editor, publish)  | Belum ada | —                                              |
 
 ### Rencana
 
@@ -50,16 +56,16 @@ Urutan pengerjaan ada di [docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hac
 
 ## Teknologi
 
-| Lapisan              | Teknologi                | Keterangan                                     |
-| -------------------- | ------------------------ | ---------------------------------------------- |
-| Framework            | Next.js 16 (App Router)  | Server Component, Route Handler, Server Action |
-| Bahasa               | TypeScript               | Strict mode                                    |
-| UI                   | React 19, Tailwind CSS 4 |                                                |
-| Game                 | Phaser 4.2.1             | Client-only. Shell placeholder di `/game`      |
-| Database             | `TBD`                    | Keputusan ada di ADR 0005                      |
-| AI                   | `TBD`                    | Keputusan provider ada di ADR 0006             |
-| Layanan pihak ketiga | `TBD`                    | Diisi saat deployment ditentukan               |
-| Runtime & package    | Bun 1.4.0                | Satu-satunya package manager yang dipakai      |
+| Lapisan              | Teknologi                          | Keterangan                                                     |
+| -------------------- | ---------------------------------- | -------------------------------------------------------------- |
+| Framework            | Next.js 16 (App Router)            | Server Component, Route Handler, Server Action                 |
+| Bahasa               | TypeScript                         | Strict mode                                                    |
+| UI                   | React 19, Tailwind CSS 4           |                                                                |
+| Game                 | Phaser 4.2.1                       | Client-only. Halaman dev `/game`, game siswa `/play/[storyId]` |
+| Database             | libSQL (`@libsql/client`)          | File lokal untuk dev; remote via `DATABASE_URL`                |
+| AI                   | Mock + Anthropic/OpenAI-compatible | Provider dipilih lewat `AI_PROVIDER`; ADR 0006 masih terbuka   |
+| Layanan pihak ketiga | `TBD`                              | Diisi saat deployment ditentukan                               |
+| Runtime & package    | Bun 1.4.0                          | Satu-satunya package manager yang dipakai                      |
 
 ## Arsitektur
 
@@ -142,20 +148,28 @@ dengan bantuan asisten coding AI (OpenCode), lalu dibaca, dijalankan, dan
 diverifikasi oleh anggota tim lewat `bun run check` dan `bun run build`. Tidak ada
 kode yang di-commit tanpa dipahami minimal satu anggota.
 
-**Sebagai fitur produk:** direncanakan, belum ada. Rencananya AI menyusun cerita
-dari teks materi; guru tetap meninjau dan mengedit sebelum siswa melihat hasilnya.
-Data pribadi siswa tidak dikirim ke model. Detail dan keputusan provider ada di
+**Sebagai fitur produk:** pipeline generasi cerita sudah berjalan — guru
+mengunggah PDF, sistem mengekstrak teks, menyusun kerangka chapter, lalu menulis
+cerita per chapter dengan validasi dan repair. Provider dipilih lewat env
+(`AI_PROVIDER=mock` untuk development tanpa biaya). Guru tetap meninjau dan
+mengedit sebelum siswa melihat hasilnya. Data pribadi siswa tidak dikirim ke
+model. Detail dan keputusan provider ada di
 [docs/11-logicodix/14-ai-dan-atribusi.md](docs/11-logicodix/14-ai-dan-atribusi.md).
 
 ## Atribusi Pihak Ketiga
 
-| Komponen                  | Sumber                            | Lisensi |
-| ------------------------- | --------------------------------- | ------- |
-| Next.js                   | https://nextjs.org                | MIT     |
-| React                     | https://react.dev                 | MIT     |
-| Tailwind CSS              | https://tailwindcss.com           | MIT     |
-| Bun                       | https://bun.sh                    | MIT     |
-| Starter `create-next-app` | https://github.com/vercel/next.js | MIT     |
+| Komponen                  | Sumber                            | Lisensi    |
+| ------------------------- | --------------------------------- | ---------- |
+| Next.js                   | https://nextjs.org                | MIT        |
+| React                     | https://react.dev                 | MIT        |
+| Tailwind CSS              | https://tailwindcss.com           | MIT        |
+| Phaser                    | https://phaser.io                 | MIT        |
+| Bun                       | https://bun.sh                    | MIT        |
+| libSQL (`@libsql/client`) | https://libsql.org                | MIT        |
+| unpdf                     | https://github.com/unjs/unpdf     | MIT        |
+| zod                       | https://zod.dev                   | MIT        |
+| Anthropic SDK             | https://github.com/anthropics/sdk | Apache-2.0 |
+| Starter `create-next-app` | https://github.com/vercel/next.js | MIT        |
 
 Aset gambar game:
 

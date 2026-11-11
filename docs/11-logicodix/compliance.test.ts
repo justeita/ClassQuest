@@ -59,7 +59,7 @@ const tracked = (() => {
 const TEXT = /\.(md|json|ts|tsx|js|mjs|cjs|yml|yaml|txt|css|svg|html|example)$/;
 const read = (path: string) => readFileSync(resolve(REPO, path), "utf8");
 
-describe("kredensial (halaman 15)", () => {
+describe("kredensial (halaman cetak 15-16)", () => {
   const SECRETS: Array<[string, RegExp]> = [
     ["private key", /-----BEGIN [A-Z ]*PRIVATE KEY/],
     ["GitHub token", /\bghp_[A-Za-z0-9]{36}\b/],
@@ -140,7 +140,7 @@ describe("kredensial (halaman 15)", () => {
   });
 });
 
-describe("riwayat commit (halaman 15-16)", () => {
+describe("riwayat commit (halaman cetak 14-16)", () => {
   const PREFIX =
     /^(feat|fix|docs|style|refactor|chore)(\([a-z0-9._-]+\))?!?: .+/;
   const BANNED =
@@ -177,9 +177,13 @@ describe("riwayat commit (halaman 15-16)", () => {
     );
   })();
 
+  // Commit yang sudah diklarifikasi panitia dan dibiarkan apa adanya.
+  // Tercatat di 13-pelanggaran-dan-sanksi.md bagian catatan kejadian.
+  const PANITIA_EXEMPT = new Set(["7f79aea"]);
+
   it.skipIf(!hasHistory)("setiap commit baru memakai awalan resmi", () => {
     const wrong = commits
-      .filter((c) => !PREFIX.test(c.subject))
+      .filter((c) => !PREFIX.test(c.subject) && !PANITIA_EXEMPT.has(c.hash))
       .map((c) => `${c.hash} "${c.subject}"`);
 
     expect(wrong).toEqual([]);
@@ -261,7 +265,7 @@ describe("kebersihan repositori", () => {
     expect(big).toEqual([]);
   });
 
-  it("README ada di direktori utama (halaman 19-20)", () => {
+  it("README ada di direktori utama (halaman cetak 17-18)", () => {
     expect(tracked).toContain("README.md");
   });
 });
@@ -293,7 +297,7 @@ describe("dokumen aturan tidak boleh hilang", () => {
 
   it("setiap dokumen menyebut halaman guidebook sebagai rujukan", () => {
     const withoutPages = REQUIRED.filter((file) => file !== "README.md").filter(
-      (file) => !/halaman \d/i.test(read(resolve(HERE, file))),
+      (file) => !/halaman( cetak)? \d/i.test(read(resolve(HERE, file))),
     );
 
     expect(withoutPages).toEqual([]);

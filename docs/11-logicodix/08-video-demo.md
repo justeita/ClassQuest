@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Video Demo
 
-Sumber: Guidebook LOGICODIX 2026, halaman 18–21.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 18–21.
 
 Video demo bukan pelengkap. Kalau video tidak memenuhi syarat, submission
 dinyatakan **tidak memenuhi persyaratan demonstrasi** — apa pun kualitas kodenya.

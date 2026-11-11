@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Aturan Commit dan Git
 
-Sumber: Guidebook LOGICODIX 2026, halaman 15–16 dan 24.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 15–16 dan 24.
 
 Dokumen ini mengikat semua anggota. Tujuannya menuliskan aturan git kompetisi
 secara eksplisit, karena banyak kebiasaan git yang normal di proyek lain justru

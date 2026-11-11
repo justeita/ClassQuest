@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Deploy dan Akses Juri
 
-Sumber: Guidebook LOGICODIX 2026, halaman 19, 21–22, dan 26.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 20–21 dan 26.
 
 Aplikasi yang tidak bisa dibuka juri sama saja dengan tidak ada. Bagian ini
 mengatur apa yang harus hidup, apa yang tidak boleh diminta dari juri, dan bagaimana

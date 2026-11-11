@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Keamanan Kredensial
 
-Sumber: Guidebook LOGICODIX 2026, halaman 15. Bobot penilaian "Etika & Keamanan
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 15–16. Bobot penilaian "Etika & Keamanan
 Digital" 10% juga menilai keamanan dasar aplikasi.
 
 ## Aturan
@@ -65,9 +65,10 @@ file `.env` akan ikut ter-commit.
 
 ## Isi `.env.example`
 
-Saat ini `.env.example` hanya berisi komentar. Itu **belum melanggar** karena
-aplikasi belum membaca satu variabel pun. Begitu variabel pertama dipakai di kode,
-file ini wajib memuat namanya.
+`.env.example` sudah memuat nama variabel yang dibaca `src/server/config.ts`
+(`AI_PROVIDER`, `AI_API_KEY`, `TEACHER_ACCESS_CODE`, `DATABASE_URL`, dst.) tanpa
+nilai asli. Aturan di bawah tetap berlaku: setiap `process.env.X` baru di kode
+wajib punya `X=` di `.env.example` pada commit yang sama.
 
 Bentuk yang harus ada ketika fitur AI dan penyimpanan masuk:
 
