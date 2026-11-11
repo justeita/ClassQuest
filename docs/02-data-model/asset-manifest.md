@@ -34,7 +34,7 @@ kalau berbeda.
 
 ```ts
 export type AssetKind =
-  "background" | "character" | "tile" | "prop" | "music" | "sfx" | "ui";
+  "background" | "character" | "tile" | "prop" | "map" | "music" | "sfx" | "ui";
 
 export type AssetEntry = {
   id: string; // mis. "bg_classroom_day"
@@ -71,21 +71,25 @@ editor, dan game.
 
 ## Aturan id
 
-| Kind         | Prefix  | Contoh             |
-| ------------ | ------- | ------------------ |
-| `background` | `bg_`   | `bg_classroom_day` |
-| `character`  | `char_` | `char_pak_bima`    |
-| `tile`       | `tile_` | `tile_floor_wood`  |
-| `prop`       | `prop_` | `prop_desk`        |
-| `music`      | `bgm_`  | `bgm_school_calm`  |
-| `sfx`        | `sfx_`  | `sfx_correct`      |
-| `ui`         | `ui_`   | `ui_textbox`       |
+| Kind         | Prefix  | Contoh                |
+| ------------ | ------- | --------------------- |
+| `background` | `bg_`   | `bg_classroom_day`    |
+| `character`  | `char_` | `char_pak_bima`       |
+| `tile`       | `tile_` | `tile_floor_wood`     |
+| `prop`       | `prop_` | `prop_desk`           |
+| `map`        | `map_`  | `map_halaman_sekolah` |
+| `music`      | `bgm_`  | `bgm_school_calm`     |
+| `sfx`        | `sfx_`  | `sfx_correct`         |
+| `ui`         | `ui_`   | `ui_textbox`          |
 
 - `id` unik, `snake_case`, hanya `[a-z0-9_]`.
 - `id` **tidak boleh berubah** setelah dipakai cerita. Ganti file boleh, ganti id
   tidak (kecuali migrasi cerita).
 - `path` unik dan harus benar-benar ada di `public/`.
 - `portraitPath` hanya boleh ada untuk kind `character`, dan filenya harus ada.
+- `map` adalah satu gambar ruangan penuh (ADR 0012). Tanpa `width`/`height`
+  kelipatan 16 gambar tidak sejajar grid collider. Sumbernya gabungan aset pihak
+  ketiga, jadi dicatat di [`../07-assets/inventory.md`](../07-assets/inventory.md).
 
 ## Aset fallback
 
@@ -97,9 +101,13 @@ Selalu ada fallback per kind, supaya game tidak pernah crash:
 | `character`  | `char_default`   |
 | `tile`       | `tile_default`   |
 | `prop`       | `prop_default`   |
+| `map`        | — (wajib ada)    |
 | `music`      | `bgm_default`    |
 | `sfx`        | — (boleh senyap) |
 | `ui`         | `ui_default`     |
+
+`map` tidak punya fallback: ruangan hanya menggambar peta bila id-nya memang ada,
+kalau tidak ia kembali ke jalur `floorTile`/`wallTile` ADR 0010.
 
 Validator **tidak** membiarkan AI memakai fallback sebagai pilihan utama. Fallback
 hanya dipakai runtime bila file gagal dimuat.
@@ -141,6 +149,7 @@ yang paling dekat dan mencatatnya di `source.gaps`, bukan mengarang id.
 5. Fallback tiap kind ada.
 6. `width`/`height` background = 640×360 (lihat
    [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md)).
+7. `width`/`height` `map` kelipatan 16 dan sesuai ukuran ruangannya (ADR 0012).
 
 Test ini yang membuat "aset hilang" ketahuan saat `bun run test`, bukan saat demo.
 

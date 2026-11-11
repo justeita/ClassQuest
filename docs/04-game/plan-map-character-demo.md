@@ -18,6 +18,12 @@ Dokumen ini merinci rencana teknis dan arsitektur untuk memperbarui dunia permai
 > `char_nino`, portrait, ruangan `lorong_sekolah`, `kelas_a`, dan
 > `halaman_sekolah`, serta cerita demo baru yang memakai Nino sebagai pemain
 > dan Rani sebagai NPC.
+>
+> **Rombakan visual halaman (2026-11-11).** Halaman sekolah kini digambar dari
+> satu **gambar peta penuh** (`map_halaman_sekolah`, [ADR 0012](../09-decisions/0012-room-map-image.md))
+> yang dijahit `scripts/compose-map.mjs` dari The Fan-tasy Tileset, menggantikan
+> kombinasi `tile_floor_grass`/`tile_wall_hedge` + prop taman. Ruangan dalam
+> (lorong, kelas) tetap memakai jalur tile ADR 0010.
 
 ---
 

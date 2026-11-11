@@ -203,6 +203,7 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0009-resolution-and-scale.md`](./09-decisions/0009-resolution-and-scale.md)               | stable | Resolusi 640x360, tile 16, karakter 24x32                |
 | [`09-decisions/0010-map-data-and-camera.md`](./09-decisions/0010-map-data-and-camera.md)                 | stable | Map data per scene, kamera follow dengan batas map       |
 | [`09-decisions/0011-large-prop-subcollider.md`](./09-decisions/0011-large-prop-subcollider.md)           | stable | Sub-collider untuk prop besar seperti pohon dan rak      |
+| [`09-decisions/0012-room-map-image.md`](./09-decisions/0012-room-map-image.md)                           | stable | Peta ruangan sebagai satu gambar penuh                   |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                         | draft  | Urutan kerja dan pembagian tugas                         |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                               | draft  | Naskah demo 3 menit + sketsa layar                       |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                     | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal |
