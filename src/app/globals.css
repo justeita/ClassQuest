@@ -35,6 +35,7 @@
   position: absolute;
   bottom: var(--challenge-bottom);
   max-height: var(--challenge-max-h);
+  /* Horizontal diatur inline (left 50% + translateX) supaya selalu center. */
 }
 
 /*
