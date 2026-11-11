@@ -36,8 +36,11 @@ describe("InteractHint", () => {
   it("ukuran huruf mengikuti skala canvas", () => {
     render(<InteractHint hint={{ text: "Space", x: 320, y: 180 }} />);
 
-    expect(screen.getByText("Space").style.fontSize).toContain(
-      cqw(11).replace("cqw", ""),
-    );
+    // Ukuran memakai satuan internal; nilainya diturunkan dari lebar dunia
+    // aktual (`--gw`), jadi yang diuji cukup bahwa rumusnya dipakai.
+    const ukuran = screen.getByText("Space").style.fontSize;
+    expect(ukuran).toContain("cqw");
+    expect(ukuran).toContain("var(--gw");
+    expect(cqw(11)).toContain("var(--gw");
   });
 });

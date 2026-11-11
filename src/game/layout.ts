@@ -43,6 +43,8 @@ export const CHALLENGE = {
 export const PORTRAIT = {
   x: 26,
   y: 164,
+  /** Y saat portrait diletakkan tepat di atas panel dialog (center). */
+  yAtas: 160,
   frameSize: 72,
   imageInset: 4,
   imageSize: 64,
@@ -53,9 +55,15 @@ export function persen(nilai: number, total: number): string {
   return `${Number(((nilai / total) * 100).toFixed(4))}%`;
 }
 
-/** Koordinat x internal → persen lebar ruang game. */
+/**
+ * Koordinat x internal → persen lebar ruang game **aktual**.
+ *
+ * Lebar internal mengikuti rasio layar (`lebarInternal`), jadi angka 640 tidak
+ * lagi pasti. Nilai aktual datang dari CSS variable `--gw` yang dipasang di
+ * bingkai kanvas; fallback `GAME_WIDTH` menjaga pratinjau/tes tetap jalan.
+ */
 export function persenLebar(x: number): string {
-  return persen(x, GAME_WIDTH);
+  return `calc(${x} / var(--gw, ${GAME_WIDTH}) * 100%)`;
 }
 
 /** Koordinat y internal → persen tinggi ruang game. */
@@ -71,22 +79,26 @@ export function kotakPersen(kotak: {
   height: number;
 }): { left: string; top: string; width: string; height: string } {
   return {
-    left: persen(kotak.x, GAME_WIDTH),
+    left: persenLebar(kotak.x),
     top: persen(kotak.y, GAME_HEIGHT),
-    width: persen(kotak.width, GAME_WIDTH),
+    width: persenLebar(kotak.width),
     height: persen(kotak.height, GAME_HEIGHT),
   };
 }
 
 /**
- * Panjang internal (px pada 640×360) → `cqw`, yaitu 1% lebar kontainer game.
+ * Panjang internal (px pada tinggi 360) → lebar kontainer game.
  *
- * Kontainer game selalu `aspect-video` dan dijadikan `container-type: size`
- * (lihat `GameCanvas`), jadi `cqw` dan `cqh` sebanding dan keduanya ikut skala
- * canvas. Ini cara termudah memakai satu set angka internal untuk dua sumbu.
+ * Lebar internal dunia mengikuti rasio layar (`lebarInternal`), jadi 1 unit
+ * internal = `100 / --gw` persen lebar kontainer. `cqh` tetap dipakai sebagai
+ * acuan karena tinggi internal selalu 360 — keduanya sebanding.
  */
 export function cqw(px: number): string {
-  return `${Number(((px / GAME_WIDTH) * 100).toFixed(4))}cqw`;
+  // `--gw` = lebar dunia internal dalam px (mis. 780 pada layar 2:1), jadi
+  // porsi lebar = px / --gw, dikalikan 1cqw (1% lebar bingkai kanvas).
+  // Satuan `cqw` dipakai (bukan `%`) karena nilai ini juga dipakai untuk
+  // padding dan fontSize, yang tidak menerima persen.
+  return `calc(${px} / var(--gw, ${GAME_WIDTH}) * 100cqw)`;
 }
 
 /** Ukuran huruf setara `pxInternal`, dibatasi `minPx`–`maxPx` agar tetap terbaca. */
