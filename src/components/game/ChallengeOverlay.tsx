@@ -328,7 +328,9 @@ export function ChallengeOverlay({
         onKeyDown={tanganiOpsi}
         className="challenge-panel pointer-events-auto flex flex-col font-game text-[#F7F4EC] focus-visible:outline-none"
         style={{
-          right: cqw(CHALLENGE.insetRight),
+          // Tepi kanan panel sejajar dengan tepi kanan dialog (dialog selalu
+          // center), jadi panel terlihat menempel rapi di atasnya.
+          right: `calc(50% - ${cqw(TEXTBOX.width / 2)})`,
           width:
             modeLayout === "kartu" ? cqw(TEXTBOX.width) : cqw(CHALLENGE.width),
           maxWidth: "calc(100% - 32px)",

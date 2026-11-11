@@ -589,7 +589,14 @@ export class GameScene extends Phaser.Scene {
       state.sceneIndex >= 0
         ? (state.chapter?.scenes[state.sceneIndex]?.id ?? null)
         : null;
-    this.room = roomForScene(sceneId, this.story);
+    // Lebar internal mengikuti rasio layar. Ruangan yang lebih sempit dari
+    // viewport menyisakan area kosong dan dinding kanan "hilang", jadi ruangan
+    // dilebarkan minimal selebar layar (dinding keliling ikut menyesuaikan).
+    this.room = roomForScene(
+      sceneId,
+      this.story,
+      Math.ceil(this.scale.width / TILE_SIZE),
+    );
     this.roomData = resolveRoomData(sceneId);
     this.roomAktif = this.room.roomId;
 
@@ -659,25 +666,26 @@ export class GameScene extends Phaser.Scene {
       );
     }
 
-    // Dinding dari data (keliling + pita atas), digambar per objek.
+    // Dinding digambar dari `room.walls` (sudah dilebarkan selebar layar),
+    // bukan dari `roomData.objects` — kalau tidak, dinding kanan tetap di
+    // posisi lama dan menyisakan celah di tepi viewport.
+    for (const wall of room.walls) {
+      const visual = this.textures.exists(room.wallTile)
+        ? this.add
+            .tileSprite(wall.x, wall.y, wall.width, wall.height, room.wallTile)
+            .setOrigin(0)
+        : this.add.rectangle(
+            wall.x + wall.width / 2,
+            wall.y + wall.height / 2,
+            wall.width,
+            wall.height,
+            room.wallColor,
+          );
+      this.ruanganObjects.push(visual.setDepth(DEPTH_DINDING));
+    }
+
+    // Prop dan NPC tetap dari data map (posisinya tidak berubah).
     for (const object of this.roomData.objects) {
-      if (object.kind === "wall") {
-        const width = object.tileW * TILE_SIZE;
-        const height = object.tileH * TILE_SIZE;
-        const x = object.tileX * TILE_SIZE;
-        const y = object.tileY * TILE_SIZE;
-        const visual = this.textures.exists(room.wallTile)
-          ? this.add.tileSprite(x, y, width, height, room.wallTile).setOrigin(0)
-          : this.add.rectangle(
-              x + width / 2,
-              y + height / 2,
-              width,
-              height,
-              room.wallColor,
-            );
-        this.ruanganObjects.push(visual.setDepth(DEPTH_DINDING));
-        continue;
-      }
       if (object.kind === "prop") this.renderProp(object);
       if (object.kind === "npc") this.renderNpc(object);
     }
