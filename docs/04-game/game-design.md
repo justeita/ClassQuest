@@ -24,10 +24,11 @@ perspektif objek, urutan gambar, dan kamera — ada di
 
 ### Palet
 
-Delapan warna ini yang dipakai: **enam warna inti** untuk dunia, dan **dua warna
-fungsional** untuk umpan balik. Tidak ada warna lain.
+Sembilan warna ini yang dipakai: **enam warna inti** untuk dunia, **dua warna
+fungsional** untuk umpan balik, dan **satu aksen karakter** untuk membedakan
+tokoh. Tidak ada warna lain.
 
-![Palet ClassQuest: enam warna inti dan dua warna fungsional](../assets/palette.svg)
+![Palet ClassQuest: enam warna inti, dua warna fungsional, dan satu aksen karakter](../assets/palette.svg)
 
 | Peran          | Warna     | Terlihat seperti | Dipakai untuk                    |
 | -------------- | --------- | ---------------- | -------------------------------- |
@@ -39,6 +40,7 @@ fungsional** untuk umpan balik. Tidak ada warna lain.
 | Teks terang    | `#F7F4EC` | putih tulang     | dialog di atas panel gelap       |
 | Benar / sukses | `#6F9B7A` | hijau lumut      | tanda jawaban benar, progres     |
 | Peringatan     | `#C9A227` | kuning tua       | status "perlu direview", catatan |
+| Aksen karakter | `#D98FA3` | rosa lembut      | rambut dan pita tokoh penanda    |
 
 Cara memakai tanpa bingung:
 
@@ -49,13 +51,15 @@ Cara memakai tanpa bingung:
 - **Aksen dingin menandai air dan ketenangan.** Jangan dipakai untuk peringatan.
 - **Hijau dan kuning hanya untuk umpan balik,** bukan untuk menghias dunia.
   Jawaban salah sengaja **tidak** memakai merah menyala; lihat bagian umpan balik.
+- **Aksen karakter hanya untuk tokoh.** `#D98FA3` menandai identitas karakter
+  (misalnya rambut Nino), bukan bahan dunia, UI, atau umpan balik.
 
 Jangan menambah warna di luar palet tanpa memperbarui dokumen ini dan
 [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md).
 
 #### Ramp turunan
 
-Aset piksel butuh lebih dari delapan nilai untuk membentuk bayangan dan cahaya.
+Aset piksel butuh lebih dari sembilan nilai untuk membentuk bayangan dan cahaya.
 Semua nilai tambahan di bawah ini **bukan warna baru**: masing-masing adalah
 hasil `mix()` dua warna palet atau `shade()` satu warna palet dengan faktor
 tetap. Definisinya ada di `scripts/lib/palette.mjs` (`RAMP`), dan generator aset
@@ -81,6 +85,8 @@ hanya boleh memakai warna dari tabel ini.
 | `leaf`       | `#587C62` | `moss` + `night` (0.25)                      |
 | `leafLight`  | `#9EB8A0` | `moss` + `paper` (0.35)                      |
 | `glow`       | `#DAC173` | `gold` + `paper` (0.40)                      |
+| `blushLight` | `#E5BAC1` | `blush` + `paper` (0.45)                     |
+| `blushShade` | `#9E6E7A` | `blush` + `night` (0.30)                     |
 
 Menambah entri `RAMP` berarti menambah baris di tabel ini pada PR yang sama.
 

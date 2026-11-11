@@ -115,10 +115,11 @@ gradien besar atau tepi yang terlihat saat diulang.
 1. **Satu grid.** Semua gambar digambar pada grid 1 px dari resolusi 640×360.
    Jangan mengecilkan gambar besar.
 2. **Tanpa anti-aliasing.** Tidak ada blur, gradient halus, atau bayangan lembut.
-3. **Palet terbatas.** Maksimal 8 warna per gambar (6 inti + 2 fungsional), diambil
-   dari palet proyek ([`../04-game/game-design.md`](../04-game/game-design.md)).
-   Untuk background yang butuh variasi terang/gelap, pakai tint dari palet itu —
-   jangan menambah warna baru.
+3. **Palet terbatas.** Maksimal 9 warna per gambar (6 inti + 2 fungsional + 1
+   aksen karakter), diambil dari palet proyek
+   ([`../04-game/game-design.md`](../04-game/game-design.md)). Untuk background
+   yang butuh variasi terang/gelap, pakai tint dari palet itu — jangan menambah
+   warna baru.
 4. **Skala integer saat menggambar.** Semua gambar digambar pada grid 1 px; game
    yang menampilkan dengan `Scale.FIT`. Pratinjau di 2× (1280×720) atau 3×
    (1920×1080) untuk memeriksa ketajaman.
@@ -139,6 +140,7 @@ gradien besar atau tepi yang terlihat saat diulang.
 | Teks terang   | `#F7F4EC` | inti                     |
 | Hijau lembut  | `#6F9B7A` | fungsional: benar/sukses |
 | Kuning lembut | `#C9A227` | fungsional: peringatan   |
+| Rosa lembut   | `#D98FA3` | aksen karakter           |
 
 Warna di luar palet harus ditambahkan ke dokumen ini dulu.
 
@@ -199,7 +201,7 @@ Aset pihak ketiga boleh dipakai selama tiga syarat ini terpenuhi:
    [`inventory.md`](./inventory.md), supaya aset bisa dibuat ulang tanpa
    menyimpan paket sumbernya.
 
-Aset pihak ketiga yang sudah final tidak perlu mengikuti batas 8 warna di atas —
+Aset pihak ketiga yang sudah final tidak perlu mengikuti batas 9 warna di atas —
 paletnya milik seniman aslinya. Jangan mewarnai ulang aset impor secara manual
 tanpa mencatatnya; lebih baik pakai apa adanya.
 

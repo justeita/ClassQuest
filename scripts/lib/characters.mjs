@@ -151,13 +151,14 @@ const RECIPES = {
     hairStyle: "spirit",
   },
   /**
-   * Nino: siswa baru dengan ekor kembar dan pita kupu-kupu. Warnanya tetap
-   * turunan palet delapan warna — rambut rose adalah `warm` + `cool`, bukan
-   * warna baru di luar palet.
+   * Nino: siswa baru dengan ekor kembar dan pita kupu-kupu. Rambut memakai
+   * aksen karakter `blush` dari palet; bayangan dan kilaunya tetap turunan
+   * `RAMP`, bukan warna baru di luar palet.
    */
   nino: {
-    hair: mix(PALETTE.warm, PALETTE.ink, 0.12),
-    hairLight: mix(mix(PALETTE.warm, PALETTE.ink, 0.12), PALETTE.paper, 0.35),
+    hair: PALETTE.blush,
+    hairLight: RAMP.blushLight,
+    hairShade: RAMP.blushShade,
     skin: RAMP.skin,
     skinShade: RAMP.skinShade,
     eye: PALETTE.ink,
@@ -367,7 +368,7 @@ function applyHairExtras(grid, recipe, dir, bob) {
     }
     // Garis bayangan di sisi dalam ekor supaya terpisah dari kepala,
     // lalu satu kilau di sisi luar.
-    const tailShade = mix(recipe.hair, PALETTE.night, 0.32);
+    const tailShade = recipe.hairShade;
     for (let y = 5; y <= 11; y += 1) {
       grid.set(3, y - bob, tailShade);
       grid.set(20, y - bob, tailShade);
@@ -573,7 +574,7 @@ function buildPortraitGrid(recipe) {
     grid.rect(1, 5, 2, 7, recipe.hair);
     grid.rect(13, 5, 2, 7, recipe.hair);
     // Tepi dalam lebih gelap supaya ekor terpisah dari pipi.
-    const tailShade = mix(recipe.hair, PALETTE.night, 0.32);
+    const tailShade = recipe.hairShade;
     grid.rect(2, 6, 1, 6, tailShade);
     grid.rect(13, 6, 1, 6, tailShade);
     // Pita kupu-kupu 3×3 di pangkal ekor.

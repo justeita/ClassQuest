@@ -1,7 +1,7 @@
 /**
  * Palet ClassQuest dan turunannya.
  *
- * Delapan warna inti berasal dari docs/04-game/game-design.md. Nilai turunan
+ * Sembilan warna inti berasal dari docs/04-game/game-design.md. Nilai turunan
  * **bukan warna baru**: semuanya hasil `mix()` dua warna palet atau `shade()`
  * dari satu warna palet dengan faktor tetap. Daftar lengkapnya wajib sama
  * dengan tabel "Ramp turunan" di docs/04-game/game-design.md.
@@ -9,7 +9,7 @@
 
 import { mix, shade } from "./pixel.mjs";
 
-/** Delapan warna resmi. Jangan menambah entri di sini. */
+/** Sembilan warna resmi. Jangan menambah entri di sini. */
 export const PALETTE = {
   paper: "#F4EFE6",
   bone: "#F7F4EC",
@@ -19,6 +19,7 @@ export const PALETTE = {
   cool: "#7FA6C9",
   moss: "#6F9B7A",
   gold: "#C9A227",
+  blush: "#D98FA3",
 };
 
 /** Warna turunan yang dipakai aset dan komponen DOM. */
@@ -61,6 +62,10 @@ export const RAMP = {
   leafLight: mix(PALETTE.moss, PALETTE.paper, 0.35),
   /** Cahaya lampu di jendela. */
   glow: mix(PALETTE.gold, PALETTE.paper, 0.4),
+  /** Rosa terang untuk kilau rambut karakter. */
+  blushLight: mix(PALETTE.blush, PALETTE.paper, 0.45),
+  /** Rosa dalam untuk bayangan rambut karakter. */
+  blushShade: mix(PALETTE.blush, PALETTE.night, 0.3),
 };
 
 /** Nama warna turunan yang dipakai di kode game/komponen, untuk dokumentasi. */

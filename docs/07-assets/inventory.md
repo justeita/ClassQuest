@@ -182,9 +182,9 @@ aset yang sudah dipotong dan dipakai game — bukan isi paket, PSD, atau file
 sumber lain.
 
 `char_nino` **tidak** memakai sprite pack mana pun. Ia digambar generator dengan
-resep sendiri (ekor kembar dan pita kupu-kupu) memakai palet delapan warna
-proyek; kemiripan dengan karakter referensi hanya pada siluet dan warna rambut,
-bukan salinan berkas.
+resep sendiri (ekor kembar dan pita kupu-kupu) memakai palet sembilan warna
+proyek, termasuk aksen karakter `#D98FA3` untuk rambutnya; kemiripan dengan
+karakter referensi hanya pada siluet dan warna rambut, bukan salinan berkas.
 
 Jangan mengisi kolom ini dengan "Google Images" atau nama game komersial.
 

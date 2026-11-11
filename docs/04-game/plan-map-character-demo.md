@@ -133,7 +133,7 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 
 ### 4.1. Main Character (MC - Nino)
 
-- **Visual**: Siluet orisinal terinspirasi Nino (ekor kembar dan pita kupu-kupu) dengan proporsi chibi top-down 24×32 px, digambar generator dengan palet proyek. Rambut memakai turunan `warm` sehingga terbaca rose tanpa menambah warna di luar palet.
+- **Visual**: Siluet orisinal terinspirasi Nino (ekor kembar dan pita kupu-kupu) dengan proporsi chibi top-down 24×32 px, digambar generator dengan palet proyek. Rambut memakai aksen karakter `blush` (`#D98FA3`) beserta turunan `blushLight`/`blushShade`, jadi tidak ada warna di luar palet.
 - **Kerangka Animasi**: Struktur 8 arah ditetapkan proyek (bukan disalin dari pack mana pun):
   - Arah: `down`, `up`, `left`, `right`, `down-left`, `down-right`, `up-left`, `up-right`.
   - Total frame pada spritesheet horizontal 432×32 px (18 frame @ 24×32 px):
