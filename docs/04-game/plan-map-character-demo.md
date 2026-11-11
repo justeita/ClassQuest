@@ -59,18 +59,57 @@ Gedung sekolah dibagi menjadi 2 room data terpisah untuk memberikan fokus visual
 
 ---
 
-## 2. Inventaris Aset & Pemetaan Sumber Referensi
+## 2. Standar Kualitas Visual Aset: "HD Pixel Art Berkualitas Tinggi tapi Tetap Ringan"
 
-Sumber file di `D:\Data\LOGICODIX 26\Asset`:
+Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesional** (tidak pecah atau blur, mirip standar visual *Omori*, *Stardew Valley*, atau *Eastward*), seluruh kategori aset di ClassQuest menerapkan standar terpadu:
 
-| Kategori | Nama di Asset Eksternal | Target di ClassQuest (`public/assets/` & manifest) | Spesifikasi |
+### 2.1. Standar Prop Luar Ruangan (Pohon, Semak, Dekorasi Taman)
+* **Sumber**: `D:\Data\LOGICODIX 26\Asset\craftpix-net-385863-free-top-down-trees-pixel-art\` & `craftpix-net-141354-free-top-down-bushes-pixel-art\`
+* **Pilihan Varian Wajib**: Gunakan subfolder **`Assets_texture_shadow/`** (bukan varian flat).
+* **Karakteristik**:
+  - Dedaunan memiliki gradasi bayangan dan highlight bertekstur (*textured pixel clusters*).
+  - Dilengkapi *built-in soft ambient shadow* di bagian bawah (transparan alpha), sehingga menyatu alami di atas tile lantai tanpa terlihat melayang.
+  - **Pohon Rindang HD**: Resolusi 128×128 px (8×8 tile grid 16px). Sangat megah sebagai kanopi alami.
+  - **Semak & Bunga HD**: Resolusi 64×64 px (4×4 tile) atau 32×32 px (2×2 tile).
+  - **Ukuran File**: Sangat ringan (~2 KB s.d. ~5 KB per file PNG terkompresi).
+
+### 2.2. Standar Interior & Prop Dalam Ruangan (Sekolah, Meja, Papan Tulis, Rak)
+* **Sumber**: `D:\Data\LOGICODIX 26\Asset\main-characters-home-free-top-down-pixel-art-asset\PNG\Interior.png` & `walls_floor.png`
+* **Karakteristik**:
+  - Garis outline 1 px tegas (*dark outline*) yang konsisten, tanpa anti-aliasing buram.
+  - Meja kelas dan lemari digambar dari sudut pandang 3/4 top-down (bagian atas meja terlihat luas, bagian kaki memiliki bayangan alas 1–2 px).
+  - Prop memiliki ukuran proporsional terhadap karakter (misal meja siswa 32×32 atau 48×32 px, papan tulis 96×32 atau 112×32 px).
+  - Collision padat diset hanya di bagian alas/kaki furnitur, bukan di bagian atas meja, agar karakter terasa berdiri di samping atau di depan meja.
+
+### 2.3. Standar Karakter (MC Nino Nakano & NPC)
+* **Sumber**: `D:\Data\LOGICODIX 26\Asset\The Female Adventurer - Free\` dan referensi visual `Nino_Nakano_ver1.webp`.
+* **Karakteristik**:
+  - Frame karakter standar: **24×32 px** (proporsi chibi top-down 1.5×2 tile) atau **32×48 px** beresolusi tajam.
+  - Outline bersih 1 px gelap yang serasi dengan pohon dan dinding ruangan.
+  - Animasi jalan 8 arah yang mulus (gerakan kaki dan ayunan rambut kembar khas Nino).
+  - Bayangan karakter menggunakan elips transparan terpisah (`12×4 px` atau `16×6 px`) di bawah kaki agar karakter terasa menapak tanah.
+  - **Portrait Dialog**: Resolusi **64×64 px** di atas panel dialog DOM, menampilkan ekspresi wajah Nino yang jelas dan tajam.
+
+### 2.4. Standar Rendering Engine (Phaser & CSS)
+* **Zero Blurring**:
+  - Kanvas game disetel ke `pixelArt: true` di konfigurasi Phaser (`src/game/config.ts`).
+  - CSS kanvas menggunakan `image-rendering: pixelated` dan `crisp-edges`.
+  - Kamera memakai `roundPixels: true` agar pergerakan lerp kamera tidak menghasilkan getaran piksel (*pixel jitter*).
+* **Performa**: Semua tekstur di-batch dalam atlas/individual PNG ringan, total konsumsi VRAM GPU tetap di bawah 15 MB dan stabil di 60 FPS di semua perangkat sekolah/laptop siswa.
+
+---
+
+## 3. Inventaris Aset & Pemetaan Sumber Referensi
+
+| Kategori | Nama di Asset Eksternal | Target di ClassQuest (`public/assets/` & manifest) | Spesifikasi Standar HD Ringan |
 |---|---|---|---|
 | **Pohon Rindang HD** | `craftpix.../Trees_texture_shadow/Tree1.png` | `prop_tree_large` | Resolusi 128×128 px (8×8 tile), detail bayangan daun bertekstur, ukuran file ~5 KB (sangat ringan). Solid di pangkal batang bawah (2×1 tile). |
-| **Pohon Sedang** | `craftpix.../Trees_texture_shadow/Tree2.png` | `prop_tree_medium` | Resolusi 64×64 px (4×4 tile), tekstur bayangan halus. |
+| **Pohon Sedang HD** | `craftpix.../Trees_texture_shadow/Tree2.png` | `prop_tree_medium` | Resolusi 64×64 px (4×4 tile), tekstur bayangan halus, ukuran file ~3.8 KB. |
 | **Pohon Berbunga / Buah** | `craftpix.../Trees_texture_shadow/Flower_tree1.png` | `prop_tree_flower` | 128×128 px, cocok untuk sudut observasi biologi di taman sekolah. |
-| **Semak/Bunga** | `craftpix...bushes-pixel-art` | `prop_bush_small`, `prop_flower_patch` | 16×16 atau 32×16 px. |
-| **Interior** | `main-characters-home.../Interior.png` | `prop_desk`, `prop_shelf`, `prop_door` | Grid 16px, collision diset pada bagian bawah objek. |
-| **Tileset** | `Pixel Art Top Down - Basic v1.2.3` | `tile_floor_corridor`, `tile_floor_wood`, `tile_floor_grass` | 16×16 px tile seamless. |
+| **Semak Bertekstur HD** | `craftpix...bushes.../Autumn_bush1.png` | `prop_bush_small` | Resolusi 64×64 px bertekstur bayangan daun rimbun, ukuran file ~2.5 KB. |
+| **Interior Sekolah HD** | `main-characters-home.../Interior.png` | `prop_desk`, `prop_shelf`, `prop_door` | Detail furnitur kayu berbayangan, collision pada kaki furnitur. |
+| **Lantai & Dinding HD** | `walls_floor.png` & `Pixel Art Basic` | `tile_floor_corridor`, `tile_floor_wood`, `tile_floor_grass` | 16×16 px seamless tile dengan tekstur ubin dan parket bersih. |
+| **MC Nino Nakano** | Template pose `The Female Adventurer` + Desain Nino | `char_nara` (MC) | Spritesheet 8 arah berbayangan alas, portrait dialog 64×64 px tajam. |
 
 ---
 
