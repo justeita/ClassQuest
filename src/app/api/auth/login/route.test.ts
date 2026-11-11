@@ -8,37 +8,46 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * in-memory. Yang di-mock:
  *
  * - `next/headers` untuk cookie sesi (cookie store palsu meniru `cookies()`
- *   async di Next 16, sama seperti `auth.test.ts`).
- * - `@/server/db` supaya `ensureTeacherRow()` memakai client in-memory.
+ *   async di Next 16, sama seperti `auth.test.ts`) dan untuk header IP yang
+ *   dipakai rate limit.
+ * - `@/server/db` supaya `ensureTeacherRow()` dan penghitung rate limit
+ *   (`rate_limits`) memakai client in-memory.
+ *
+ * Rate limit memakai `Date.now()` sungguhan, jadi test-nya tidak mengandalkan
+ * pergantian jendela waktu; "jendela berikutnya" disimulasikan dengan
+ * menggeser baris `rate_limits` dan header IP.
  *
  * Tidak ada kode akses atau secret asli di file ini; nilai di bawah hanya
  * dipakai selama test berjalan.
  */
-const { cookieStore, cookiesMock, dbRef, getReadyDbMock } = vi.hoisted(() => {
-  const cookieStore = {
-    get: vi.fn(),
-    set: vi.fn(),
-    delete: vi.fn(),
-  };
+const { cookieStore, cookiesMock, headersMock, dbRef, getReadyDbMock } =
+  vi.hoisted(() => {
+    const cookieStore = {
+      get: vi.fn(),
+      set: vi.fn(),
+      delete: vi.fn(),
+    };
 
-  const dbRef: { current: unknown | null } = { current: null };
-  const getReadyDbMock = vi.fn(async () => {
-    if (dbRef.current === null) throw new Error("database test belum siap");
-    return dbRef.current;
+    const dbRef: { current: unknown | null } = { current: null };
+    const getReadyDbMock = vi.fn(async () => {
+      if (dbRef.current === null) throw new Error("database test belum siap");
+      return dbRef.current;
+    });
+
+    return {
+      cookieStore,
+      cookiesMock: vi.fn(async () => cookieStore),
+      headersMock: vi.fn(),
+      dbRef,
+      getReadyDbMock,
+    };
   });
 
-  return {
-    cookieStore,
-    cookiesMock: vi.fn(async () => cookieStore),
-    dbRef,
-    getReadyDbMock,
-  };
-});
-
-vi.mock("next/headers", () => ({ cookies: cookiesMock }));
+vi.mock("next/headers", () => ({ cookies: cookiesMock, headers: headersMock }));
 vi.mock("@/server/db", () => ({ getReadyDb: getReadyDbMock }));
 
 import { applyMigrations } from "@/server/db/migrations";
+import { LOGIN_RATE_LIMIT } from "@/server/rate-limit/limits";
 import {
   TEACHER_ID,
   TEACHER_SESSION_COOKIE,
@@ -50,8 +59,17 @@ import {
 import { POST } from "./route";
 
 const ACCESS_CODE = "kode-demo-rahasia-4c1e";
+/** IP palsu (dokumen contoh RFC 5737); hanya untuk test. */
+const CLIENT_IP = "203.0.113.40";
 const SESSION_SECRET = "secret-uji-sesi-yang-panjang-9b2f";
 const WRONG_CODE = "kode-yang-salah-sama-sekali-00ff";
+
+/** Header request untuk rate limit per IP. */
+function useClientIp(ip: string = CLIENT_IP): void {
+  headersMock.mockResolvedValue({
+    get: (name: string) => (name.toLowerCase() === "x-real-ip" ? ip : null),
+  });
+}
 
 function loginRequest(body: string | null, contentType = "application/json") {
   return new Request("http://localhost/api/auth/login", {
@@ -86,6 +104,7 @@ beforeEach(async () => {
   cookiesMock.mockClear();
   getReadyDbMock.mockClear();
   cookieStore.set.mockReset();
+  useClientIp();
 });
 
 afterEach(() => {
@@ -220,5 +239,121 @@ describe("POST /api/auth/login — gagal", () => {
     expect(text).not.toContain(WRONG_CODE);
     expect(text).not.toContain(ACCESS_CODE);
     expect(text).not.toContain(SESSION_SECRET);
+  });
+});
+
+describe("POST /api/auth/login — rate limit", () => {
+  const retryAfterOf = (response: Response): number =>
+    Number(response.headers.get("retry-after"));
+
+  it(`percobaan ke-${LOGIN_RATE_LIMIT.limit + 1} dijawab 429 dan tidak memverifikasi kode`, async () => {
+    for (let i = 0; i < LOGIN_RATE_LIMIT.limit; i += 1) {
+      // Percobaan salah tetap dihitung; semuanya 401 selama belum lewat batas.
+      const response = await POST(
+        loginRequest(JSON.stringify({ code: WRONG_CODE })),
+      );
+      expect(response.status, `percobaan ${i + 1}`).toBe(401);
+    }
+
+    const blocked = await POST(
+      loginRequest(JSON.stringify({ code: ACCESS_CODE })),
+    );
+
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers.get("cache-control")).toBe("no-store");
+    const retryAfter = retryAfterOf(blocked);
+    expect(Number.isInteger(retryAfter)).toBe(true);
+    expect(retryAfter).toBeGreaterThan(0);
+
+    await expect(blocked.json()).resolves.toMatchObject({
+      error: { code: "RATE_LIMITED" },
+    });
+
+    // Kode benar pun tidak diverifikasi: tidak ada cookie, tidak ada baris guru.
+    expect(cookieStore.set).not.toHaveBeenCalled();
+    expect(await teacherCount(db)).toBe(0);
+
+    const text = await POST(
+      loginRequest(JSON.stringify({ code: ACCESS_CODE })),
+    ).then((response) => response.text());
+    expect(text).not.toContain(CLIENT_IP);
+    expect(text).not.toContain(SESSION_SECRET);
+    expect(text).not.toMatch(/[0-9a-f]{64}/);
+  });
+
+  it("jendela berikutnya diizinkan lagi", async () => {
+    for (let i = 0; i < LOGIN_RATE_LIMIT.limit; i += 1) {
+      await POST(loginRequest(JSON.stringify({ code: WRONG_CODE })));
+    }
+    expect(
+      (await POST(loginRequest(JSON.stringify({ code: ACCESS_CODE })))).status,
+    ).toBe(429);
+
+    // Jendela berikutnya = awal jendela + windowSeconds (baris baru).
+    const windowSeconds = LOGIN_RATE_LIMIT.windowSeconds;
+    const shifted = await db.execute({
+      sql: "update rate_limits set window_start = window_start + ? where key like ?",
+      args: [windowSeconds, `${LOGIN_RATE_LIMIT.name}:%`],
+    });
+    expect(shifted.rowsAffected).toBeGreaterThan(0);
+
+    const allowed = await POST(
+      loginRequest(JSON.stringify({ code: ACCESS_CODE })),
+    );
+    expect(allowed.status).toBe(200);
+    await expect(allowed.json()).resolves.toEqual({ ok: true });
+  });
+
+  it("rate limit dicek sebelum body dibaca", async () => {
+    for (let i = 0; i < LOGIN_RATE_LIMIT.limit; i += 1) {
+      await POST(loginRequest(JSON.stringify({ code: WRONG_CODE })));
+    }
+
+    // Body bukan JSON: kalau body dibaca duluan, jawabannya 400.
+    const blocked = await POST(loginRequest("bukan json {", "text/plain"));
+    expect(blocked.status).toBe(429);
+    await expect(blocked.json()).resolves.toMatchObject({
+      error: { code: "RATE_LIMITED" },
+    });
+  });
+
+  it("IP berbeda punya jendela sendiri", async () => {
+    for (let i = 0; i < LOGIN_RATE_LIMIT.limit; i += 1) {
+      await POST(loginRequest(JSON.stringify({ code: WRONG_CODE })));
+    }
+
+    useClientIp("203.0.113.41");
+    const response = await POST(
+      loginRequest(JSON.stringify({ code: ACCESS_CODE })),
+    );
+    expect(response.status).toBe(200);
+  });
+
+  it("tabel rate_limits tidak menyimpan IP mentah", async () => {
+    await POST(loginRequest(JSON.stringify({ code: ACCESS_CODE })));
+
+    const rows = await db.execute("select key from rate_limits");
+    expect(rows.rows.length).toBeGreaterThan(0);
+    for (const row of rows.rows) {
+      expect(String(row.key).startsWith(`${LOGIN_RATE_LIMIT.name}:`)).toBe(
+        true,
+      );
+      expect(String(row.key)).not.toContain(CLIENT_IP);
+    }
+  });
+
+  it("penghitung database gagal → 500 generik tanpa detail (fail closed)", async () => {
+    dbRef.current = null;
+
+    const response = await POST(
+      loginRequest(JSON.stringify({ code: ACCESS_CODE })),
+    );
+
+    expect(response.status).toBe(500);
+    const body = (await response.json()) as { error: Record<string, unknown> };
+    expect(Object.keys(body.error).sort()).toEqual(["code", "message"]);
+    expect(body.error.code).toBe("INTERNAL");
+    expect(JSON.stringify(body)).not.toContain("database test belum siap");
+    expect(cookieStore.set).not.toHaveBeenCalled();
   });
 });

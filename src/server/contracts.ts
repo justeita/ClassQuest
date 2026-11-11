@@ -111,6 +111,19 @@ export type PlayResultInput = {
   answers: unknown[];
 };
 
-/** Hasil `savePlayResult` sesuai kontrak (`{ ok: true }`). */
+/**
+ * Hasil `savePlayResult`.
+ *
+ * Kontrak (`api-contract.md`, bagian "Server Actions") menulis `{ ok: true }`
+ * tanpa cabang gagal. Cabang `{ ok: false, reason }` ditambahkan selama task 22
+ * dan diperluas pada task 24 dengan `"rate_limited"`: Server Action tidak bisa
+ * mengirim HTTP 429, jadi batas yang terlampaui dilaporkan lewat `reason`.
+ * UI siswa hanya perlu memperlakukan `rate_limited` sebagai pesan "coba lagi
+ * sebentar lagi" — tidak ada IP, key, atau `Retry-After` di payload ini.
+ */
 export type SavePlayResultOutcome =
-  { ok: true } | { ok: false; reason: "not_found" | "invalid" | "too_large" };
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "not_found" | "invalid" | "too_large" | "rate_limited";
+    };

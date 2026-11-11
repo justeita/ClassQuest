@@ -19,6 +19,20 @@
  * route). Nilai 300 detik adalah asumsi: pipeline punya deadline 120 detik dan
  * satu panggilan bisa menggantung sampai 60 detik, jadi 300 memberi ruang
  * untuk ekstraksi + penyimpanan. Batas hosting bisa lebih kecil.
+ *
+ * Urutan pemeriksaan (task 24) sengaja tetap:
+ *
+ * 1. batas **per IP** paling awal, sebelum `requireTeacher()` dan sebelum body
+ *    dibaca — supaya percobaan tanpa sesi pun dibatasi di level jaringan;
+ * 2. `requireTeacher()` (401 tidak pernah menambah hitungan di bawah);
+ * 3. Content-Length (tetap seperti sebelumnya);
+ * 4. batas **per guru**, lalu batas **global** (pelindung biaya AI), keduanya
+ *    sebelum multipart dibaca dan file diambil.
+ *
+ * Batas per guru dicek sebelum global supaya guru yang sudah kehabisan kuota
+ * tidak ikut memakan kuota bersama. Login dan upload **fail closed**: bila
+ * penghitung database tidak bisa dipakai, permintaan ditolak `500 INTERNAL`
+ * generik tanpa detail (`src/server/rate-limit`).
  */
 
 import { z } from "zod";
@@ -31,6 +45,11 @@ import {
 } from "@/server/api-error";
 import { getReadyDb } from "@/server/db";
 import { scheduleJob } from "@/server/jobs/schedule";
+import {
+  guardUploadGlobal,
+  guardUploadIp,
+  guardUploadTeacher,
+} from "@/server/rate-limit";
 import { MAX_PDF_BYTES, readPdfUpload, UploadError } from "@/server/upload";
 import type { PdfUploadInput } from "@/server/upload";
 
@@ -82,10 +101,24 @@ function fileTooLargeResponse(): Response {
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    // a. Otorisasi guru lebih dulu; tanpa sesi tidak ada body yang dibaca.
+    // a. Batas per IP paling awal: sebelum sesi diperiksa dan sebelum body
+    // dibaca. Fail closed bila penghitung database gagal.
+    const ipGate = await guardUploadIp();
+    if (ipGate.response !== null) return ipGate.response;
+
+    // b. Otorisasi guru. Permintaan yang ditolak di sini (401) tidak menambah
+    // hitungan per guru maupun global.
     const { teacherId } = await requireTeacher();
 
-    // b. Tolak lebih awal berdasarkan Content-Length, sebelum body dibaca.
+    // c. Batas per guru, lalu batas global (semua guru). Keduanya setelah sesi
+    // sah dan sebelum file dibaca.
+    const teacherGate = await guardUploadTeacher(teacherId);
+    if (teacherGate.response !== null) return teacherGate.response;
+
+    const globalGate = await guardUploadGlobal();
+    if (globalGate.response !== null) return globalGate.response;
+
+    // d. Tolak lebih awal berdasarkan Content-Length, sebelum body dibaca.
     const contentLength = Number.parseInt(
       request.headers.get("content-length") ?? "",
       10,
@@ -97,7 +130,7 @@ export async function POST(request: Request): Promise<Response> {
       return fileTooLargeResponse();
     }
 
-    // c. Harus multipart/form-data; kode 400 dari kontrak adalah FILE_MISSING.
+    // e. Harus multipart/form-data; kode 400 dari kontrak adalah FILE_MISSING.
     const contentType = (request.headers.get("content-type") ?? "")
       .split(";")[0]
       ?.trim()
@@ -124,7 +157,7 @@ export async function POST(request: Request): Promise<Response> {
 
     const upload = await readPdfUpload(form.get("file") as PdfUploadInput);
 
-    // d. Validasi field teks dengan zod.
+    // f. Validasi field teks dengan zod.
     const fields = uploadFieldsSchema.safeParse({
       title: form.get("title"),
       subject: form.get("subject"),
@@ -140,7 +173,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // e. Satu story + satu job dalam satu transaksi; bytes PDF tidak disimpan.
+    // g. Satu story + satu job dalam satu transaksi; bytes PDF tidak disimpan.
     const storyId = crypto.randomUUID();
     const jobId = crypto.randomUUID();
 
@@ -180,7 +213,7 @@ export async function POST(request: Request): Promise<Response> {
       throw error;
     }
 
-    // f. Serahkan bytes PDF ke penjadwal job (dijalankan lewat `after()`).
+    // h. Serahkan bytes PDF ke penjadwal job (dijalankan lewat `after()`).
     scheduleJob({
       jobId,
       storyId,
@@ -192,7 +225,7 @@ export async function POST(request: Request): Promise<Response> {
       tone: fields.data.tone,
     });
 
-    // g. Bentuk 202 persis dari api-contract.md.
+    // i. Bentuk 202 persis dari api-contract.md.
     return Response.json(
       { storyId, jobId, status: "queued" },
       { status: 202, headers: { "Cache-Control": "no-store" } },

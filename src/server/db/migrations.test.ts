@@ -58,8 +58,63 @@ describe("migrate — skema awal", () => {
         "story_versions",
         "jobs",
         "play_results",
+        "rate_limits",
       ]),
     );
+  });
+
+  it("migrasi 0003 membuat rate_limits dengan primary key (key, window_start)", async () => {
+    const db = useDb();
+    await migrate(db);
+
+    const columns = await db.execute("pragma table_info(rate_limits)");
+    expect(
+      columns.rows.map((row) => [String(row.name), String(row.type)]),
+    ).toEqual([
+      ["key", "TEXT"],
+      ["window_start", "INTEGER"],
+      ["count", "INTEGER"],
+    ]);
+
+    const pk = await db.execute("pragma table_info(rate_limits)");
+    expect(
+      pk.rows
+        .filter((row) => Number(row.pk) > 0)
+        .map((row) => String(row.name)),
+    ).toEqual(["key", "window_start"]);
+
+    // `count` wajib terisi.
+    await expect(
+      db.execute(
+        "insert into rate_limits (key, window_start) values ('tanpa-count', 1)",
+      ),
+    ).rejects.toBeTruthy();
+
+    // Pasangan (key, window_start) unik.
+    await db.execute(
+      "insert into rate_limits (key, window_start, count) values ('k', 10, 1)",
+    );
+    await expect(
+      db.execute(
+        "insert into rate_limits (key, window_start, count) values ('k', 10, 1)",
+      ),
+    ).rejects.toBeTruthy();
+  });
+
+  it("migrasi 0003 hanya menambah tabel, tidak mengubah migrasi lama", async () => {
+    const db = useDb();
+    const initial = MIGRATIONS.filter((migration) =>
+      ["0001_initial_schema", "0002_relax_source_file_path"].includes(
+        migration.id,
+      ),
+    );
+
+    await applyMigrations(db, initial);
+    expect(await tableNames(db)).not.toContain("rate_limits");
+
+    const result = await migrate(db);
+    expect(result.applied).toEqual(["0003_rate_limits"]);
+    expect(await tableNames(db)).toContain("rate_limits");
   });
 
   it("membuat kolom yang diwajibkan docs", async () => {

@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -97,6 +97,21 @@ Sampai auth nyata ada:
   network tab; ini dapat diterima untuk MVP. Jangan klaim anti-cheat.
 
 Catat batasan ini di pitch, jangan disembunyikan.
+
+## Rate limit dan IP
+
+Rate limit endpoint publik (login, upload, hasil bermain, baca cerita) dihitung
+dari IP klien, tetapi **IP mentah tidak disimpan**: yang masuk tabel
+`rate_limits` hanya `"<nama-limit>:<HMAC-SHA256(IP, TEACHER_SESSION_SECRET)>"`,
+jadi baris lama tidak bisa dibaca balik menjadi alamat, dan baris yang
+jendelanya lewat sehari dihapus otomatis. IP hanya dapat dipercaya di belakang
+proxy hosting (`x-real-ip`/`x-forwarded-for`); tanpa proxy, klien bisa mengarang
+nilainya — karena itu upload juga dibatasi per guru dan global, dan login tetap
+mahal untuk ditebak. Batas disimpan di database (bukan memori proses) supaya
+berlaku lintas instance serverless, kecuali `GET /api/stories/[storyId]` yang
+sengaja memakai memori per proses agar tidak menambah tulis database. Detail
+(batas dan bentuk `429 RATE_LIMITED`) ada di
+[`../06-backend/api-contract.md`](../06-backend/api-contract.md#rate-limit).
 
 ## Privasi siswa
 

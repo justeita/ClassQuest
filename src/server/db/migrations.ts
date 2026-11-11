@@ -125,10 +125,6 @@ create index if not exists play_results_story_idx on play_results (story_id, cre
 `;
 
 /**
- * Daftar migrasi berurutan. Jangan mengubah entri yang sudah pernah dipakai;
- * tambahkan entri baru di akhir.
- */
-/**
  * Migrasi 0002: melonggarkan `stories.source_file_path`.
  *
  * Keputusan produk: PDF **hanya** diproses di memori dan tidak pernah disimpan
@@ -146,6 +142,34 @@ alter table stories add column source_file_path text;
 `;
 
 /**
+ * Migrasi 0003: tabel penghitung rate limit.
+ *
+ * Deploy serverless tidak bisa memakai memori proses bersama, jadi batas untuk
+ * endpoint sensitif (login, upload, hasil bermain) dihitung di database.
+ *
+ * Bentuk kolom sengaja minimal supaya tidak ada data pribadi:
+ *
+ * - `key` berisi `"<nama-limit>:<HMAC-SHA256(IP)>"` — IP mentah tidak pernah
+ *   masuk tabel;
+ * - `window_start` adalah awal jendela fixed window dalam detik epoch;
+ * - `count` dinaikkan dengan satu statement atomik
+ *   (`insert ... on conflict do update set count = count + 1`).
+ *
+ * Baris lama dihapus oportunistik oleh `src/server/rate-limit/check.ts` (sekitar
+ * 1% panggilan), jadi index pada `window_start` ikut disediakan untuk itu.
+ */
+const RATE_LIMITS_SQL = `
+create table if not exists rate_limits (
+  key          text not null,
+  window_start integer not null,
+  count        integer not null,
+  primary key (key, window_start)
+);
+
+create index if not exists rate_limits_window_idx on rate_limits (window_start);
+`;
+
+/**
  * Daftar migrasi berurutan. Jangan mengubah entri yang sudah pernah dipakai;
  * tambahkan entri baru di akhir.
  */
@@ -159,6 +183,11 @@ export const MIGRATIONS: readonly Migration[] = [
     id: "0002_relax_source_file_path",
     name: "Lepaskan not null stories.source_file_path (PDF tidak disimpan)",
     sql: RELAX_SOURCE_FILE_PATH_SQL,
+  },
+  {
+    id: "0003_rate_limits",
+    name: "Tabel penghitung rate limit (key hash, window_start, count)",
+    sql: RATE_LIMITS_SQL,
   },
 ];
 

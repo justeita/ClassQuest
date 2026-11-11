@@ -16,10 +16,17 @@
  *
  * Catatan Next 16: `params` adalah Promise; tanpa `export const runtime`
  * (Cache Components, lihat `docs/08-workflow/ai-agent-rules.md`).
+ *
+ * Rate limit (task 24): 120 permintaan per menit per IP, dihitung **di memori
+ * proses ini** tanpa tulis database (`src/server/rate-limit/memory.ts`). Batas
+ * ini berlaku per instance, bukan per deploy. Kalau pemeriksaannya sendiri
+ * gagal, permintaan tetap dilayani (fail open): siswa tidak boleh terhalang
+ * karena limiter. Batas terlampaui dijawab `429 RATE_LIMITED` + `Retry-After`.
  */
 
 import { apiErrorResponse, INTERNAL_ERROR_MESSAGE } from "@/server/api-error";
 import { getReadyDb } from "@/server/db";
+import { guardPublicStoryRead } from "@/server/rate-limit";
 import { getPublishedStory, MAX_STORY_ID_LENGTH } from "@/server/stories";
 
 /** Pesan statis yang sama untuk semua kegagalan 404 di endpoint ini. */
@@ -32,6 +39,10 @@ export async function GET(
   { params }: { params: Promise<{ storyId: string }> },
 ): Promise<Response> {
   try {
+    // Rate limit paling awal; tidak menyentuh database dan gagal = dilayani.
+    const gate = await guardPublicStoryRead();
+    if (gate.response !== null) return gate.response;
+
     const { storyId } = await params;
 
     // Validasi format/panjang: id yang tidak masuk akal dijawab sama dengan

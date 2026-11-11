@@ -7,10 +7,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * Test Server Action `savePlayResult` (task 22).
  *
  * Menguji integrasi action publik tanpa sesi: normalisasi input, pemanggilan
- * core logic, penanganan cerita terbit vs tidak terbit.
+ * core logic, penanganan cerita terbit vs tidak terbit, dan rate limit
+ * (task 24: 120 per 10 menit per IP, fail open saat limiter gagal).
+ *
+ * `next/headers` di-mock untuk header IP.
  */
 
-const { dbRef, getReadyDbMock } = vi.hoisted(() => {
+const { dbRef, getReadyDbMock, headersMock } = vi.hoisted(() => {
   const dbRef: { current: unknown | null } = {
     current: null,
   };
@@ -23,22 +26,35 @@ const { dbRef, getReadyDbMock } = vi.hoisted(() => {
   return {
     dbRef,
     getReadyDbMock,
+    headersMock: vi.fn(),
   };
 });
 
 vi.mock("@/server/db", () => ({ getReadyDb: getReadyDbMock }));
+vi.mock("next/headers", () => ({ headers: headersMock, cookies: vi.fn() }));
 
 import { applyMigrations } from "@/server/db/migrations";
+import { PLAY_RESULT_RATE_LIMIT } from "@/server/rate-limit/limits";
 import { buildFallbackStory } from "@/story/fallback";
 import { savePlayResult } from "./actions";
 
 const STORY_ID = "st_published_for_play_action";
+/** IP palsu (dokumen contoh RFC 5737); hanya untuk test. */
+const CLIENT_IP = "203.0.113.70";
+
+const useClientIp = (ip: string = CLIENT_IP): void => {
+  headersMock.mockResolvedValue({
+    get: (name: string) => (name.toLowerCase() === "x-real-ip" ? ip : null),
+  });
+};
 let db: Client;
 
 beforeEach(async () => {
   db = createClient({ url: ":memory:" });
   await applyMigrations(db);
   dbRef.current = db;
+  useClientIp();
+  vi.stubEnv("TEACHER_SESSION_SECRET", "secret-uji-hasil-main-51c0");
 
   await db.execute({
     sql: "insert into teachers (id, display_name) values ('teacher_demo', 'Guru Demo')",
@@ -116,5 +132,89 @@ describe("savePlayResult action", () => {
       ok: false,
       reason: "not_found",
     });
+  });
+});
+
+describe("savePlayResult — rate limit", () => {
+  /** Jawaban valid untuk satu tantangan pilihan ganda. */
+  const validAnswers = () => {
+    const story = buildFallbackStory();
+    const challenge = story.challenges[0];
+    if (challenge.type !== "multiple_choice") {
+      throw new Error("fixture diharapkan memiliki challenge multiple_choice");
+    }
+    return [
+      {
+        type: "multiple_choice" as const,
+        challengeId: challenge.id,
+        selectedId: challenge.correctOptionId,
+      },
+    ];
+  };
+
+  it("melebihi batas menghasilkan reason rate_limited", async () => {
+    const answers = validAnswers();
+
+    for (let i = 0; i < PLAY_RESULT_RATE_LIMIT.limit; i += 1) {
+      const outcome = await savePlayResult({
+        storyId: STORY_ID,
+        result: { answers },
+      });
+      expect(outcome, `simpan ${i + 1}`).toEqual({ ok: true });
+    }
+
+    const blocked = await savePlayResult({
+      storyId: STORY_ID,
+      result: { answers },
+    });
+    expect(blocked).toEqual({ ok: false, reason: "rate_limited" });
+
+    // Payload penolakan tidak memuat IP/hash.
+    expect(JSON.stringify(blocked)).not.toContain(CLIENT_IP);
+    expect(JSON.stringify(blocked)).not.toMatch(/[0-9a-f]{64}/);
+
+    const rows = await db.execute("select count(*) as total from play_results");
+    expect(Number(rows.rows[0].total)).toBe(PLAY_RESULT_RATE_LIMIT.limit);
+  });
+
+  it("IP lain tidak ikut kena batas", async () => {
+    const answers = validAnswers();
+    for (let i = 0; i < PLAY_RESULT_RATE_LIMIT.limit; i += 1) {
+      await savePlayResult({ storyId: STORY_ID, result: { answers } });
+    }
+
+    useClientIp("203.0.113.71");
+    await expect(
+      savePlayResult({ storyId: STORY_ID, result: { answers } }),
+    ).resolves.toEqual({ ok: true });
+  });
+
+  it("kegagalan database pada limiter tetap diproses (fail open)", async () => {
+    // Limiter dan penyimpanan memakai client yang sama; kegagalan di sini
+    // membuat penghitung gagal, dan hasil main tetap harus disimpan.
+    const failingForLimiter = {
+      execute: async (query: unknown) => {
+        const sql =
+          typeof query === "string" ? query : (query as { sql: string }).sql;
+        if (sql.trim().toLowerCase().startsWith("insert into rate_limits")) {
+          throw new Error("database limiter gagal");
+        }
+        return (original as Client).execute(query as never);
+      },
+    };
+
+    const original = dbRef.current;
+    dbRef.current = failingForLimiter;
+
+    const outcome = await savePlayResult({
+      storyId: STORY_ID,
+      result: { answers: validAnswers() },
+    });
+
+    expect(outcome).toEqual({ ok: true });
+
+    dbRef.current = original;
+    const rows = await db.execute("select count(*) as total from play_results");
+    expect(Number(rows.rows[0].total)).toBe(1);
   });
 });

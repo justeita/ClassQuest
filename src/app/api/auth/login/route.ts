@@ -14,13 +14,19 @@
  * - Body yang bukan JSON atau tanpa `code` dijawab `400 INVALID_INPUT` (kode
  *   yang sama dengan route upload).
  * - Tidak ada kode akses, token, atau secret di respons maupun log.
- * - Rate limit belum ada; menyusul di task 24.
+ * - **Rate limit diperiksa paling awal**, sebelum body dibaca dan sebelum kode
+ *   diverifikasi: 10 percobaan per 10 menit per IP, semua percobaan dihitung
+ *   (`src/server/rate-limit`). Batas terlampaui dijawab `429 RATE_LIMITED`
+ *   dengan header `Retry-After`. Kalau penghitungnya sendiri gagal (database
+ *   mati), login **fail closed** dengan `500 INTERNAL` generik: lebih baik guru
+ *   menunggu daripada kode akses bisa ditebak tanpa batas.
  */
 
 import { z } from "zod";
 
 import { apiErrorResponse, INTERNAL_ERROR_MESSAGE } from "@/server/api-error";
 import { AuthError, loginTeacher } from "@/server/auth";
+import { guardLogin } from "@/server/rate-limit";
 
 /**
  * `code` harus string. String kosong diterima bentuknya dan ditolak oleh
@@ -41,6 +47,12 @@ const INVALID_BODY_MESSAGE =
 
 export async function POST(request: Request): Promise<Response> {
   try {
+    // a. Rate limit paling awal: sebelum body dibaca dan sebelum kode
+    // diverifikasi. `guardLogin()` menghitung semua percobaan dan sudah
+    // mengembalikan 429 (batas) atau 500 (limiter gagal) bila perlu.
+    const gate = await guardLogin();
+    if (gate.response !== null) return gate.response;
+
     let body: unknown;
     try {
       body = await request.json();
