@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -102,6 +102,7 @@ tidak menyalin tipenya, hanya perilakunya.
 | `Esc`                       | `dialog`    | Buka menu jeda                                             |
 | Klik "Lanjut"               | `dialog`    | Sama seperti klik di mana saja                             |
 | Klik "Ulangi chapter"       | `paused`    | Reset ke awal chapter, simpan progres                      |
+| `Tab` / tombol "Percepat"   | `dialog`    | Tahan: time-lapse beat sampai soal atau explore            |
 
 Aturan input:
 
@@ -109,23 +110,29 @@ Aturan input:
 - Saat `explore`, gerak bebas; saat `dialog`/`challenge`, input gerak **terkunci**.
 - Saat `challenge`, input dialog **diabaikan**.
 - Saat transisi/fade, input diabaikan sampai selesai.
+- **Percepat tidak pernah melewati soal.** `Tab`/tombol "Percepat" hanya aktif
+  saat fase `dialog` dan memakai pola tahan-tombol ala Persona: selama ditahan,
+  beat dimajukan bertahap seperti time-lapse (100 ms per beat); dilepas, tempo
+  kembali normal. Skip berhenti di beat `challenge`, dan fade transisi tetap
+  diputar. Setiap beat yang dilewati tetap masuk buku catatan log.
 - Saat tab tidak aktif (`visibilitychange`), game pause otomatis.
 
 ## Alur tantangan
 
 ```text
 1. Phaser kirim { type: "challenge", challengeId }
-2. React menampilkan overlay:
+2. React menampilkan panel di atas dialog (dialog tetap terlihat, typewriter
+   dibekukan):
    - prompt
    - opsi/statement/item/input
    - tombol "Jawab" (disabled sampai ada pilihan)
 3. Siswa memilih → tombol aktif
 4. Siswa submit
 5. scoring.isCorrect(challenge, answer)  ← fungsi murni
-6. Overlay menampilkan feedback:
+6. Panel menampilkan feedback:
    - benar/salah (tanpa warna menyala)
    - explanation (selalu)
-   - tombol "Lanjut"
+   - tombol "Lanjut" di footer
 7. Klik "Lanjut" → kirim { type: "resolve_challenge", correct }
 8. Phaser menutup pause, lanjut beat berikutnya
 ```
@@ -191,11 +198,16 @@ Isi:
 
 - Lanjut
 - Ulangi chapter
-- Suara: on/off + volume
+- Pengaturan suara: slider **Musik** dan **Efek suara** terpisah (0–100%, step 5) + tombol mute per baris
 - Keluar (kembali ke halaman awal)
 
 Saat menu terbuka: game pause, musik **volume turun** (bukan berhenti), input
-dialog diabaikan. Mematikan audio sepenuhnya hanya lewat tombol suara.
+dialog diabaikan. Nilai tersimpan di `localStorage`
+(`classquest:settings:v1`) dan dipakai lagi saat game dibuat. Mute musik tidak
+mematikan efek suara; HUD hanya menampung toggle musik, SFX diatur di menu.
+
+Buku catatan (`B`): dunia dibekukan (`scene.pause()`) **tanpa** menurunkan
+musik; log tidak bisa dibuka saat soal aktif; `Esc` atau `B` menutupnya.
 
 ## Penanganan error runtime
 

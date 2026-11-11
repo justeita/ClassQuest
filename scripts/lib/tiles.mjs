@@ -91,6 +91,28 @@ export function tileFloorRock() {
   return canvas;
 }
 
+/** Koridor sekolah: ubin teraso pucat dengan nat tipis, aman diulang. */
+export function tileFloorCorridor() {
+  const canvas = createCanvas(T, T);
+  const base = mix(PALETTE.paper, PALETTE.cool, 0.28);
+  const seam = mix(base, PALETTE.cool, 0.45);
+  const light = mix(base, PALETTE.bone, 0.6);
+  canvas.rect(0, 0, T, T, base);
+  // Nat ubin 8×8: garis di x/y 0 dan 8 bertemu rapi dengan tile sebelah.
+  canvas.hline(0, 0, T, seam);
+  canvas.hline(0, 8, T, seam);
+  canvas.vline(0, 0, T, seam);
+  canvas.vline(8, 0, T, seam);
+  // Sorot 1 px di dalam nat, konsisten ke kiri-atas.
+  canvas.hline(1, 1, 7, light);
+  canvas.vline(1, 1, 7, light);
+  canvas.hline(9, 9, 7, light);
+  canvas.vline(9, 9, 7, light);
+  speckle(canvas, 121, shade(seam, 0.92), 8, 0.35);
+  speckle(canvas, 122, light, 6, 0.3);
+  return canvas;
+}
+
 /** Air: biru dasar dengan gelombang horizontal tipis. */
 export function tileFloorWater() {
   const canvas = createCanvas(T, T);
@@ -314,6 +336,54 @@ export function propFence() {
   }
   drawShadow(canvas, w / 2, h, w - 4);
   canvas.outline(mix(PALETTE.night, PALETTE.ink, 0.7));
+  return canvas;
+}
+
+/** Kolam taman 96×64: bibir batu, air tenang, daun teratai, dan ilalang. */
+export function propPond() {
+  const w = 96;
+  const h = 64;
+  const canvas = createCanvas(w, h);
+  const rim = mix(PALETTE.cool, PALETTE.paper, 0.42);
+  const rimDark = mix(PALETTE.cool, PALETTE.night, 0.5);
+  const water = RAMP.water;
+  const deep = RAMP.waterDeep;
+  const light = mix(PALETTE.cool, PALETTE.paper, 0.55);
+  const pad = mix(PALETTE.moss, PALETTE.night, 0.35);
+  const reed = mix(PALETTE.moss, PALETTE.night, 0.2);
+
+  // Bibir kolam batu: dua lapis elips supaya terbaca tebal dari atas.
+  canvas.ellipse(w / 2, h / 2 + 2, 46, 28, rimDark);
+  canvas.ellipse(w / 2, h / 2 + 1, 45, 27, rim);
+  canvas.ellipse(w / 2, h / 2 + 2, 39, 21, water);
+  canvas.ellipse(w / 2, h / 2 + 8, 30, 12, deep);
+
+  // Riak: garis horizontal pendek, bukan gradien.
+  for (const [x, y, length] of [
+    [18, 26, 12],
+    [40, 22, 10],
+    [62, 27, 14],
+    [30, 40, 9],
+    [56, 42, 11],
+    [70, 36, 7],
+  ]) {
+    canvas.hline(x, y, length, light);
+  }
+
+  // Daun teratai dan ilalang di tepi.
+  canvas.ellipse(28, 46, 7, 4, pad);
+  canvas.ellipse(64, 34, 5, 3, pad);
+  canvas.ellipse(28, 46, 2, 1, mix(pad, PALETTE.paper, 0.35));
+  for (const [x, top, height] of [
+    [11, 35, 12],
+    [15, 31, 15],
+    [81, 34, 13],
+    [86, 40, 9],
+  ]) {
+    canvas.rect(x, top, 1, height, reed);
+    canvas.px(x, top, mix(reed, PALETTE.paper, 0.4));
+  }
+
   return canvas;
 }
 

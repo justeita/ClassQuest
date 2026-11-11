@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -295,6 +295,7 @@ type GameEvent =
     }
   | { type: "finished"; result: PlayResult }
   | { type: "quest"; view: QuestState }
+  | { type: "skipping"; aktif: boolean }
   | { type: "error"; code: string };
 ```
 
@@ -311,12 +312,16 @@ Perintah **ke** Phaser:
 ```ts
 type GameCommand =
   | { type: "advance" }
+  | { type: "skip_start" }
+  | { type: "skip_stop" }
   | { type: "submit_answer"; challengeId: string; answer: Answer }
   | { type: "resolve_challenge"; challengeId: string; correct: boolean }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "restart_chapter" }
-  | { type: "set_muted"; muted: boolean };
+  | { type: "set_audio"; music: number; sfx: number }
+  | { type: "freeze" }
+  | { type: "unfreeze" };
 ```
 
 Aturan yang mengikat:
@@ -327,7 +332,11 @@ Aturan yang mengikat:
 - Penilaian dijalankan di sisi game (pemegang `Story`) memakai `scoreAnswer()`
   dari `src/story/scoring.ts`; hasilnya dikirim sebagai `graded`.
 - Selama fase `challenge`, input dialog diabaikan sampai `resolve_challenge`
-  diterima.
+  diterima. `skip_start`/`skip_stop` memajukan beat bertahap ala tahan-tombol
+  Persona (time-lapse 100 ms per beat selama ditahan) dan berhenti di beat
+  soal; hanya beat dialog/narasi yang dilewati, dan beat `transition` tetap
+  diputar. Saat time-lapse berjalan, event `skipping` mengabarkan
+  `aktif: true/false` supaya DOM bisa menampilkan status.
 
 ## Alur state
 
@@ -364,7 +373,8 @@ Yang sudah berlaku di kode hari ini:
 - [x] Phaser diimpor dinamis di dalam `useEffect`.
 - [x] `game.destroy(true)` di cleanup.
 - [x] `pixelArt: true`, `roundPixels: true`.
-- [x] `scale.mode = FIT`, resolusi 640×360 (ADR 0009).
+- [x] `scale.mode = FIT`, resolusi dasar 640×360 (ADR 0009); halaman
+      full-bleed dan kanvas selalu tampil utuh di dalamnya.
 - [x] `bun run build` tidak menghasilkan error `window is not defined`.
 
 Yang belum, karena fiturnya belum ada:

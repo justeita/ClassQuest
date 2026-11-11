@@ -26,6 +26,29 @@
   }
 }
 
+/*
+ * Panel tantangan duduk di atas dialog, bukan menutupi seluruh layar
+ * (docs/05-frontend/game-player.md § Challenge). Nilai `--challenge-*` diisi
+ * inline oleh `ChallengeOverlay` dari geometri 640×360.
+ */
+.challenge-panel {
+  position: absolute;
+  bottom: var(--challenge-bottom);
+  max-height: var(--challenge-max-h);
+  /* Horizontal diatur inline (left 50% + translateX) supaya selalu center. */
+}
+
+/*
+ * Fallback layar pendek: beri panel hampir seluruh tinggi ruang game supaya isi
+ * soal tetap terbaca. Dialog boleh tertutup di mode ini.
+ */
+@container (max-height: 320px) {
+  .challenge-panel {
+    bottom: 2%;
+    max-height: 96%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-quest-bob {
     animation: none;
@@ -43,4 +66,66 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Garis kecepatan ala Persona 3 Reload (SpeedLines.tsx): tumpukan garis
+   horizontal di tepi atas/bawah kanvas yang bergerak cepat selama mode
+   percepat aktif, memudar ke arah tengah layar.
+
+   Animasinya memakai transform (bukan background-position) supaya berjalan di
+   compositor GPU tanpa repaint per frame — inilah kunci kelancarannya. Setiap
+   lapisan di-extend satu periode (9 px) melewati tepi pita agar translate
+   satu periode loop tanpa celah. */
+.garis-cepat {
+  -webkit-mask-image: linear-gradient(to bottom, black 35%, transparent 95%);
+  mask-image: linear-gradient(to bottom, black 35%, transparent 95%);
+}
+
+.garis-cepat::before,
+.garis-cepat::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -9px;
+  bottom: -9px;
+  will-change: transform;
+}
+
+/* Lapisan rapat: garis tipis yang bergerak paling cepat. */
+.garis-cepat::before {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(247, 244, 236, 0.34) 0px,
+    rgba(247, 244, 236, 0.34) 2px,
+    transparent 2px,
+    transparent 9px
+  );
+  animation: garis-cepat-jalan 0.3s linear infinite;
+}
+
+/* Lapisan renggang: lebih redup, berlawanan arah, terasa berkedip dua lapis. */
+.garis-cepat::after {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(247, 244, 236, 0.18) 0px,
+    rgba(247, 244, 236, 0.18) 3px,
+    transparent 3px,
+    transparent 9px
+  );
+  animation: garis-cepat-jalan 0.48s linear infinite reverse;
+}
+
+/* Pita bawah memakai arah dan gradasi terbalik dari pita atas. */
+.garis-cepat-balik {
+  transform: scaleY(-1);
+}
+
+@keyframes garis-cepat-jalan {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 9px, 0);
+  }
 }

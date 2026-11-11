@@ -199,6 +199,46 @@ describe("GameShell", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("Esc saat buku quest terbuka hanya menutup buku dan tidak membuka menu jeda", async () => {
+    await mainkan();
+    bus.emit({
+      type: "quest",
+      view: {
+        chapterNumber: 1,
+        chapterTotal: 3,
+        chapterTitle: "Siklus Air",
+        sceneTitle: "Genangan yang Menghilang",
+        activeQuestId: "qst_01",
+        quests: [
+          {
+            id: "qst_01",
+            title: "Amati genangan air",
+            status: "aktif",
+            tantangan: { total: 1, dijawab: 0 },
+          },
+        ],
+      },
+    });
+
+    await screen.findByRole("button", { name: "Buka buku catatan quest" });
+
+    // Buka buku quest dengan shortcut keyboard Q
+    fireEvent.keyDown(window, { key: "q" });
+    expect(
+      screen.getByRole("dialog", { name: "Buku Catatan Quest" }),
+    ).toBeInTheDocument();
+
+    // Tekan Escape: buku quest harus tertutup, menu jeda TIDAK boleh terbuka
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(
+      screen.queryByRole("dialog", { name: "Jeda" }),
+    ).not.toBeInTheDocument();
+
+    // Tekan Escape kedua kali setelah buku tertutup: sekarang menu jeda terbuka
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.getByRole("dialog", { name: "Jeda" })).toBeInTheDocument();
+  });
+
   it("Esc diabaikan saat tantangan belum dijawab", async () => {
     await mainkan();
     bus.emit({
@@ -235,18 +275,73 @@ describe("GameShell", () => {
     lepas();
   });
 
-  it("tombol suara mengirim command set_muted", async () => {
+  it("tombol musik mengirim command set_audio hanya untuk musik", async () => {
     await mainkan();
-    const mute = vi.fn();
-    const lepas = bus.onCommand("set_muted", mute);
+    const audio = vi.fn();
+    const lepas = bus.onCommand("set_audio", audio);
 
-    fireEvent.click(screen.getByRole("button", { name: /suara aktif/i }));
+    fireEvent.click(screen.getByRole("button", { name: /musik nyala/i }));
 
-    expect(mute).toHaveBeenCalledWith({ type: "set_muted", muted: true });
+    expect(audio).toHaveBeenCalledWith({ type: "set_audio", music: 0, sfx: 1 });
     expect(
-      screen.getByRole("button", { name: /suara nonaktif/i }),
+      screen.getByRole("button", { name: /musik mati/i }),
     ).toBeInTheDocument();
     lepas();
+  });
+
+  it("buku log mencatat dialog dan jurnal konsep", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "log",
+      name: "Pak Bima",
+      text: "Genangan air menguap karena panas matahari.",
+      sceneJudul: "Pagi yang Menguap",
+    });
+
+    // Buka buku lewat tombol Log di HUD.
+    fireEvent.click(screen.getByRole("button", { name: /^catatan$/i }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Buku catatan" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Genangan air menguap/i)).toBeInTheDocument();
+    expect(screen.getByText("Pak Bima")).toBeInTheDocument();
+
+    // Tab konsep kosong sebelum ada jawaban.
+    fireEvent.click(screen.getByRole("tab", { name: /konsep/i }));
+    expect(screen.getByText(/Belum ada konsep/i)).toBeInTheDocument();
+  });
+
+  it("jawaban soal mengisi jurnal konsep", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "challenge",
+      view: {
+        id: "chl_01_01",
+        type: "true_false",
+        prompt: "Uap air lebih ringan.",
+        conceptTag: "Evaporasi",
+        statement: "Uap air lebih ringan daripada air cair.",
+      },
+    });
+    bus.emit({
+      type: "graded",
+      challengeId: "chl_01_01",
+      correct: true,
+      explanation: "Uap air naik karena lebih ringan.",
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /^catatan$/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: /konsep/i }));
+
+    expect(await screen.findByText("Evaporasi")).toBeInTheDocument();
+    expect(screen.getByText("Tepat")).toBeInTheDocument();
+    // Penjelasan muncul dua kali: panel tantangan dan buku catatan.
+    expect(
+      screen.getAllByText(/Uap air naik karena lebih ringan/),
+    ).toHaveLength(2);
   });
 
   it("menampilkan layar hasil saat event finished datang", async () => {
@@ -368,5 +463,250 @@ describe("GameShell", () => {
       expect(screen.queryByText("Hujan turun.")).not.toBeInTheDocument(),
     );
     expect(screen.queryByText("Space")).not.toBeInTheDocument();
+  });
+});
+
+describe("GameShell — tombol percepat", () => {
+  const dialog = {
+    visible: true,
+    name: "Pak Bima",
+    text: "Genangan itu tadi pagi masih penuh.",
+    waiting: true,
+  };
+
+  const challenge = {
+    id: "chl_01_01",
+    type: "true_false" as const,
+    prompt: "Uap air naik karena lebih ringan.",
+    conceptTag: "Evaporasi",
+    statement: "Uap air lebih ringan daripada air cair.",
+  };
+
+  it("menahan tombol Percepat mengirim skip_start lalu skip_stop saat dilepas", async () => {
+    await mainkan();
+    const mulai = vi.fn();
+    const berhenti = vi.fn();
+    const lepasMulai = bus.onCommand("skip_start", mulai);
+    const lepasBerhenti = bus.onCommand("skip_stop", berhenti);
+
+    expect(
+      screen.queryByRole("button", { name: /percepat/i }),
+    ).not.toBeInTheDocument();
+
+    bus.emit({ type: "dialogue", view: dialog });
+    const tombol = await screen.findByRole("button", { name: /percepat/i });
+
+    // Ala Persona 3 Reload: tahan untuk mempercepat, lepas untuk berhenti.
+    fireEvent.pointerDown(tombol);
+    expect(mulai).toHaveBeenCalledTimes(1);
+    expect(berhenti).not.toHaveBeenCalled();
+
+    fireEvent.pointerUp(tombol);
+    expect(berhenti).toHaveBeenCalledTimes(1);
+
+    lepasMulai();
+    lepasBerhenti();
+  });
+
+  it("tombol Percepat tidak tampil saat explore", async () => {
+    await mainkan();
+    bus.emit({ type: "dialogue", view: dialog });
+    await screen.findByRole("button", { name: /percepat/i });
+
+    bus.emit({
+      type: "dialogue",
+      view: { visible: false, name: null, text: "", waiting: false },
+    });
+
+    await vi.waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: /percepat/i }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it("tombol Percepat hilang saat soal tampil: soal tidak bisa dilewati", async () => {
+    await mainkan();
+    bus.emit({ type: "dialogue", view: dialog });
+    await screen.findByRole("button", { name: /percepat/i });
+
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    expect(
+      screen.queryByRole("button", { name: /percepat/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("menahan Tab mengirim skip_start, melepas mengirim skip_stop", async () => {
+    await mainkan();
+    const mulai = vi.fn();
+    const berhenti = vi.fn();
+    const lepasMulai = bus.onCommand("skip_start", mulai);
+    const lepasBerhenti = bus.onCommand("skip_stop", berhenti);
+
+    // Belum ada dialog: Tab tidak diambil alih (fokus browser tetap jalan).
+    fireEvent.keyDown(window, { key: "Tab" });
+    expect(mulai).not.toHaveBeenCalled();
+
+    bus.emit({ type: "dialogue", view: dialog });
+    await screen.findByRole("button", { name: /percepat/i });
+
+    // Auto-repeat keydown tidak boleh memicu skip_start ganda.
+    fireEvent.keyDown(window, { key: "Tab" });
+    fireEvent.keyDown(window, { key: "Tab", repeat: true });
+    expect(mulai).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyUp(window, { key: "Tab" });
+    expect(berhenti).toHaveBeenCalledTimes(1);
+
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    fireEvent.keyDown(window, { key: "Tab" });
+    expect(mulai).toHaveBeenCalledTimes(1);
+    lepasMulai();
+    lepasBerhenti();
+  });
+
+  it("hint tahan Tab muncul selama dialog dan berganti status saat mempercepat", async () => {
+    await mainkan();
+
+    expect(
+      screen.queryByText(/tahan untuk mempercepat/i),
+    ).not.toBeInTheDocument();
+
+    bus.emit({ type: "dialogue", view: dialog });
+    expect(
+      await screen.findByText(/tahan untuk mempercepat/i),
+    ).toBeInTheDocument();
+
+    bus.emit({ type: "skipping", aktif: true });
+    expect(await screen.findByText(/mempercepat/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/tahan untuk mempercepat/i),
+    ).not.toBeInTheDocument();
+
+    bus.emit({ type: "skipping", aktif: false });
+    expect(
+      await screen.findByText(/tahan untuk mempercepat/i),
+    ).toBeInTheDocument();
+  });
+
+  it("garis kecepatan memudar masuk saat mempercepat dan keluar saat berhenti", async () => {
+    await mainkan();
+    bus.emit({ type: "dialogue", view: dialog });
+    await screen.findByText(/tahan untuk mempercepat/i);
+
+    // Selama fase dialog garis tetap terpasang tapi tak terlihat, supaya
+    // masuk/keluarnya memudar halus alih-alih muncul-hilang mendadak.
+    const garis = screen.getByTestId("speed-lines");
+    expect(garis).toHaveClass("opacity-0");
+    expect(garis).not.toHaveClass("opacity-100");
+
+    bus.emit({ type: "skipping", aktif: true });
+    await vi.waitFor(() => expect(garis).toHaveClass("opacity-100"));
+
+    bus.emit({ type: "skipping", aktif: false });
+    await vi.waitFor(() => expect(garis).toHaveClass("opacity-0"));
+  });
+
+  it("hint disembunyikan saat soal tampil", async () => {
+    await mainkan();
+    bus.emit({ type: "dialogue", view: dialog });
+    await screen.findByText(/tahan untuk mempercepat/i);
+
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    expect(
+      screen.queryByText(/tahan untuk mempercepat/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("tombol B membuka buku catatan meski data quest sudah terisi", async () => {
+    await mainkan();
+
+    // Regresi: guard lama memakai `quest` (data), yang selalu terisi setelah
+    // event quest pertama — akibatnya B mati sepanjang permainan.
+    bus.emit({
+      type: "quest",
+      view: {
+        chapterNumber: 1,
+        chapterTotal: 3,
+        chapterTitle: "Pagi yang Menguap",
+        sceneTitle: "Genangan yang Menghilang",
+        activeQuestId: "sc_01_01",
+        quests: [
+          {
+            id: "sc_01_01",
+            title: "Genangan yang Menghilang",
+            status: "aktif",
+            tantangan: { total: 0, dijawab: 0 },
+          },
+        ],
+      },
+    });
+    await screen.findByRole("button", { name: "Buka buku catatan quest" });
+
+    fireEvent.keyDown(window, { key: "b" });
+
+    expect(
+      await screen.findByRole("dialog", { name: "Buku catatan" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("GameShell — soal di atas dialog", () => {
+  const challenge = {
+    id: "chl_01_01",
+    type: "true_false" as const,
+    prompt: "Uap air naik karena lebih ringan.",
+    conceptTag: "Evaporasi",
+    statement: "Uap air lebih ringan daripada air cair.",
+  };
+
+  it("dialog tetap terlihat saat tantangan terbuka", async () => {
+    await mainkan();
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Air di bumi tidak pernah hilang.",
+        waiting: true,
+      },
+    });
+    await screen.findByText("Air di bumi tidak pernah hilang.");
+
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    // Soal berada di dalam dialogue box, bukan elemen tambahan di atasnya
+    expect(
+      screen.getAllByText(/Uap air naik karena lebih ringan/).length,
+    ).toBeGreaterThan(0);
+    // Indikator "lanjut" disembunyikan selama soal, karena dialog dibekukan.
+    expect(screen.queryByText("▼")).not.toBeInTheDocument();
+  });
+
+  it("fokus kembali ke area game setelah tantangan ditutup", async () => {
+    await mainkan();
+    bus.emit({ type: "challenge", view: challenge });
+    expect(await screen.findByLabelText("Tantangan")).toHaveFocus();
+
+    bus.emit({
+      type: "graded",
+      challengeId: "chl_01_01",
+      correct: true,
+      explanation: "Benar.",
+    });
+    fireEvent.click(await screen.findByRole("button", { name: /^lanjut$/i }));
+
+    await vi.waitFor(() =>
+      expect(
+        screen.getByRole("region", { name: "Area permainan ClassQuest" }),
+      ).toHaveFocus(),
+    );
   });
 });

@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { Story } from "@/story/schema";
 
+import { clampVolume } from "../audioSettings";
 import { CAMERA_LERP, deadzonePx, kameraMode } from "../camera";
 import { DEPTH_DINDING, DEPTH_LANTAI } from "../depth";
 import { roomForScene, type RoomMap } from "../map";
@@ -21,7 +22,7 @@ import { findNpcInZone, posisiPrompt } from "../interaction";
 import { dalamLayar, duniaKeLayar, type KameraView } from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import type { PlayerConfig } from "../types";
-import { StoryRunner } from "../StoryRunner";
+import { StoryRunner, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
 import type { GameBus, NpcMarker, PromptView } from "../gameBus";
@@ -38,12 +39,19 @@ const PLAYER_CONFIG: PlayerConfig = { speed: 80 };
 /** Non-speaker diredupkan sesuai scene-format.md (0x9a9a9a). */
 const NPC_DIM_COLOR = 0x9a9a9a;
 
+/** Faktor dasar dari sisi game; volume pengguna mengalikan angka ini. */
 const MUSIC_VOLUME = 0.35;
 const MUSIC_VOLUME_PAUSED = 0.12;
 const SFX_VOLUME = 0.6;
 
 /** Debounce input lanjut agar satu tekanan tidak melewati dua beat. */
 const DEBOUNCE_MS = 150;
+
+/**
+ * Jarak antar-beat saat mode lewati berjalan. Cukup cepat untuk terasa seperti
+ * time-lapse, cukup lambat agar teks masih sempat terbaca sekilas.
+ */
+const INTERVAL_LEWATI_MS = 100;
 
 /**
  * Jarak minimum antar-emisi posisi prompt/penanda. Posisi berubah setiap frame
@@ -73,15 +81,24 @@ export class GameScene extends Phaser.Scene {
   private textbox?: Textbox;
   private music?: Phaser.Sound.BaseSound;
   private musicKey: string | null = null;
+  private volumeMusik = 1;
+  private volumeSfx = 1;
+  private volumeSedangJeda = false;
   private sceneAktif: string | null = null;
   /** `roomId` ruangan yang sedang dibangun; menentukan kapan pemain di-spawn. */
   private roomAktif: string | null = null;
   /** NPC pemegang quest scene aktif; hanya dia yang bisa memicu dialog. */
   private pemberiQuest: string | null = null;
+  /** Pembicara beat dialog terakhir; dipakai sebagai nama speaker saat tantangan. */
+  private pembicaraTerakhir: string | null = null;
   private readonly playerId: string;
   private spritePemainId = "";
   private arahTerakhir: ArahGerak = "down";
   private lastAdvance = 0;
+  /** Mode lewati ditahan (ala Persona 3 Reload): beat maju cepat selama ditahan. */
+  private lewatiDitahan = false;
+  /** Waktu langkah lewati terakhir, untuk menjeda antar-beat. */
+  private waktuLewati = 0;
   /** Jawaban percobaan pertama per challenge; jawaban ulang tidak menimpa. */
   private readonly answers = new AnswerLog();
   private selesaiDikirim = false;
@@ -132,6 +149,8 @@ export class GameScene extends Phaser.Scene {
       "space" | "enter",
       Phaser.Input.Keyboard.Key
     >;
+    this.input.keyboard?.disableGlobalCapture();
+    this.input.keyboard?.clearCaptures();
     // Teks dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene tetap
     // pemegang state typewriter dan mengirim potongannya lewat bus.
     this.textbox = createTextbox(this, (state) => {
@@ -152,34 +171,60 @@ export class GameScene extends Phaser.Scene {
     // Klik pada panel dialog DOM (atau tombol lanjut) masuk lewat jalur yang
     // sama dengan Space/Enter, jadi aturan "satu tekanan satu langkah" tetap.
     this.bus?.onCommand("advance", () => this.onLanjutInput());
+    // Tombol/pintasan Percepat: tahan untuk time-lapse, lepas untuk berhenti.
+    this.bus?.onCommand("skip_start", () => this.mulaiLewati());
+    this.bus?.onCommand("skip_stop", () => this.hentikanLewati());
 
     // Menu jeda di DOM menghentikan/melanjutkan loop scene. State cerita tetap
     // di beat yang sama; hanya presentasi yang membeku. Musik dikecilkan, bukan
     // dihentikan (interaction-loop.md).
     this.bus?.onCommand("pause", () => {
-      this.aturVolumeMusik(MUSIC_VOLUME_PAUSED);
+      this.hentikanLewati();
+      this.volumeSedangJeda = true;
+      this.terapkanVolume();
       this.scene.pause();
     });
     this.bus?.onCommand("resume", () => {
       this.scene.resume();
-      this.aturVolumeMusik(MUSIC_VOLUME);
+      this.volumeSedangJeda = false;
+      this.terapkanVolume();
     });
     this.bus?.onCommand("restart_chapter", () => this.ulangiChapter());
+    // Buku log membekukan dunia tanpa mengecilkan musik (PR D).
+    this.bus?.onCommand("freeze", () => {
+      this.hentikanLewati();
+      this.scene.pause();
+    });
+    this.bus?.onCommand("unfreeze", () => this.scene.resume());
     // Preferensi suara dari HUD/menu jeda diterapkan ke SoundManager global.
-    this.bus?.onCommand("set_muted", ({ muted }) => {
-      this.sound.mute = muted;
+    // Musik dan SFX dipisah: mute musik tidak mematikan efek suara
+    // (interaction-loop.md → Menu jeda).
+    this.bus?.onCommand("set_audio", ({ music, sfx }) => {
+      this.volumeMusik = clampVolume(music);
+      this.volumeSfx = clampVolume(sfx);
+      this.terapkanVolume();
     });
 
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
+
+    // Scene dihancurkan (mis. "Main lagi"): mode lewati tidak boleh tertinggal
+    // menunjuk runner yang sudah tidak tampil.
+    this.events.once("shutdown", () => this.hentikanLewati());
   }
 
   update(time: number, delta: number) {
+    // Time-lapse lewati berjalan selama tombol ditahan; diperiksa lebih dulu
+    // supaya langkahnya tetap maju walau fase sempat berganti di antara frame.
+    if (this.lewatiDitahan) this.perbaruiLewati(time);
+
     const phase = this.runner.getState().phase;
 
     if (phase === "explore") {
       this.updateExplore(time);
-    } else {
+    } else if (phase !== "challenge") {
+      // Tantangan membekukan typewriter dan input lanjut: dialog terakhir tetap
+      // terlihat di belakang panel soal (docs/04-game/scene-format.md § challenge).
       this.textbox?.tick(delta);
       this.checkLanjutKeys();
     }
@@ -301,6 +346,9 @@ export class GameScene extends Phaser.Scene {
 
   /** Satu tekanan = satu langkah: mengetik → selesai; menunggu → lanjut. */
   private onLanjutInput() {
+    // Selama time-lapse, input manual diabaikan agar tidak melompat dua beat.
+    if (this.lewatiDitahan) return;
+
     const now = this.time.now;
     if (now - this.lastAdvance < DEBOUNCE_MS) return;
     this.lastAdvance = now;
@@ -320,6 +368,47 @@ export class GameScene extends Phaser.Scene {
   private lanjutBeat() {
     this.runner.advance();
     this.presentBeat();
+  }
+
+  /**
+   * Mode lewati ala Persona 3 Reload: selama tombol ditahan, beat dialog/narasi
+   * dimajukan cepat satu per satu dan langsung tampil penuh (time-lapse).
+   * Berhenti sendiri di beat challenge (soal wajib dijawab), di beat transition
+   * (fade tetap diputar), atau saat scene habis. Setiap beat tetap dipresentasikan
+   * lewat jalur normal, jadi log dialog tetap lengkap.
+   */
+  private mulaiLewati() {
+    if (this.lewatiDitahan) return;
+    if (!bolehTerusLewati(this.runner.getState())) return;
+
+    this.lewatiDitahan = true;
+    // 0 membuat langkah pertama jatuh di frame berikutnya.
+    this.waktuLewati = 0;
+    this.mainkanSfx("sfx_click");
+    // Beat yang sedang mengetik diselesaikan dulu supaya time-lapse tidak
+    // berhenti di teks setengah jadi.
+    this.textbox?.complete();
+    this.bus?.emit({ type: "skipping", aktif: true });
+  }
+
+  /** Satu langkah time-lapse per interval; berhenti bila tidak boleh lanjut. */
+  private perbaruiLewati(time: number) {
+    if (time - this.waktuLewati < INTERVAL_LEWATI_MS) return;
+    if (!this.runner.lewatiSatuBeat()) {
+      this.hentikanLewati();
+      return;
+    }
+    this.waktuLewati = time;
+    // presentBeat WAJIB: tanpa ini beat baru tidak pernah tampil dan overlay
+    // soal tidak pernah terbuka saat skip mendarat di challenge.
+    this.presentBeat();
+    this.textbox?.complete();
+  }
+
+  private hentikanLewati() {
+    if (!this.lewatiDitahan) return;
+    this.lewatiDitahan = false;
+    this.bus?.emit({ type: "skipping", aktif: false });
   }
 
   /** Nilai jawaban lewat fungsi murni backend, lalu kirim hasil ke React. */
@@ -383,6 +472,7 @@ export class GameScene extends Phaser.Scene {
 
     let view: BeatView;
     if (beat.type === "dialogue") {
+      this.pembicaraTerakhir = beat.speakerId;
       this.sorotSpeaker(beat.speakerId);
       view = {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
@@ -394,6 +484,12 @@ export class GameScene extends Phaser.Scene {
       view = { name: null, text: beat.text };
     }
     this.textbox?.show(view);
+    this.bus?.emit({
+      type: "log",
+      name: view.name,
+      text: beat.text,
+      sceneJudul: state.sceneJudul,
+    });
   }
 
   /**
@@ -430,29 +526,60 @@ export class GameScene extends Phaser.Scene {
 
   /** "Ulangi chapter" dari menu jeda: reset kursor, lalu lanjutkan loop scene. */
   private ulangiChapter() {
+    this.hentikanLewati();
     this.runner.restartChapter();
     this.textbox?.hide();
     this.sembunyikanPetunjuk();
     this.sorotSpeaker(null);
     this.sceneAktif = null;
     this.questTerakhir = "";
+    this.pembicaraTerakhir = null;
     // Spawn ulang di ruangan yang sudah terbangun. Kalau scene pertama chapter
     // ini memakai ruangan lain, `terapkanLook()` yang membangun ulang peta.
     this.kembalikanPemain();
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
     this.scene.resume();
-    this.aturVolumeMusik(MUSIC_VOLUME);
+    this.volumeSedangJeda = false;
+    this.terapkanVolume();
   }
 
-  /** Dialog ditahan (bukan ditutup) saat overlay tantangan tampil. */
+  /**
+   * Soal tantangan tampil di dalam kotak dialog (DialogueBox), dengan pilihan
+   * respons melayang di atasnya (docs/05-frontend/game-player.md § Challenge).
+   * Panel textbox Phaser dijamin aktif dan menampilkan teks soal tantangan.
+   */
   private bukaTantangan(challengeId: string) {
-    this.textbox?.hide();
     this.sembunyikanPetunjuk();
-    this.sorotSpeaker(null);
 
     const challenge = this.runner.getChallenge(challengeId);
     if (!challenge || !this.bus) return;
+
+    const speakerId =
+      this.pembicaraTerakhir ??
+      this.pemberiQuest ??
+      this.story.cast.find((c) => c.role === "mentor")?.id ??
+      null;
+    const name = speakerId
+      ? (this.castNames.get(speakerId) ?? speakerId)
+      : null;
+    const portraitKey = speakerId ? this.portraitKey(speakerId) : null;
+
+    if (speakerId) {
+      this.sorotSpeaker(speakerId);
+    }
+
+    const text =
+      challenge.type === "true_false" && challenge.statement
+        ? `${challenge.prompt}\n\n"${challenge.statement}"`
+        : challenge.prompt;
+
+    this.textbox?.show({
+      name,
+      text,
+      portraitKey,
+    });
+    this.textbox?.complete();
 
     this.bus.emit({ type: "challenge", view: buildChallengeView(challenge) });
   }
@@ -522,17 +649,25 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Bangun ruangan dari data map scene aktif: lantai + dinding tileSprite,
-   * sprite prop dan NPC, lalu collider dari objek yang sama yang digambar.
-   * `look` masih dipakai untuk musik; latar pemandangan hanya di layar
-   * judul/hasil (world-design.md § Lampiran aset latar).
+   * Bangun ruangan dari data map scene aktif: satu gambar peta penuh (ADR 0012)
+   * atau lantai + dinding tileSprite, sprite prop dan NPC, lalu collider dari
+   * objek yang sama yang digambar. `look` masih dipakai untuk musik; latar
+   * pemandangan hanya di layar judul/hasil (world-design.md § Lampiran aset
+   * latar).
    */
   private pasangRuangan(state: ReturnType<StoryRunner["getState"]>) {
     const sceneId =
       state.sceneIndex >= 0
         ? (state.chapter?.scenes[state.sceneIndex]?.id ?? null)
         : null;
-    this.room = roomForScene(sceneId, this.story);
+    // Lebar internal mengikuti rasio layar. Ruangan yang lebih sempit dari
+    // viewport menyisakan area kosong dan dinding kanan "hilang", jadi ruangan
+    // dilebarkan minimal selebar layar (dinding keliling ikut menyesuaikan).
+    this.room = roomForScene(
+      sceneId,
+      this.story,
+      Math.ceil(this.scale.width / TILE_SIZE),
+    );
     this.roomData = resolveRoomData(sceneId);
     this.roomAktif = this.room.roomId;
 
@@ -576,52 +711,74 @@ export class GameScene extends Phaser.Scene {
     this.wallBodies = undefined;
   }
 
-  /** Gambar lantai/dinding/prop/NPC dari data, lalu bangun collider-nya. */
+  /** Gambar peta/lantai/dinding/prop/NPC dari data, lalu bangun collider-nya. */
   private renderRuang() {
     const room = this.room;
 
-    // Lantai: satu tileSprite penuh; fallback warna bila tile gagal dimuat.
-    if (this.textures.exists(room.floorTile)) {
+    // Ruangan bergambar penuh (ADR 0012): satu gambar jadi lantai sekaligus
+    // dekorasi, jadi lantai tileSprite, dinding, dan prop dilewati. Collider
+    // dan NPC tetap dibangun dari data.
+    const peta = room.mapImage;
+
+    if (peta && this.textures.exists(peta)) {
       this.ruanganObjects.push(
-        this.add
-          .tileSprite(0, 0, room.width, room.height, room.floorTile)
-          .setOrigin(0)
-          .setDepth(DEPTH_LANTAI),
+        this.add.image(0, 0, peta).setOrigin(0).setDepth(DEPTH_LANTAI),
       );
     } else {
-      this.ruanganObjects.push(
-        this.add
-          .rectangle(
-            room.width / 2,
-            room.height / 2,
-            room.width,
-            room.height,
-            room.floorColor,
-          )
-          .setDepth(DEPTH_LANTAI),
-      );
-    }
+      // Lantai: satu tileSprite penuh; fallback warna bila tile gagal dimuat.
+      if (this.textures.exists(room.floorTile)) {
+        this.ruanganObjects.push(
+          this.add
+            .tileSprite(0, 0, room.width, room.height, room.floorTile)
+            .setOrigin(0)
+            .setDepth(DEPTH_LANTAI),
+        );
+      } else {
+        this.ruanganObjects.push(
+          this.add
+            .rectangle(
+              room.width / 2,
+              room.height / 2,
+              room.width,
+              room.height,
+              room.floorColor,
+            )
+            .setDepth(DEPTH_LANTAI),
+        );
+      }
 
-    // Dinding dari data (keliling + pita atas), digambar per objek.
-    for (const object of this.roomData.objects) {
-      if (object.kind === "wall") {
-        const width = object.tileW * TILE_SIZE;
-        const height = object.tileH * TILE_SIZE;
-        const x = object.tileX * TILE_SIZE;
-        const y = object.tileY * TILE_SIZE;
+      // Dinding digambar dari `room.walls` (sudah dilebarkan selebar layar),
+      // bukan dari `roomData.objects` — kalau tidak, dinding kanan tetap di
+      // posisi lama dan menyisakan celah di tepi viewport.
+      for (const wall of room.walls) {
         const visual = this.textures.exists(room.wallTile)
-          ? this.add.tileSprite(x, y, width, height, room.wallTile).setOrigin(0)
+          ? this.add
+              .tileSprite(
+                wall.x,
+                wall.y,
+                wall.width,
+                wall.height,
+                room.wallTile,
+              )
+              .setOrigin(0)
           : this.add.rectangle(
-              x + width / 2,
-              y + height / 2,
-              width,
-              height,
+              wall.x + wall.width / 2,
+              wall.y + wall.height / 2,
+              wall.width,
+              wall.height,
               room.wallColor,
             );
         this.ruanganObjects.push(visual.setDepth(DEPTH_DINDING));
-        continue;
       }
-      if (object.kind === "prop") this.renderProp(object);
+
+      // Prop dari data hanya digambar di jalur tile, bukan di peta bergambar.
+      for (const object of this.roomData.objects) {
+        if (object.kind === "prop") this.renderProp(object);
+      }
+    }
+
+    // NPC selalu sprite, di jalur tile maupun peta bergambar.
+    for (const object of this.roomData.objects) {
       if (object.kind === "npc") this.renderNpc(object);
     }
 
@@ -714,13 +871,20 @@ export class GameScene extends Phaser.Scene {
 
   private mainkanSfx(assetId: string) {
     if (!this.cache.audio.exists(assetId)) return;
-    this.sound.play(assetId, { volume: SFX_VOLUME });
+    if (this.volumeSfx <= 0) return;
+    this.sound.play(assetId, { volume: SFX_VOLUME * this.volumeSfx });
   }
 
   /**
    * `BaseSound` tidak menjanjikan `setVolume` (NoAudioSound tidak punya),
    * jadi panggil hanya bila implementasinya tersedia.
    */
+  /** Volume musik efektif: nilai pengguna × faktor dasar (jeda menurunkan). */
+  private terapkanVolume() {
+    const faktor = this.volumeSedangJeda ? MUSIC_VOLUME_PAUSED : MUSIC_VOLUME;
+    this.aturVolumeMusik(faktor * this.volumeMusik);
+  }
+
   private aturVolumeMusik(volume: number) {
     const musik = this.music as
       | (Phaser.Sound.BaseSound & {

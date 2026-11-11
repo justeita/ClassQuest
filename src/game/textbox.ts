@@ -64,11 +64,18 @@ export function createTextbox(
     .setDepth(DEPTH_UI)
     .setScrollFactor(0);
 
+  // Panel dan portrait selalu di tengah layar. Lebar internal mengikuti rasio
+  // viewport, jadi posisi x dihitung dari lebar kamera — bukan angka 16 tetap.
+  const lebarLayar = scene.scale.width;
+  const panelX = Math.round((lebarLayar - TEXTBOX.width) / 2);
+  // Portrait menempel di batas kiri panel dialog, sejajar dengan tepi kotak.
+  const portraitX = panelX;
+
   const background = scene.textures.exists("ui_textbox")
-    ? scene.add.image(TEXTBOX.x, TEXTBOX.y, "ui_textbox").setOrigin(0)
+    ? scene.add.image(panelX, TEXTBOX.y, "ui_textbox").setOrigin(0)
     : scene.add
         .rectangle(
-          TEXTBOX.x + TEXTBOX.width / 2,
+          panelX + TEXTBOX.width / 2,
           TEXTBOX.y + TEXTBOX.height / 2,
           TEXTBOX.width,
           TEXTBOX.height,
@@ -79,8 +86,8 @@ export function createTextbox(
 
   const portrait = scene.add
     .image(
-      PORTRAIT.x + PORTRAIT.imageInset,
-      PORTRAIT.y + PORTRAIT.imageInset,
+      portraitX + PORTRAIT.imageInset,
+      PORTRAIT.yAtas + PORTRAIT.imageInset,
       scene.textures.exists("ui_default") ? "ui_default" : "__MISSING",
     )
     .setOrigin(0)
@@ -88,7 +95,9 @@ export function createTextbox(
     .setVisible(false);
 
   const portraitFrame = scene.textures.exists("ui_portrait_frame")
-    ? scene.add.image(PORTRAIT.x, PORTRAIT.y, "ui_portrait_frame").setOrigin(0)
+    ? scene.add
+        .image(portraitX, PORTRAIT.yAtas, "ui_portrait_frame")
+        .setOrigin(0)
     : null;
 
   container.add([background, portrait]);

@@ -8,6 +8,7 @@ import {
   ASSETS_BY_ID,
   BACKGROUNDS,
   CHARACTERS,
+  MAPS,
   MUSIC,
   PROPS,
   SFX,
@@ -36,6 +37,7 @@ const PREFIX: Record<AssetKind, string> = {
   character: "char_",
   tile: "tile_",
   prop: "prop_",
+  map: "map_",
   music: "bgm_",
   sfx: "sfx_",
   ui: "ui_",
@@ -46,6 +48,7 @@ const EXTENSION: Record<AssetKind, string> = {
   character: "png",
   tile: "png",
   prop: "png",
+  map: "png",
   music: "ogg",
   sfx: "ogg",
   ui: "png",
@@ -54,9 +57,10 @@ const EXTENSION: Record<AssetKind, string> = {
 /** Jumlah per kind dari tabel ringkasan `inventory.md`. */
 const INVENTORY_COUNTS: Record<AssetKind, number> = {
   background: 8,
-  character: 5,
-  tile: 10,
-  prop: 5,
+  character: 6,
+  tile: 11,
+  prop: 13,
+  map: 1,
   music: 5,
   sfx: 4,
   ui: 3,
@@ -129,6 +133,7 @@ describe("manifest — id", () => {
     expect(MUSIC.every((a) => a.kind === "music")).toBe(true);
     expect(SFX.every((a) => a.kind === "sfx")).toBe(true);
     expect(UI.every((a) => a.kind === "ui")).toBe(true);
+    expect(MAPS.every((a) => a.kind === "map")).toBe(true);
   });
 });
 
@@ -213,6 +218,18 @@ describe("manifest — fallback dan ukuran", () => {
     expect(wrong).toEqual([]);
   });
 
+  it("peta memakai kelipatan 16 agar sejajar grid tile", () => {
+    const wrong = MAPS.filter(
+      (asset) =>
+        (asset.width ?? 0) % 16 !== 0 ||
+        (asset.height ?? 0) % 16 !== 0 ||
+        !asset.width ||
+        !asset.height,
+    ).map((asset) => `${asset.id} (${asset.width}×${asset.height})`);
+
+    expect(wrong).toEqual([]);
+  });
+
   it("jumlah per kind sesuai ringkasan inventory", () => {
     for (const [kind, count] of Object.entries(INVENTORY_COUNTS)) {
       const actual = ASSETS.filter((asset) => asset.kind === kind).length;
@@ -232,8 +249,8 @@ describe("manifest — bentuk untuk validator", () => {
     expect(manifest).toEqual(
       storyAssets.map((asset) => ({ id: asset.id, kind: asset.kind })),
     );
-    // Tile dan prop milik map game (ADR 0010), bukan kontrak cerita.
-    for (const asset of [...TILES, ...PROPS]) {
+    // Tile, prop, dan peta milik map game (ADR 0010/0012), bukan kontrak cerita.
+    for (const asset of [...TILES, ...PROPS, ...MAPS]) {
       expect(manifest.find((entry) => entry.id === asset.id)).toBeUndefined();
     }
   });

@@ -63,9 +63,7 @@ describe("collectStoryAssets", () => {
       expect.arrayContaining([
         "bg_classroom_day",
         "bg_cloud_sky",
-        "bg_river_day",
         "bg_schoolyard_day",
-        "bg_mountain_night",
         DEFAULT_BACKGROUND_ID,
       ]),
     );
@@ -78,9 +76,10 @@ describe("collectStoryAssets", () => {
         "bgm_adventure",
         "bgm_ending",
         DEFAULT_MUSIC_ID,
-        "char_nara",
+        "char_nino",
         "char_pak_bima",
         "char_tirta",
+        "char_rani",
         DEFAULT_CHARACTER_ID,
         "ui_textbox",
         "ui_portrait_frame",
@@ -93,14 +92,15 @@ describe("collectStoryAssets", () => {
   });
 
   it("tidak memuat aset yang tidak dipakai cerita", () => {
-    // Rani dan perpustakaan tidak ada di cast/chapter cerita demo.
-    expect(ids).not.toContain("char_rani");
+    // Perpustakaan dan pegunungan tidak dipakai cerita demo yang baru.
     expect(ids).not.toContain("bg_library_evening");
+    expect(ids).not.toContain("bg_mountain_night");
+    expect(ids).not.toContain("char_nara");
   });
 
   it("karakter membawa portraitPath dari manifest", () => {
-    const nara = aset.find((entry) => entry.id === "char_nara");
-    expect(nara?.portraitPath).toBe("/assets/portrait/nara.png");
+    const nino = aset.find((entry) => entry.id === "char_nino");
+    expect(nino?.portraitPath).toBe("/assets/portrait/nino.png");
   });
 
   it("cerita kosong tetap mendapat aset runtime", () => {

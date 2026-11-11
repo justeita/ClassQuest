@@ -30,13 +30,11 @@ export default async function PlayPage(props: PageProps<"/play/[storyId]">) {
   if (!story) notFound();
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#14201a] p-4">
+    // Game mengisi seluruh viewport (full-bleed): kanvas dan menu judul
+    // menutupi sampai pojok, bukan kotak kecil di tengah halaman.
+    <main className="h-dvh w-full overflow-hidden bg-[#14201a]">
       <h1 className="sr-only">{story.meta.title}</h1>
-      <div className="relative aspect-video w-full max-w-5xl">
-        <div className="absolute inset-0">
-          <GameShell story={story} />
-        </div>
-      </div>
+      <GameShell story={story} />
     </main>
   );
 }

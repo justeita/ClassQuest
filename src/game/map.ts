@@ -4,7 +4,9 @@
  * `RoomData` (di `maps/`) adalah **sumber kebenaran** dalam tile; modul ini
  * mengonversinya ke piksel untuk Phaser. Collider `solids` dibangun dari objek
  * yang sama yang digambar — tidak ada collider yang ditulis terpisah, sehingga
- * bug "nabrak benda tak terlihat" tidak bisa muncul.
+ * bug "nabrak benda tak terlihat" tidak bisa muncul. Pengecualiannya ruangan
+ * bergambar penuh (ADR 0012): di sana `zone` memang collider tanpa gambar,
+ * ditulis berdampingan dengan gambar peta yang dijahit.
  *
  * Warna fallback (`floorColor`/`wallColor`) tetap ada untuk bila tile dari
  * manifest gagal dimuat.
@@ -40,6 +42,12 @@ export type RoomMap = {
   /** Tile manifest untuk lantai dan dinding; digambar sebagai tileSprite. */
   floorTile: string;
   wallTile: string;
+  /**
+   * Gambar peta penuh opsional (id manifest `map_*`, ADR 0012). Bila ada,
+   * GameScene menggambar satu gambar ini sebagai lantai dan melewatkan tile
+   * lantai, dinding, serta prop.
+   */
+  mapImage?: string;
   /** Warna fallback bila tile gagal dimuat. */
   floorColor: number;
   wallColor: number;
@@ -47,6 +55,8 @@ export type RoomMap = {
   spawn: { x: number; y: number };
   /** Collider dari objek solid (dinding, prop, NPC) dalam piksel. */
   solids: Rect[];
+  /** Dinding yang sudah disesuaikan lebarnya; dipakai untuk menggambar. */
+  walls: Rect[];
   npcs: MapNpc[];
 };
 
@@ -71,8 +81,16 @@ const SOLID_INSET_BOTTOM = 2;
  * yang bukan pemain — map tidak pernah menambah karakter baru. Kalau cast
  * kosong (tidak mungkin lewat validator, tapi dijaga), NPC itu dibuang.
  */
-export function buildRoomMap(data: RoomData, story: Story): RoomMap {
-  const width = data.widthTiles * TILE_SIZE;
+export function buildRoomMap(
+  data: RoomData,
+  story: Story,
+  /** Lebar minimum dalam tile (mis. selebar viewport). 0 = pakai data apa adanya. */
+  minWidthTiles = 0,
+): RoomMap {
+  // Ruangan dilebarkan sampai minimal selebar layar supaya lantai dan dinding
+  // kanan selalu menutup tepi viewport (lebar internal ikut rasio layar).
+  const widthTiles = Math.max(data.widthTiles, Math.ceil(minWidthTiles));
+  const width = widthTiles * TILE_SIZE;
   const height = data.heightTiles * TILE_SIZE;
 
   const pemain = story.cast.find((member) => member.role === "player")?.id;
@@ -80,27 +98,48 @@ export function buildRoomMap(data: RoomData, story: Story): RoomMap {
     story.cast.find((member) => member.id !== pemain)?.id ?? null;
 
   const solids: Rect[] = [];
+  const walls: Rect[] = [];
   const npcs: MapNpc[] = [];
 
   for (const object of data.objects) {
-    const rect = rectOf(object);
-    if (object.kind === "npc") {
-      const id = object.id ?? cadangan;
+    // Dinding keliling ikut melebar: dinding atas/bawah yang menutup seluruh
+    // lebar ruangan diperpanjang, dan dinding kanan digeser ke tepi baru.
+    const objectLebar =
+      object.kind === "wall" &&
+      object.tileX === 0 &&
+      object.tileW === data.widthTiles &&
+      object.tileH !== data.heightTiles
+        ? { ...object, tileW: widthTiles }
+        : object.kind === "wall" &&
+            object.tileX === data.widthTiles - 1 &&
+            object.tileW === 1 &&
+            object.tileH === data.heightTiles
+          ? { ...object, tileX: widthTiles - 1 }
+          : object;
+
+    const rect = rectOf(objectLebar);
+    if (objectLebar.kind === "zone") {
+      // Zona tidak digambar: seluruh kotaknya jadi collider (ADR 0012). Kotak
+      // dipakai apa adanya, tanpa inset 2 px milik prop.
+      solids.push(rect);
+      continue;
+    }
+    if (objectLebar.kind === "npc") {
+      const id = objectLebar.id ?? cadangan;
       const finalId = id && story.cast.some((m) => m.id === id) ? id : cadangan;
       if (!finalId) continue;
       npcs.push({
         id: finalId,
-        ...pusat(object),
+        ...pusat(objectLebar),
         width: rect.width,
         height: rect.height,
       });
     }
-    if (object.kind === "wall" || object.solid) {
-      solids.push(
-        object.kind === "wall"
-          ? rect
-          : { ...rect, height: rect.height - SOLID_INSET_BOTTOM },
-      );
+    if (objectLebar.kind === "wall") {
+      walls.push(rect);
+      solids.push(rect);
+    } else if (objectLebar.solid) {
+      solids.push(colliderOf(objectLebar));
     }
   }
 
@@ -112,11 +151,13 @@ export function buildRoomMap(data: RoomData, story: Story): RoomMap {
     wallTile: data.wallTile,
     floorColor: FLOOR_COLOR,
     wallColor: WALL_COLOR,
+    mapImage: data.mapImage,
     spawn: {
       x: data.spawnTile.x * TILE_SIZE + TILE_SIZE / 2,
       y: (data.spawnTile.y + 1) * TILE_SIZE,
     },
     solids,
+    walls,
     npcs,
   };
 }
@@ -125,8 +166,9 @@ export function buildRoomMap(data: RoomData, story: Story): RoomMap {
 export function roomForScene(
   sceneId: string | null | undefined,
   story: Story,
+  minWidthTiles = 0,
 ): RoomMap {
-  return buildRoomMap(resolveRoomData(sceneId), story);
+  return buildRoomMap(resolveRoomData(sceneId), story, minWidthTiles);
 }
 
 /** Rect objek dalam piksel. */
@@ -136,6 +178,28 @@ function rectOf(object: RoomObject): Rect {
     y: object.tileY * TILE_SIZE,
     width: object.tileW * TILE_SIZE,
     height: object.tileH * TILE_SIZE,
+  };
+}
+
+/**
+ * Collider objek solid dalam piksel.
+ *
+ * Prop tanpa `collider` memakai kotak penuh dikurangi 2 px di sisi depan
+ * (world-design.md § collision). Prop besar seperti pohon memakai sub-area dari
+ * `collider` apa adanya, supaya pemain bisa berjalan di bawah kanopi tapi tetap
+ * tertahan di batang (ADR 0011).
+ */
+function colliderOf(object: RoomObject): Rect {
+  const area = object.collider;
+  if (!area) {
+    const rect = rectOf(object);
+    return { ...rect, height: rect.height - SOLID_INSET_BOTTOM };
+  }
+  return {
+    x: (object.tileX + area.x) * TILE_SIZE,
+    y: (object.tileY + area.y) * TILE_SIZE,
+    width: area.w * TILE_SIZE,
+    height: area.h * TILE_SIZE,
   };
 }
 

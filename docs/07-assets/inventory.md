@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -20,20 +20,34 @@ Urutan kebenaran:
 Legenda status:
 
 - `todo` — belum dibuat.
-- `placeholder` — file ada, isinya sementara. Saat ini **semua** aset adalah
-  placeholder yang digambar generator (`scripts/generate-assets.mjs`), termasuk
-  tile dan prop untuk map top-down (ADR 0009/0010).
-- `ready` — final, sesuai spesifikasi.
+- `placeholder` — file ada, isinya sementara. Semua aset yang **digambar
+  generator** (`scripts/generate-assets.mjs`) berstatus ini, termasuk tile dan
+  prop map top-down (ADR 0009/0010).
+- `ready` — final, sesuai spesifikasi. Aset pihak ketiga yang sudah diproses
+  masuk ke sini; sumbernya dicatat di bagian
+  [Sumber dan lisensi](#sumber-dan-lisensi).
 
 > `ready` di sini adalah status **aset**, bukan status cerita. Status cerita hanya
 > `processing | draft | published | failed | archived`; lihat
 > [`../06-backend/persistence.md`](../06-backend/persistence.md#siklus-status).
 > Dua domain ini tidak saling memengaruhi.
 
-Semua berkas di tabel ini dibuat oleh generator di repo, bukan diunduh:
+Sebagian besar berkas di tabel ini dibuat generator di repo:
 `bun run assets:generate` (gambar PNG tanpa dependensi, audio OGG lewat ffmpeg).
 Jalankan ulang perintah itu setelah mengubah `scripts/lib/`; hasil gambar
 dijamin identik.
+
+Pengecualian: tujuh prop taman/interior dan satu peta halaman adalah aset pihak
+ketiga yang sudah diproses dan di-commit sebagai file game. Generator **tidak**
+menimpanya karena namanya tidak ada di daftar `IMAGES`. Peta dijahit
+`scripts/compose-map.mjs` (sekali jalan, hasilnya di-commit). Kotak potong dan
+sumbernya dicatat di [Sumber dan lisensi](#sumber-dan-lisensi).
+
+> Enam prop taman Craftpix (`prop_tree_large`, `prop_tree_medium`,
+> `prop_tree_flower`, `prop_bush_small`, `prop_bush_flower`, `prop_pond`) tetap
+> terdaftar di manifest dan filenya ada di `public/`, tetapi sejak ADR 0012
+> **tidak lagi dipasang** di `halaman_sekolah` — halaman memakai gambar peta
+> penuh. Keduanya sengaja dipertahankan untuk pemakaian ruangan lain.
 
 ## Background
 
@@ -50,38 +64,57 @@ dijamin identik.
 
 ## Karakter
 
-| id              | Label            | Sprite                      | Portrait                        | Tags                                       | Status |
-| --------------- | ---------------- | --------------------------- | ------------------------------- | ------------------------------------------ | ------ |
-| `char_nara`     | Nara (siswa)     | `/assets/char/nara.png`     | `/assets/portrait/nara.png`     | siswa, perempuan, seragam, remaja, student | ready  |
-| `char_pak_bima` | Pak Bima (guru)  | `/assets/char/pak_bima.png` | `/assets/portrait/pak_bima.png` | guru, dewasa, pria, pengajar, teacher      | ready  |
-| `char_tirta`    | Tirta (roh air)  | `/assets/char/tirta.png`    | `/assets/portrait/tirta.png`    | air, roh, biru, kecil, spirit, water       | ready  |
-| `char_rani`     | Rani (siswa)     | `/assets/char/rani.png`     | `/assets/portrait/rani.png`     | siswa, perempuan, rambut pendek, teman     | ready  |
-| `char_default`  | Karakter default | `/assets/char/default.png`  | —                               | default, cadangan, fallback, netral        | ready  |
+| id              | Label                 | Sprite                      | Portrait                        | Tags                                                 | Status |
+| --------------- | --------------------- | --------------------------- | ------------------------------- | ---------------------------------------------------- | ------ |
+| `char_nara`     | Nara (siswa)          | `/assets/char/nara.png`     | `/assets/portrait/nara.png`     | siswa, perempuan, seragam, remaja, student           | ready  |
+| `char_pak_bima` | Pak Bima (guru)       | `/assets/char/pak_bima.png` | `/assets/portrait/pak_bima.png` | guru, dewasa, pria, pengajar, teacher                | ready  |
+| `char_tirta`    | Tirta (roh air)       | `/assets/char/tirta.png`    | `/assets/portrait/tirta.png`    | air, roh, biru, kecil, spirit, water                 | ready  |
+| `char_rani`     | Rani (siswa)          | `/assets/char/rani.png`     | `/assets/portrait/rani.png`     | siswa, perempuan, rambut pendek, teman               | ready  |
+| `char_nino`     | Nino (siswa pindahan) | `/assets/char/nino.png`     | `/assets/portrait/nino.png`     | siswa, perempuan, ekor kembar, pita, remaja, student | ready  |
+| `char_default`  | Karakter default      | `/assets/char/default.png`  | —                               | default, cadangan, fallback, netral                  | ready  |
 
 ## Tile
 
-| id                  | Label           | Path                            | Tags                                                   | Status      |
-| ------------------- | --------------- | ------------------------------- | ------------------------------------------------------ | ----------- |
-| `tile_floor_wood`   | Lantai kayu     | `/assets/tile/floor_wood.png`   | lantai, kayu, kelas, indoor, floor, wood               | placeholder |
-| `tile_floor_grass`  | Rumput          | `/assets/tile/floor_grass.png`  | lantai, rumput, halaman, luar, grass, outdoor          | placeholder |
-| `tile_floor_cloud`  | Lantai awan     | `/assets/tile/floor_cloud.png`  | lantai, awan, langit, terang, cloud, sky               | placeholder |
-| `tile_floor_rock`   | Batu            | `/assets/tile/floor_rock.png`   | lantai, batu, gunung, gelap, rock, mountain            | placeholder |
-| `tile_floor_water`  | Air             | `/assets/tile/floor_water.png`  | lantai, air, sungai, dingin, water, river              | placeholder |
-| `tile_wall_plaster` | Dinding plester | `/assets/tile/wall_plaster.png` | dinding, plester, kelas, indoor, wall, interior        | placeholder |
-| `tile_wall_hedge`   | Pagar tanaman   | `/assets/tile/wall_hedge.png`   | dinding, tanaman, halaman, luar, hedge, outdoor        | placeholder |
-| `tile_wall_rock`    | Dinding batu    | `/assets/tile/wall_rock.png`    | dinding, batu, gunung, gelap, rock, outdoor            | placeholder |
-| `tile_canopy`       | Kanopi penutup  | `/assets/tile/canopy.png`       | kanopi, pohon, langit-langit, penutup, canopy, overlay | placeholder |
-| `tile_default`      | Tile default    | `/assets/tile/default.png`      | default, cadangan, netral, fallback                    | placeholder |
+| id                    | Label           | Path                              | Tags                                                   | Status      |
+| --------------------- | --------------- | --------------------------------- | ------------------------------------------------------ | ----------- |
+| `tile_floor_wood`     | Lantai kayu     | `/assets/tile/floor_wood.png`     | lantai, kayu, kelas, indoor, floor, wood               | placeholder |
+| `tile_floor_grass`    | Rumput          | `/assets/tile/floor_grass.png`    | lantai, rumput, halaman, luar, grass, outdoor          | placeholder |
+| `tile_floor_cloud`    | Lantai awan     | `/assets/tile/floor_cloud.png`    | lantai, awan, langit, terang, cloud, sky               | placeholder |
+| `tile_floor_rock`     | Batu            | `/assets/tile/floor_rock.png`     | lantai, batu, gunung, gelap, rock, mountain            | placeholder |
+| `tile_floor_water`    | Air             | `/assets/tile/floor_water.png`    | lantai, air, sungai, dingin, water, river              | placeholder |
+| `tile_floor_corridor` | Lantai koridor  | `/assets/tile/floor_corridor.png` | lantai, koridor, ubin, sekolah, indoor, corridor       | placeholder |
+| `tile_wall_plaster`   | Dinding plester | `/assets/tile/wall_plaster.png`   | dinding, plester, kelas, indoor, wall, interior        | placeholder |
+| `tile_wall_hedge`     | Pagar tanaman   | `/assets/tile/wall_hedge.png`     | dinding, tanaman, halaman, luar, hedge, outdoor        | placeholder |
+| `tile_wall_rock`      | Dinding batu    | `/assets/tile/wall_rock.png`      | dinding, batu, gunung, gelap, rock, outdoor            | placeholder |
+| `tile_canopy`         | Kanopi penutup  | `/assets/tile/canopy.png`         | kanopi, pohon, langit-langit, penutup, canopy, overlay | placeholder |
+| `tile_default`        | Tile default    | `/assets/tile/default.png`        | default, cadangan, netral, fallback                    | placeholder |
 
 ## Prop
 
-| id                | Label        | Path                          | Tags                                                | Status      |
-| ----------------- | ------------ | ----------------------------- | --------------------------------------------------- | ----------- |
-| `prop_desk`       | Meja kelas   | `/assets/prop/desk.png`       | meja, kelas, belajar, indoor, desk, school          | placeholder |
-| `prop_blackboard` | Papan tulis  | `/assets/prop/blackboard.png` | papan, tulisan, kelas, mengajar, blackboard, school | placeholder |
-| `prop_tree`       | Pohon        | `/assets/prop/tree.png`       | pohon, halaman, alam, luar, tree, nature            | placeholder |
-| `prop_fence`      | Pagar kayu   | `/assets/prop/fence.png`      | pagar, halaman, luar, kayu, fence, outdoor          | placeholder |
-| `prop_default`    | Prop default | `/assets/prop/default.png`    | default, cadangan, netral, fallback                 | placeholder |
+| id                 | Label                  | Path                           | Tags                                                | Status      |
+| ------------------ | ---------------------- | ------------------------------ | --------------------------------------------------- | ----------- |
+| `prop_desk`        | Meja kelas             | `/assets/prop/desk.png`        | meja, kelas, belajar, indoor, desk, school          | placeholder |
+| `prop_blackboard`  | Papan tulis            | `/assets/prop/blackboard.png`  | papan, tulisan, kelas, mengajar, blackboard, school | placeholder |
+| `prop_tree`        | Pohon                  | `/assets/prop/tree.png`        | pohon, halaman, alam, luar, tree, nature            | placeholder |
+| `prop_fence`       | Pagar kayu             | `/assets/prop/fence.png`       | pagar, halaman, luar, kayu, fence, outdoor          | placeholder |
+| `prop_tree_large`  | Pohon rindang besar    | `/assets/prop/tree_large.png`  | pohon, rindang, taman, luar, tree, shade            | ready       |
+| `prop_tree_medium` | Pohon sedang           | `/assets/prop/tree_medium.png` | pohon, sedang, taman, luar, tree, outdoor           | ready       |
+| `prop_tree_flower` | Pohon berbunga         | `/assets/prop/tree_flower.png` | pohon, bunga, taman, luar, flower, tree             | ready       |
+| `prop_bush_small`  | Semak kecil            | `/assets/prop/bush_small.png`  | semak, daun, taman, luar, bush, outdoor             | ready       |
+| `prop_bush_flower` | Semak bunga merah muda | `/assets/prop/bush_flower.png` | semak, bunga, merah muda, taman, bush, flower       | ready       |
+| `prop_shelf`       | Rak buku               | `/assets/prop/shelf.png`       | rak, buku, kelas, indoor, shelf, library            | ready       |
+| `prop_door`        | Pintu kayu             | `/assets/prop/door.png`        | pintu, kayu, koridor, indoor, door, sekolah         | ready       |
+| `prop_pond`        | Kolam taman            | `/assets/prop/pond.png`        | kolam, air, taman, luar, pond, water                | placeholder |
+| `prop_default`     | Prop default           | `/assets/prop/default.png`     | default, cadangan, netral, fallback                 | placeholder |
+
+## Peta
+
+Satu gambar penuh per ruangan (ADR 0012). Ukuran wajib kelipatan 16 dan sama
+dengan `widthTiles`×`heightTiles` ruangannya.
+
+| id                    | Label                | Path                              | Ukuran  | Tags                                              | Status |
+| --------------------- | -------------------- | --------------------------------- | ------- | ------------------------------------------------- | ------ |
+| `map_halaman_sekolah` | Peta halaman sekolah | `/assets/map/halaman_sekolah.png` | 896×544 | peta, halaman, taman, sekolah, luar, map, outdoor | ready  |
 
 ## Musik
 
@@ -126,13 +159,14 @@ dimuat `next/font/local` dari `public/fonts/` (ADR 0007).
 | Kind         | Jumlah |
 | ------------ | ------ |
 | `background` | 8      |
-| `character`  | 5      |
-| `tile`       | 10     |
-| `prop`       | 5      |
+| `character`  | 6      |
+| `tile`       | 11     |
+| `prop`       | 13     |
+| `map`        | 1      |
 | `music`      | 5      |
 | `sfx`        | 4      |
 | `ui`         | 3      |
-| **Total**    | **40** |
+| **Total**    | **51** |
 
 ## Prioritas pengerjaan
 
@@ -147,10 +181,38 @@ Urutan yang disarankan agar game bisa tampil cepat:
 
 ## Sumber dan lisensi
 
-| id  | Sumber                                                           | Lisensi     |
-| --- | ---------------------------------------------------------------- | ----------- |
-| —   | Semua aset harus dibuat sendiri atau CC0; catat saat aset dibuat | —           |
-| —   | Font Patrick Hand (`public/fonts/`)                              | SIL OFL 1.1 |
+| id                                                                           | Sumber                                    | Berkas asal                                  | Lisensi                   |
+| ---------------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------- | ------------------------- |
+| Semua aset lain (background, karakter, tile, prop generator, musik, sfx, ui) | Dibuat generator repo                     | `scripts/lib/*.mjs`                          | Milik proyek              |
+| `prop_tree_large`, `prop_tree_medium`, `prop_tree_flower`                    | Craftpix — Free Top Down Trees Pixel Art  | `Tree1.png`, `Tree2.png`, `Flower_tree1.png` | Craftpix Free License     |
+| `prop_bush_small`, `prop_bush_flower`                                        | Craftpix — Free Top Down Bushes Pixel Art | `Autumn_bush1.png`, `Bush_pink_flowers1.png` | Craftpix Free License     |
+| `prop_shelf`                                                                 | Craftpix — Main Character's Home          | `Interior.png`, potong `x=160 y=80 32×48`    | Craftpix Free License     |
+| `prop_door`                                                                  | Craftpix — Main Character's Home          | `walls_floor.png`, potong `x=112 y=96 32×32` | Craftpix Free License     |
+| `map_halaman_sekolah`                                                        | Ventilatore — The Fan-tasy Tileset (Free) | dijahit `scripts/compose-map.mjs`            | The Fan-tasy Free License |
+| Font Patrick Hand (`public/fonts/`)                                          | Google Fonts                              | `patrick-hand-latin.woff2`                   | SIL OFL 1.1               |
+
+Ketiga paket Craftpix berasal dari <https://craftpix.net>. Lisensi freebie-nya
+mengizinkan pemakaian di proyek komersial maupun non-komersial dan mengizinkan
+modifikasi; atribusi tidak diwajibkan, tetapi tetap dicatat di
+[`../../README.md`](../../README.md#atribusi-pihak-ketiga). Yang dilarang adalah
+menjual atau mendistribusikan ulang file seni mentah, jadi repo ini hanya memuat
+aset yang sudah dipotong dan dipakai game — bukan isi paket, PSD, atau file
+sumber lain.
+
+`map_halaman_sekolah` dijahit dari **The Fan-tasy Tileset (Free)** oleh
+Ventilatore (<https://ventilatore.itch.io/the-fantasy-tileset>). Edisi gratisnya
+**non-komersial**: boleh dipakai dan diubah untuk proyek non-komersial, tetapi
+tidak boleh dijual atau didistribusikan ulang sebagai aset. Yang di-commit hanya
+satu gambar peta jadi hasil jahitan — bukan tileset mentahnya. Karena proyek ini
+belum menetapkan lisensi komersial (lihat
+[`../../README.md`](../../README.md#lisensi-dan-penggunaan)), bila ClassQuest
+kelak dikomersialkan, peta ini **wajib diganti** dengan aset berlisensi komersial
+atau digambar ulang oleh tim.
+
+`char_nino` **tidak** memakai sprite pack mana pun. Ia digambar generator dengan
+resep sendiri (ekor kembar dan pita kupu-kupu) memakai palet sembilan warna
+proyek, termasuk aksen karakter `#D98FA3` untuk rambutnya; kemiripan dengan
+karakter referensi hanya pada siluet dan warna rambut, bukan salinan berkas.
 
 Jangan mengisi kolom ini dengan "Google Images" atau nama game komersial.
 

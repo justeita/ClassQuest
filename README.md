@@ -81,7 +81,8 @@ flowchart TD
 ```
 
 Cerita disimpan sebagai JSON dengan schema tetap, divalidasi validator yang sama
-di client dan server. Aset game disiapkan di awal dan tidak digenerate, jadi AI
+di client dan server. Aset game disiapkan di awal dari pustaka tetap — sebagian
+digambar generator repo, sebagian aset pihak ketiga yang sudah diproses — jadi AI
 hanya menyusun cerita dari aset yang sudah ada.
 
 Detail: [docs/01-architecture/overview.md](docs/01-architecture/overview.md) dan
@@ -156,8 +157,37 @@ Data pribadi siswa tidak dikirim ke model. Detail dan keputusan provider ada di
 | Bun                       | https://bun.sh                    | MIT     |
 | Starter `create-next-app` | https://github.com/vercel/next.js | MIT     |
 
-Aset gambar dan suara game belum ada. Setiap aset yang ditambahkan nanti dicatat
-di [docs/07-assets/inventory.md](docs/07-assets/inventory.md) beserta sumbernya.
+Aset gambar game:
+
+| Aset                                                                     | Sumber                                    | Lisensi                                   |
+| ------------------------------------------------------------------------ | ----------------------------------------- | ----------------------------------------- |
+| `prop_tree_large`, `prop_tree_medium`, `prop_tree_flower`                | Craftpix — Free Top Down Trees Pixel Art  | Craftpix Free License                     |
+| `prop_bush_small`, `prop_bush_flower`                                    | Craftpix — Free Top Down Bushes Pixel Art | Craftpix Free License                     |
+| `prop_shelf`, `prop_door`                                                | Craftpix — Main Character's Home          | Craftpix Free License                     |
+| `map_halaman_sekolah`                                                    | Ventilatore — The Fan-tasy Tileset (Free) | The Fan-tasy Free License (non-komersial) |
+| Background, karakter (termasuk `char_nino`), tile, prop lain, musik, sfx | Dibuat generator repo                     | Milik proyek                              |
+
+Semua paket Craftpix berasal dari <https://craftpix.net>. Lisensi freebie-nya
+mengizinkan pemakaian komersial dan modifikasi; atribusi tidak diwajibkan, tetapi
+kami cantumkan di sini. Yang disimpan di repo hanya aset yang sudah dipotong dan
+dipakai game, bukan isi paket mentah. Detail berkas asal dan kotak potong ada di
+[docs/07-assets/inventory.md](docs/07-assets/inventory.md#sumber-dan-lisensi).
+
+`char_nino` adalah gambar orisinal generator yang terinspirasi siluet dan warna
+rambut karakter referensi, bukan salinan berkas seni berhak cipta.
+
+`map_halaman_sekolah` adalah peta halaman sekolah yang dijahit dari **The
+Fan-tasy Tileset (Free)** oleh Ventilatore
+(<https://ventilatore.itch.io/the-fantasy-tileset>) lewat
+`scripts/compose-map.mjs`. Edisi gratisnya **non-komersial**: boleh dipakai dan
+diubah untuk proyek non-komersial, tetapi tidak boleh dijual atau didistribusikan
+ulang sebagai aset. Yang di-commit hanya satu PNG peta jadi, bukan tileset
+mentahnya. Bila ClassQuest kelak dikomersialkan, peta ini wajib diganti aset
+berlisensi komersial atau digambar ulang tim.
+
+Musik dan SFX disintesis sendiri oleh `scripts/lib/audio.mjs`, jadi tidak ada
+komponen audio pihak ketiga. Font Patrick Hand memakai lisensi SIL OFL 1.1
+(`public/fonts/OFL.txt`).
 
 ## Lisensi dan Penggunaan
 

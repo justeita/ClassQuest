@@ -14,7 +14,7 @@
 import type { AssetManifest } from "../story/validate";
 
 export type AssetKind =
-  "background" | "character" | "tile" | "prop" | "music" | "sfx" | "ui";
+  "background" | "character" | "tile" | "prop" | "map" | "music" | "sfx" | "ui";
 
 export type AssetEntry = {
   id: string;
@@ -144,6 +144,14 @@ export const ASSETS: readonly AssetEntry[] = [
     label: "Rani (siswa)",
     tags: ["siswa", "perempuan", "rambut pendek", "teman"],
     portraitPath: "/assets/portrait/rani.png",
+  },
+  {
+    id: "char_nino",
+    kind: "character",
+    path: "/assets/char/nino.png",
+    label: "Nino (siswa pindahan)",
+    tags: ["siswa", "perempuan", "ekor kembar", "pita", "remaja", "student"],
+    portraitPath: "/assets/portrait/nino.png",
   },
   {
     id: "char_default",
@@ -290,6 +298,15 @@ export const ASSETS: readonly AssetEntry[] = [
     height: 16,
   },
   {
+    id: "tile_floor_corridor",
+    kind: "tile",
+    path: "/assets/tile/floor_corridor.png",
+    label: "Lantai koridor",
+    tags: ["lantai", "koridor", "ubin", "sekolah", "indoor", "corridor"],
+    width: 16,
+    height: 16,
+  },
+  {
     id: "tile_wall_plaster",
     kind: "tile",
     path: "/assets/tile/wall_plaster.png",
@@ -373,6 +390,78 @@ export const ASSETS: readonly AssetEntry[] = [
     height: 16,
   },
   {
+    id: "prop_tree_large",
+    kind: "prop",
+    path: "/assets/prop/tree_large.png",
+    label: "Pohon rindang besar",
+    tags: ["pohon", "rindang", "taman", "luar", "tree", "shade"],
+    width: 128,
+    height: 128,
+  },
+  {
+    id: "prop_tree_medium",
+    kind: "prop",
+    path: "/assets/prop/tree_medium.png",
+    label: "Pohon sedang",
+    tags: ["pohon", "sedang", "taman", "luar", "tree", "outdoor"],
+    width: 64,
+    height: 64,
+  },
+  {
+    id: "prop_tree_flower",
+    kind: "prop",
+    path: "/assets/prop/tree_flower.png",
+    label: "Pohon berbunga",
+    tags: ["pohon", "bunga", "taman", "luar", "flower", "tree"],
+    width: 128,
+    height: 128,
+  },
+  {
+    id: "prop_bush_small",
+    kind: "prop",
+    path: "/assets/prop/bush_small.png",
+    label: "Semak kecil",
+    tags: ["semak", "daun", "taman", "luar", "bush", "outdoor"],
+    width: 64,
+    height: 64,
+  },
+  {
+    id: "prop_bush_flower",
+    kind: "prop",
+    path: "/assets/prop/bush_flower.png",
+    label: "Semak bunga merah muda",
+    tags: ["semak", "bunga", "merah muda", "taman", "bush", "flower"],
+    width: 64,
+    height: 64,
+  },
+  {
+    id: "prop_shelf",
+    kind: "prop",
+    path: "/assets/prop/shelf.png",
+    label: "Rak buku",
+    tags: ["rak", "buku", "kelas", "indoor", "shelf", "library"],
+    width: 32,
+    height: 48,
+  },
+  {
+    id: "prop_door",
+    kind: "prop",
+    path: "/assets/prop/door.png",
+    label: "Pintu kayu",
+    tags: ["pintu", "kayu", "koridor", "indoor", "door", "sekolah"],
+    width: 32,
+    height: 32,
+  },
+  {
+    id: "prop_pond",
+    kind: "prop",
+    path: "/assets/prop/pond.png",
+    label: "Kolam taman",
+    tags: ["kolam", "air", "taman", "luar", "pond", "water"],
+    width: 96,
+    height: 64,
+  },
+  {
     id: "prop_default",
     kind: "prop",
     path: "/assets/prop/default.png",
@@ -380,6 +469,17 @@ export const ASSETS: readonly AssetEntry[] = [
     tags: ["default", "cadangan", "netral", "fallback"],
     width: 16,
     height: 16,
+  },
+
+  /* Peta jadi: satu gambar penuh per ruangan (ADR 0012) */
+  {
+    id: "map_halaman_sekolah",
+    kind: "map",
+    path: "/assets/map/halaman_sekolah.png",
+    label: "Peta halaman sekolah",
+    tags: ["peta", "halaman", "taman", "sekolah", "luar", "map", "outdoor"],
+    width: 896,
+    height: 544,
   },
 ] as const satisfies readonly AssetEntry[];
 
@@ -394,16 +494,17 @@ export const SFX = ASSETS.filter((asset) => asset.kind === "sfx");
 export const UI = ASSETS.filter((asset) => asset.kind === "ui");
 export const TILES = ASSETS.filter((asset) => asset.kind === "tile");
 export const PROPS = ASSETS.filter((asset) => asset.kind === "prop");
+export const MAPS = ASSETS.filter((asset) => asset.kind === "map");
 
 /**
  * Bentuk minimal yang dipakai `validateStory` (`AssetManifest`): hanya `id` dan
  * `kind`. Murni dan sinkron, jadi aman dipanggil di browser.
  */
 /**
- * Bentuk minimal untuk `validateStory`. Tile dan prop **sengaja dikeluarkan**:
- * keduanya dipakai sisi game (map top-down, ADR 0010) dan tidak pernah dirujuk
- * Story JSON, sedangkan `AssetKind` di `src/story/validate.ts` milik backend
- * dan tidak boleh diperluas dari sini.
+ * Bentuk minimal untuk `validateStory`. Tile, prop, dan peta **sengaja
+ * dikeluarkan**: ketiganya dipakai sisi game (map top-down, ADR 0010/0012) dan
+ * tidak pernah dirujuk Story JSON, sedangkan `AssetKind` di
+ * `src/story/validate.ts` milik backend dan tidak boleh diperluas dari sini.
  */
 export const STORY_ASSET_KINDS: readonly string[] = [
   "background",

@@ -18,6 +18,8 @@ export interface StoryRunnerState {
   /** Nomor bab 1-based untuk HUD. */
   chapterNumber: number;
   chapterTotal: number;
+  /** Judul scene aktif; null saat explore/akhir bab/selesai atau scene tanpa judul. */
+  sceneJudul: string | null;
 }
 
 /**
@@ -47,6 +49,12 @@ export class StoryRunner {
   getState(): StoryRunnerState {
     const chapters = this.story.chapters;
     const total = chapters.length;
+    const sceneJudul = (): string | null => {
+      const chapter = chapters[this.chapterIndex];
+      if (!chapter) return null;
+      const scene = chapter.scenes[this.sceneIndex];
+      return scene?.title ?? chapter.title;
+    };
 
     if (this.chapterIndex >= total) {
       return {
@@ -58,6 +66,7 @@ export class StoryRunner {
         chapter: null,
         chapterNumber: total,
         chapterTotal: total,
+        sceneJudul: null,
       };
     }
 
@@ -73,6 +82,7 @@ export class StoryRunner {
         chapter,
         chapterNumber: this.chapterIndex + 1,
         chapterTotal: total,
+        sceneJudul: sceneJudul(),
       };
     }
 
@@ -86,6 +96,7 @@ export class StoryRunner {
         chapter,
         chapterNumber: this.chapterIndex + 1,
         chapterTotal: total,
+        sceneJudul: sceneJudul(),
       };
     }
 
@@ -101,6 +112,7 @@ export class StoryRunner {
       chapter,
       chapterNumber: this.chapterIndex + 1,
       chapterTotal: total,
+      sceneJudul: sceneJudul(),
     };
   }
 
@@ -150,6 +162,17 @@ export class StoryRunner {
     );
   }
 
+  /**
+   * Satu langkah mode cepat: maju satu beat bila beat itu boleh dilewati.
+   * Kembalikan `false` saat skip harus berhenti (soal, transisi, atau scene
+   * habis) sehingga pemanggil bisa menghentikan timer-nya.
+   */
+  lewatiSatuBeat(): boolean {
+    if (!bolehTerusLewati(this.getState())) return false;
+    this.advance();
+    return true;
+  }
+
   /** Normalisasi kursor setelah beatIndex bertambah. */
   private settle(): void {
     const chapter = this.story.chapters[this.chapterIndex];
@@ -171,4 +194,19 @@ export class StoryRunner {
     this.sceneIndex = 0;
     this.beatIndex = -1;
   }
+}
+
+/**
+ * Apakah kursor boleh melompati beat yang sedang tampil?
+ *
+ * Hanya beat dialog/narasi. Beat `challenge` tidak pernah boleh dilewati —
+ * soal wajib dijawab supaya skor tidak bolong (interaction-loop.md) — dan beat
+ * `transition` tetap diputar karena fade adalah bagian dari perpindahan scene.
+ */
+export function bolehTerusLewati(state: StoryRunnerState): boolean {
+  return (
+    state.phase === "dialog" &&
+    state.beat !== null &&
+    state.beat.type !== "transition"
+  );
 }

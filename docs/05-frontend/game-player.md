@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -109,28 +109,65 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ### Playing
 
-- Canvas fullscreen (letterbox bila rasio beda).
-- Panel quest di kiri atas: `Chapter n/total`, judul scene aktif, dan daftar
-  scene chapter itu dengan status `Aktif`/`Selesai`/`Terkunci` plus hitungan
-  tantangan yang sudah dijawab.
-- HUD kanan atas: tombol jeda dan tombol suara. Judul chapter tidak menetap di
+- Kanvas `Scale.FIT` di dalam halaman **full-bleed**: kanvas selalu tampil
+  utuh (tidak pernah ter-crop) dan menempel ke tepi pada sisi yang rasionya
+  cocok; sisa area memakai latar palet gelap, bukan kotak putus di tengah.
+- Tombol buku quest di kiri atas (`Q` Quest): membuka jendela buku catatan ala Minecraft journal dengan 2 halaman perkamen yang menampilkan bab, judul scene, daftar tugas dengan status `Aktif`/`Selesai`/`Terkunci`, dan hitungan tantangan. Dapat dibuka/tutup dengan tombol `Q` atau `Esc`.
+- HUD kanan atas: tombol jeda dan tombol suara. Semua tombol HUD dan quest
+  menampilkan tombol keyboardnya sebagai keycap konsisten (`Tab`, `B`, `Q`,
+  `Esc`) lewat komponen `Keycap`. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
 - Penanda `!` hanya ada di atas NPC pemberi quest. Saat pemain mendekat, chip
   `Space` menggantikan penanda itu. Keduanya memakai koordinat layar yang ikut
   kamera dan disembunyikan selama dialog, tantangan, atau menu jeda.
-- Tombol suara mengatur `sound.mute` Phaser; preferensi berlaku untuk musik dan
-  SFX. Musik mulai setelah "Mulai" ditekan (aturan autoplay browser), lalu
-  berganti hanya saat `musicId` scene berubah.
+- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
+  petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
+  ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti
+  time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
+  (`SpeedLines`); dilepas, tempo kembali normal. Soal tidak bisa dilewati —
+  tombol dan pintasan berhenti di beat tantangan, dan fade transisi tetap
+  diputar.
+- Tombol `Catatan` (`B`) membuka buku catatan dua halaman: riwayat dialog
+  (dikelompokkan per scene, dengan chip nama pembicara) dan jurnal konsep
+  (conceptTag, status benar/perlu diulang, penjelasan). Dunia dibekukan
+  selama buku terbuka; musik tetap diputar penuh. Buku dibersihkan saat
+  "Ulangi chapter" atau sesi baru.
+- Tombol musik (`♪`) mengatur volume musik saja: nyala/mati. Efek suara
+  diatur terpisah di panel pengaturan menu jeda; keduanya dipisah supaya
+  siswa bisa mematikan musik tanpa kehilangan umpan balik jawaban. Preferensi
+  tersimpan di `localStorage` (`classquest:settings:v1`) dan dikirim ke scene
+  lewat command `set_audio`. Musik mulai setelah "Mulai" ditekan (aturan
+  autoplay browser), lalu berganti hanya saat `musicId` scene berubah.
 - Klik di mana saja untuk lanjut.
 
 ### Challenge
 
-![Overlay tantangan di atas dunia yang diredupkan](../assets/challenge-overlay.svg)
+![Panel tantangan di atas dialog](../assets/challenge-overlay.svg)
 
-- Overlay DOM di tengah, latar gelap transparan.
-- Tidak menutupi seluruh layar agar konteks cerita masih terlihat.
-- Fokus keyboard masuk ke overlay.
+- Teks soal/pertanyaan ditampilkan langsung di dalam `DialogueBox` NPC, bukan elemen tambahan di atasnya.
+- Yang melayang di atas dialog HANYA pilihan jawabannya:
+  - Opsi pendek (seperti "1", "2", "4"): ditata 1 baris horizontal di kanan atas dialog.
+  - Opsi teks panjang: ditata bertumpuk vertikal di kanan atas dialog; lebar seluruh box seragam mengikuti opsi terpanjang.
+  - Persoalan matematika / matriks: ditata sebagai kartu berjejer agar formula terlihat jelas.
+- Konsistensi visual HCI dengan DialogueBox:
+  - Gaya box jawaban dan kartu umpan balik setelah dijawab persis seperti DialogueBox (`bg-[#14201a]/95` dengan `border-2 border-[#F7F4EC]`), flat tanpa drop shadow.
+  - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar.
+  - Ukuran huruf dan line-height opsi dan penjelasan umpan balik proporsional dan nyaman dibaca (`ukuranHuruf(13.5, 12, 20)` & `lineHeight: 1.3`).
+  - Segitiga kursor penunjuk `▶` berada di **luar box jawaban, di sebelah kirinya**, dan saat aktif diwarnai gelap/hitam (`#0b120e`) agar terlihat jelas dan kontras terhadap pemandangan dunia game.
+  - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya.
+  - Teks petunjuk tombol shortcut (`hints`) diberi latar gelap (`bg-[#0b120e]`) dengan font putih (`#F7F4EC`) untuk keterbacaan tinggi.
+- Segitiga lanjut dialog `▼` diposisikan di **sudut kanan bawah kotak dialog**.
+- Tanpa background kotak pembungkus hitam luar (hanya baris pilihan yang memiliki latar), tanpa tombol jawab/lanjut terpisah. Memilih opsi langsung mengirim respon dialog, dan kartu umpan balik cerita dapat diklik atau ditekan Spasi/Enter untuk lanjut.
+- Kontrol keyboard-first meminimalkan ketergantungan mouse/touchpad:
+  - `multiple_choice` / `true_false`: angka `1`–`5` langsung memilih & mengirim, panah/WASD menggeser sorotan, `Enter`/`Spasi` memilih.
+  - `ordering`: panah atas/bawah atau `W`/`S` memilih baris, panah kiri/kanan atau `A`/`D` menggeser posisi naik/turun, angka `1`–`N` loncat baris, `Enter` mengirim jawaban.
+  - `short_answer`: input otomatis fokus saat muncul; `Enter` langsung mengirim jawaban.
+- Isi soal digulir di dalam panel bila panjang; tombol aksi menempel di bawah.
+- Di layar sangat pendek, panel memakai hampir seluruh tinggi ruang game dan
+  boleh menutup dialog (fallback) supaya soal tetap terbaca.
+- Fokus keyboard masuk ke panel saat muncul dan kembali ke area game saat
+  ditutup.
 - `Esc` tidak menutup overlay sebelum soal dijawab; lihat
   [`../04-game/accessibility.md`](../04-game/accessibility.md#keyboard).
 - Keempat tipe soal punya UI jawaban sendiri:
@@ -146,7 +183,8 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ### Paused
 
-- Lanjut, ulangi chapter, suara, keluar.
+- Lanjut, ulangi chapter, pengaturan suara (slider Musik dan Efek suara
+  terpisah + tombol mute per baris), keluar.
 - Game di-pause (`scene.pause()`), input dialog berhenti.
 - Musik tidak dihentikan, hanya dikecilkan (volume 0,35 → 0,12) agar jeda tidak
   terasa memutus suasana; volume kembali saat lanjut atau ulangi chapter.
@@ -173,14 +211,16 @@ penanganan error di [`../04-game/interaction-loop.md`](../04-game/interaction-lo
 
 ## Responsif
 
-| Layar             | Perilaku                                                     |
-| ----------------- | ------------------------------------------------------------ |
-| Desktop ≥ 1024 px | Canvas 16:9 di tengah, HUD di atas                           |
-| Tablet            | Sama, overlay lebih lebar                                    |
-| HP landscape      | Canvas memenuhi lebar, HUD kecil                             |
-| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati) |
+| Layar             | Perilaku                                                         |
+| ----------------- | ---------------------------------------------------------------- |
+| Desktop ≥ 1024 px | Kanvas penuh viewport; sisi lebar menampilkan lebih banyak dunia |
+| Tablet            | Sama — dunia tetap utuh, hanya lebih sempit                      |
+| HP landscape      | Kanvas memenuhi layar, HUD kecil                                 |
+| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati)     |
 
-Jangan memaksa fullscreen API; sediakan tombol opsional.
+Halaman game full-bleed dengan kanvas `Scale.FIT` yang **selalu tampil
+utuh** — Fullscreen API peramban tidak dipakai dan tidak dipaksa, jadi tidak
+ada konten yang terpotong di layar apa pun.
 
 ## Berbagi
 
@@ -193,12 +233,12 @@ Siswa tidak perlu akun. Nama panggilan opsional, disimpan lokal.
 
 ## Performa
 
-| Target                         | Cara                                                 |
-| ------------------------------ | ---------------------------------------------------- |
-| First content < 2 s            | Shell HTML + skeleton; Phaser dimuat setelahnya      |
-| Aset hanya yang dipakai        | `assetUsage`                                         |
-| Tidak ada layout shift         | Host canvas punya rasio tetap (`aspect-ratio: 16/9`) |
-| Bundle Phaser tidak di landing | Dynamic import hanya di halaman game                 |
+| Target                         | Cara                                            |
+| ------------------------------ | ----------------------------------------------- |
+| First content < 2 s            | Shell HTML + skeleton; Phaser dimuat setelahnya |
+| Aset hanya yang dipakai        | `assetUsage`                                    |
+| Tidak ada layout shift         | Kanvas berukuran tetap mengikuti mode `ENVELOP` |
+| Bundle Phaser tidak di landing | Dynamic import hanya di halaman game            |
 
 Ukuran Phaser besar (~1 MB+). Jangan mengimpor Phaser di halaman guru atau
 landing.
@@ -248,7 +288,7 @@ Aturan:
 - [ ] Hanya cerita `published` yang bisa diakses.
 - [ ] `notFound()` untuk id tidak dikenal.
 - [ ] Phaser hanya dimuat di halaman game.
-- [ ] Host canvas punya rasio tetap.
+- [ ] Kanvas `Scale.FIT` tampil utuh di halaman full-bleed.
 - [ ] Overlay tidak menerima jawaban benar.
 - [ ] Progres bisa dipulihkan.
 - [ ] Error aset tidak menghentikan permainan.

@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -83,6 +83,21 @@ gradien besar atau tepi yang terlihat saat diulang.
 | Outline     | 1 px gelap, konsisten dengan karakter                |
 | Ukuran file | ≤ 20 KB                                              |
 
+### Peta
+
+| Properti    | Nilai                                                  |
+| ----------- | ------------------------------------------------------ |
+| Ukuran      | Kelipatan 16 px, sama dengan ukuran ruangan (ADR 0012) |
+| Format      | PNG tanpa transparansi                                 |
+| Isi         | Satu ruangan utuh: lantai, jalan, air, dan objek diam  |
+| Ukuran file | ≤ 300 KB                                               |
+
+Peta dipakai ruangan yang tidak bisa diwakili satu tile lantai (mis. halaman
+botani). Ia **hanya seni**: collider (`zone`), spawn, dan NPC tetap berasal dari
+`RoomData` (ADR 0010/0011/0012), jadi menggeser pohon di gambar berarti
+menggeser zona-nya juga. Yang di-commit hanya PNG jadinya; tileset mentahnya
+tidak masuk repo.
+
 ## Musik
 
 | Properti    | Nilai                                |
@@ -115,10 +130,11 @@ gradien besar atau tepi yang terlihat saat diulang.
 1. **Satu grid.** Semua gambar digambar pada grid 1 px dari resolusi 640×360.
    Jangan mengecilkan gambar besar.
 2. **Tanpa anti-aliasing.** Tidak ada blur, gradient halus, atau bayangan lembut.
-3. **Palet terbatas.** Maksimal 8 warna per gambar (6 inti + 2 fungsional), diambil
-   dari palet proyek ([`../04-game/game-design.md`](../04-game/game-design.md)).
-   Untuk background yang butuh variasi terang/gelap, pakai tint dari palet itu —
-   jangan menambah warna baru.
+3. **Palet terbatas.** Maksimal 9 warna per gambar (6 inti + 2 fungsional + 1
+   aksen karakter), diambil dari palet proyek
+   ([`../04-game/game-design.md`](../04-game/game-design.md)). Untuk background
+   yang butuh variasi terang/gelap, pakai tint dari palet itu — jangan menambah
+   warna baru.
 4. **Skala integer saat menggambar.** Semua gambar digambar pada grid 1 px; game
    yang menampilkan dengan `Scale.FIT`. Pratinjau di 2× (1280×720) atau 3×
    (1920×1080) untuk memeriksa ketajaman.
@@ -139,6 +155,7 @@ gradien besar atau tepi yang terlihat saat diulang.
 | Teks terang   | `#F7F4EC` | inti                     |
 | Hijau lembut  | `#6F9B7A` | fungsional: benar/sukses |
 | Kuning lembut | `#C9A227` | fungsional: peringatan   |
+| Rosa lembut   | `#D98FA3` | aksen karakter           |
 
 Warna di luar palet harus ditambahkan ke dokumen ini dulu.
 
@@ -151,6 +168,7 @@ public/assets/
 ├── portrait/
 ├── tile/
 ├── prop/
+├── map/
 ├── music/
 ├── sfx/
 └── ui/
@@ -178,11 +196,35 @@ Aturan:
 
 ## Lisensi
 
-- Semua aset harus dibuat sendiri, atau berlisensi CC0/public domain.
+- Semua aset harus dibuat sendiri, CC0/public domain, atau pihak ketiga dengan
+  lisensi yang mengizinkan pemakaian di game (lihat bagian berikut).
 - Catat sumber di [`inventory.md`](./inventory.md) kolom "Sumber".
 - Jangan memakai aset dari game komersial (termasuk Omori) walau hanya untuk
   referensi gaya.
 - Jangan memakai font berbayar tanpa lisensi web.
+
+### Aset pihak ketiga
+
+Aset pihak ketiga boleh dipakai selama tiga syarat ini terpenuhi:
+
+1. **Lisensinya jelas dan mengizinkan game.** Freebie Craftpix, CC0, dan lisensi
+   sejenis boleh; aset dari game komersial tidak. Atribusi tidak selalu wajib,
+   tetapi tetap dicatat di [`../../README.md`](../../README.md#atribusi-pihak-ketiga).
+2. **Yang di-commit hanya aset jadi.** Simpan hasil potong yang benar-benar
+   dipakai game, bukan isi paket, PSD, atau file mentah. Ini menjaga repo tetap
+   kecil sekaligus mematuhi larangan redistribusi file seni mentah. Peta jahitan
+   (ADR 0012) dihitung aset jadi: yang masuk repo hanya PNG hasil akhirnya.
+3. **Bisa diulang.** Catat berkas asal dan kotak potongnya di
+   [`inventory.md`](./inventory.md), supaya aset bisa dibuat ulang tanpa
+   menyimpan paket sumbernya.
+
+Aset pihak ketiga yang sudah final tidak perlu mengikuti batas 9 warna di atas —
+paletnya milik seniman aslinya. Jangan mewarnai ulang aset impor secara manual
+tanpa mencatatnya; lebih baik pakai apa adanya.
+
+Generator **tidak** boleh menimpa aset impor. Karena itu aset impor tidak
+didafarkan di `IMAGES` (`scripts/generate-assets.mjs`) dan hanya dibuat sekali
+lewat proses potong di luar repo.
 
 ## Cara menambah aset
 

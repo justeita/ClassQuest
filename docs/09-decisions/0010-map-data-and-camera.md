@@ -126,6 +126,10 @@ Alasan:
 > Spawn hanya dipakai saat masuk `roomId` baru atau saat "Ulangi chapter".
 > Pemetaan scene → `roomId` masih di kode (`src/game/maps/roomData.ts`); memilih
 > preset dari Story JSON adalah pekerjaan lanjutan setelah MVP.
+>
+> **Prop besar:** kanopi pohon dan badan furnitur besar tidak boleh menjadi
+> collider penuh. `RoomObject.collider` opsional menandai area solid di dalam
+> kotak objek — lihat [ADR 0011](0011-large-prop-subcollider.md).
 
 ## Kapan keputusan ini ditinjau ulang
 

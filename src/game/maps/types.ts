@@ -18,7 +18,34 @@ export { TILE_SIZE } from "../constants";
 
 /** Ukuran satu tile dalam piksel: 16 (ADR 0009). */
 
-export type RoomObjectKind = "wall" | "prop" | "npc";
+/**
+ * - `wall`: dinding dari `wallTile` ruangan.
+ * - `prop`: sprite dari manifest.
+ * - `npc`: anggota `story.cast`.
+ * - `zone`: collider murni tanpa gambar (ADR 0012). Dipakai ruangan bergambar
+ *   penuh, di mana visual sudah menyatu di gambar peta dan `objects` tinggal
+ *   menandai area yang padat.
+ */
+export type RoomObjectKind = "wall" | "prop" | "npc" | "zone";
+
+/**
+ * Collider sub-area untuk prop besar (ADR 0011).
+ *
+ * Offset dan ukuran dinyatakan dalam tile relatif terhadap pojok kiri atas
+ * objek, jadi nilainya boleh pecahan (mis. `0.5`) untuk batang pohon yang lebih
+ * sempit dari satu tile. Tanpa collider ini, seluruh kotak `tileW`×`tileH`
+ * menjadi solid — untuk pohon 8×8 tile itu memblok hampir seluruh taman.
+ */
+export type RoomObjectCollider = {
+  /** Jarak dari tepi kiri objek, dalam tile. */
+  x: number;
+  /** Jarak dari tepi atas objek, dalam tile. */
+  y: number;
+  /** Lebar area solid, dalam tile. */
+  w: number;
+  /** Tinggi area solid, dalam tile. */
+  h: number;
+};
 
 export type RoomObject = {
   kind: RoomObjectKind;
@@ -26,6 +53,7 @@ export type RoomObject = {
    - `wall`: tidak dipakai (dinding memakai `wallTile` ruangan).
    - `prop`: id aset manifest, mis. `prop_desk`.
    - `npc`: id anggota `story.cast`, bukan id karakter baru.
+   - `zone`: tidak dipakai (collider tanpa gambar).
    */
   id?: string;
   /** Posisi pojok kiri atas dalam tile. */
@@ -34,8 +62,14 @@ export type RoomObject = {
   /** Ukuran dalam tile. */
   tileW: number;
   tileH: number;
-  /** true = memblok pemain. Dinding selalu solid. */
+  /** true = memblok pemain. Dinding dan zona selalu solid. */
   solid: boolean;
+  /**
+   * Area solid opsional di dalam kotak objek. Bila ada, collider memakai area
+   * ini apa adanya (tanpa inset 2 px) dan `tileW`/`tileH` tetap menentukan
+   * jangkar gambar.
+   */
+  collider?: RoomObjectCollider;
 };
 
 export type RoomData = {
@@ -49,6 +83,13 @@ export type RoomData = {
   floorTile: string;
   /** Tile dinding untuk keliling dan pita atas (id manifest `tile_*`). */
   wallTile: string;
+  /**
+   * Gambar peta penuh opsional (id manifest `map_*`, ADR 0012). Bila ada,
+   * GameScene menggambar satu gambar ini dan **melewatkan** lantai, dinding,
+   * serta prop; `objects` tinggal menentukan collider (lewat `zone`) dan NPC.
+   * Ukurannya wajib sama dengan `widthTiles`×`heightTiles`.
+   */
+  mapImage?: string;
   widthTiles: number;
   heightTiles: number;
   /** Tile spawn pemain; kaki pemain di dasar tile ini. */

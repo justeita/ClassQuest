@@ -16,8 +16,9 @@ Dokumen pedamping:
 - Spesifikasi file gambar: [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md)
 - Keputusan resolusi: [`../09-decisions/0009-resolution-and-scale.md`](../09-decisions/0009-resolution-and-scale.md)
 - Keputusan data map dan kamera: [`../09-decisions/0010-map-data-and-camera.md`](../09-decisions/0010-map-data-and-camera.md)
+- Keputusan sub-collider prop besar: [`../09-decisions/0011-large-prop-subcollider.md`](../09-decisions/0011-large-prop-subcollider.md)
 
-> **Status:** draft. Angka di sini mengikuti ADR 0009 dan 0010 yang sudah
+> **Status:** draft. Angka di sini mengikuti ADR 0009, 0010, dan 0011 yang sudah
 > **Accepted**; implementasinya berjalan per PR sesuai urutan di bagian
 > [Urutan pengerjaan](#urutan-pengerjaan).
 
@@ -37,18 +38,18 @@ tiga hal:
 Semua angka dinyatakan dalam **tile**. Satu tile = **16×16 px** pada resolusi
 internal. Tidak ada ukuran yang ditulis dalam piksel lepas di kode map.
 
-| Hal                   | Nilai                                    |
-| --------------------- | ---------------------------------------- |
-| Resolusi internal     | 640×360 px                               |
-| Tile                  | 16×16 px                                 |
-| Layar dalam tile      | 40×22.5 tile                             |
-| Frame sprite karakter | 24×32 px (1.5×2 tile)                    |
-| Portrait              | 64×64 px                                 |
-| Ruangan minimum       | 40×23 tile (satu layar penuh)            |
-| Ruangan tipikal       | 56×34 tile (±1.4 layar, kamera bergerak) |
-| Kecepatan pemain      | 5 tile/detik (80 px/detik)               |
-| Zona interaksi        | 1.5 tile dari kaki NPC                   |
-| Lebar koridor aman    | ≥ 2 tile                                 |
+| Hal                   | Nilai                                   |
+| --------------------- | --------------------------------------- |
+| Resolusi internal     | 640×360 px                              |
+| Tile                  | 16×16 px                                |
+| Layar dalam tile      | 40×22.5 tile                            |
+| Frame sprite karakter | 24×32 px (1.5×2 tile)                   |
+| Portrait              | 64×64 px                                |
+| Ruangan minimum       | 40×23 tile (satu layar penuh)           |
+| Ruangan demo          | 48×28 s.d. 60×34 tile (kamera bergerak) |
+| Kecepatan pemain      | 5 tile/detik (80 px/detik)              |
+| Zona interaksi        | 1.5 tile dari kaki NPC                  |
+| Lebar koridor aman    | ≥ 2 tile                                |
 
 ## Perspektif
 
@@ -71,8 +72,8 @@ Aturan supaya dunia terbaca "dari atas":
 
 ## Sketsa ruangan
 
-Contoh rencana kelas, kira-kira 56×34 tile, dilihat dari atas. Huruf = jenis
-objek, penjelasan di tabel setelahnya.
+Contoh rencana kelas 48×28 tile, dilihat dari atas. Huruf = jenis objek,
+penjelasan di tabel setelahnya.
 
 ```text
 +-----------------------------------------------------------+
@@ -106,15 +107,21 @@ collider-nya (ADR 0010). Tidak ada collider yang ditulis terpisah.
 | ------- | ----- | --------------------- | ------------------------------------------------------ |
 | `floor` | tidak | seluruh ruangan       | Lantai bertekstur, variasi 2–3 tile supaya tidak datar |
 | `wall`  | ya    | 1 tebal               | Tepi ruangan; ujung atas 3–4 px lebih terang           |
-| `prop`  | ya    | 1×1 s.d. 3×2          | Meja, lemari, pohon, tiang lampu                       |
+| `prop`  | ya    | 1×1 s.d. 8×8          | Meja, lemari, pohon, tiang lampu                       |
 | `npc`   | ya    | 1×2                   | Posisi anggota `story.cast`, bukan id baru             |
 | `exit`  | tidak | 2×1                   | Zona pemicu transisi scene                             |
 
 Aturan collision:
 
 - Collider pemain adalah **kotak kaki** 12×8 px, bukan seluruh sprite.
-- Dinding dan prop padat memakai kotak penuh objek, dikurangi 2 px di depan
+- Dinding selalu solid sepanjang kotaknya.
+- Prop padat tanpa `collider` memakai kotak penuh objek, dikurangi 2 px di depan
   supaya pemain bisa berdiri dekat tanpa terlihat melayang.
+- Prop besar (pohon 8×8 tile, rak, kolam) boleh punya **sub-collider** di dalam
+  kotak objeknya — ADR 0011. Contoh: pohon 128×128 px hanya solid di batang
+  1×2 tile, sehingga pemain bisa berjalan di bawah kanopi.
+- Sub-collider ditulis dalam tile relatif terhadap pojok objek dan boleh
+  pecahan; nilainya harus tetap berada di dalam `tileW`×`tileH`.
 - Objek dekoratif (tikar, pot kecil, bayangan) **tidak** punya collider.
 - Kalau gambar dan collider berasal dari entri yang sama, bug "nabrak benda
   tak terlihat" tidak bisa muncul lagi.
@@ -160,17 +167,22 @@ Aturan animasi:
 
 Latar tidak lagi satu gambar pemandangan 1 lapis. Setiap ruangan disusun dari:
 
-| Lapisan         | Isi                                                        | Contoh id manifest                                                                               |
-| --------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Lantai          | Tile lantai yang diulang                                   | `tile_floor_wood`, `tile_floor_grass`, `tile_floor_cloud`, `tile_floor_rock`, `tile_floor_water` |
-| Dinding         | Pita dinding + tepi atas                                   | `tile_wall_plaster`, `tile_wall_hedge`, `tile_wall_rock`                                         |
-| Objek           | Meja, papan tulis, pohon, pagar                            | `prop_desk`, `prop_blackboard`, `prop_tree`, `prop_fence`                                        |
-| Atas (opsional) | Kanopi pohon atau ujung langit-langit yang menutupi pemain | `tile_canopy`                                                                                    |
+| Lapisan           | Isi                                                              | Contoh id manifest                                                                               |
+| ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Lantai            | Tile lantai yang diulang                                         | `tile_floor_wood`, `tile_floor_grass`, `tile_floor_cloud`, `tile_floor_rock`, `tile_floor_water` |
+| Dinding           | Pita dinding + tepi atas                                         | `tile_wall_plaster`, `tile_wall_hedge`, `tile_wall_rock`                                         |
+| Objek             | Meja, papan tulis, pohon, pagar                                  | `prop_desk`, `prop_blackboard`, `prop_tree`, `prop_fence`                                        |
+| Atas (opsional)   | Kanopi pohon atau ujung langit-langit yang menutupi pemain       | `tile_canopy`                                                                                    |
+| Peta (alternatif) | Satu gambar ruangan penuh: menggantikan lantai + dinding + objek | `map_halaman_sekolah`                                                                            |
 
 > Id aset tile dan prop di atas sudah **final** dan terdaftar di
 > `src/assets/manifest.ts` serta [`../07-assets/inventory.md`](../07-assets/inventory.md).
 > Menambah tile atau prop berikutnya berarti menambah entri di kedua tempat itu
 > di PR yang sama.
+
+Ruangan boleh diganti seluruhnya oleh satu gambar peta penuh lewat
+`RoomData.mapImage` (ADR 0012). Saat itu lapisan lantai, dinding, dan objek
+dilewati; collider-nya tetap ditulis di data ruangan sebagai `zone`.
 
 Latar "pemandangan" yang ada sekarang (`bg_classroom_day`, `bg_river_day`, dan
 seterusnya) **dipertahankan sebagai latar layar judul dan layar hasil**, karena

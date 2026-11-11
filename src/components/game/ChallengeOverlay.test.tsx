@@ -147,14 +147,17 @@ describe("ChallengeOverlay — ordering", () => {
   });
 
   it("tidak mengirim jawaban setelah dinilai", () => {
-    const { onSubmit } = renderOverlay(orderingView, {
+    const { onSubmit, onResolve } = renderOverlay(orderingView, {
       graded: { correct: true, explanation: "Benar." },
     });
 
     expect(
       screen.queryByRole("button", { name: /^jawab$/i }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^lanjut$/i })).toBeEnabled();
+    const lanjut = screen.getByRole("button", { name: /^lanjut$/i });
+    expect(lanjut).toBeEnabled();
+    fireEvent.click(lanjut);
+    expect(onResolve).toHaveBeenCalledTimes(1);
     expect(onSubmit).not.toHaveBeenCalled();
   });
 });
@@ -185,12 +188,12 @@ describe("ChallengeOverlay — short_answer", () => {
     });
   });
 
-  it("input dinonaktifkan dan penjelasan tampil setelah dinilai", () => {
+  it("input disembunyikan dan kartu umpan balik tampil menggantikannya setelah dinilai", () => {
     renderOverlay(shortAnswerView, {
       graded: { correct: false, explanation: "Belum." },
     });
 
-    expect(screen.getByLabelText(/tulis jawabanmu/i)).toBeDisabled();
+    expect(screen.queryByLabelText(/tulis jawabanmu/i)).not.toBeInTheDocument();
     expect(screen.getByText("Belum tepat.")).toBeInTheDocument();
     expect(screen.getByText("Belum.")).toBeInTheDocument();
   });
@@ -264,7 +267,7 @@ describe("ChallengeOverlay — tipe lain", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it("true_false tetap mengirim boolean", () => {
+  it("true_false tetap mengirim boolean saat opsi diklik", () => {
     const { onSubmit } = renderOverlay({
       ...dasar,
       id: "chl_01_02",
@@ -273,12 +276,92 @@ describe("ChallengeOverlay — tipe lain", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: /\bsalah$/i }));
-    fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
 
     expect(onSubmit).toHaveBeenCalledWith({
       challengeId: "chl_01_02",
       type: "true_false",
       answer: false,
+    });
+  });
+});
+
+describe("ChallengeOverlay — panel di atas dialog", () => {
+  it("memindahkan fokus ke panel saat muncul", () => {
+    renderOverlay(orderingView);
+
+    expect(screen.getByLabelText("Tantangan")).toHaveFocus();
+  });
+
+  it("kartu umpan balik tampil di area gulir dan dapat diklik untuk lanjut", () => {
+    const { onResolve } = renderOverlay(orderingView, {
+      graded: { correct: true, explanation: "Penjelasan yang panjang." },
+    });
+
+    const panel = screen.getByLabelText("Tantangan");
+    const isi = panel.querySelector(".overflow-y-auto");
+
+    expect(isi).not.toBeNull();
+    expect(isi).toContainElement(screen.getByText("Penjelasan yang panjang."));
+    const lanjut = screen.getByRole("button", { name: /^lanjut$/i });
+    fireEvent.click(lanjut);
+    expect(onResolve).toHaveBeenCalledTimes(1);
+  });
+
+  it("tidak memakai lapisan gelap penuh di luar panel", () => {
+    renderOverlay(orderingView);
+
+    const panel = screen.getByLabelText("Tantangan");
+    expect(panel.parentElement).not.toHaveClass("bg-[#0b120e]/75");
+  });
+
+  it("spasi dapat melanjutkan cerita saat sudah dinilai (gaya RPG)", () => {
+    const { onResolve } = renderOverlay(
+      {
+        ...dasar,
+        id: "chl_01_01",
+        type: "multiple_choice",
+        options: [{ id: "opt_a", text: "Menguap" }],
+      },
+      { graded: { correct: true, explanation: "Benar." } },
+    );
+
+    fireEvent.keyDown(screen.getByLabelText("Tantangan"), { key: " " });
+    expect(onResolve).toHaveBeenCalledTimes(1);
+  });
+
+  it("hover kursor mouse memindahkan sorotan opsi dialog RPG", () => {
+    renderOverlay({
+      ...dasar,
+      id: "chl_01_01",
+      type: "multiple_choice",
+      options: [
+        { id: "opt_a", text: "Menguap" },
+        { id: "opt_b", text: "Membeku" },
+      ],
+    });
+
+    const tombolB = screen.getByRole("button", { name: /membeku$/i });
+    fireEvent.mouseEnter(tombolB);
+    // Tombol B memiliki sorotan aktif konsisten dengan DialogueBox (#14201a + #F7F4EC)
+    expect(tombolB.className).toContain("border-[#F7F4EC]");
+    expect(tombolB.className).toContain("bg-[#14201a]");
+    expect(tombolB.className).toContain("text-[#F7F4EC]");
+  });
+
+  it("keyboard ordering: panah/WASD memindah dan menukar item lalu Enter mengirim", () => {
+    const { onSubmit } = renderOverlay(orderingView);
+    const panel = screen.getByLabelText("Tantangan");
+    const tampil = urutanTampil();
+
+    // Sorot item pertama (index 0), geser ke bawah menggunakan ArrowRight
+    fireEvent.keyDown(panel, { key: "ArrowRight" });
+    // Kirim menggunakan Enter tanpa perlu mouse
+    fireEvent.keyDown(panel, { key: "Enter" });
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_02_01",
+      type: "ordering",
+      order: [tampil[1], tampil[0], tampil[2]],
     });
   });
 });

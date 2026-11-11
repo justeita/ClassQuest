@@ -23,6 +23,8 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0008 | [Gerak bebas top-down dalam scene](0008-top-down-movement.md)        | Accepted     | Game                |
 | 0009 | [Resolusi internal dan skala karakter](0009-resolution-and-scale.md) | **Accepted** | Game, aset          |
 | 0010 | [Map data-driven dan kamera](0010-map-data-and-camera.md)            | **Accepted** | Game                |
+| 0011 | [Sub-collider prop besar](0011-large-prop-subcollider.md)            | **Accepted** | Game                |
+| 0012 | [Peta ruangan sebagai satu gambar](0012-room-map-image.md)           | Accepted     | Game, aset          |
 
 ## Status
 

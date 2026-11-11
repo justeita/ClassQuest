@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -38,15 +38,20 @@ diakses. Dokumen ini menetapkan batas jujur dan target minimum.
 | Pilih opsi     | `1`–`5`, `↑`/`↓` + `Enter`    |
 | Submit jawaban | `Enter`                       |
 | Menu jeda      | `Esc`                         |
+| Lewati dialog  | `Tab` (tahan), "Percepat"     |
 | Tutup overlay  | `Esc` (hanya setelah dijawab) |
 
 Aturan:
 
 - Urutan fokus logis: prompt → opsi → tombol jawab → feedback → lanjut.
 - Jangan memasang `tabindex` positif.
-- Jangan menangkap `Tab`; biarkan browser memindahkan fokus.
-- Saat overlay muncul, fokus pindah ke judul/opsi pertama.
-- Saat overlay ditutup, fokus kembali ke elemen yang membukanya.
+- Jangan menangkap `Tab`; biarkan browser memindahkan fokus. **Pengecualian:**
+  hanya selama fase `dialog`, `Tab` dipakai untuk "Percepat" dan diambil alih
+  (`preventDefault`). Di semua fase lain — termasuk saat soal — `Tab` kembali
+  memindahkan fokus seperti biasa.
+- Saat panel tantangan muncul, fokus pindah ke panel itu sendiri (`tabIndex={-1}`).
+- Saat panel ditutup, fokus kembali ke area permainan (canvas), bukan hilang ke
+  `body`.
 - **`Esc` tidak bisa dipakai untuk keluar dari soal yang belum dijawab.** Kalau
   overlay belum dijawab, `Esc` diabaikan (atau hanya mengumumkan "jawab dulu").
   Setelah dijawab, `Esc` sama dengan menekan "Lanjut".
@@ -80,6 +85,12 @@ Catatan:
 - Gunakan `fieldset`/`legend` untuk grup opsi.
 - `short_answer` memakai `<input type="text">` dengan `<label>`.
 - `ordering` menyediakan tombol naik/turun, bukan hanya drag-and-drop.
+- Panel diletakkan **di atas dialog**, bukan di tengah layar: baris dialog
+  terakhir tetap terlihat sebagai konteks, jadi panel bukan modal penuh layar.
+- Isi yang panjang digulir di dalam area isi; tombol aksi menempel di footer
+  supaya tidak ikut tergulir.
+- Di ruang game yang sangat pendek, panel boleh memakai hampir seluruh tinggi
+  dan menutup dialog (fallback) supaya soal tetap terbaca.
 
 ## Warna dan kontras
 
@@ -133,8 +144,12 @@ Hormati `prefers-reduced-motion: reduce`:
 
 ## Audio
 
-- Tombol mute selalu tersedia di HUD dan menu.
-- Volume disimpan di `localStorage`.
+- Tombol mute selalu tersedia: toggle musik di HUD, mute per kanal di menu
+  jeda.
+- Volume per kanal (musik dan SFX terpisah) disimpan di `localStorage`
+  (`classquest:settings:v1`); baca/tulis yang gagal jatuh ke default.
+- Slider volume memakai `input[type=range]` dengan `aria-valuetext` berupa
+  persen, sehingga pembaca layar tidak membaca angka mentah.
 - Jangan memutar suara tiba-tiba keras.
 - Tidak ada informasi penting yang hanya disampaikan lewat suara.
 
