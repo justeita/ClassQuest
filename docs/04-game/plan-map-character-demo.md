@@ -65,7 +65,9 @@ Sumber file di `D:\Data\LOGICODIX 26\Asset`:
 
 | Kategori | Nama di Asset Eksternal | Target di ClassQuest (`public/assets/` & manifest) | Spesifikasi |
 |---|---|---|---|
-| **Pohon** | `craftpix...trees-pixel-art` | `prop_tree_oak`, `prop_tree_pine` | 32×48 s.d. 48×64 px, solid di alas batang pohon (bukan di daun). |
+| **Pohon Rindang HD** | `craftpix.../Trees_texture_shadow/Tree1.png` | `prop_tree_large` | Resolusi 128×128 px (8×8 tile), detail bayangan daun bertekstur, ukuran file ~5 KB (sangat ringan). Solid di pangkal batang bawah (2×1 tile). |
+| **Pohon Sedang** | `craftpix.../Trees_texture_shadow/Tree2.png` | `prop_tree_medium` | Resolusi 64×64 px (4×4 tile), tekstur bayangan halus. |
+| **Pohon Berbunga / Buah** | `craftpix.../Trees_texture_shadow/Flower_tree1.png` | `prop_tree_flower` | 128×128 px, cocok untuk sudut observasi biologi di taman sekolah. |
 | **Semak/Bunga** | `craftpix...bushes-pixel-art` | `prop_bush_small`, `prop_flower_patch` | 16×16 atau 32×16 px. |
 | **Interior** | `main-characters-home.../Interior.png` | `prop_desk`, `prop_shelf`, `prop_door` | Grid 16px, collision diset pada bagian bawah objek. |
 | **Tileset** | `Pixel Art Top Down - Basic v1.2.3` | `tile_floor_corridor`, `tile_floor_wood`, `tile_floor_grass` | 16×16 px tile seamless. |
@@ -117,3 +119,4 @@ flowchart TD
 ```
 
 * **Manfaat**: Penguji/juri langsung dapat melihat perpindahan mulus dari ruangan indoor (lorong -> kelas) menuju outdoor (taman sekolah) lengkap dengan musik latar yang berganti otomatis (`bgm_school_calm` -> `bgm_adventure`).
+
