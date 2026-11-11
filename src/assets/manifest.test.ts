@@ -54,7 +54,7 @@ const EXTENSION: Record<AssetKind, string> = {
 /** Jumlah per kind dari tabel ringkasan `inventory.md`. */
 const INVENTORY_COUNTS: Record<AssetKind, number> = {
   background: 8,
-  character: 5,
+  character: 6,
   tile: 11,
   prop: 13,
   music: 5,

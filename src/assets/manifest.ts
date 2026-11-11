@@ -146,6 +146,14 @@ export const ASSETS: readonly AssetEntry[] = [
     portraitPath: "/assets/portrait/rani.png",
   },
   {
+    id: "char_nino",
+    kind: "character",
+    path: "/assets/char/nino.png",
+    label: "Nino (siswa pindahan)",
+    tags: ["siswa", "perempuan", "ekor kembar", "pita", "remaja", "student"],
+    portraitPath: "/assets/portrait/nino.png",
+  },
+  {
     id: "char_default",
     kind: "character",
     path: "/assets/char/default.png",

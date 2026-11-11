@@ -150,6 +150,25 @@ const RECIPES = {
     shoe: RAMP.waterDeep,
     hairStyle: "spirit",
   },
+  /**
+   * Nino: siswa baru dengan ekor kembar dan pita kupu-kupu. Warnanya tetap
+   * turunan palet delapan warna — rambut rose adalah `warm` + `cool`, bukan
+   * warna baru di luar palet.
+   */
+  nino: {
+    hair: mix(PALETTE.warm, PALETTE.ink, 0.12),
+    hairLight: mix(mix(PALETTE.warm, PALETTE.ink, 0.12), PALETTE.paper, 0.35),
+    skin: RAMP.skin,
+    skinShade: RAMP.skinShade,
+    eye: PALETTE.ink,
+    mouth: mix(PALETTE.warm, PALETTE.night, 0.5),
+    shirt: PALETTE.bone,
+    shirtShade: mix(PALETTE.bone, PALETTE.cool, 0.45),
+    accent: mix(PALETTE.cool, PALETTE.ink, 0.1),
+    trouser: mix(PALETTE.cool, PALETTE.night, 0.35),
+    shoe: RAMP.neutral700,
+    hairStyle: "twintails",
+  },
 };
 
 /**
@@ -179,6 +198,13 @@ function buildHumanFrame(recipe, dir, step) {
     grid.behind(18, 2, 3, 7, recipe.hair);
     grid.set(19, 9, recipe.hair);
     grid.set(20, 10, recipe.hair);
+  }
+  if (recipe.hairStyle === "twintails") {
+    // Dua ekor di luar siluet kepala, dengan ujung meruncing ke bawah.
+    grid.behind(2, 4, 2, 8, recipe.hair);
+    grid.behind(2, 12, 1, 2, recipe.hair);
+    grid.behind(20, 4, 2, 8, recipe.hair);
+    grid.behind(21, 12, 1, 2, recipe.hair);
   }
 
   /* Kaki: bergantian maju saat jalan */
@@ -330,6 +356,26 @@ function applyHairExtras(grid, recipe, dir, bob) {
     grid.set(20, 9 - bob, recipe.hair);
     grid.set(18, 3 - bob, recipe.accent);
     grid.set(18, 4 - bob, recipe.accent);
+  }
+  if (recipe.hairStyle === "twintails") {
+    // Pita kupu-kupu di pangkal tiap ekor: satu berlian 3×3.
+    for (const baseX of [2, 19]) {
+      grid.set(baseX + 1, 2, recipe.accent);
+      grid.set(baseX, 3, recipe.accent);
+      grid.set(baseX + 2, 3, recipe.accent);
+      grid.set(baseX + 1, 4, recipe.accent);
+    }
+    // Garis bayangan di sisi dalam ekor supaya terpisah dari kepala,
+    // lalu satu kilau di sisi luar.
+    const tailShade = mix(recipe.hair, PALETTE.night, 0.32);
+    for (let y = 5; y <= 11; y += 1) {
+      grid.set(3, y - bob, tailShade);
+      grid.set(20, y - bob, tailShade);
+    }
+    grid.set(2, 7 - bob, recipe.hairLight);
+    grid.set(2, 10 - bob, recipe.hairLight);
+    grid.set(21, 7 - bob, recipe.hairLight);
+    grid.set(21, 10 - bob, recipe.hairLight);
   }
 }
 
@@ -521,6 +567,27 @@ function buildPortraitGrid(recipe) {
     grid.set(15, 8, recipe.hair);
     grid.set(15, 9, recipe.hair);
     grid.set(13, 3, recipe.accent);
+  }
+  if (recipe.hairStyle === "twintails") {
+    // Ekor menjuntai lebih panjang dari rambut biasa, sampai menyentuh bahu.
+    grid.rect(1, 5, 2, 7, recipe.hair);
+    grid.rect(13, 5, 2, 7, recipe.hair);
+    // Tepi dalam lebih gelap supaya ekor terpisah dari pipi.
+    const tailShade = mix(recipe.hair, PALETTE.night, 0.32);
+    grid.rect(2, 6, 1, 6, tailShade);
+    grid.rect(13, 6, 1, 6, tailShade);
+    // Pita kupu-kupu 3×3 di pangkal ekor.
+    grid.set(2, 3, recipe.accent);
+    grid.set(1, 4, recipe.accent);
+    grid.set(3, 4, recipe.accent);
+    grid.set(2, 5, recipe.accent);
+    grid.set(13, 3, recipe.accent);
+    grid.set(12, 4, recipe.accent);
+    grid.set(14, 4, recipe.accent);
+    grid.set(13, 5, recipe.accent);
+    // Kilau di sisi luar.
+    grid.set(1, 7, recipe.hairLight);
+    grid.set(14, 8, recipe.hairLight);
   }
   if (recipe.beard) {
     grid.set(5, 10, recipe.hair);
