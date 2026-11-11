@@ -9,9 +9,14 @@ owner: tim ClassQuest
 Dokumen ini merinci rencana teknis dan arsitektur untuk memperbarui dunia permainan ClassQuest:
 
 1. **Dua Map Utama**: Gedung Sekolah (Indoor: Lorong & Kelas) dan Halaman Luar (Outdoor: Taman Edukasi/Halaman Sekolah).
-2. **Aset Eksternal**: Penggunaan aset referensi dari `D:\Data\LOGICODIX 26\Asset` (pepohonan, interior, semak, dan spritesheet).
-3. **Karakter Baru**: Protagonis (MC) menggunakan karakter Nino Nakano dengan kerangka animasi 8 arah (_The Female Adventurer - Free_), dan NPC mentor/teman dengan pose idle.
+2. **Aset Eksternal**: Penggunaan aset referensi dari `D:\Data\LOGICODIX 26\Asset` (pepohonan, interior, semak) yang sudah diproses menjadi prop game.
+3. **Karakter Baru**: Protagonis (MC) digambar ulang di generator repo dengan siluet terinspirasi Nino (ekor kembar dan pita kupu-kupu), memakai kerangka animasi 8 arah milik proyek.
 4. **Story Demo / Fixture**: Pembaruan cerita demo statis (`demo-story.json`) agar skenario cerita secara alami mengeksplorasi kedua map tersebut.
+
+> **Status implementasi (2026-11-11).** PR 1 (aset + manifest) selesai:
+> tile koridor, prop taman/interior, `char_nino`, dan portrait-nya sudah ada di
+> manifest. PR 2 (data ruangan) dan PR 3 (story demo) belum dikerjakan; ukuran
+> dan detail di bawah adalah target PR 2.
 
 ---
 
@@ -26,9 +31,9 @@ Gedung sekolah dibagi menjadi 2 room data terpisah untuk memberikan fokus visual
 #### 1A. Lorong Utama (`lorong_sekolah`)
 
 - **Fungsi**: Hub penghubung antar ruangan sekolah dan jalan keluar ke halaman.
-- **Ukuran**: 60×18 tile (960×288 px, lorong memanjang horizontal).
-- **Lantai & Dinding**: Lantai ubin/koridor (`tile_floor_wood` atau variasi ubin bersih), dinding atas 2 tile dengan pintu-pintu kelas dan jendela kaca.
-- **Objek/Prop**: Mading sekolah, loker/pot tanaman, pintu kelas A (`x: 16`), pintu kelas B (`x: 36`), dan pintu keluar ke halaman di ujung kanan (`x: 56`).
+- **Ukuran**: 60×24 tile (960×384 px, lorong memanjang horizontal). Tinggi 24 tile dipilih supaya memenuhi minimum 40×23 di [`world-design.md`](./world-design.md) — dengan 18 tile (288 px) kamera 360 px akan memperlihatkan area kosong di luar peta.
+- **Lantai & Dinding**: Lantai ubin koridor (`tile_floor_corridor`), dinding atas 2 tile (`tile_wall_plaster`) dengan pintu-pintu kelas dan jendela kaca.
+- **Objek/Prop**: Mading sekolah, rak (`prop_shelf`), pot tanaman, pintu kelas A (`prop_door` di `tileX: 16`), pintu kelas B (`prop_door` di `tileX: 36`), dan pintu keluar ke halaman di ujung kanan (`tileX: 56`).
 - **NPC**: Siswa lain (Rani) yang memberi petunjuk awal sebelum masuk kelas.
 
 #### 1B. Ruang Kelas (`kelas_a`)
@@ -56,9 +61,9 @@ Gedung sekolah dibagi menjadi 2 room data terpisah untuk memberikan fokus visual
   - Batas keliling: Pagar tanaman (`tile_wall_hedge`) dan pagar kayu (`prop_fence`).
   - Jalan setapak: Batu (`tile_floor_rock`).
 - **Objek/Prop (Diambil dari referensi Asset)**:
-  - Pohon rindang besar (`craftpix-net-385863-free-top-down-trees-pixel-art`).
-  - Semak-semak dan bunga (`craftpix-net-141354-free-top-down-bushes-pixel-art`).
-  - Kolam kecil / aliran air (`tile_floor_water`).
+  - Pohon rindang besar (`prop_tree_large`), pohon sedang (`prop_tree_medium`), dan pohon berbunga (`prop_tree_flower`).
+  - Semak kecil (`prop_bush_small`) dan semak bunga merah muda (`prop_bush_flower`).
+  - Kolam kecil (`prop_pond`) dengan air (`tile_floor_water`).
 - **NPC**: Tirta (roh air) di tepi kolam dan Pak Bima yang sedang mengamati alam.
 
 ---
@@ -70,7 +75,7 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 ### 2.1. Standar Prop Luar Ruangan (Pohon, Semak, Dekorasi Taman)
 
 - **Sumber**: `D:\Data\LOGICODIX 26\Asset\craftpix-net-385863-free-top-down-trees-pixel-art\` & `craftpix-net-141354-free-top-down-bushes-pixel-art\`
-- **Pilihan Varian Wajib**: Gunakan subfolder **`Assets_texture_shadow/`** (bukan varian flat).
+- **Pilihan Varian Wajib**: Gunakan varian bertekstur dengan bayangan — `PNG/Assets_separately/Trees_texture_shadow/` untuk pohon dan `PNG/Assets_texture_shadow/` untuk semak, bukan varian flat.
 - **Karakteristik**:
   - Dedaunan memiliki gradasi bayangan dan highlight bertekstur (_textured pixel clusters_).
   - Dilengkapi _built-in soft ambient shadow_ di bagian bawah (transparan alpha), sehingga menyatu alami di atas tile lantai tanpa terlihat melayang.
@@ -80,22 +85,22 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 
 ### 2.2. Standar Interior & Prop Dalam Ruangan (Sekolah, Meja, Papan Tulis, Rak)
 
-- **Sumber**: `D:\Data\LOGICODIX 26\Asset\main-characters-home-free-top-down-pixel-art-asset\PNG\Interior.png` & `walls_floor.png`
+- **Sumber**: `main-characters-home-free-top-down-pixel-art-asset/PNG/Interior.png` (rak buku) & `walls_floor.png` (pintu). Meja, papan tulis, dan prop lain tetap digambar generator `tiles.mjs` supaya ukurannya pas dengan tile 16 px.
 - **Karakteristik**:
   - Garis outline 1 px tegas (_dark outline_) yang konsisten, tanpa anti-aliasing buram.
   - Meja kelas dan lemari digambar dari sudut pandang 3/4 top-down (bagian atas meja terlihat luas, bagian kaki memiliki bayangan alas 1–2 px).
   - Prop memiliki ukuran proporsional terhadap karakter (misal meja siswa 32×32 atau 48×32 px, papan tulis 96×32 atau 112×32 px).
   - Collision padat diset hanya di bagian alas/kaki furnitur, bukan di bagian atas meja, agar karakter terasa berdiri di samping atau di depan meja.
 
-### 2.3. Standar Karakter (MC Nino Nakano & NPC)
+### 2.3. Standar Karakter (MC Nino & NPC)
 
-- **Sumber**: `D:\Data\LOGICODIX 26\Asset\The Female Adventurer - Free\` dan referensi visual `Nino_Nakano_ver1.webp`.
+- **Sumber**: digambar generator repo (`scripts/lib/characters.mjs`). Referensi visual `Nino_Nakano_ver1.webp` hanya dipakai untuk siluet dan warna; tidak ada berkas seni berhak cipta yang disalin. `The Female Adventurer - Free` tidak dipakai karena frame-nya 64×64 dengan 6 arah dan mengandung garis kecepatan, sehingga tidak bisa dipaskan ke grid 24×32 tanpa mengubah gaya.
 - **Karakteristik**:
-  - Frame karakter standar: **24×32 px** (proporsi chibi top-down 1.5×2 tile) atau **32×48 px** beresolusi tajam.
+  - Frame karakter standar: **24×32 px** (proporsi chibi top-down 1.5×2 tile). Tidak ada frame 32×48; ADR 0009 sudah menetapkan 24×32.
   - Outline bersih 1 px gelap yang serasi dengan pohon dan dinding ruangan.
-  - Animasi jalan 8 arah yang mulus (gerakan kaki dan ayunan rambut kembar khas Nino).
-  - Bayangan karakter menggunakan elips transparan terpisah (`12×4 px` atau `16×6 px`) di bawah kaki agar karakter terasa menapak tanah.
-  - **Portrait Dialog**: Resolusi **64×64 px** di atas panel dialog DOM, menampilkan ekspresi wajah Nino yang jelas dan tajam.
+  - Animasi jalan 8 arah yang mulus (gerakan kaki dan ayunan ekor kembar).
+  - Bayangan karakter mengikuti elips bawaan generator; collider tetap kotak 12×8 px di kaki.
+  - **Portrait Dialog**: Resolusi **64×64 px** di atas panel dialog DOM, menampilkan wajah Nino dengan pita kupu-kupu di kedua sisi.
 
 ### 2.4. Standar Rendering Engine (Phaser & CSS)
 
@@ -109,24 +114,27 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 
 ## 3. Inventaris Aset & Pemetaan Sumber Referensi
 
-| Kategori                  | Nama di Asset Eksternal                             | Target di ClassQuest (`public/assets/` & manifest)           | Spesifikasi Standar HD Ringan                                                                                                                 |
-| ------------------------- | --------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Pohon Rindang HD**      | `craftpix.../Trees_texture_shadow/Tree1.png`        | `prop_tree_large`                                            | Resolusi 128×128 px (8×8 tile), detail bayangan daun bertekstur, ukuran file ~5 KB (sangat ringan). Solid di pangkal batang bawah (2×1 tile). |
-| **Pohon Sedang HD**       | `craftpix.../Trees_texture_shadow/Tree2.png`        | `prop_tree_medium`                                           | Resolusi 64×64 px (4×4 tile), tekstur bayangan halus, ukuran file ~3.8 KB.                                                                    |
-| **Pohon Berbunga / Buah** | `craftpix.../Trees_texture_shadow/Flower_tree1.png` | `prop_tree_flower`                                           | 128×128 px, cocok untuk sudut observasi biologi di taman sekolah.                                                                             |
-| **Semak Bertekstur HD**   | `craftpix...bushes.../Autumn_bush1.png`             | `prop_bush_small`                                            | Resolusi 64×64 px bertekstur bayangan daun rimbun, ukuran file ~2.5 KB.                                                                       |
-| **Interior Sekolah HD**   | `main-characters-home.../Interior.png`              | `prop_desk`, `prop_shelf`, `prop_door`                       | Detail furnitur kayu berbayangan, collision pada kaki furnitur.                                                                               |
-| **Lantai & Dinding HD**   | `walls_floor.png` & `Pixel Art Basic`               | `tile_floor_corridor`, `tile_floor_wood`, `tile_floor_grass` | 16×16 px seamless tile dengan tekstur ubin dan parket bersih.                                                                                 |
-| **MC Nino Nakano**        | Template pose `The Female Adventurer` + Desain Nino | `char_nara` (MC)                                             | Spritesheet 8 arah berbayangan alas, portrait dialog 64×64 px tajam.                                                                          |
+| Kategori                | Berkas Sumber                               | Target di ClassQuest (`public/assets/` & manifest)           | Spesifikasi Standar HD Ringan                                                                                                      |
+| ----------------------- | ------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Pohon Rindang HD**    | `.../Trees_texture_shadow/Tree1.png`        | `prop_tree_large`                                            | 128×128 px (8×8 tile), detail bayangan daun bertekstur, ukuran file ~5 KB. Solid hanya di pangkal batang (lihat ADR 0011 di PR 2). |
+| **Pohon Sedang HD**     | `.../Trees_texture_shadow/Tree2.png`        | `prop_tree_medium`                                           | 64×64 px (4×4 tile), tekstur bayangan halus.                                                                                       |
+| **Pohon Berbunga**      | `.../Trees_texture_shadow/Flower_tree1.png` | `prop_tree_flower`                                           | 128×128 px, cocok untuk sudut observasi biologi di taman sekolah.                                                                  |
+| **Semak Bertekstur HD** | `...bushes.../Autumn_bush1.png`             | `prop_bush_small`                                            | 64×64 px bertekstur bayangan daun rimbun.                                                                                          |
+| **Semak Bunga**         | `...bushes.../Bush_pink_flowers1.png`       | `prop_bush_flower`                                           | 64×64 px, aksen bunga merah muda.                                                                                                  |
+| **Rak Buku**            | `main-characters-home.../Interior.png`      | `prop_shelf`                                                 | Potong `x=160 y=80 32×48`, collision di kaki furnitur.                                                                             |
+| **Pintu Kayu**          | `main-characters-home.../walls_floor.png`   | `prop_door`                                                  | Potong `x=112 y=96 32×32`, dipasang di dinding koridor.                                                                            |
+| **Kolam Taman**         | generator `tiles.mjs`                       | `prop_pond`                                                  | 96×64 px, kolam dengan bibir batu, riak, dan daun teratai.                                                                         |
+| **Lantai & Dinding**    | generator `tiles.mjs`                       | `tile_floor_corridor`, `tile_floor_wood`, `tile_floor_grass` | 16×16 px seamless; koridor memakai ubin teraso, kelas parket, halaman rumput.                                                      |
+| **MC Nino**             | generator `characters.mjs`                  | `char_nino` + portrait                                       | Spritesheet 8 arah 432×32 (18 frame 24×32), portrait 64×64.                                                                        |
 
 ---
 
-## 3. Rencana Karakter (MC Nino Nakano & NPC)
+## 4. Rencana Karakter (MC Nino & NPC)
 
-### 3.1. Main Character (MC - Nino Nakano)
+### 4.1. Main Character (MC - Nino)
 
-- **Visual**: Mengadaptasi karakter Nino Nakano (rambut kembar/pita kupu-kupu khas) dengan proporsi tubuh chibi top-down 24×32 px.
-- **Kerangka Animasi (Template)**: Mengikuti struktur pose 8 arah dari `D:\Data\LOGICODIX 26\Asset\The Female Adventurer - Free`:
+- **Visual**: Siluet orisinal terinspirasi Nino (ekor kembar dan pita kupu-kupu) dengan proporsi chibi top-down 24×32 px, digambar generator dengan palet proyek. Rambut memakai turunan `warm` sehingga terbaca rose tanpa menambah warna di luar palet.
+- **Kerangka Animasi**: Struktur 8 arah ditetapkan proyek (bukan disalin dari pack mana pun):
   - Arah: `down`, `up`, `left`, `right`, `down-left`, `down-right`, `up-left`, `up-right`.
   - Total frame pada spritesheet horizontal 432×32 px (18 frame @ 24×32 px):
     - Frame 0–1: Idle menghadap depan (kamera).
@@ -139,9 +147,11 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
     - Frame 14–15: Jalan serong kiri atas (Up-Left).
     - Frame 16–17: Jalan serong kanan atas (Up-Right).
 - **Collider**: Kotak tabrakan 12×8 px berjangkar di kaki (`PLAYER_BODY_WIDTH = 12`, `PLAYER_BODY_HEIGHT = 8`).
-- **Portrait**: 64×64 px ekspresi wajah Nino untuk kotak dialog DOM.
+- **Portrait**: 64×64 px wajah Nino dengan pita kupu-kupu untuk kotak dialog DOM.
 
-### 3.2. NPC (Pak Bima, Tirta, Rani)
+> Catatan: `The Female Adventurer - Free` **tidak dipakai**. Berkas aslinya 384×64 per arah (6 frame 64×64, 6 arah) dan dua frame berisi garis kecepatan, jadi tidak cocok dengan grid 24×32 proyek.
+
+### 4.2. NPC (Pak Bima, Tirta, Rani)
 
 - **Visual**: Sprite 24×32 px.
 - **Animasi**: Cukup 2 frame idle (bernapas halus 2 fps) menghadap ke depan/ke arah ruangan.
@@ -149,7 +159,7 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 
 ---
 
-## 4. Pembaruan Story Demo (`demo-story.json`)
+## 5. Pembaruan Story Demo (`demo-story.json`)
 
 Agar 2 map (Gedung Sekolah dan Halaman Luar) terpakai secara fungsional dalam demo:
 

@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -178,11 +178,34 @@ Aturan:
 
 ## Lisensi
 
-- Semua aset harus dibuat sendiri, atau berlisensi CC0/public domain.
+- Semua aset harus dibuat sendiri, CC0/public domain, atau pihak ketiga dengan
+  lisensi yang mengizinkan pemakaian di game (lihat bagian berikut).
 - Catat sumber di [`inventory.md`](./inventory.md) kolom "Sumber".
 - Jangan memakai aset dari game komersial (termasuk Omori) walau hanya untuk
   referensi gaya.
 - Jangan memakai font berbayar tanpa lisensi web.
+
+### Aset pihak ketiga
+
+Aset pihak ketiga boleh dipakai selama tiga syarat ini terpenuhi:
+
+1. **Lisensinya jelas dan mengizinkan game.** Freebie Craftpix, CC0, dan lisensi
+   sejenis boleh; aset dari game komersial tidak. Atribusi tidak selalu wajib,
+   tetapi tetap dicatat di [`../../README.md`](../../README.md#atribusi-pihak-ketiga).
+2. **Yang di-commit hanya aset jadi.** Simpan hasil potong yang benar-benar
+   dipakai game, bukan isi paket, PSD, atau file mentah. Ini menjaga repo tetap
+   kecil sekaligus mematuhi larangan redistribusi file seni mentah.
+3. **Bisa diulang.** Catat berkas asal dan kotak potongnya di
+   [`inventory.md`](./inventory.md), supaya aset bisa dibuat ulang tanpa
+   menyimpan paket sumbernya.
+
+Aset pihak ketiga yang sudah final tidak perlu mengikuti batas 8 warna di atas —
+paletnya milik seniman aslinya. Jangan mewarnai ulang aset impor secara manual
+tanpa mencatatnya; lebih baik pakai apa adanya.
+
+Generator **tidak** boleh menimpa aset impor. Karena itu aset impor tidak
+didafarkan di `IMAGES` (`scripts/generate-assets.mjs`) dan hanya dibuat sekali
+lewat proses potong di luar repo.
 
 ## Cara menambah aset
 
