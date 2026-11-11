@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -55,8 +55,8 @@ Detail kontrak: [`../06-backend/api-contract.md`](../06-backend/api-contract.md)
 // src/app/play/[storyId]/page.tsx
 export default async function PlayPage(props: PageProps<"/play/[storyId]">) {
   const { storyId } = await props.params;
-  const story = await getPublishedStory(storyId);
-  if (!story) notFound();
+  const story = await getPlayableStory(storyId);
+  if (story === null) notFound();
   return <GameShell story={story} />;
 }
 ```
@@ -156,6 +156,11 @@ Game **tidak** memakai layout guru. Ia memakai halaman sendiri yang fullscreen
 | Job gagal                      | Halaman detail dengan alasan + tombol coba lagi                |
 | Error server                   | `error.tsx` per segmen, pesan ramah + tombol ulang             |
 | Loading                        | `loading.tsx`/`Suspense` dengan skeleton, bukan spinner kosong |
+
+Khusus `/play/[storyId]`: status `404` dihasilkan `src/proxy.ts` sebelum halaman
+dirender, karena route itu `◐` (App Shell terkirim lebih dulu) sehingga
+`notFound()` saja hanya menghasilkan soft 404. Rinciannya di
+[`game-player.md`](./game-player.md#pengambilan-data).
 
 ## Yang tidak boleh dilakukan
 

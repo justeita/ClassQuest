@@ -36,3 +36,5 @@ export {
   type SaveStoryVersionInput,
   type StoryStatus,
 } from "./core";
+
+export { getPlayableStory } from "./playable";

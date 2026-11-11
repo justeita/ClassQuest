@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -116,7 +116,9 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/components/game/HUD.tsx`                 | ya   | HUD: chapter aktif, tombol suara, tombol jeda         |
 | `src/components/game/PauseMenu.tsx`           | ya   | Menu jeda: lanjut, ulangi chapter, suara, keluar      |
 | `src/components/game/ResultScreen.tsx`        | ya   | Layar hasil: skor, jawaban tepat, konsep lemah        |
-| `src/app/play`                                | ya   | Halaman siswa dari cerita demo                        |
+| `src/app/play`                                | ya   | Halaman siswa dari cerita terbit (fallback demo)      |
+| `src/proxy.ts`                                | ya   | Gerbang 404 `/play/<id>` sebelum halaman dirender     |
+| `src/proxy.test.ts`                           | ya   | Tes gerbang 404 halaman siswa                         |
 | `src/server/config.ts`                        | ya   | Konfigurasi env server (satu-satunya pembaca)         |
 | `src/server/config.test.ts`                   | ya   | Tes konfigurasi env                                   |
 | `src/server/auth.ts`                          | ya   | Auth guru: kode akses, token cookie, `requireTeacher` |
@@ -125,6 +127,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/server/stories`                          | ya   | Logika inti manajemen cerita guru                     |
 | `src/server/stories/core.ts`                  | ya   | Logika inti manajemen cerita guru                     |
 | `src/server/stories/core.test.ts`             | ya   | Tes logika inti cerita                                |
+| `src/server/stories/playable.ts`              | ya   | Cerita yang boleh dimainkan (terbit + demo)           |
+| `src/server/stories/playable.test.ts`         | ya   | Tes sumber cerita halaman siswa                       |
 | `src/server/play-results`                     | ya   | Modul penyimpanan hasil bermain siswa                 |
 | `src/server/play-results/save.ts`             | ya   | Validasi, scoring, dan simpan hasil bermain           |
 | `src/server/play-results/save.test.ts`        | ya   | Tes simpan hasil bermain                              |
