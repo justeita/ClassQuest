@@ -1,7 +1,7 @@
 "use client";
 
 import type { DialogueView } from "@/game/gameBus";
-import { cqw, kotakPersen, TEXTBOX, ukuranHuruf } from "@/game/layout";
+import { cqw, persenTinggi, TEXTBOX, ukuranHuruf } from "@/game/layout";
 
 type DialogueBoxProps = {
   view: DialogueView;
@@ -25,7 +25,12 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
     <div
       className="absolute z-10 cursor-pointer select-none font-game text-[#D9E4DA]"
       style={{
-        ...kotakPersen(TEXTBOX),
+        // Selalu di tengah ruang game, berapa pun lebar internalnya.
+        left: "50%",
+        transform: "translateX(-50%)",
+        top: persenTinggi(TEXTBOX.y),
+        width: cqw(TEXTBOX.width),
+        height: persenTinggi(TEXTBOX.height),
         paddingLeft: cqw(TEXTBOX.padding),
         paddingRight: cqw(TEXTBOX.padding),
         paddingTop: cqw(TEXTBOX.paddingTop),
@@ -41,7 +46,7 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
       {view.name && (
         <p
           className="text-[#F7F4EC]"
-          style={{ fontSize: ukuranHuruf(15, 12, 22), lineHeight: 1.2 }}
+          style={{ fontSize: ukuranHuruf(18, 14, 26), lineHeight: 1.2 }}
         >
           {view.name}
         </p>
@@ -52,8 +57,8 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
         className="break-words whitespace-pre-wrap"
         style={{
           marginTop: cqw(3),
-          fontSize: ukuranHuruf(15, 13, 26),
-          lineHeight: 1.32,
+          fontSize: ukuranHuruf(19, 16, 30),
+          lineHeight: 1.34,
         }}
       >
         {view.text}
