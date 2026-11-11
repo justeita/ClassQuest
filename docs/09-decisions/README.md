@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -25,6 +25,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0010 | [Map data-driven dan kamera](0010-map-data-and-camera.md)            | **Accepted** | Game                |
 | 0011 | [Sub-collider prop besar](0011-large-prop-subcollider.md)            | **Accepted** | Game                |
 | 0012 | [Peta ruangan sebagai satu gambar](0012-room-map-image.md)           | Accepted     | Game, aset          |
+| 0013 | [Hosting Vercel dan database Turso](0013-hosting-vercel-turso.md)    | Accepted     | Deploy, backend     |
 
 ## Status
 

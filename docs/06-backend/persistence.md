@@ -1,6 +1,6 @@
 ---
 status: tbd
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -15,7 +15,7 @@ owner: tim ClassQuest
 | Kebutuhan                    | Catatan                              |
 | ---------------------------- | ------------------------------------ |
 | Simpan cerita + versi        | Cerita bisa besar (JSON 50–300 KB)   |
-| Simpan PDF                   | File 1–20 MB, tidak boleh publik     |
+| Simpan PDF                   | PDF hanya di memori, maksimum 4 MB   |
 | Query daftar materi per guru | Butuh index sederhana                |
 | Status job                   | Sering di-update, dibaca via polling |
 | Hasil main (opsional)        | Volume kecil di MVP                  |
@@ -258,7 +258,7 @@ nyata dan tabel `teachers` di atas.
 ## Checklist sebelum memilih vendor
 
 - [ ] Bisa menyimpan JSON 300 KB tanpa masalah.
-- [ ] Bisa menyimpan file 20 MB secara privat.
+- [ ] Bisa menangani file 4 MB secara privat.
 - [ ] Ada free tier yang cukup untuk demo.
 - [ ] Bisa diakses dari Node runtime Next.js (bukan Edge).
 - [ ] Mendukung transaksi untuk publish.

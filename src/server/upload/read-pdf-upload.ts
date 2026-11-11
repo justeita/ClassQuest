@@ -59,7 +59,7 @@ function hasPdfMagic(bytes: Uint8Array): boolean {
  * Yang diperiksa, berurutan:
  *
  * 1. File ada, berupa `Blob`/`File`, dan tidak kosong.
- * 2. Ukuran tidak melebihi `MAX_PDF_BYTES` (20 MB, dari docs).
+ * 2. Ukuran tidak melebihi `MAX_PDF_BYTES` (4 MB, dari docs).
  * 3. Tipe atau ekstensi menyatakan PDF (penyaring awal).
  * 4. Isi bisa dibaca sebagai bytes dan benar-benar diawali `%PDF-`.
  *
@@ -75,7 +75,7 @@ export async function readPdfUpload(file: PdfUploadInput): Promise<PdfUpload> {
     throw createUploadError("FILE_MISSING");
   }
 
-  // Tolak sebelum membaca isi: file 20 MB+ tidak perlu dialokasikan.
+  // Tolak sebelum membaca isi: file 4 MB+ tidak perlu dialokasikan.
   if (file.size > MAX_PDF_BYTES) {
     throw createUploadError("FILE_TOO_LARGE");
   }

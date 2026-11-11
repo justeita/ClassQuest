@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -149,7 +149,7 @@ Aturan:
 - Hindari istilah teknis di UI: "job", "payload", "schema", "endpoint".
 - Tombol memakai kata kerja: "Simpan", "Buat cerita", "Coba lagi".
 - Jangan menyalahkan pengguna: "PDF ini belum bisa dibaca" bukan "PDF Anda salah".
-- Angka penting disebut: "24 MB dari batas 20 MB".
+- Angka penting disebut: "4,5 MB dari batas 4 MB".
 
 ## Ikon
 

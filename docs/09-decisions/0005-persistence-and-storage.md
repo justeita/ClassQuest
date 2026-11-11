@@ -1,6 +1,6 @@
 ---
 status: tbd
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -14,7 +14,7 @@ owner: tim ClassQuest
 
 Kami harus menyimpan:
 
-- PDF guru (1–20 MB, privat),
+- PDF guru (1–4 MB, privat),
 - cerita + versinya (JSON 50–300 KB),
 - status job (sering berubah),
 - opsional: hasil main.

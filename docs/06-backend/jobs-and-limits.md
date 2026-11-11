@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -94,13 +94,15 @@ Nilai awal; ubah hanya dengan memperbarui dokumen ini.
 
 ### Upload
 
-| Batas                    | Nilai  | Alasan                     |
-| ------------------------ | ------ | -------------------------- |
-| Ukuran file              | 20 MB  | Cukup untuk materi sekolah |
-| Jumlah halaman           | 40     | Batas absolut parser       |
-| Halaman yang diproses    | 15     | Kendali biaya & waktu      |
-| Karakter materi ke model | 30.000 | Konteks + biaya            |
-| Upload per 10 menit      | 5      | Anti penyalahgunaan        |
+| Batas                    | Nilai    | Alasan                   |
+| ------------------------ | -------- | ------------------------ |
+| Ukuran file              | 4 MB     | Batas body Vercel 4,5 MB |
+| Jumlah halaman           | 40       | Batas absolut parser     |
+| Halaman yang diproses    | 15       | Kendali biaya & waktu    |
+| Karakter materi ke model | 30.000   | Konteks + biaya          |
+| Upload per IP            | 20/jam   | Anti penyalahgunaan      |
+| Upload per guru          | 10/jam   | Kuota tiap akun          |
+| Upload global            | 100/hari | Pelindung biaya AI       |
 
 ### Generasi
 
@@ -145,14 +147,14 @@ mengikat hanya dua aturan: **tiap chapter minimal 1 beat `challenge`**
 
 ## Perilaku saat batas terlampaui
 
-| Batas                  | Perilaku                                          |
-| ---------------------- | ------------------------------------------------- |
-| Ukuran file            | Tolak sebelum menyimpan; `413` + batas yang jelas |
-| Halaman > 40           | Tolak; minta guru memilih bagian materi           |
-| Halaman > 15 (≤ 40)    | Proses 15 halaman pertama + catat `source.gaps`   |
-| Karakter > 30.000      | Potong, catat `gaps`, beri tahu guru di UI        |
-| Waktu generasi > 120 s | Fallback + tandai alasan                          |
-| Rate limit             | `429` + `retryAfterSec`                           |
+| Batas                  | Perilaku                                            |
+| ---------------------- | --------------------------------------------------- |
+| Ukuran file            | Tolak sebelum file dibaca; `413` + batas yang jelas |
+| Halaman > 40           | Tolak; minta guru memilih bagian materi             |
+| Halaman > 15 (≤ 40)    | Proses 15 halaman pertama + catat `source.gaps`     |
+| Karakter > 30.000      | Potong, catat `gaps`, beri tahu guru di UI          |
+| Waktu generasi > 120 s | Fallback + tandai alasan                            |
+| Rate limit             | `429` + `retryAfterSec`                             |
 
 ## Idempotensi dan konkurensi
 
