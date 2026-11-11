@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Ketentuan Peserta dan Karya
 
-Sumber: Guidebook LOGICODIX 2026, halaman 7–9. Dua daftar ini adalah syarat ikut
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 5–7. Dua daftar ini adalah syarat ikut
 lomba. Kolom "bukti di repo ini" adalah hal yang harus bisa ditunjukkan kalau juri
 bertanya — bukan formalitas.
 
@@ -86,7 +86,7 @@ Batas antara "boleh disiapkan" dan "tidak boleh" ada di
 
 ## Kategori: Web atau Mobile
 
-Guidebook halaman 13:
+Guidebook halaman cetak 11:
 
 - Setiap tim memilih **satu** kategori dan mengembangkan **satu** produk.
 - Web: situs atau aplikasi web yang diakses lewat browser.

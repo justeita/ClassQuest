@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Penggunaan AI dan Atribusi
 
-Sumber: Guidebook LOGICODIX 2026, halaman 8–9, 15–16, dan 29.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 6–7, 13, 18, dan 29.
 
 Dua hal digabung di dokumen ini karena sanksinya sama: **transparansi**. Panitia
 tidak melarang AI dan tidak melarang komponen pihak ketiga. Yang dilarang adalah
@@ -14,15 +14,15 @@ menyembunyikannya.
 
 ## 1. Aturan penggunaan AI
 
-| Aturan                                                                                             | Halaman |
-| -------------------------------------------------------------------------------------------------- | ------- |
-| AI diperbolehkan, baik saat pengembangan maupun sebagai fitur aplikasi                             | 8       |
-| Boleh memakai API AI atau model open-source                                                        | 8       |
-| AI coding assistant diperbolehkan                                                                  | 15      |
-| Penggunaan AI **tidak wajib**, kecuali rubrik menentukan lain                                      | 16      |
-| Tim bertanggung jawab penuh atas kode, keamanan, dan fungsi, **termasuk kode hasil AI**            | 16      |
-| Jika memakai AI, README **wajib** menyebutkan layanan/model dan bagian produk yang memanfaatkannya | 16, 20  |
-| Pengembangan wajib memperhatikan etika AI, pelindungan data, dan efisiensi sumber daya             | 9       |
+| Aturan                                                                                             | Halaman cetak |
+| -------------------------------------------------------------------------------------------------- | ------------- |
+| AI diperbolehkan, baik saat pengembangan maupun sebagai fitur aplikasi                             | 6–7           |
+| Boleh memakai API AI atau model open-source                                                        | 6             |
+| AI coding assistant diperbolehkan                                                                  | 13            |
+| Penggunaan AI **tidak wajib**, kecuali rubrik menentukan lain                                      | 13            |
+| Tim bertanggung jawab penuh atas kode, keamanan, dan fungsi, **termasuk kode hasil AI**            | 13            |
+| Jika memakai AI, README **wajib** menyebutkan layanan/model dan bagian produk yang memanfaatkannya | 18            |
+| Pengembangan wajib memperhatikan etika AI, pelindungan data, dan efisiensi sumber daya             | 7, 29         |
 
 Poin terakhir penting: memakai AI tidak mengurangi tanggung jawab. Kode hasil AI
 yang punya bug adalah bug tim, bukan bug alat.
@@ -158,13 +158,13 @@ Jangan membiarkannya tanpa keterangan. Juri yang teliti akan bertanya asalnya.
 
 ## 5. Yang tidak boleh
 
-| Larangan                                                        | Alasan                        |
-| --------------------------------------------------------------- | ----------------------------- |
-| Menyembunyikan penggunaan AI                                    | README wajib menyebutnya      |
-| Mengklaim aset pihak ketiga sebagai buatan tim                  | Pelanggaran orisinalitas      |
-| Memakai aset berlisensi non-komersial untuk produk komersial    | Masalah lisensi               |
-| Memakai template aplikasi lengkap lalu mengganti nama dan warna | Dilarang guidebook halaman 15 |
-| Menempelkan output AI langsung ke aplikasi tanpa review         | Tanggung jawab tetap pada tim |
+| Larangan                                                        | Alasan                              |
+| --------------------------------------------------------------- | ----------------------------------- |
+| Menyembunyikan penggunaan AI                                    | README wajib menyebutnya            |
+| Mengklaim aset pihak ketiga sebagai buatan tim                  | Pelanggaran orisinalitas            |
+| Memakai aset berlisensi non-komersial untuk produk komersial    | Masalah lisensi                     |
+| Memakai template aplikasi lengkap lalu mengganti nama dan warna | Dilarang guidebook halaman cetak 13 |
+| Menempelkan output AI langsung ke aplikasi tanpa review         | Tanggung jawab tetap pada tim       |
 
 ## 6. Checklist
 

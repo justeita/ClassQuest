@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # README Wajib
 
-Sumber: Guidebook LOGICODIX 2026, halaman 20.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 17–18.
 
 README adalah berkas pertama yang dibaca juri. Guidebook mewajibkan `README.md`
 berada di **direktori utama** repositori dan memuat sembilan hal. Kalau ada yang
@@ -165,7 +165,7 @@ Ini yang biasanya hilang walaupun sembilan poin di atas sebenarnya sudah ada:
    alur data.
 5. **Atribusi hanya pustaka npm.** Aset visual, ikon, font, dataset, dan template
    juga wajib.
-6. **Penggunaan AI hanya di fitur.** Guidebook halaman 20 juga meminta dokumentasi
+6. **Penggunaan AI hanya di fitur.** Guidebook halaman cetak 18 juga meminta dokumentasi
    bila AI dipakai **saat pengembangan**.
 7. **README di `docs/` bukan di root.** Guidebook menyebut direktori utama.
 

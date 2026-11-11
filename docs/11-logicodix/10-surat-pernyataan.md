@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Surat Pernyataan Orisinalitas
 
-Sumber: Guidebook LOGICODIX 2026, halaman 20–21 dan 23.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 20–21.
 
 Surat pernyataan adalah berkas yang membuat tim secara resmi menyatakan karyanya
 asli. Karena itu isinya harus benar — bukan formalitas yang ditandatangani tanpa

@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -37,7 +37,7 @@ feat(manifest): tolak aset yang tidak ditemukan saat build
 chore(deps): pasang phaser 4.2.1
 ```
 
-Awalan `test` **tidak** dipakai meskipun isinya test. Guidebook halaman 17
+Awalan `test` **tidak** dipakai meskipun isinya test. Guidebook halaman cetak 15
 menyebut `test` sebagai pesan yang tidak menjelaskan perubahan, dan
 `compliance.test.ts` menolaknya. Tambahan test masuk ke `chore(scope)` bila berdiri
 sendiri, atau ikut commit fitur yang diujinya.

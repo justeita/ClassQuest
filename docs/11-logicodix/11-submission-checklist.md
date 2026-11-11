@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Checklist Submission
 
-Sumber: Guidebook LOGICODIX 2026, halaman 18–23.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 17–23.
 
 Dokumen ini adalah lembar kerja terakhir. Isi semua kolom, jangan ada yang kosong
 saat menekan tombol submit.
