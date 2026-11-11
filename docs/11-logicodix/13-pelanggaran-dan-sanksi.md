@@ -81,7 +81,19 @@ Status: terbuka | selesai
 
 ### Catatan kejadian
 
-Belum ada catatan.
+```text
+Tanggal (WIB):     11 November 2026
+Kejadian:         Satu commit memakai awalan `test:` yang tidak termasuk
+                  enam awalan resmi, terlanjur ter-push ke branch
+                  backend/story-management (SHA 7f79aea, pesan
+                  "test: fix flaky timestamp ordering in listStories test")
+Aturan yang berpotensi terdampak (halaman): 15 (format pesan commit)
+Tindakan yang sudah diambil: klarifikasi ke helpdesk panitia pada
+                  11 November 2026; jawaban panitia: dibiarkan apa
+                  adanya, tidak perlu amend/force push
+Bukti (tautan/log): jawaban helpdesk panitia 11 November 2026
+Status:            selesai
+```
 
 Batas waktunya biasanya pendek. Ikuti urutan ini:
 
