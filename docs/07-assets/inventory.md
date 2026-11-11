@@ -64,14 +64,14 @@ sumbernya dicatat di [Sumber dan lisensi](#sumber-dan-lisensi).
 
 ## Karakter
 
-| id              | Label                 | Sprite                      | Portrait                        | Tags                                                 | Status |
-| --------------- | --------------------- | --------------------------- | ------------------------------- | ---------------------------------------------------- | ------ |
-| `char_nara`     | Nara (siswa)          | `/assets/char/nara.png`     | `/assets/portrait/nara.png`     | siswa, perempuan, seragam, remaja, student           | ready  |
-| `char_pak_bima` | Pak Bima (guru)       | `/assets/char/pak_bima.png` | `/assets/portrait/pak_bima.png` | guru, dewasa, pria, pengajar, teacher                | ready  |
-| `char_tirta`    | Tirta (roh air)       | `/assets/char/tirta.png`    | `/assets/portrait/tirta.png`    | air, roh, biru, kecil, spirit, water                 | ready  |
-| `char_rani`     | Rani (siswa)          | `/assets/char/rani.png`     | `/assets/portrait/rani.png`     | siswa, perempuan, rambut pendek, teman               | ready  |
-| `char_nino`     | Nino (siswa pindahan) | `/assets/char/nino.png`     | `/assets/portrait/nino.png`     | siswa, perempuan, ekor kembar, pita, remaja, student | ready  |
-| `char_default`  | Karakter default      | `/assets/char/default.png`  | —                               | default, cadangan, fallback, netral                  | ready  |
+| id              | Label                 | Sprite                      | Portrait                        | Tags                                              | Status |
+| --------------- | --------------------- | --------------------------- | ------------------------------- | ------------------------------------------------- | ------ |
+| `char_nara`     | Nara (siswa)          | `/assets/char/nara.png`     | `/assets/portrait/nara.png`     | siswa, perempuan, seragam, remaja, student        | ready  |
+| `char_pak_bima` | Pak Bima (guru)       | `/assets/char/pak_bima.png` | `/assets/portrait/pak_bima.png` | guru, dewasa, pria, pengajar, teacher             | ready  |
+| `char_tirta`    | Tirta (roh air)       | `/assets/char/tirta.png`    | `/assets/portrait/tirta.png`    | air, roh, biru, kecil, spirit, water              | ready  |
+| `char_rani`     | Rani (siswa)          | `/assets/char/rani.png`     | `/assets/portrait/rani.png`     | siswa, perempuan, rambut pendek, teman            | ready  |
+| `char_nino`     | Nino (siswa pindahan) | `/assets/char/nino.png`     | `/assets/portrait/nino.png`     | siswa, perempuan, ekor kembar, pita, rok, student | ready  |
+| `char_default`  | Karakter default      | `/assets/char/default.png`  | —                               | default, cadangan, fallback, netral               | ready  |
 
 ## Tile
 
@@ -210,9 +210,17 @@ kelak dikomersialkan, peta ini **wajib diganti** dengan aset berlisensi komersia
 atau digambar ulang oleh tim.
 
 `char_nino` **tidak** memakai sprite pack mana pun. Ia digambar generator dengan
-resep sendiri (ekor kembar dan pita kupu-kupu) memakai palet sembilan warna
-proyek, termasuk aksen karakter `#D98FA3` untuk rambutnya; kemiripan dengan
-karakter referensi hanya pada siluet dan warna rambut, bukan salinan berkas.
+resep sendiri (ekor kembar, pita kupu-kupu, rok lipit, dan kaus kaki) memakai
+palet sembilan warna proyek, termasuk aksen karakter `#D98FA3` untuk rambutnya;
+kemiripan dengan karakter referensi hanya pada siluet dan warna rambut, bukan
+salinan berkas.
+
+Pose dan proporsi animasi delapan arahnya memakai **The adventurer — Female —
+Free** oleh Sscary (<https://sscary.itch.io/the-adventurer-female>) sebagai
+**acuan gaya saja**: lisensinya mengizinkan pemakaian komersial dan modifikasi,
+tetapi melarang pendistribusian ulang berkas mentah, jadi repo ini tidak memuat
+satu pun berkas dari paket tersebut. Kredit dicantumkan di
+[`../../README.md`](../../README.md#atribusi-pihak-ketiga) sebagai penghargaan.
 
 Jangan mengisi kolom ini dengan "Google Images" atau nama game komersial.
 

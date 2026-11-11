@@ -187,8 +187,13 @@ kami cantumkan di sini. Yang disimpan di repo hanya aset yang sudah dipotong dan
 dipakai game, bukan isi paket mentah. Detail berkas asal dan kotak potong ada di
 [docs/07-assets/inventory.md](docs/07-assets/inventory.md#sumber-dan-lisensi).
 
-`char_nino` adalah gambar orisinal generator yang terinspirasi siluet dan warna
-rambut karakter referensi, bukan salinan berkas seni berhak cipta.
+`char_nino` adalah gambar orisinal generator. Siluet dan warna rambutnya
+terinspirasi karakter referensi, sedangkan pose dan proporsi animasi delapan
+arahnya memakai **The adventurer — Female — Free** oleh Sscary
+(<https://sscary.itch.io/the-adventurer-female>) sebagai **acuan gaya saja**.
+Lisensi paket itu mengizinkan pemakaian komersial dan modifikasi, tetapi melarang
+pendistribusian ulang berkas mentah; karena itu repo ini tidak memuat satu pun
+berkasnya, dan kredit ini ditulis sebagai penghargaan.
 
 `map_halaman_sekolah` adalah peta halaman sekolah yang dijahit dari **The
 Fan-tasy Tileset (Free)** oleh Ventilatore

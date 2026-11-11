@@ -151,9 +151,9 @@ const RECIPES = {
     hairStyle: "spirit",
   },
   /**
-   * Nino: siswa baru dengan ekor kembar dan pita kupu-kupu. Rambut memakai
-   * aksen karakter `blush` dari palet; bayangan dan kilaunya tetap turunan
-   * `RAMP`, bukan warna baru di luar palet.
+   * Nino: siswa baru dengan ekor kembar, pita kupu-kupu, rok sekolah, dan kaus
+   * kaki. Rambut memakai aksen karakter `blush` dari palet; bayangan dan
+   * kilaunya tetap turunan `RAMP`, bukan warna baru di luar palet.
    */
   nino: {
     hair: PALETTE.blush,
@@ -166,7 +166,8 @@ const RECIPES = {
     shirt: PALETTE.bone,
     shirtShade: mix(PALETTE.bone, PALETTE.cool, 0.45),
     accent: mix(PALETTE.cool, PALETTE.ink, 0.1),
-    trouser: mix(PALETTE.cool, PALETTE.night, 0.35),
+    skirt: mix(PALETTE.cool, PALETTE.night, 0.35),
+    sock: PALETTE.bone,
     shoe: RAMP.neutral700,
     hairStyle: "twintails",
   },
@@ -225,10 +226,20 @@ function buildHumanFrame(recipe, dir, step) {
   }
 
   const drawLeg = (leg, dim) => {
-    const trouser = dim
-      ? mix(recipe.trouser, PALETTE.ink, 0.3)
-      : recipe.trouser;
-    grid.rect(leg.x, leg.yTop, 4, leg.yBottom - leg.yTop - 1, trouser);
+    const legHeight = leg.yBottom - leg.yTop - 1;
+    if (recipe.skirt) {
+      // Karakter berok: kaki telanjang, lalu kaus kaki di atas sepatu.
+      const bare = dim ? recipe.skinShade : recipe.skin;
+      const sockTop = leg.yBottom - 4;
+      const sock = dim ? mix(recipe.sock, PALETTE.ink, 0.25) : recipe.sock;
+      grid.rect(leg.x, leg.yTop, 4, legHeight, bare);
+      grid.rect(leg.x, sockTop, 4, leg.yBottom - 2 - sockTop, sock);
+    } else {
+      const trouser = dim
+        ? mix(recipe.trouser, PALETTE.ink, 0.3)
+        : recipe.trouser;
+      grid.rect(leg.x, leg.yTop, 4, legHeight, trouser);
+    }
     grid.rect(leg.x, leg.yBottom - 2, 5, 2, recipe.shoe);
   };
   drawLeg(legA, moving && step === 1);
@@ -242,6 +253,19 @@ function buildHumanFrame(recipe, dir, step) {
   grid.set(12, bodyTop, recipe.skin);
   grid.set(12, bodyTop + 3, recipe.accent);
   grid.set(12, bodyTop + 6, recipe.accent);
+
+  /* Rok sekolah: menutup pinggul dan melebar ke bawah. Digambar sebelum
+     lengan supaya tangan tetap terlihat di depan rok. */
+  if (recipe.skirt) {
+    const hipY = bodyTop + 7;
+    grid.rect(6, hipY, 12, 2, recipe.skirt);
+    grid.rect(5, hipY + 2, 14, 2, recipe.skirt);
+    const pleat = mix(recipe.skirt, PALETTE.ink, 0.35);
+    for (const x of [8, 12, 16]) {
+      grid.set(x, hipY + 1, pleat);
+      grid.set(x, hipY + 3, pleat);
+    }
+  }
 
   /* Lengan */
   if (side) {
@@ -278,8 +302,8 @@ function buildHumanFrame(recipe, dir, step) {
     grid.rect(13, 1 - bob, 7, 8, recipe.hair);
     grid.rect(12, 2 - bob, 2, 6, recipe.hair);
     grid.rect(5, 2 - bob, 2, 4, recipe.hair);
-    grid.rect(7, 6 - bob, 2, 2, recipe.eye);
-    grid.set(6, 8 - bob, recipe.skinShade); // hidung
+    grid.rect(7, 6 - bob, 2, 3, recipe.eye);
+    grid.set(7, 6 - bob, PALETTE.bone);
     grid.set(7, 10 - bob, recipe.mouth);
     grid.set(8, 10 - bob, recipe.mouth);
     if (recipe.beard) grid.rect(6, 11 - bob, 4, 2, recipe.hair);
@@ -292,16 +316,15 @@ function buildHumanFrame(recipe, dir, step) {
     grid.rect(5, 4 - bob, 8, 1, recipe.hair);
     grid.rect(7, 4 - bob, 2, 2, recipe.hair);
     grid.rect(11, 4 - bob, 2, 2, recipe.hair);
-    grid.rect(8, 6 - bob, 2, 2, recipe.eye);
-    grid.rect(12, 6 - bob, 2, 2, recipe.eye);
+    grid.rect(8, 6 - bob, 2, 3, recipe.eye);
+    grid.rect(12, 6 - bob, 2, 3, recipe.eye);
     grid.set(8, 6 - bob, PALETTE.bone);
     grid.set(12, 6 - bob, PALETTE.bone);
-    grid.set(10, 8 - bob, recipe.skinShade);
-    grid.rect(9, 9 - bob, 2, 1, recipe.mouth);
+    grid.rect(10, 10 - bob, 2, 1, recipe.mouth);
     if (recipe.beard) {
-      grid.set(7, 9 - bob, recipe.hair);
-      grid.set(13, 9 - bob, recipe.hair);
-      grid.rect(8, 10 - bob, 4, 1, recipe.hair);
+      grid.set(7, 10 - bob, recipe.hair);
+      grid.set(13, 10 - bob, recipe.hair);
+      grid.rect(9, 11 - bob, 3, 1, recipe.hair);
     }
   } else if (side && diagonal) {
     // Diagonal atas: badan menyamping, kepala dari belakang (tanpa wajah).
@@ -328,16 +351,15 @@ function buildHumanFrame(recipe, dir, step) {
     grid.rect(10, 4 - bob, 2, 2, recipe.hair);
     grid.rect(14, 4 - bob, 2, 2, recipe.hair);
     grid.rect(9, 2 - bob, 3, 1, recipe.hairLight);
-    grid.rect(8, 6 - bob, 2, 2, recipe.eye);
-    grid.rect(14, 6 - bob, 2, 2, recipe.eye);
+    grid.rect(8, 6 - bob, 2, 3, recipe.eye);
+    grid.rect(14, 6 - bob, 2, 3, recipe.eye);
     grid.set(8, 6 - bob, PALETTE.bone);
     grid.set(14, 6 - bob, PALETTE.bone);
-    grid.set(12, 8 - bob, recipe.skinShade);
-    grid.rect(11, 9 - bob, 2, 1, recipe.mouth);
+    grid.rect(11, 10 - bob, 2, 1, recipe.mouth);
     if (recipe.beard) {
-      grid.set(9, 9 - bob, recipe.hair);
-      grid.set(15, 9 - bob, recipe.hair);
-      grid.rect(10, 10 - bob, 4, 1, recipe.hair);
+      grid.set(9, 10 - bob, recipe.hair);
+      grid.set(15, 10 - bob, recipe.hair);
+      grid.rect(10, 11 - bob, 4, 1, recipe.hair);
     }
   }
 
@@ -523,11 +545,11 @@ function buildPortraitGrid(recipe) {
   /* Bahu */
   grid.rect(1, 12, 14, 4, recipe.shirt);
   grid.rect(9, 12, 6, 4, recipe.shirtShade);
-  grid.rect(7, 12, 2, 2, recipe.skin);
-  grid.rect(7, 13, 2, 1, recipe.skinShade);
 
-  /* Leher */
-  grid.rect(6, 10, 4, 3, recipe.skinShade);
+  /* Dagu dan leher: menutup lekuk rahang supaya latar tidak menembus. */
+  grid.rect(4, 10, 8, 2, recipe.skin);
+  grid.rect(6, 12, 4, 2, recipe.skin);
+  grid.rect(6, 13, 4, 1, recipe.skinShade);
 
   /* Kepala */
   grid.ellipse(8, 6, 5.5, 6, recipe.skin);
@@ -552,11 +574,10 @@ function buildPortraitGrid(recipe) {
   grid.rect(9, 2, 2, 1, recipe.hairLight);
 
   /* Wajah */
-  grid.rect(4, 7, 2, 2, recipe.eye);
-  grid.rect(10, 7, 2, 2, recipe.eye);
-  grid.set(4, 7, PALETTE.bone);
-  grid.set(10, 7, PALETTE.bone);
-  grid.set(8, 9, recipe.skinShade);
+  grid.rect(4, 6, 2, 3, recipe.eye);
+  grid.rect(10, 6, 2, 3, recipe.eye);
+  grid.set(4, 6, PALETTE.bone);
+  grid.set(10, 6, PALETTE.bone);
   grid.rect(7, 10, 3, 1, recipe.mouth);
 
   if (recipe.hairStyle === "long") {
