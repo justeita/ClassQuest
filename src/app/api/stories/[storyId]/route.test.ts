@@ -7,27 +7,42 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * `GET /api/stories/[storyId]` — endpoint publik tanpa login (task 21).
  *
  * Yang di-mock hanya `@/server/db` (client libSQL in-memory dengan migrasi
- * asli). Endpoint tidak membaca cookie, jadi `next/headers` tidak disentuh.
+ * asli) dan `next/headers` untuk header IP yang dipakai rate limit. Endpoint
+ * tidak membaca cookie.
+ *
+ * Rate limit endpoint ini disimpan di memori proses, jadi setiap test
+ * mengosongkannya di `beforeEach` dan memakai `Date.now()` sungguhan.
  */
 
-const { dbRef, getReadyDbMock } = vi.hoisted(() => {
+const { dbRef, getReadyDbMock, headersMock } = vi.hoisted(() => {
   const dbRef: { current: Client | null } = { current: null };
   const getReadyDbMock = vi.fn(async () => {
     if (dbRef.current === null) throw new Error("database test belum siap");
     return dbRef.current;
   });
-  return { dbRef, getReadyDbMock };
+  return { dbRef, getReadyDbMock, headersMock: vi.fn() };
 });
 
 vi.mock("@/server/db", () => ({ getReadyDb: getReadyDbMock }));
+vi.mock("next/headers", () => ({ headers: headersMock }));
 
 import { applyMigrations } from "@/server/db/migrations";
+import { PUBLIC_STORY_RATE_LIMIT } from "@/server/rate-limit/limits";
+import { memoryRateLimits } from "@/server/rate-limit/memory";
 import { GET } from "./route";
 import { buildFallbackStory } from "@/story/fallback";
 
 let db: Client;
 
 const STORY_ID = "st_published_demo";
+/** IP palsu (dokumen contoh RFC 5737); hanya untuk test. */
+const CLIENT_IP = "203.0.113.60";
+
+const useClientIp = (ip: string = CLIENT_IP): void => {
+  headersMock.mockResolvedValue({
+    get: (name: string) => (name.toLowerCase() === "x-real-ip" ? ip : null),
+  });
+};
 
 const insertStory = async (options: {
   storyId: string;
@@ -69,6 +84,8 @@ beforeEach(async () => {
   db = createClient({ url: ":memory:" });
   await applyMigrations(db);
   dbRef.current = db;
+  memoryRateLimits.clear();
+  useClientIp();
 
   await db.execute({
     sql: "insert into teachers (id, display_name) values ('teacher_demo', 'Guru Demo')",
@@ -201,5 +218,85 @@ describe("GET /api/stories/[storyId]", () => {
     expect(response.status).toBe(500);
     const body = (await response.json()) as { error: { code: string } };
     expect(body.error.code).toBe("INTERNAL");
+  });
+});
+
+describe("GET /api/stories/[storyId] — rate limit", () => {
+  it(`menolak permintaan ke-${PUBLIC_STORY_RATE_LIMIT.limit + 1} dari IP yang sama`, async () => {
+    await insertStory({
+      storyId: STORY_ID,
+      status: "published",
+      publishedVersion: 1,
+    });
+    await insertVersion({ storyId: STORY_ID, version: 1 });
+
+    for (let i = 0; i < PUBLIC_STORY_RATE_LIMIT.limit; i += 1) {
+      const response = await call(STORY_ID);
+      expect(response.status, `permintaan ${i + 1}`).toBe(200);
+    }
+
+    const blocked = await call(STORY_ID);
+
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers.get("cache-control")).toBe("no-store");
+    const retryAfter = Number(blocked.headers.get("retry-after"));
+    expect(Number.isInteger(retryAfter)).toBe(true);
+    expect(retryAfter).toBeGreaterThan(0);
+
+    const body = (await blocked.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("RATE_LIMITED");
+    expect(JSON.stringify(body)).not.toContain(CLIENT_IP);
+
+    // IP lain tetap dilayani.
+    useClientIp("203.0.113.61");
+    expect((await call(STORY_ID)).status).toBe(200);
+  });
+
+  it("jendela berikutnya dilayani lagi", async () => {
+    await insertStory({
+      storyId: STORY_ID,
+      status: "published",
+      publishedVersion: 1,
+    });
+    await insertVersion({ storyId: STORY_ID, version: 1 });
+
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-11-11T09:00:00.000Z"));
+
+      for (let i = 0; i < PUBLIC_STORY_RATE_LIMIT.limit; i += 1) {
+        await call(STORY_ID);
+      }
+      expect((await call(STORY_ID)).status).toBe(429);
+
+      vi.setSystemTime(new Date("2026-11-11T09:01:00.000Z"));
+      expect((await call(STORY_ID)).status).toBe(200);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("tidak menulis apa pun ke database", async () => {
+    await insertStory({
+      storyId: STORY_ID,
+      status: "published",
+      publishedVersion: 1,
+    });
+    await insertVersion({ storyId: STORY_ID, version: 1 });
+
+    for (let i = 0; i <= PUBLIC_STORY_RATE_LIMIT.limit; i += 1) {
+      await call(STORY_ID);
+    }
+
+    const rows = await db.execute("select count(*) as total from rate_limits");
+    expect(Number(rows.rows[0].total)).toBe(0);
+  });
+
+  it("kegagalan database tidak menghalangi baca publik (fail open)", async () => {
+    dbRef.current = null;
+
+    // Limiter di memori tidak menyentuh database; 404 tetap dijawab apa adanya.
+    const response = await call(STORY_ID);
+    expect(response.status).not.toBe(429);
   });
 });

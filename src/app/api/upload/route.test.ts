@@ -7,7 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * Handler POST dipanggil langsung dengan `Request` asli; database memakai
  * libSQL in-memory tanpa jaringan. Yang di-mock:
  *
- * - `next/headers` untuk cookie sesi guru (sama seperti `auth.test.ts`).
+ * - `next/headers` untuk cookie sesi guru (sama seperti `auth.test.ts`) dan
+ *   untuk header IP yang dipakai rate limit.
  * - `@/server/db` supaya `getReadyDb()` mengembalikan client in-memory, dan
  *   supaya kegagalan database bisa dipaksakan untuk test 500.
  * - `@/server/jobs/schedule` untuk memastikan bytes PDF diserahkan utuh.
@@ -16,6 +17,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const {
   cookieStore,
   cookiesMock,
+  headersMock,
   scheduleJobMock,
   dbRef,
   getReadyDbMock,
@@ -45,6 +47,7 @@ const {
   return {
     cookieStore,
     cookiesMock: vi.fn(async () => cookieStore),
+    headersMock: vi.fn(),
     scheduleJobMock: vi.fn(),
     dbRef,
     getReadyDbMock,
@@ -52,7 +55,10 @@ const {
   };
 });
 
-vi.mock("next/headers", () => ({ cookies: cookiesMock }));
+vi.mock("next/headers", () => ({
+  cookies: cookiesMock,
+  headers: headersMock,
+}));
 vi.mock("@/server/db", () => ({ getReadyDb: getReadyDbMock }));
 vi.mock("@/server/jobs/schedule", () => ({ scheduleJob: scheduleJobMock }));
 
@@ -75,11 +81,20 @@ import {
   TEACHER_ID,
   TEACHER_SESSION_COOKIE,
 } from "@/server/auth";
+import { teacherRateLimitKey } from "@/server/rate-limit/identity";
 import { MAX_PDF_BYTES } from "@/server/upload";
+import { globalRateLimitKey } from "@/server/rate-limit/identity";
+import {
+  UPLOAD_GLOBAL_RATE_LIMIT,
+  UPLOAD_IP_RATE_LIMIT,
+  UPLOAD_TEACHER_RATE_LIMIT,
+} from "@/server/rate-limit/limits";
 
 import { POST } from "./route";
 
 const ACCESS_CODE = "kode-demo-rahasia-4c1e";
+/** IP palsu (dokumen contoh RFC 5737); hanya untuk test. */
+const CLIENT_IP = "203.0.113.50";
 const SESSION_SECRET = "secret-uji-sesi-yang-panjang-9b2f";
 
 const VALID_FIELDS = {
@@ -126,8 +141,51 @@ function multipartRequest(options: {
   });
 }
 
+/**
+ * Set header IP untuk rate limit. Namanya sengaja tanpa awalan `use` supaya
+ * `react-hooks/rules-of-hooks` tidak menganggapnya React Hook saat dipanggil di
+ * dalam loop test.
+ */
+function sendAsIp(ip: string = CLIENT_IP): void {
+  headersMock.mockResolvedValue({
+    get: (name: string) => (name.toLowerCase() === "x-real-ip" ? ip : null),
+  });
+}
+
+/** Jumlah baris `rate_limits` untuk kebijakan tertentu. */
+async function rateLimitCount(db: Client, limitName: string): Promise<number> {
+  const result = await db.execute({
+    sql: "select coalesce(sum(count), 0) as total from rate_limits where key like ?",
+    args: [`${limitName}:%`],
+  });
+  return Number(result.rows[0].total);
+}
+
+/**
+ * Isi langsung kuota satu kebijakan upload.
+ *
+ * Dipakai supaya test tidak perlu 100 request untuk mencapai batas global.
+ * Key diambil dari helper yang sama dengan handler (secret dari environment),
+ * jadi nilainya selalu cocok. Jendela dihitung seperti `checkRateLimit`.
+ */
+async function fillRateLimit(
+  db: Client,
+  policy: { name: string; limit: number; windowSeconds: number },
+  key: string,
+  used: number = policy.limit,
+): Promise<void> {
+  const windowStart =
+    Math.floor(Math.floor(Date.now() / 1000) / policy.windowSeconds) *
+    policy.windowSeconds;
+
+  await db.execute({
+    sql: "insert into rate_limits (key, window_start, count) values (?, ?, ?)",
+    args: [key, windowStart, used],
+  });
+}
+
 /** Cookie sesi valid, rusak, atau tidak ada. */
-function useSession(token: string | null | undefined): void {
+function authenticate(token: string | null | undefined): void {
   if (token === null || token === undefined) {
     cookieStore.get.mockReturnValue(undefined);
     return;
@@ -162,7 +220,8 @@ beforeEach(async () => {
   cookieStore.get.mockReset();
   scheduleJobMock.mockClear();
   getReadyDbMock.mockClear();
-  useSession(createSessionToken(TEACHER_ID));
+  authenticate(createSessionToken(TEACHER_ID));
+  sendAsIp();
 });
 
 afterEach(async () => {
@@ -173,7 +232,7 @@ afterEach(async () => {
 
 describe("POST /api/upload — otorisasi", () => {
   it("menolak tanpa sesi dengan 401 UNAUTHORIZED", async () => {
-    useSession(null);
+    authenticate(null);
 
     const response = await POST(multipartRequest({}));
 
@@ -185,7 +244,7 @@ describe("POST /api/upload — otorisasi", () => {
   });
 
   it("menolak cookie rusak dengan 401", async () => {
-    useSession("payload-yang-rusak.bukan-ttd");
+    authenticate("payload-yang-rusak.bukan-ttd");
 
     const response = await POST(multipartRequest({}));
 
@@ -415,5 +474,146 @@ describe("POST /api/upload — kegagalan database", () => {
     await POST(multipartRequest({}));
 
     expect(await rowCounts(db)).toEqual({ stories: 0, jobs: 0 });
+  });
+});
+
+describe("POST /api/upload — rate limit", () => {
+  it(`menolak setelah ${UPLOAD_IP_RATE_LIMIT.limit} upload dari IP yang sama`, async () => {
+    for (let i = 0; i < UPLOAD_IP_RATE_LIMIT.limit; i += 1) {
+      // Guru berganti setiap kali, jadi yang lebih dulu tercapai adalah batas
+      // per IP (20), bukan batas per guru (10).
+      // Sesi guru lain. Nama `authenticate` dipakai (bukan `use...`) supaya
+      // aturan React Hooks tidak menganggapnya hook saat dipanggil di loop.
+      authenticate(createSessionToken(`teacher_ip_${i}`));
+      sendAsIp(CLIENT_IP);
+      // Sesi guru lain harus punya baris `teachers` (foreign key stories).
+      await db.execute({
+        sql: "insert into teachers (id, display_name) values (?, 'Guru Uji')",
+        args: [`teacher_ip_${i}`],
+      });
+      const response = await POST(multipartRequest({}));
+      expect(response.status, `upload ${i + 1}`).toBe(202);
+    }
+
+    const blocked = await POST(multipartRequest({}));
+
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers.get("cache-control")).toBe("no-store");
+    const retryAfter = Number(blocked.headers.get("retry-after"));
+    expect(Number.isInteger(retryAfter)).toBe(true);
+    expect(retryAfter).toBeGreaterThan(0);
+
+    const body = (await blocked.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("RATE_LIMITED");
+    expect(JSON.stringify(body)).not.toContain(CLIENT_IP);
+
+    // Tidak ada story/job baru, dan bytes tidak pernah masuk pipeline.
+    expect(await rowCounts(db)).toEqual({
+      stories: UPLOAD_IP_RATE_LIMIT.limit,
+      jobs: UPLOAD_IP_RATE_LIMIT.limit,
+    });
+  });
+
+  it("menolak guru yang melewati batas per guru (dari IP berbeda)", async () => {
+    for (let i = 0; i < UPLOAD_TEACHER_RATE_LIMIT.limit; i += 1) {
+      // IP berbeda setiap kali supaya hanya batas per guru yang tercapai.
+      sendAsIp(`203.0.113.${100 + i}`);
+      // Sesi guru lain harus punya baris `teachers` (foreign key stories).
+      await db.execute({
+        sql: "insert into teachers (id, display_name) values (?, 'Guru Uji')",
+        args: [`teacher_ip_${i}`],
+      });
+      const response = await POST(multipartRequest({}));
+      expect(response.status, `upload ${i + 1}`).toBe(202);
+    }
+
+    sendAsIp("203.0.113.200");
+    const blocked = await POST(multipartRequest({}));
+
+    expect(blocked.status).toBe(429);
+    await expect(blocked.json()).resolves.toMatchObject({
+      error: { code: "RATE_LIMITED" },
+    });
+
+    // Guru yang sama tidak bisa menembus dengan IP baru.
+    sendAsIp("203.0.113.201");
+    expect((await POST(multipartRequest({}))).status).toBe(429);
+
+    expect(await rowCounts(db)).toEqual({
+      stories: UPLOAD_TEACHER_RATE_LIMIT.limit,
+      jobs: UPLOAD_TEACHER_RATE_LIMIT.limit,
+    });
+  });
+
+  it("batas global menolak guru mana pun", async () => {
+    // Kuota global diisi seperti lalu lintas sebelumnya. IP dan guru yang
+    // dipakai di bawah masih bersih, jadi penolakan murni dari batas global.
+    await fillRateLimit(
+      db,
+      UPLOAD_GLOBAL_RATE_LIMIT,
+      globalRateLimitKey(UPLOAD_GLOBAL_RATE_LIMIT.name),
+    );
+
+    const blocked = await POST(multipartRequest({}));
+
+    expect(blocked.status).toBe(429);
+    await expect(blocked.json()).resolves.toMatchObject({
+      error: { code: "RATE_LIMITED" },
+    });
+    expect(scheduleJobMock).not.toHaveBeenCalled();
+    expect(await rowCounts(db)).toEqual({ stories: 0, jobs: 0 });
+  });
+
+  it("permintaan tanpa sesi (401) tidak menambah hitungan per guru atau global", async () => {
+    authenticate(null);
+
+    for (let i = 0; i < 3; i += 1) {
+      expect((await POST(multipartRequest({}))).status).toBe(401);
+    }
+
+    expect(await rateLimitCount(db, UPLOAD_TEACHER_RATE_LIMIT.name)).toBe(0);
+    expect(await rateLimitCount(db, UPLOAD_GLOBAL_RATE_LIMIT.name)).toBe(0);
+    // Batas per IP sengaja tetap dihitung lebih dulu (sebelum sesi).
+    expect(await rateLimitCount(db, UPLOAD_IP_RATE_LIMIT.name)).toBe(3);
+  });
+
+  it("pemeriksaan rate limit terjadi sebelum file dibaca", async () => {
+    // Kuota per guru "sudah habis" dari unggahan sebelumnya (disimulasikan
+    // langsung di tabel supaya test cepat). Kalau file dibaca duluan,
+    // jawabannya 413 karena Content-Length di atas batas; kalau rate limit
+    // duluan, 429.
+    await fillRateLimit(
+      db,
+      UPLOAD_TEACHER_RATE_LIMIT,
+      teacherRateLimitKey(UPLOAD_TEACHER_RATE_LIMIT.name, TEACHER_ID),
+    );
+
+    const response = await POST(
+      multipartRequest({
+        file: pdfFile(MAX_PDF_BYTES + 1),
+        extraHeaders: {
+          "content-length": String(MAX_PDF_BYTES + 1024 * 1024),
+        },
+      }),
+    );
+
+    expect(response.status).toBe(429);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "RATE_LIMITED" },
+    });
+  });
+
+  it("penghitung database gagal → 500 generik tanpa detail (fail closed)", async () => {
+    authenticate(createSessionToken(TEACHER_ID));
+    dbRef.failWith = new Error("SQLITE_BUSY: pesan driver yang rahasia");
+
+    const response = await POST(multipartRequest({}));
+
+    expect(response.status).toBe(500);
+    const body = (await response.json()) as { error: Record<string, unknown> };
+    expect(Object.keys(body.error).sort()).toEqual(["code", "message"]);
+    expect(body.error.code).toBe("INTERNAL");
+    expect(JSON.stringify(body)).not.toContain("SQLITE_BUSY");
+    expect(scheduleJobMock).not.toHaveBeenCalled();
   });
 });

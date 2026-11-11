@@ -53,18 +53,21 @@ export type ApiErrorBody = {
  * @param status HTTP status yang menyertainya.
  * @param message pesan statis dalam bahasa Indonesia, aman ditampilkan.
  * @param details detail opsional yang tidak sensitif.
+ * @param extraHeaders header tambahan (mis. `Retry-After` untuk 429). Tidak
+ * boleh menimpa `Cache-Control`; nilainya selalu `no-store`.
  */
 export function apiErrorResponse(
   code: ApiErrorCode,
   status: number,
   message: string,
   details?: Record<string, unknown>,
+  extraHeaders?: Record<string, string>,
 ): Response {
   const body: ApiErrorBody = { error: { code, message } };
   if (details !== undefined) body.error.details = details;
 
   return Response.json(body, {
     status,
-    headers: { "Cache-Control": "no-store" },
+    headers: { ...extraHeaders, "Cache-Control": "no-store" },
   });
 }
