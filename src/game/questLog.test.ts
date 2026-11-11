@@ -94,20 +94,20 @@ describe("judulQuest", () => {
 });
 
 describe("pilihPemberiQuest", () => {
-  const npcs = [{ id: "char_pak_bima" }, { id: "char_tirta" }];
+  const npcs = [{ id: "char_rani" }, { id: "char_pak_bima" }];
 
   it("memilih pembicara dialog pertama yang hadir di ruangan", () => {
-    expect(pilihPemberiQuest(sceneAwal, npcs)).toBe("char_pak_bima");
+    expect(pilihPemberiQuest(sceneAwal, npcs)).toBe("char_rani");
   });
 
   it("jatuh ke NPC pertama bila pembicara tidak ada di ruangan", () => {
-    const hanyaTirta = [{ id: "char_tirta" }];
-    // Scene pertama dibuka Pak Bima, tetapi ia tidak ada di ruangan ini.
-    expect(pilihPemberiQuest(sceneAwal, hanyaTirta)).toBe("char_tirta");
+    const hanyaPakBima = [{ id: "char_pak_bima" }];
+    // Scene pertama dibuka Rani, tetapi ia tidak ada di ruangan ini.
+    expect(pilihPemberiQuest(sceneAwal, hanyaPakBima)).toBe("char_pak_bima");
   });
 
   it("jatuh ke NPC pertama saat scene kosong", () => {
-    expect(pilihPemberiQuest(null, npcs)).toBe("char_pak_bima");
+    expect(pilihPemberiQuest(null, npcs)).toBe("char_rani");
   });
 
   it("mengembalikan null bila ruangan tidak punya NPC", () => {

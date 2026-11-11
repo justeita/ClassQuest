@@ -13,10 +13,11 @@ Dokumen ini merinci rencana teknis dan arsitektur untuk memperbarui dunia permai
 3. **Karakter Baru**: Protagonis (MC) digambar ulang di generator repo dengan siluet terinspirasi Nino (ekor kembar dan pita kupu-kupu), memakai kerangka animasi 8 arah milik proyek.
 4. **Story Demo / Fixture**: Pembaruan cerita demo statis (`demo-story.json`) agar skenario cerita secara alami mengeksplorasi kedua map tersebut.
 
-> **Status implementasi (2026-11-11).** PR 1 (aset + manifest) dan PR 2 (data
-> ruangan) selesai: tile koridor, prop taman/interior, `char_nino`, portrait,
-> serta ruangan `lorong_sekolah`, `kelas_a`, dan `halaman_sekolah` sudah ada.
-> PR 3 (story demo) belum dikerjakan.
+> **Status implementasi (2026-11-11).** PR 1 (aset + manifest), PR 2 (data
+> ruangan), dan PR 3 (story demo) selesai: tile koridor, prop taman/interior,
+> `char_nino`, portrait, ruangan `lorong_sekolah`, `kelas_a`, dan
+> `halaman_sekolah`, serta cerita demo baru yang memakai Nino sebagai pemain
+> dan Rani sebagai NPC.
 
 ---
 
@@ -34,7 +35,7 @@ Gedung sekolah dibagi menjadi 2 room data terpisah untuk memberikan fokus visual
 - **Ukuran**: 60×24 tile (960×384 px, lorong memanjang horizontal). Tinggi 24 tile dipilih supaya memenuhi minimum 40×23 di [`world-design.md`](./world-design.md) — dengan 18 tile (288 px) kamera 360 px akan memperlihatkan area kosong di luar peta.
 - **Lantai & Dinding**: Lantai ubin koridor (`tile_floor_corridor`), dinding atas 2 tile (`tile_wall_plaster`) dengan pintu-pintu kelas dan jendela kaca.
 - **Objek/Prop**: Mading sekolah (memakai `prop_blackboard` sebagai papan dekoratif), rak (`prop_shelf`), pintu kelas A (`prop_door` di `tileX: 16`), pintu kelas B (`prop_door` di `tileX: 36`), dan pintu keluar ke halaman di puncak ujung kanan (`tileX: 56`).
-- **NPC**: Pak Bima di depan kelas untuk scene `sc_01_01`. Rani menyusul di PR 3 setelah `char_rani` masuk cast.
+- **NPC**: Rani dan Pak Bima di depan kelas untuk scene `sc_01_01`; Rani yang menyapa lebih dulu, jadi ia pemberi quest scene itu.
 
 #### 1B. Ruang Kelas (`kelas_a`)
 
@@ -64,7 +65,7 @@ Gedung sekolah dibagi menjadi 2 room data terpisah untuk memberikan fokus visual
   - Pohon rindang besar (`prop_tree_large`), pohon sedang (`prop_tree_medium`), dan pohon berbunga (`prop_tree_flower`).
   - Semak kecil (`prop_bush_small`) dan semak bunga merah muda (`prop_bush_flower`).
   - Kolam kecil (`prop_pond`) dengan air (`tile_floor_water`).
-- **NPC**: Tirta (roh air) di tepi kolam dan Pak Bima yang sedang mengamati alam.
+- **NPC**: Tirta (roh air) di tepi kolam, Pak Bima yang mengamati alam, dan Rani yang mencatat pengamatan.
 
 ---
 
@@ -165,16 +166,31 @@ Agar 2 map (Gedung Sekolah dan Halaman Luar) terpakai secara fungsional dalam de
 
 ```mermaid
 flowchart TD
-  subgraph Chapter1["Chapter 1: Pengamatan di Dalam Kelas (Indoor)"]
-    S1["sc_01_01: Mulai di Lorong Sekolah<br/>(Bicara dengan Rani & masuk ke kelas)"] --> S2["sc_01_02: Penjelasan Materi di Kelas A<br/>(Bicara dengan Pak Bima di depan papan)"]
-    S2 --> S3["sc_01_03: Tantangan Konsep Kelas<br/>(Kuis Interaktif Papan Tulis)"]
+  subgraph Chapter1["Chapter 1: Genangan yang Menyusut (Indoor, Evaporasi)"]
+    S1["sc_01_01 (lorong): Nino & Rani di depan genangan,<br/>Pak Bima di ambang pintu kelas"] --> S2["sc_01_02 (kelas A): Pak Bima menjelaskan uap<br/>+ tantangan chl_01_01"]
+    S2 --> S3["sc_01_03 (kelas A): Tirta memperkenalkan diri<br/>+ tantangan chl_01_02"]
   end
 
-  subgraph Chapter2["Chapter 2: Penyelidikan di Halaman Sekolah (Outdoor)"]
-    S3 --> S4["sc_02_01: Menuju Halaman Sekolah<br/>(Mencari fenomena air & pohon)"]
-    S4 --> S5["sc_02_02: Interaksi dengan Tirta di Dekat Air<br/>(Observasi infiltrasi & evaporasi alami)"]
-    S5 --> S6["sc_02_03: Ujian Akhir Siklus Alam<br/>(Tantangan Lapangan & Hasil Evaluasi)"]
+  subgraph Chapter2["Chapter 2: Kabut di Atas Taman (Outdoor, Kondensasi)"]
+    S3 --> S4["sc_02_01 (halaman): Tirta mengeras jadi titik air<br/>+ tantangan chl_02_01 (ordering)"]
+    S4 --> S5["sc_02_02 (halaman): awan bukan kapas<br/>+ tantangan chl_02_02"]
+    S5 --> S6["sc_02_03 (halaman): awan makin berat,<br/>Rani melihat langit gelap"]
+  end
+
+  subgraph Chapter3["Chapter 3: Air Kembali ke Taman (Outdoor, Infiltrasi)"]
+    S6 --> S7["sc_03_01 (halaman): dua jalan air hujan<br/>+ tantangan chl_03_01 (short_answer)"]
+    S7 --> S8["sc_03_02 (halaman): akar minum & air tanah<br/>+ tantangan chl_03_02 (true_false)"]
+    S8 --> S9["sc_03_03 (halaman): kolam taman kembali penuh<br/>(penutup)"]
   end
 ```
 
-- **Manfaat**: Penguji/juri langsung dapat melihat perpindahan mulus dari ruangan indoor (lorong -> kelas) menuju outdoor (taman sekolah) lengkap dengan musik latar yang berganti otomatis (`bgm_school_calm` -> `bgm_adventure`).
+- **Manfaat**: Penguji/juri langsung dapat melihat perpindahan mulus dari ruangan indoor (lorong -> kelas) menuju outdoor (taman sekolah), lengkap dengan
+  musik latar yang berganti otomatis (`bgm_school_calm` -> `bgm_adventure` ->
+  `bgm_ending`).
+- **Catatan bentuk**: skema Story mewajibkan **minimal 3 bab**, jadi rencana awal
+  dua bab diperluas menjadi tiga bab (9 scene). Tiap bab memakai satu konsep
+  (Evaporasi, Kondensasi, Infiltrasi) dan minimal satu tantangan; scene
+  pembuka/penutup sengaja tanpa tantangan, yang memunculkan peringatan
+  `W_NO_CHALLENGE_IN_SCENE` seperti pada fixture lama.
+- **Pemetaan ruangan**: `sc_01_01` -> `lorong_sekolah`, `sc_01_02`/`sc_01_03` ->
+  `kelas_a`, dan seluruh `sc_02_*` serta `sc_03_*` -> `halaman_sekolah`.

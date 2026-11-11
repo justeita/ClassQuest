@@ -651,8 +651,6 @@ describe("fixture demo game", () => {
       "W_NO_CHALLENGE_IN_SCENE",
       "W_NO_CHALLENGE_IN_SCENE",
       "W_NO_CHALLENGE_IN_SCENE",
-      "W_LONG_DIALOGUE_RUN",
-      "W_LONG_DIALOGUE_RUN",
     ]);
   });
 });
