@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -112,14 +112,23 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Kanvas `Scale.FIT` di dalam halaman **full-bleed**: kanvas selalu tampil
   utuh (tidak pernah ter-crop) dan menempel ke tepi pada sisi yang rasionya
   cocok; sisa area memakai latar palet gelap, bukan kotak putus di tengah.
-- Tombol buku quest di kiri atas (`📖 Quest [Q]`): membuka jendela buku catatan ala Minecraft journal dengan 2 halaman perkamen yang menampilkan bab, judul scene, daftar tugas dengan status `Aktif`/`Selesai`/`Terkunci`, dan hitungan tantangan. Dapat dibuka/tutup dengan tombol `Q` atau `Esc`.
-- HUD kanan atas: tombol jeda dan tombol suara. Judul chapter tidak menetap di
+- Tombol buku quest di kiri atas (`Q` Quest): membuka jendela buku catatan ala Minecraft journal dengan 2 halaman perkamen yang menampilkan bab, judul scene, daftar tugas dengan status `Aktif`/`Selesai`/`Terkunci`, dan hitungan tantangan. Dapat dibuka/tutup dengan tombol `Q` atau `Esc`.
+- HUD kanan atas: tombol jeda dan tombol suara. Semua tombol HUD dan quest
+  menampilkan tombol keyboardnya sebagai keycap konsisten (`Tab`, `B`, `Q`,
+  `Esc`) lewat komponen `Keycap`. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
 - Penanda `!` hanya ada di atas NPC pemberi quest. Saat pemain mendekat, chip
   `Space` menggantikan penanda itu. Keduanya memakai koordinat layar yang ikut
   kamera dan disembunyikan selama dialog, tantangan, atau menu jeda.
-- Tombol `Log` (`B`) membuka buku catatan dua halaman: riwayat dialog
+- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
+  petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
+  ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti
+  time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
+  (`SpeedLines`); dilepas, tempo kembali normal. Soal tidak bisa dilewati —
+  tombol dan pintasan berhenti di beat tantangan, dan fade transisi tetap
+  diputar.
+- Tombol `Catatan` (`B`) membuka buku catatan dua halaman: riwayat dialog
   (dikelompokkan per scene, dengan chip nama pembicara) dan jurnal konsep
   (conceptTag, status benar/perlu diulang, penjelasan). Dunia dibekukan
   selama buku terbuka; musik tetap diputar penuh. Buku dibersihkan saat

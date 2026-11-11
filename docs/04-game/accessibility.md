@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -38,13 +38,17 @@ diakses. Dokumen ini menetapkan batas jujur dan target minimum.
 | Pilih opsi     | `1`–`5`, `↑`/`↓` + `Enter`    |
 | Submit jawaban | `Enter`                       |
 | Menu jeda      | `Esc`                         |
+| Lewati dialog  | `Tab` (tahan), "Percepat"     |
 | Tutup overlay  | `Esc` (hanya setelah dijawab) |
 
 Aturan:
 
 - Urutan fokus logis: prompt → opsi → tombol jawab → feedback → lanjut.
 - Jangan memasang `tabindex` positif.
-- Jangan menangkap `Tab`; biarkan browser memindahkan fokus.
+- Jangan menangkap `Tab`; biarkan browser memindahkan fokus. **Pengecualian:**
+  hanya selama fase `dialog`, `Tab` dipakai untuk "Percepat" dan diambil alih
+  (`preventDefault`). Di semua fase lain — termasuk saat soal — `Tab` kembali
+  memindahkan fokus seperti biasa.
 - Saat panel tantangan muncul, fokus pindah ke panel itu sendiri (`tabIndex={-1}`).
 - Saat panel ditutup, fokus kembali ke area permainan (canvas), bukan hilang ke
   `body`.

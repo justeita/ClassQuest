@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -102,6 +102,7 @@ tidak menyalin tipenya, hanya perilakunya.
 | `Esc`                       | `dialog`    | Buka menu jeda                                             |
 | Klik "Lanjut"               | `dialog`    | Sama seperti klik di mana saja                             |
 | Klik "Ulangi chapter"       | `paused`    | Reset ke awal chapter, simpan progres                      |
+| `Tab` / tombol "Percepat"   | `dialog`    | Tahan: time-lapse beat sampai soal atau explore            |
 
 Aturan input:
 
@@ -109,6 +110,11 @@ Aturan input:
 - Saat `explore`, gerak bebas; saat `dialog`/`challenge`, input gerak **terkunci**.
 - Saat `challenge`, input dialog **diabaikan**.
 - Saat transisi/fade, input diabaikan sampai selesai.
+- **Percepat tidak pernah melewati soal.** `Tab`/tombol "Percepat" hanya aktif
+  saat fase `dialog` dan memakai pola tahan-tombol ala Persona: selama ditahan,
+  beat dimajukan bertahap seperti time-lapse (100 ms per beat); dilepas, tempo
+  kembali normal. Skip berhenti di beat `challenge`, dan fade transisi tetap
+  diputar. Setiap beat yang dilewati tetap masuk buku catatan log.
 - Saat tab tidak aktif (`visibilitychange`), game pause otomatis.
 
 ## Alur tantangan

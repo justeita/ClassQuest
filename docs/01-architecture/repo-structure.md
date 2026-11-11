@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -120,13 +120,16 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/components/game/ChallengeOverlay.tsx` | ya      | Overlay tantangan DOM di atas canvas                  |
 | `src/components/game/DialogueBox.tsx`      | ya      | Teks dialog DOM di atas panel Phaser (ADR 0007)       |
 | `src/components/game/InteractHint.tsx`     | ya      | Chip prompt "Space" DOM di atas canvas                |
+| `src/components/game/Keycap.tsx`           | ya      | Keycap tombol keyboard yang seragam di semua tombol   |
+| `src/components/game/SkipHint.tsx`         | ya      | Petunjuk "tahan Tab" di atas panel dialog             |
+| `src/components/game/SpeedLines.tsx`       | ya      | Garis kecepatan tepi layar saat percepat berjalan     |
 | `src/components/game/NpcMarker.tsx`        | ya      | Penanda "!" NPC pemberi quest (koordinat layar)       |
 | `src/components/game/QuestTracker.tsx`     | ya      | Panel quest chapter turunan scene                     |
 | `src/components/game/ChapterCard.tsx`      | ya      | Kartu judul chapter saat bab berganti                 |
 | `src/components/game/QuestToast.tsx`       | ya      | Notifikasi "Quest baru" saat scene berganti           |
 | `src/components/game/GameShell.tsx`        | ya      | Shell halaman game + state layar judul/main/hasil     |
 | `src/components/game/TitleScreen.tsx`      | ya      | Layar judul: ringkasan cerita + menu Mulai            |
-| `src/components/game/HUD.tsx`              | ya      | HUD: tombol suara dan tombol jeda                     |
+| `src/components/game/HUD.tsx`              | ya      | HUD: percepat, catatan, musik, jeda                   |
 | `src/components/game/PauseMenu.tsx`        | ya      | Menu jeda: lanjut, ulangi chapter, suara, keluar      |
 | `src/components/game/ResultScreen.tsx`     | ya      | Layar hasil: skor, jawaban tepat, konsep lemah        |
 | `src/app/play`                             | ya      | Halaman siswa dari cerita demo                        |
