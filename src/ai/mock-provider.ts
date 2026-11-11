@@ -25,6 +25,13 @@
  *    `validation-and-repair.md` (repair → chapter → outline),
  * 3. `"chapter"` sebagai bawaan.
  *
+ * **Chapter mengikuti id prompt.** Dalam mode bawaan (tanpa `stage`/`sequence`
+ * eksplisit) tahap chapter memakai fixture `chapter/<id>.json` bila ada, mis.
+ * `ch_02` → `chapter/ch_02.json`. `ch_01` tetap memakai `chapter/valid.json`.
+ * Tanpa pemetaan ini, outline tiga chapter akan menerima fixture chapter yang
+ * sama tiga kali; id duplikat membuat cerita tidak valid dan pipeline selalu
+ * jatuh ke fallback.
+ *
  * Tahap `"story"` bukan tahap pipeline; ia hanya menyajikan `Story` utuh untuk
  * menguji validator dan fallback. Skrip rusak selalu tersedia di
  * `outputs/story/`, sehingga tahap mana pun bisa memakainya bila tidak ada
@@ -115,6 +122,9 @@ const CHAPTER_PROMPT = "SCHEMA CHAPTER";
 /** Baris `OUTLINE` yang berdiri sendiri di blok schema outline. */
 const OUTLINE_PROMPT = /(^|\n)OUTLINE(\r?\n|$)/;
 
+/** `TASK` chapter di `prompt-contract.md`: `Tulis chapter "ch_02" ...`. */
+const CHAPTER_ID_PROMPT = /Tulis chapter "([^"]+)"/;
+
 const stageFromPrompt = (req: LlmRequest): MockStage | null => {
   if (REPAIR_PROMPT.test(req.user)) return "repair";
   if (req.user.includes(CHAPTER_PROMPT)) return "chapter";
@@ -137,6 +147,18 @@ const fixturePath = (stage: MockStage, scenario: MockScenario): string => {
   throw new Error(
     `Fixture mock tidak ditemukan untuk tahap "${stage}" skenario "${scenario}" di src/ai/__fixtures__/outputs/.`,
   );
+};
+
+/**
+ * Fixture chapter untuk id yang diminta prompt (`ch_02` → `chapter/ch_02.json`).
+ * `null` bila id tidak punya fixture khusus; pemanggil memakai `valid.json`.
+ */
+const plannedChapterFixture = (user: string): string | null => {
+  const id = CHAPTER_ID_PROMPT.exec(user)?.[1];
+  if (id === undefined) return null;
+
+  const candidate = `chapter/${id}.json`;
+  return existsSync(join(OUTPUTS_DIR, candidate)) ? candidate : null;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -212,6 +234,24 @@ export class MockProvider implements LlmProvider {
     if (scenario === "timeout") {
       await waitForTimeout(this.timeoutMs, signal);
       throw timeoutError("Mock provider melewati batas waktu panggilan.");
+    }
+
+    // Mode bawaan mengikuti id chapter dari prompt. `stage`/`sequence`
+    // eksplisit tetap menang supaya test bisa memilih fixture rusak.
+    if (
+      step === undefined &&
+      this.stage === null &&
+      stage === "chapter" &&
+      scenario === "valid"
+    ) {
+      const planned = plannedChapterFixture(req.user);
+      if (planned !== null) {
+        return {
+          text: readFileSync(join(OUTPUTS_DIR, planned), "utf8"),
+          usage: { input: 0, output: 0 },
+          model: "mock",
+        };
+      }
     }
 
     const text = readFileSync(fixturePath(stage, scenario), "utf8");

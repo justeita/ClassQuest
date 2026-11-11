@@ -35,18 +35,20 @@ menyerahkan JSON ke client.
 > `ChallengeOverlay`, `QuestTracker`, `NpcMarker`, `ChapterCard`, `QuestToast`,
 > `HUD`, `PauseMenu`, dan `ResultScreen` sudah ada.
 >
-> `/play/[storyId]` sudah berjalan, tetapi cerita masih dibaca dari fixture
-> (`src/game/demoStory.ts`), bukan dari `getPublishedStory()`. Hanya id cerita
-> demo yang dikenali (`generateStaticParams`); id lain → 404. Progres
-> `localStorage` dan layar "Lanjutkan" **belum** ada.
+> `/play/[storyId]` membaca cerita terbit lewat `getPlayableStory()`
+> (`src/server/stories/playable.ts`). Hanya `status = 'published'` dengan
+> `published_version` yang dilayani; status lain, id tidak dikenal, dan id
+> tidak valid → 404. Id demo `st_demo_siklus_air` tetap memakai fixture
+> `src/game/demoStory.ts` supaya pengembangan frontend tidak butuh database.
+> Progres `localStorage` dan layar "Lanjutkan" **belum** ada.
 
 ## Pengambilan data
 
 ```tsx
 export default async function PlayPage(props: PageProps<"/play/[storyId]">) {
   const { storyId } = await props.params;
-  const story = await getPublishedStory(storyId);
-  if (!story) notFound();
+  const story = await getPlayableStory(storyId);
+  if (story === null) notFound();
 
   return <GameShell story={story} />;
 }
@@ -58,6 +60,15 @@ Aturan:
 - Jangan mengembalikan `draft` ke siswa, walaupun tahu `storyId`.
 - `generateMetadata` memakai judul cerita.
 - Respons `GET /api/stories/[storyId]` memakai `Cache-Control: no-store`.
+- Status 404 asli dibuat oleh `src/proxy.ts`, bukan oleh halaman. Dengan Cache
+  Components + Partial Prefetching, `/play/[storyId]` adalah route `◐`: App
+  Shell terkirim lebih dulu (status 200), lalu `notFound()` berjalan — hasilnya
+  soft 404 (`200` + UI 404 + `noindex`). Proxy memeriksa `getPlayableStory()`
+  **sebelum** halaman dirender dan menulis ulang ke `/_not-found`, sehingga
+  checker/analytics melihat `404`.
+- `export const instant = false` di halaman menandai route ini boleh memblokir
+  saat menunggu baca database. Ini hanya mematikan validasi instant-navigation,
+  bukan model render.
 
 ## State di client
 
