@@ -83,6 +83,21 @@ gradien besar atau tepi yang terlihat saat diulang.
 | Outline     | 1 px gelap, konsisten dengan karakter                |
 | Ukuran file | ≤ 20 KB                                              |
 
+### Peta
+
+| Properti    | Nilai                                                  |
+| ----------- | ------------------------------------------------------ |
+| Ukuran      | Kelipatan 16 px, sama dengan ukuran ruangan (ADR 0012) |
+| Format      | PNG tanpa transparansi                                 |
+| Isi         | Satu ruangan utuh: lantai, jalan, air, dan objek diam  |
+| Ukuran file | ≤ 300 KB                                               |
+
+Peta dipakai ruangan yang tidak bisa diwakili satu tile lantai (mis. halaman
+botani). Ia **hanya seni**: collider, spawn, dan NPC tetap berasal dari
+`RoomData` (ADR 0010/0011), jadi menggeser pohon di gambar berarti menggeser
+collider-nya juga. Yang di-commit hanya PNG jadinya; tileset mentahnya tidak
+masuk repo.
+
 ## Musik
 
 | Properti    | Nilai                                |
@@ -153,6 +168,7 @@ public/assets/
 ├── portrait/
 ├── tile/
 ├── prop/
+├── map/
 ├── music/
 ├── sfx/
 └── ui/
@@ -196,7 +212,8 @@ Aset pihak ketiga boleh dipakai selama tiga syarat ini terpenuhi:
    tetapi tetap dicatat di [`../../README.md`](../../README.md#atribusi-pihak-ketiga).
 2. **Yang di-commit hanya aset jadi.** Simpan hasil potong yang benar-benar
    dipakai game, bukan isi paket, PSD, atau file mentah. Ini menjaga repo tetap
-   kecil sekaligus mematuhi larangan redistribusi file seni mentah.
+   kecil sekaligus mematuhi larangan redistribusi file seni mentah. Peta jahitan
+   (ADR 0012) dihitung aset jadi: yang masuk repo hanya PNG hasil akhirnya.
 3. **Bisa diulang.** Catat berkas asal dan kotak potongnya di
    [`inventory.md`](./inventory.md), supaya aset bisa dibuat ulang tanpa
    menyimpan paket sumbernya.

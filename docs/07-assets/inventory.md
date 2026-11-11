@@ -37,10 +37,11 @@ Sebagian besar berkas di tabel ini dibuat generator di repo:
 Jalankan ulang perintah itu setelah mengubah `scripts/lib/`; hasil gambar
 dijamin identik.
 
-Pengecualian: tujuh prop taman/interior adalah aset pihak ketiga yang sudah
-dipotong dan di-commit sebagai file game. Generator **tidak** menimpanya karena
-namanya tidak ada di daftar `IMAGES`. Kotak potong dan sumbernya dicatat di
-[Sumber dan lisensi](#sumber-dan-lisensi).
+Pengecualian: tujuh prop taman/interior dan satu peta halaman adalah aset pihak
+ketiga yang sudah diproses dan di-commit sebagai file game. Generator **tidak**
+menimpanya karena namanya tidak ada di daftar `IMAGES`. Peta dijahit
+`scripts/compose-map.mjs` (sekali jalan, hasilnya di-commit). Kotak potong dan
+sumbernya dicatat di [Sumber dan lisensi](#sumber-dan-lisensi).
 
 ## Background
 
@@ -100,6 +101,15 @@ namanya tidak ada di daftar `IMAGES`. Kotak potong dan sumbernya dicatat di
 | `prop_pond`        | Kolam taman            | `/assets/prop/pond.png`        | kolam, air, taman, luar, pond, water                | placeholder |
 | `prop_default`     | Prop default           | `/assets/prop/default.png`     | default, cadangan, netral, fallback                 | placeholder |
 
+## Peta
+
+Satu gambar penuh per ruangan (ADR 0012). Ukuran wajib kelipatan 16 dan sama
+dengan `widthTiles`×`heightTiles` ruangannya.
+
+| id                    | Label                | Path                              | Ukuran  | Tags                                              | Status |
+| --------------------- | -------------------- | --------------------------------- | ------- | ------------------------------------------------- | ------ |
+| `map_halaman_sekolah` | Peta halaman sekolah | `/assets/map/halaman_sekolah.png` | 896×544 | peta, halaman, taman, sekolah, luar, map, outdoor | ready  |
+
 ## Musik
 
 | id                | Label          | Path                            | Tags                                   | Status |
@@ -146,10 +156,11 @@ dimuat `next/font/local` dari `public/fonts/` (ADR 0007).
 | `character`  | 6      |
 | `tile`       | 11     |
 | `prop`       | 13     |
+| `map`        | 1      |
 | `music`      | 5      |
 | `sfx`        | 4      |
 | `ui`         | 3      |
-| **Total**    | **50** |
+| **Total**    | **51** |
 
 ## Prioritas pengerjaan
 
@@ -164,14 +175,15 @@ Urutan yang disarankan agar game bisa tampil cepat:
 
 ## Sumber dan lisensi
 
-| id                                                                           | Sumber                                    | Berkas asal                                  | Lisensi               |
-| ---------------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------- | --------------------- |
-| Semua aset lain (background, karakter, tile, prop generator, musik, sfx, ui) | Dibuat generator repo                     | `scripts/lib/*.mjs`                          | Milik proyek          |
-| `prop_tree_large`, `prop_tree_medium`, `prop_tree_flower`                    | Craftpix — Free Top Down Trees Pixel Art  | `Tree1.png`, `Tree2.png`, `Flower_tree1.png` | Craftpix Free License |
-| `prop_bush_small`, `prop_bush_flower`                                        | Craftpix — Free Top Down Bushes Pixel Art | `Autumn_bush1.png`, `Bush_pink_flowers1.png` | Craftpix Free License |
-| `prop_shelf`                                                                 | Craftpix — Main Character's Home          | `Interior.png`, potong `x=160 y=80 32×48`    | Craftpix Free License |
-| `prop_door`                                                                  | Craftpix — Main Character's Home          | `walls_floor.png`, potong `x=112 y=96 32×32` | Craftpix Free License |
-| Font Patrick Hand (`public/fonts/`)                                          | Google Fonts                              | `patrick-hand-latin.woff2`                   | SIL OFL 1.1           |
+| id                                                                           | Sumber                                    | Berkas asal                                  | Lisensi                   |
+| ---------------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------- | ------------------------- |
+| Semua aset lain (background, karakter, tile, prop generator, musik, sfx, ui) | Dibuat generator repo                     | `scripts/lib/*.mjs`                          | Milik proyek              |
+| `prop_tree_large`, `prop_tree_medium`, `prop_tree_flower`                    | Craftpix — Free Top Down Trees Pixel Art  | `Tree1.png`, `Tree2.png`, `Flower_tree1.png` | Craftpix Free License     |
+| `prop_bush_small`, `prop_bush_flower`                                        | Craftpix — Free Top Down Bushes Pixel Art | `Autumn_bush1.png`, `Bush_pink_flowers1.png` | Craftpix Free License     |
+| `prop_shelf`                                                                 | Craftpix — Main Character's Home          | `Interior.png`, potong `x=160 y=80 32×48`    | Craftpix Free License     |
+| `prop_door`                                                                  | Craftpix — Main Character's Home          | `walls_floor.png`, potong `x=112 y=96 32×32` | Craftpix Free License     |
+| `map_halaman_sekolah`                                                        | Ventilatore — The Fan-tasy Tileset (Free) | dijahit `scripts/compose-map.mjs`            | The Fan-tasy Free License |
+| Font Patrick Hand (`public/fonts/`)                                          | Google Fonts                              | `patrick-hand-latin.woff2`                   | SIL OFL 1.1               |
 
 Ketiga paket Craftpix berasal dari <https://craftpix.net>. Lisensi freebie-nya
 mengizinkan pemakaian di proyek komersial maupun non-komersial dan mengizinkan
@@ -180,6 +192,16 @@ modifikasi; atribusi tidak diwajibkan, tetapi tetap dicatat di
 menjual atau mendistribusikan ulang file seni mentah, jadi repo ini hanya memuat
 aset yang sudah dipotong dan dipakai game — bukan isi paket, PSD, atau file
 sumber lain.
+
+`map_halaman_sekolah` dijahit dari **The Fan-tasy Tileset (Free)** oleh
+Ventilatore (<https://ventilatore.itch.io/the-fantasy-tileset>). Edisi gratisnya
+**non-komersial**: boleh dipakai dan diubah untuk proyek non-komersial, tetapi
+tidak boleh dijual atau didistribusikan ulang sebagai aset. Yang di-commit hanya
+satu gambar peta jadi hasil jahitan — bukan tileset mentahnya. Karena proyek ini
+belum menetapkan lisensi komersial (lihat
+[`../../README.md`](../../README.md#lisensi-dan-penggunaan)), bila ClassQuest
+kelak dikomersialkan, peta ini **wajib diganti** dengan aset berlisensi komersial
+atau digambar ulang oleh tim.
 
 `char_nino` **tidak** memakai sprite pack mana pun. Ia digambar generator dengan
 resep sendiri (ekor kembar dan pita kupu-kupu) memakai palet sembilan warna

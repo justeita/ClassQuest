@@ -14,7 +14,7 @@
 import type { AssetManifest } from "../story/validate";
 
 export type AssetKind =
-  "background" | "character" | "tile" | "prop" | "music" | "sfx" | "ui";
+  "background" | "character" | "tile" | "prop" | "map" | "music" | "sfx" | "ui";
 
 export type AssetEntry = {
   id: string;
@@ -470,6 +470,17 @@ export const ASSETS: readonly AssetEntry[] = [
     width: 16,
     height: 16,
   },
+
+  /* Peta jadi: satu gambar penuh per ruangan (ADR 0012) */
+  {
+    id: "map_halaman_sekolah",
+    kind: "map",
+    path: "/assets/map/halaman_sekolah.png",
+    label: "Peta halaman sekolah",
+    tags: ["peta", "halaman", "taman", "sekolah", "luar", "map", "outdoor"],
+    width: 896,
+    height: 544,
+  },
 ] as const satisfies readonly AssetEntry[];
 
 export const ASSETS_BY_ID = new Map(ASSETS.map((asset) => [asset.id, asset]));
@@ -483,16 +494,17 @@ export const SFX = ASSETS.filter((asset) => asset.kind === "sfx");
 export const UI = ASSETS.filter((asset) => asset.kind === "ui");
 export const TILES = ASSETS.filter((asset) => asset.kind === "tile");
 export const PROPS = ASSETS.filter((asset) => asset.kind === "prop");
+export const MAPS = ASSETS.filter((asset) => asset.kind === "map");
 
 /**
  * Bentuk minimal yang dipakai `validateStory` (`AssetManifest`): hanya `id` dan
  * `kind`. Murni dan sinkron, jadi aman dipanggil di browser.
  */
 /**
- * Bentuk minimal untuk `validateStory`. Tile dan prop **sengaja dikeluarkan**:
- * keduanya dipakai sisi game (map top-down, ADR 0010) dan tidak pernah dirujuk
- * Story JSON, sedangkan `AssetKind` di `src/story/validate.ts` milik backend
- * dan tidak boleh diperluas dari sini.
+ * Bentuk minimal untuk `validateStory`. Tile, prop, dan peta **sengaja
+ * dikeluarkan**: ketiganya dipakai sisi game (map top-down, ADR 0010/0012) dan
+ * tidak pernah dirujuk Story JSON, sedangkan `AssetKind` di
+ * `src/story/validate.ts` milik backend dan tidak boleh diperluas dari sini.
  */
 export const STORY_ASSET_KINDS: readonly string[] = [
   "background",
