@@ -1,14 +1,14 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Jadwal dan Code Freeze
 
-Sumber: Guidebook LOGICODIX 2026, halaman 5, 14, 16, dan 21.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 4, 12, 16, dan 21.
 
-## Jadwal pengembangan (halaman 14)
+## Jadwal pengembangan (halaman cetak 12)
 
 | Agenda                               | Waktu                       | Konsekuensi                                            |
 | ------------------------------------ | --------------------------- | ------------------------------------------------------ |

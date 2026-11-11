@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -69,23 +69,20 @@ editor mana pun tanpa file biner.
 
 Jujur dulu, supaya tidak ada yang salah paham:
 
-| Bagian                      | Keadaan sekarang                                  |
-| --------------------------- | ------------------------------------------------- |
-| Aplikasi Next.js            | Ada. Next 16.4.5, App Router, Tailwind 4, Bun.    |
-| Halaman                     | Landing starter dan halaman dev `/game`.          |
-| Phaser                      | Terpasang `4.2.1`. Scene masih placeholder.       |
-| Fitur ClassQuest            | Shell game saja. Cerita dan dashboard belum ada.  |
-| Aset game                   | Belum ada di `public/assets/`.                    |
-| Validator, editor, pipeline | Belum ada. Bentuknya sudah disepakati di dokumen. |
-
-Shell Phaser ada di halaman dev `/game` dan tidak ditautkan dari landing. Route
-siswa yang dituju tetap `/play/[storyId]`
-(lihat [`05-frontend/routes.md`](./05-frontend/routes.md)); halaman itu belum
-dibuat.
+| Bagian           | Keadaan sekarang                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------ |
+| Aplikasi Next.js | Ada. Next 16.4.5, App Router, Tailwind 4, Bun.                                       |
+| Landing page     | Masih halaman starter `create-next-app`.                                             |
+| Halaman siswa    | `/play/[storyId]` sudah jalan dengan cerita demo; `/game` adalah shell dev Phaser.   |
+| UI guru          | Belum ada halaman. Baru Server Actions di `src/app/guru/actions.ts`.                 |
+| Backend          | Upload PDF, job generasi, cerita, auth guru, dan hasil main sudah ada (libSQL).      |
+| Pipeline AI      | Ada: mock provider + Anthropic/OpenAI-compatible, dipilih lewat env.                 |
+| Aset game        | Sudah ada di `public/assets/` (hasil `bun run assets:generate` + aset pihak ketiga). |
 
 Artinya: dokumen bertanda `stable` adalah **keputusan yang sudah disepakati untuk
-dibangun**, bukan deskripsi kode yang sudah jalan. Daftar mana yang sudah ada dan
-mana yang masih rencana ada di tabel status di
+dibangun**; dokumen bertanda `draft`/`tbd` bisa jadi sudah sebagian diimplementasi
+tanpa mengubah arah. Daftar mana yang sudah ada dan mana yang masih rencana ada di
+tabel status di
 [`01-architecture/repo-structure.md`](./01-architecture/repo-structure.md#status-kode-sekarang);
 tabel itu ikut dicek otomatis, jadi tidak bisa berbohong lama-lama.
 

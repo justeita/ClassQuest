@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
@@ -28,7 +28,10 @@ kepatuhan pada guidebook.
 - Dokumen di folder ini adalah **turunan**, bukan pengganti. Kalau ada perbedaan
   tafsir, yang berlaku adalah guidebook dan klarifikasi tertulis panitia lewat
   kanal resmi.
-- Nomor halaman guidebook dicantumkan di tiap dokumen supaya gampang dicek ulang.
+- Nomor halaman guidebook yang dipakai di folder ini adalah **nomor halaman
+  tercetak di footer** (1–30), bukan nomor halaman PDF. Karena cover dan daftar
+  isi, halaman PDF = halaman cetak + 2 (misalnya cetak 15 = PDF halaman 17).
+  Selalu sebutkan "halaman cetak" kalau mengutip, supaya tidak ambigu.
 
 ## Sepuluh aturan yang paling mahal kalau salah
 

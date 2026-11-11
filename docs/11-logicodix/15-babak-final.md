@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Babak Final
 
-Sumber: Guidebook LOGICODIX 2026, halaman 22–23.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 22–23 dan 27–28.
 
 Dokumen ini hanya berlaku kalau tim lolos. Tetap dibaca sekarang, karena beberapa
 persiapannya tidak bisa dilakukan mendadak.
@@ -35,12 +35,26 @@ live demo, format slide, dan apakah ada ketentuan jaringan di lokasi.
 
 ## Kewajiban saat Grand Final
 
-| Kewajiban                                                                             | Halaman |
-| ------------------------------------------------------------------------------------- | ------- |
-| Mempersiapkan aplikasi agar dapat dijalankan **localhost** pada laptop yang digunakan | 23      |
-| Presentasi dan **live demo secara luring** di hadapan dewan juri industri             | 23      |
-| Mengikuti technical meeting                                                           | 22      |
-| Mengikuti seluruh rangkaian kompetisi                                                 | 8       |
+| Kewajiban                                                                             | Halaman cetak |
+| ------------------------------------------------------------------------------------- | ------------- |
+| Mempersiapkan aplikasi agar dapat dijalankan **localhost** pada laptop yang digunakan | 23            |
+| Presentasi dan **live demo secara luring** di hadapan dewan juri industri             | 23            |
+| Mengikuti technical meeting                                                           | 22            |
+| Mengikuti seluruh rangkaian kompetisi                                                 | 6             |
+
+### Format penilaian (halaman cetak 27–28)
+
+Guidebook menetapkan alokasi waktu 15 menit per tim:
+
+| Segmen                                    | Waktu   |
+| ----------------------------------------- | ------- |
+| Persiapan laptop dan verifikasi localhost | 1 menit |
+| Presentasi dan live demo                  | 7 menit |
+| Q&A dengan dewan juri                     | 3 menit |
+| Penilaian juri dan transisi               | 4 menit |
+
+Artinya presentasi + demo hanya punya **7 menit** — jangan menyiapkan materi untuk
+10–15 menit. Latihan wajib menghitung mundur dari 7 menit itu.
 
 Kata "localhost" penting: aplikasi **wajib** jalan tanpa internet. Kalau fitur utama
 bergantung sepenuhnya pada API AI, siapkan mode tanpa jaringan yang tetap bisa

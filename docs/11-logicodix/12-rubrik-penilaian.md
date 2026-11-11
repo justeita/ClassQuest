@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Rubrik Penilaian
 
-Sumber: Guidebook LOGICODIX 2026, halaman 29.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 29.
 
 Rubrik ini menjelaskan ke mana waktu sebaiknya dialokasikan. Bobot terbesar bukan
 pada tampilan, tapi pada tiga hal yang sama besar: masalah-solusi, teknologi, dan

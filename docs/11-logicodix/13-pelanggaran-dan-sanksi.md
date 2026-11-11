@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Pelanggaran dan Sanksi
 
-Sumber: Guidebook LOGICODIX 2026, halaman 24–25.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 24–25.
 
 Dokumen ini bukan untuk menakut-nakuti. Tujuannya supaya setiap anggota tahu persis
 di titik mana sebuah kebiasaan biasa berubah menjadi pelanggaran, dan apa yang
@@ -45,22 +45,22 @@ Tim dinyatakan melanggar apabila terbukti melakukan salah satu dari ini:
 
 Aturan lain yang pelanggarannya disebut eksplisit dan berujung hal serupa:
 
-| Aturan                                                  | Halaman | Bentuk konkret                                   |
-| ------------------------------------------------------- | ------- | ------------------------------------------------ |
-| Dilarang menggunakan repositori lama                    | 14      | Repo lain berisi proyek yang sama                |
-| Dilarang fork proyek jadi milik pihak lain              | 14      | Repo berstatus fork                              |
-| Dilarang memindahkan proyek lama ke repositori baru     | 14      | Snapshot proyek lama di repo baru                |
-| Commit wajib berasal dari akun GitHub anggota terdaftar | 15      | Commit bot atau akun luar tim                    |
-| Dilarang bulk upload seluruh proyek dalam satu commit   | 16      | Satu commit berisi seluruh kode di akhir periode |
-| Dilarang kredensial hardcoded                           | 15      | API key di kode atau file konfigurasi            |
-| Submission hanya lewat portal resmi                     | 23      | Kirim lewat WhatsApp atau email                  |
+| Aturan                                                  | Halaman cetak | Bentuk konkret                                   |
+| ------------------------------------------------------- | ------------- | ------------------------------------------------ |
+| Dilarang menggunakan repositori lama                    | 12            | Repo lain berisi proyek yang sama                |
+| Dilarang fork proyek jadi milik pihak lain              | 12            | Repo berstatus fork                              |
+| Dilarang memindahkan proyek lama ke repositori baru     | 12            | Snapshot proyek lama di repo baru                |
+| Commit wajib berasal dari akun GitHub anggota terdaftar | 13            | Commit bot atau akun luar tim                    |
+| Dilarang bulk upload seluruh proyek dalam satu commit   | 14            | Satu commit berisi seluruh kode di akhir periode |
+| Dilarang kredensial hardcoded                           | 15            | API key di kode atau file konfigurasi            |
+| Submission hanya lewat portal resmi                     | 21            | Kirim lewat WhatsApp atau email                  |
 
 ## 3. Sanksi
 
 | Sanksi                              | Kapan                                                                                                          | Akibat                                            |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | **Submission tidak valid**          | Submission tidak lengkap, terlambat, atau tidak dapat diakses (repositori, aplikasi, video, atau berkas wajib) | Tidak dilanjutkan ke penilaian                    |
-| **Ketentuan video tidak terpenuhi** | Durasi di luar 3–5 menit atau syarat isi tidak dipenuhi (halaman 21)                                           | Submission tidak memenuhi persyaratan demonstrasi |
+| **Ketentuan video tidak terpenuhi** | Durasi di luar 3–5 menit atau syarat isi tidak dipenuhi (halaman cetak 19)                                     | Submission tidak memenuhi persyaratan demonstrasi |
 | **Diskualifikasi**                  | Terbukti melanggar, atau tidak mampu memberikan klarifikasi yang dapat dipertanggungjawabkan                   | Gugur dari kompetisi                              |
 
 ## 4. Catatan risiko
@@ -81,7 +81,19 @@ Status: terbuka | selesai
 
 ### Catatan kejadian
 
-Belum ada catatan.
+```text
+Tanggal (WIB):     11 November 2026
+Kejadian:         Satu commit memakai awalan `test:` yang tidak termasuk
+                  enam awalan resmi, terlanjur ter-push ke branch
+                  backend/story-management (SHA 7f79aea, pesan
+                  "test: fix flaky timestamp ordering in listStories test")
+Aturan yang berpotensi terdampak (halaman): 15 (format pesan commit)
+Tindakan yang sudah diambil: klarifikasi ke helpdesk panitia pada
+                  11 November 2026; jawaban panitia: dibiarkan apa
+                  adanya, tidak perlu amend/force push
+Bukti (tautan/log): jawaban helpdesk panitia 11 November 2026
+Status:            selesai
+```
 
 Batas waktunya biasanya pendek. Ikuti urutan ini:
 

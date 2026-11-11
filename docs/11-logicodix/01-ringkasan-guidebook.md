@@ -1,13 +1,13 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Ringkasan Guidebook
 
-Sumber: Guidebook LOGICODIX 2026, halaman 1–12. Halaman 20–31 untuk submission,
-penilaian, dan sanksi dijelaskan di dokumen lain.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 1–12. Halaman cetak 17–30 untuk
+submission, penilaian, dan sanksi dijelaskan di dokumen lain.
 
 ## Identitas kompetisi
 
@@ -38,8 +38,9 @@ Setiap karya **wajib** menerapkan salah satu dari lima subtema berikut.
 | 4   | Inclusive Health & Well-being      | Aksesibilitas informasi kesehatan, pemantauan kesejahteraan mental, bantuan bagi penyandang disabilitas dalam kehidupan sehari-hari  |
 | 5   | Civic Tech & Community Service     | Menghubungkan masyarakat dengan layanan publik, pelaporan masalah komunitas, penguatan gotong royong dan pelayanan sosial lokal      |
 
-**Pilihan tim kita: subtema 1 — Smart & Fun Education** (perlu dikunci di
-`00-product/vision.md`; saat audit ini belum tertulis di sana).
+**Pilihan tim kita: subtema 1 — Smart & Fun Education.** Subtema sudah tercatat
+di [`README.md`](../../README.md) root; `00-product/vision.md` belum menyebutnya
+dan bisa ditambahkan saat dokumen itu direvisi.
 
 Setiap dokumen produk dan setiap materi submission (README, video, slide) harus
 menyebut subtema ini dengan nama yang **sama** seperti di tabel. Juri menilai
@@ -83,7 +84,7 @@ Seminar nasional pada Puncak Acara, gratis khusus finalis Hackathon.
 
 ## Timeline resmi (WIB)
 
-Guidebook halaman 5. Tanggal di bawah disalin apa adanya; jangan diubah tanpa
+Guidebook halaman cetak 4. Tanggal di bawah disalin apa adanya; jangan diubah tanpa
 klarifikasi tertulis panitia.
 
 | Tanggal                        | Agenda                                              |
@@ -100,7 +101,7 @@ klarifikasi tertulis panitia.
 Konsekuensi jadwal yang mengikat repo ini ada di
 [`03-jadwal-dan-code-freeze.md`](./03-jadwal-dan-code-freeze.md).
 
-## Alur pendaftaran (halaman 11)
+## Alur pendaftaran (halaman cetak 9)
 
 1. Peserta wajib membaca dan mengikuti seluruh peraturan dalam guidebook.
 2. Pendaftaran lewat website resmi LOGICODIX 2026 sesuai periode yang ditentukan.

@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-11
 owner: tim ClassQuest
 ---
 
 # Orisinalitas dan Riwayat Repositori
 
-Sumber: Guidebook LOGICODIX 2026, halaman 8–9, 14–16, 24–25, dan 27.
+Sumber: Guidebook LOGICODIX 2026, halaman cetak 12–16 dan 24–25.
 
 Dokumen ini mengatur hal yang **tidak bisa diperbaiki setelah terlanjur**. Semua
 yang ada di sini punya sanksi sampai diskualifikasi, dan panitia punya hak penuh
@@ -80,7 +80,7 @@ Begitu dicatat, jangan diubah lagi.
 
 ## 3. Aturan riwayat commit
 
-Sumber: halaman 16.
+Sumber: halaman cetak 14.
 
 | Aturan                                                                  | Konsekuensi kalau dilanggar       |
 | ----------------------------------------------------------------------- | --------------------------------- |
@@ -109,7 +109,7 @@ merge" tidak boleh dipakai di repo ini.** Detailnya di
 
 ## 4. Commit harus dari akun anggota terdaftar
 
-Sumber: halaman 15.
+Sumber: halaman cetak 13.
 
 - Produk hanya boleh dikembangkan anggota tim yang terdaftar resmi.
 - **Seluruh commit wajib berasal dari akun GitHub anggota terdaftar.**

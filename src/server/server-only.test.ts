@@ -27,6 +27,8 @@ const GUARDED_MODULES = [
   "server/config.ts",
   "server/auth.ts",
   "server/db/client.ts",
+  "server/stories/core.ts",
+  "server/play-results/save.ts",
   "ai/providers/anthropic.ts",
   "ai/providers/openai-compatible.ts",
 ] as const;
