@@ -125,7 +125,7 @@ export function buildRoomMap(
       walls.push(rect);
       solids.push(rect);
     } else if (objectLebar.solid) {
-      solids.push({ ...rect, height: rect.height - SOLID_INSET_BOTTOM });
+      solids.push(colliderOf(objectLebar));
     }
   }
 
@@ -163,6 +163,28 @@ function rectOf(object: RoomObject): Rect {
     y: object.tileY * TILE_SIZE,
     width: object.tileW * TILE_SIZE,
     height: object.tileH * TILE_SIZE,
+  };
+}
+
+/**
+ * Collider objek solid dalam piksel.
+ *
+ * Prop tanpa `collider` memakai kotak penuh dikurangi 2 px di sisi depan
+ * (world-design.md § collision). Prop besar seperti pohon memakai sub-area dari
+ * `collider` apa adanya, supaya pemain bisa berjalan di bawah kanopi tapi tetap
+ * tertahan di batang (ADR 0011).
+ */
+function colliderOf(object: RoomObject): Rect {
+  const area = object.collider;
+  if (!area) {
+    const rect = rectOf(object);
+    return { ...rect, height: rect.height - SOLID_INSET_BOTTOM };
+  }
+  return {
+    x: (object.tileX + area.x) * TILE_SIZE,
+    y: (object.tileY + area.y) * TILE_SIZE,
+    width: area.w * TILE_SIZE,
+    height: area.h * TILE_SIZE,
   };
 }
 
