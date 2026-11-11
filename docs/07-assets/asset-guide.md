@@ -93,10 +93,10 @@ gradien besar atau tepi yang terlihat saat diulang.
 | Ukuran file | ≤ 300 KB                                               |
 
 Peta dipakai ruangan yang tidak bisa diwakili satu tile lantai (mis. halaman
-botani). Ia **hanya seni**: collider, spawn, dan NPC tetap berasal dari
-`RoomData` (ADR 0010/0011), jadi menggeser pohon di gambar berarti menggeser
-collider-nya juga. Yang di-commit hanya PNG jadinya; tileset mentahnya tidak
-masuk repo.
+botani). Ia **hanya seni**: collider (`zone`), spawn, dan NPC tetap berasal dari
+`RoomData` (ADR 0010/0011/0012), jadi menggeser pohon di gambar berarti
+menggeser zona-nya juga. Yang di-commit hanya PNG jadinya; tileset mentahnya
+tidak masuk repo.
 
 ## Musik
 

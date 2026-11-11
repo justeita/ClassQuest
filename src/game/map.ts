@@ -4,7 +4,9 @@
  * `RoomData` (di `maps/`) adalah **sumber kebenaran** dalam tile; modul ini
  * mengonversinya ke piksel untuk Phaser. Collider `solids` dibangun dari objek
  * yang sama yang digambar — tidak ada collider yang ditulis terpisah, sehingga
- * bug "nabrak benda tak terlihat" tidak bisa muncul.
+ * bug "nabrak benda tak terlihat" tidak bisa muncul. Pengecualiannya ruangan
+ * bergambar penuh (ADR 0012): di sana `zone` memang collider tanpa gambar,
+ * ditulis berdampingan dengan gambar peta yang dijahit.
  *
  * Warna fallback (`floorColor`/`wallColor`) tetap ada untuk bila tile dari
  * manifest gagal dimuat.
@@ -40,6 +42,12 @@ export type RoomMap = {
   /** Tile manifest untuk lantai dan dinding; digambar sebagai tileSprite. */
   floorTile: string;
   wallTile: string;
+  /**
+   * Gambar peta penuh opsional (id manifest `map_*`, ADR 0012). Bila ada,
+   * GameScene menggambar satu gambar ini sebagai lantai dan melewatkan tile
+   * lantai, dinding, serta prop.
+   */
+  mapImage?: string;
   /** Warna fallback bila tile gagal dimuat. */
   floorColor: number;
   wallColor: number;
@@ -110,6 +118,12 @@ export function buildRoomMap(
           : object;
 
     const rect = rectOf(objectLebar);
+    if (objectLebar.kind === "zone") {
+      // Zona tidak digambar: seluruh kotaknya jadi collider (ADR 0012). Kotak
+      // dipakai apa adanya, tanpa inset 2 px milik prop.
+      solids.push(rect);
+      continue;
+    }
     if (objectLebar.kind === "npc") {
       const id = objectLebar.id ?? cadangan;
       const finalId = id && story.cast.some((m) => m.id === id) ? id : cadangan;
@@ -137,6 +151,7 @@ export function buildRoomMap(
     wallTile: data.wallTile,
     floorColor: FLOOR_COLOR,
     wallColor: WALL_COLOR,
+    mapImage: data.mapImage,
     spawn: {
       x: data.spawnTile.x * TILE_SIZE + TILE_SIZE / 2,
       y: (data.spawnTile.y + 1) * TILE_SIZE,

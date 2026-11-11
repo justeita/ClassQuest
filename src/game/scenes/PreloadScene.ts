@@ -43,10 +43,10 @@ export class PreloadScene extends Phaser.Scene {
       label.setText(`Memuat… ${Math.round(nilai * 100)}%`);
     });
 
-    // Tile dan prop ruangan (ADR 0010) dimuat berdasarkan data map, bukan
-    // seluruh manifest.
+    // Tile, prop, dan gambar peta ruangan (ADR 0010/0012) dimuat berdasarkan
+    // data map, bukan seluruh manifest.
     const ruang = listRoomAssets();
-    for (const id of [...ruang.tiles, ...ruang.props]) {
+    for (const id of [...ruang.tiles, ...ruang.props, ...ruang.maps]) {
       const asset = ASSETS_BY_ID.get(id);
       if (asset && !this.textures.exists(id)) this.load.image(id, asset.path);
     }

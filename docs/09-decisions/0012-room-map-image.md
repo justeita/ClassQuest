@@ -57,6 +57,12 @@ Aturan bentuknya:
   gambar".
 - Ruangan yang tidak punya peta tetap memakai jalur ADR 0010 (`floorTile` +
   `wallTile`). Kedua jalur hidup berdampingan; peta adalah tambahan opsional.
+- Karena prop tidak lagi digambar satu per satu, collider ruangan bergambar
+  memakai `RoomObject` berkind `zone`: kotak tanpa gambar yang seluruhnya padat.
+  `zone` tidak merujuk aset dan dipakai `buildRoomMap` apa adanya (tanpa inset
+  2 px milik prop). Ini menjaga "satu sumber data collider" tetap berlaku.
+- `mapImage` di `RoomData` menunjuk id manifest peta. Bila texture-nya gagal
+  dimuat, `GameScene` jatuh kembali ke jalur tile ADR 0010 seperti semula.
 - Gambar peta dijahit **sekali** oleh `scripts/compose-map.mjs` dari aset pihak
   ketiga, lalu di-commit. Aset mentah pihak ketiga tidak masuk repo — sama
   aturannya dengan prop Craftpix.
@@ -75,13 +81,15 @@ Alasan:
 
 - Halaman sekolah bisa menyamai referensi: jalan, petak bunga, kolam, pohon.
 - Gambar peta tidak menambah beban runtime (satu texture, bukan ribuan tile).
-- Prop pihak ketiga yang ada (Craftpix) tetap bisa dipakai berdampingan.
+- Prop pihak ketiga yang ada (Craftpix) tetap terdaftar dan bisa dipakai di
+  ruangan lain; prop taman hanya berhenti dipasang di `halaman_sekolah`.
 
 **Negatif / utang:**
 
 - **Sinkronisasi gambar dan collider manual.** Menggeser pohon di gambar berarti
-  menggeser collider di `roomData.ts`; tidak ada validasi otomatis. Peta dibuat
-  deterministik supaya posisi tiap objek bisa dijadikan acuan tetap.
+  menggeser `zone` di `roomData.ts`; tidak ada validasi otomatis. Peta dibuat
+  deterministik supaya posisi tiap objek bisa dijadikan acuan tetap
+  (`scripts/compose-map.mjs` mencantumkan daftar posisi yang dipakai `roomData.ts`).
 - Menyimpang dari "satu tile lantai" ADR 0010 untuk ruangan bergambar penuh.
 - Regenerasi peta butuh aset mentah pihak ketiga di luar repo
   (`scripts/compose-map.mjs --asset-dir`); hasil sekali jadinya yang di-commit.
@@ -93,8 +101,14 @@ Alasan:
 - `scripts/compose-map.mjs` + `scripts/lib/png.mjs` — penjahit peta.
 - `docs/07-assets/inventory.md`, `docs/07-assets/asset-guide.md` — daftar dan
   aturan aset peta.
-- (PR lanjutan) `src/game/scenes/GameScene.ts`, `src/game/maps/roomData.ts` —
-  menggambar peta dan collider halaman.
+
+**Sudah dikerjakan:**
+
+- `src/game/maps/types.ts` — field `RoomData.mapImage` dan kind `zone`.
+- `src/game/map.ts` — meneruskan `mapImage` dan mengubah `zone` jadi collider.
+- `src/game/scenes/GameScene.ts` + `PreloadScene.ts` — menggambar/memuat peta
+  dan melewati lantai, dinding, serta prop saat peta ada.
+- `src/game/maps/roomData.ts` — `halaman_sekolah` jadi `mapImage` + zona.
 
 ## Kapan keputusan ini ditinjau ulang
 
