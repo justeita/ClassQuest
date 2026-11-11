@@ -61,6 +61,8 @@ export type GameEvent =
     }
   /** Quest chapter aktif berubah; dipakai panel quest di DOM. */
   | { type: "quest"; view: QuestState }
+  /** Mode lewati cepat sedang berjalan; dipakai indikator "mempercepat". */
+  | { type: "skipping"; aktif: boolean }
   | { type: "error"; code: string };
 
 export type GameCommand =
@@ -68,6 +70,13 @@ export type GameCommand =
   | { type: "resolve_challenge"; challengeId: string; correct: boolean }
   /** Satu langkah dialog: selesaikan ketikan atau lanjut beat berikutnya. */
   | { type: "advance" }
+  /**
+   * Tahan untuk mempercepat beat dialog/narasi scene ala time-lapse; lepas
+   * untuk kembali ke tempo normal. Berhenti sendiri di beat soal, transisi,
+   * atau saat scene habis.
+   */
+  | { type: "skip_start" }
+  | { type: "skip_stop" }
   /** Hentikan sementara loop scene; state cerita tetap di tempatnya. */
   | { type: "pause" }
   | { type: "resume" }
