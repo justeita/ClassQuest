@@ -109,9 +109,7 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ### Playing
 
-- Kanvas `Scale.FIT` di dalam halaman **full-bleed**: kanvas selalu tampil
-  utuh (tidak pernah ter-crop) dan menempel ke tepi pada sisi yang rasionya
-  cocok; sisa area memakai latar palet gelap, bukan kotak putus di tengah.
+- Canvas fullscreen (letterbox bila rasio beda).
 - Tombol buku quest di kiri atas (`📖 Quest [Q]`): membuka jendela buku catatan ala Minecraft journal dengan 2 halaman perkamen yang menampilkan bab, judul scene, daftar tugas dengan status `Aktif`/`Selesai`/`Terkunci`, dan hitungan tantangan. Dapat dibuka/tutup dengan tombol `Q` atau `Esc`.
 - HUD kanan atas: tombol jeda dan tombol suara. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
@@ -202,16 +200,14 @@ penanganan error di [`../04-game/interaction-loop.md`](../04-game/interaction-lo
 
 ## Responsif
 
-| Layar             | Perilaku                                                         |
-| ----------------- | ---------------------------------------------------------------- |
-| Desktop ≥ 1024 px | Kanvas penuh viewport; sisi lebar menampilkan lebih banyak dunia |
-| Tablet            | Sama — dunia tetap utuh, hanya lebih sempit                      |
-| HP landscape      | Kanvas memenuhi layar, HUD kecil                                 |
-| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati)     |
+| Layar             | Perilaku                                                     |
+| ----------------- | ------------------------------------------------------------ |
+| Desktop ≥ 1024 px | Canvas 16:9 di tengah, HUD di atas                           |
+| Tablet            | Sama, overlay lebih lebar                                    |
+| HP landscape      | Canvas memenuhi lebar, HUD kecil                             |
+| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati) |
 
-Halaman game full-bleed dengan kanvas `Scale.FIT` yang **selalu tampil
-utuh** — Fullscreen API peramban tidak dipakai dan tidak dipaksa, jadi tidak
-ada konten yang terpotong di layar apa pun.
+Jangan memaksa fullscreen API; sediakan tombol opsional.
 
 ## Berbagi
 
@@ -279,7 +275,7 @@ Aturan:
 - [ ] Hanya cerita `published` yang bisa diakses.
 - [ ] `notFound()` untuk id tidak dikenal.
 - [ ] Phaser hanya dimuat di halaman game.
-- [ ] Kanvas `Scale.FIT` tampil utuh di halaman full-bleed.
+- [ ] Host canvas punya rasio tetap.
 - [ ] Overlay tidak menerima jawaban benar.
 - [ ] Progres bisa dipulihkan.
 - [ ] Error aset tidak menghentikan permainan.
