@@ -17,6 +17,8 @@ import { QuestToast } from "@/components/game/QuestToast";
 import { QuestTracker } from "@/components/game/QuestTracker";
 import { Hud } from "@/components/game/HUD";
 import { InteractHint } from "@/components/game/InteractHint";
+import { SkipHint } from "@/components/game/SkipHint";
+import { SpeedLines } from "@/components/game/SpeedLines";
 import { PauseMenu } from "@/components/game/PauseMenu";
 import {
   bacaPengaturanAudio,
@@ -76,6 +78,8 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [bingkai, setBingkai] = useState({ x: 0, y: 0, w: 0, h: 0 });
   const [jeda, setJeda] = useState(false);
   const [bukuQuest, setBukuQuest] = useState(false);
+  /** Time-lapse lewati sedang berjalan; memicu hint status. */
+  const [sedangLewati, setSedangLewati] = useState(false);
   /** Pengaturan audio pengguna; persist di localStorage, dibaca saat mount. */
   const [audio, setAudio] = useState<PengaturanAudio>(() =>
     bacaPengaturanAudio(
@@ -161,6 +165,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
             setTantangan(view);
             setHint(null);
             setPenanda([]);
+            setSedangLewati(false);
           }),
         );
         lepas.push(
@@ -185,6 +190,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
             setHasil(null);
             setHint(null);
             setPenanda([]);
+            setSedangLewati(false);
             onFinishedRef.current?.(result);
           }),
         );
@@ -225,6 +231,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         lepas.push(
           game.bus.on("prompt", (payload) => {
             setHint(payload.hint);
+          }),
+        );
+        lepas.push(
+          game.bus.on("skipping", ({ aktif }) => {
+            setSedangLewati(aktif);
           }),
         );
       })
@@ -330,6 +341,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     setEntriLog([]);
     setJurnal([]);
     setBukuLog(false);
+    setSedangLewati(false);
     // Quest pertama setelah restart bukan "quest baru"; jangan munculkan toast.
     questTerakhir.current = null;
     busRef.current?.send({ type: "restart_chapter" });
@@ -360,7 +372,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
 
       if (event.key === "b" || event.key === "B") {
         if (isInput) return;
-        if (tantangan || jeda || quest) return;
+        // Yang memblokir buku catatan hanyalah soal, menu jeda, dan buku quest
+        // yang sedang terbuka — bukan keberadaan data quest. `quest` selalu
+        // terisi sejak event quest pertama; memakai dia di sini membuat B mati
+        // sepanjang permainan.
+        if (tantangan || jeda || bukuQuest) return;
         event.preventDefault();
         setBukuLog((sebelum) => {
           // Dunia dibekukan selama buku terbuka; musik tetap diputar penuh.
@@ -411,11 +427,76 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [bukuQuest, quest, tantangan, hasil, jeda, lanjut, bukaJeda, tutupJeda]);
+    // `bukuLog` dibaca cabang Escape; tanpa dia di deps, closure bisa basi.
+  }, [
+    bukuLog,
+    bukuQuest,
+    quest,
+    tantangan,
+    hasil,
+    jeda,
+    lanjut,
+    bukaJeda,
+    tutupJeda,
+  ]);
 
   const lanjutDialog = useCallback(() => {
     busRef.current?.send({ type: "advance" });
   }, []);
+
+  /** Lewati hanya berlaku saat dialog/narasi tampil dan tidak ada soal. */
+  const dialogTerlihat = Boolean(dialog?.visible) && !tantangan;
+
+  /** Ala Persona 3 Reload: tahan untuk mempercepat, lepas untuk berhenti. */
+  const mulaiLewatiDialog = useCallback(() => {
+    busRef.current?.send({ type: "skip_start" });
+  }, []);
+
+  const hentikanLewatiDialog = useCallback(() => {
+    busRef.current?.send({ type: "skip_stop" });
+  }, []);
+
+  // Pintasan Tab: sama dengan menahan tombol "Percepat" di HUD. Tab diambil
+  // alih hanya selama fase dialog; di luar itu biarkan browser memindahkan
+  // fokus seperti biasa (accessibility.md: jangan menangkap Tab secara global).
+  useEffect(() => {
+    if (!dialogTerlihat) return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Tab") return;
+      // Auto-repeat saat tombol ditahan: skip sudah berjalan, jangan kirim ulang.
+      if (event.repeat) return;
+      if (jeda || bukuLog || bukuQuest) return;
+      event.preventDefault();
+      mulaiLewatiDialog();
+    }
+
+    function onKeyUp(event: KeyboardEvent) {
+      if (event.key !== "Tab") return;
+      hentikanLewatiDialog();
+    }
+
+    // Tab ditahan lalu jendela kehilangan fokus: keyup tidak pernah datang.
+    function onBlur() {
+      hentikanLewatiDialog();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, [
+    dialogTerlihat,
+    jeda,
+    bukuLog,
+    bukuQuest,
+    mulaiLewatiDialog,
+    hentikanLewatiDialog,
+  ]);
 
   return (
     <div className="relative h-full w-full" style={{ containerType: "size" }}>
@@ -455,6 +536,8 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
             )}
             {!jeda && !tantangan && <ChapterCard view={kartuChapter} />}
             {!jeda && !tantangan && <QuestToast title={toastQuest} />}
+            {!jeda && dialogTerlihat && <SkipHint berjalan={sedangLewati} />}
+            {!jeda && dialogTerlihat && <SpeedLines aktif={sedangLewati} />}
             {!jeda && (dialog?.visible || tantangan) && (
               <DialogueBox
                 view={
@@ -494,6 +577,9 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
                   setBukuLog(true);
                   busRef.current?.send({ type: "freeze" });
                 }}
+                onMulaiLewati={mulaiLewatiDialog}
+                onHentikanLewati={hentikanLewatiDialog}
+                tampilLewati={dialogTerlihat}
                 onJeda={bukaJeda}
                 tombolJedaRef={tombolJedaRef}
               />
