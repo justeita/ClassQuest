@@ -97,6 +97,15 @@ describe("readPdfUpload — jalur sukses", () => {
 
     expect(result.filename).toBe("materi.pdf");
   });
+
+  it("menerima file tepat pada batas 4 MB", async () => {
+    const bytes = new Uint8Array(MAX_PDF_BYTES);
+    bytes.set(new TextEncoder().encode("%PDF-1.7\n"));
+
+    const result = await readPdfUpload(pdfFile("pas.pdf", bytes));
+
+    expect(result.sizeBytes).toBe(MAX_PDF_BYTES);
+  });
 });
 
 describe("readPdfUpload — penolakan", () => {
@@ -115,7 +124,7 @@ describe("readPdfUpload — penolakan", () => {
     expect(error.code).toBe("FILE_MISSING");
   });
 
-  it("menolak file yang melebihi 20 MB", async () => {
+  it("menolak file yang melebihi 4 MB", async () => {
     const tooLarge = new File(
       [new Uint8Array(MAX_PDF_BYTES + 1)],
       "besar.pdf",

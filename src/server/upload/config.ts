@@ -1,15 +1,15 @@
 /**
  * Konstanta upload PDF.
  *
- * Batas ukuran mengikuti `docs/06-backend/jobs-and-limits.md` (tabel Upload:
- * "Ukuran file 20 MB"), jadi **bukan asumsi**. Dokumen memang tidak diam soal
- * angka ini. Tidak ada variabel bucket atau path disk di sini: keputusan task
- * ini adalah PDF hanya hidup di memori selama satu request/job, dan yang
- * disimpan ke database hanya story JSON.
+ * Batas ukuran 4 MB berasal dari batas body request Vercel (4,5 MB), dikurangi
+ * margin overhead multipart yang dipakai route upload. Angka ini juga dicatat
+ * di `docs/06-backend/jobs-and-limits.md` (tabel Upload) dan ADR 0013. Tidak ada
+ * variabel bucket atau path disk di sini: PDF hanya hidup di memori selama satu
+ * request/job, dan yang disimpan ke database hanya story JSON.
  */
 
-/** 20 MB dalam byte (20 × 1024 × 1024). Sumber: jobs-and-limits.md. */
-export const MAX_PDF_BYTES = 20 * 1024 * 1024;
+/** 4 MB dalam byte (4 × 1024 × 1024). Sumber: batas body Vercel 4,5 MB. */
+export const MAX_PDF_BYTES = 4 * 1024 * 1024;
 
 /**
  * Nama file hanya untuk tampilan. Angka ini tidak ada di docs, jadi 120 adalah

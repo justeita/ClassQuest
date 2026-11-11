@@ -59,6 +59,7 @@ export const maxDuration = 300;
  * Margin di atas `MAX_PDF_BYTES` untuk overhead multipart (boundary dan field
  * teks). Tidak ada angka ini di docs, jadi 64 KB adalah asumsi konservatif;
  * pemeriksaan ukuran sebenarnya tetap dijalankan oleh `readPdfUpload()`.
+ * Total 4 MB + 64 KB ≈ 4,06 MB, masih di bawah batas body Vercel 4,5 MB.
  */
 const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
