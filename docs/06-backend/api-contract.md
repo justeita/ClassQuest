@@ -314,6 +314,39 @@ Semua wajib:
 - Validasi ulang input dengan validator yang sama.
 - `revalidatePath` pada halaman terkait.
 
+### Bentuk input & hasil `savePlayResult`
+
+```ts
+type PlayResultInput = {
+  nickname?: string; // opsional, maks 40 karakter, tanpa identitas asli
+  answers: Answer[]; // satu entri per tantangan yang dijawab (Answer dari src/story/scoring.ts)
+};
+
+type SavePlayResultOutcome =
+  { ok: true } | { ok: false; reason: "not_found" | "invalid" | "too_large" };
+```
+
+Aturan:
+
+- **Skor dihitung server.** Klien tidak boleh mengirim field skor (`earnedPoints`, `correctCount`, dsb.); field tersebut ditolak (`invalid`). Server menghitung ulang skor via `scoreStory()` dari cerita versi terbit yang tersimpan.
+- Jawaban divalidasi terhadap tantangan cerita: id tantangan atau opsi tidak dikenal, jawaban ganda, atau jumlah jawaban melebihi tantangan ditolak (`invalid`).
+- Data yang disimpan hanya agregat di tabel `play_results` (tanpa data per-opsi, IP, user-agent, atau identitas siswa).
+
+### Batas ukuran payload
+
+- **Cerita JSON** (`saveStoryDraft`): maksimal 512 KB (`MAX_STORY_JSON_BYTES`). Melebihi batas menghasilkan `{ ok: false, errors: [STORY_TOO_LARGE_ISSUE] }`.
+- **Hasil bermain** (`savePlayResult`): maksimal 64 KB (`MAX_PLAY_RESULT_JSON_BYTES`), nickname maksimal 40 karakter, answers maksimal 200 entri. Melebihi batas menghasilkan `{ ok: false, reason: "too_large" }`.
+- **`storyId`**: maksimal 200 karakter alfabet/angka/garis bawah/strip. Id kosong atau melebihi batas dijawab `404 NOT_FOUND` identik.
+- **Daftar issue validasi**: dibatasi maksimal 50 issue per respons ke klien.
+
+### Aturan transisi status & edit cerita terbit
+
+- `saveStoryDraft`: diperbolehkan saat `status` bernilai `draft` maupun `published`. Saat status `published`, draft baru tersimpan sebagai baris versi baru (`version + 1`), sementara versi yang disajikan publik kepada siswa tetap `published_version` lama sampai `publishStory` dipanggil kembali. Optimistic locking: `baseVersion` harus sama persis dengan versi terbaru cerita, jika tidak mengembalikan `{ ok: false, conflict: true, latestVersion }`. Seluruh pengecekan dan penulisan dalam satu transaksi.
+- `publishStory`: dapat dipanggil dari `status: "draft"` (`draft → published`, menetapkan `published_version = version`) atau pembaruan versi pada cerita yang sudah terbit (`published → published`, memperbarui `published_version = version`). Cerita dengan status `processing` atau `failed` ditolak (konflik). Versi terbaru divalidasi ulang di server sebelum terbit.
+- `archiveStory`: pada cerita `published`, membatalkan status terbit kembali ke draft (`published → draft`, `published_version = null`), sehingga cerita langsung berhenti disajikan ke siswa. Pada `draft` atau `failed`, status berubah menjadi `archived`.
+- `deleteStory`: hanya diizinkan untuk cerita berstatus `draft`, `failed`, atau `archived`. Cerita berstatus `published` (harus dibatalkan terbit dahulu) atau `processing` ditolak (`{ ok: false }`). Menghapus baris `stories`, `story_versions`, `jobs`, dan `play_results` dalam satu transaksi.
+- `GET /api/stories/[storyId]`: hanya melayani cerita berstatus `published`. Mengembalikan `published_version` (bukan versi draft terbaru bila ada edit menyusul), dengan `Cache-Control: no-store`. Status lain (`processing`, `draft`, `failed`, `archived`) dijawab `404 NOT_FOUND` identik.
+
 ---
 
 ## Versi API
