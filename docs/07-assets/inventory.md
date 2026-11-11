@@ -43,6 +43,12 @@ menimpanya karena namanya tidak ada di daftar `IMAGES`. Peta dijahit
 `scripts/compose-map.mjs` (sekali jalan, hasilnya di-commit). Kotak potong dan
 sumbernya dicatat di [Sumber dan lisensi](#sumber-dan-lisensi).
 
+> Enam prop taman Craftpix (`prop_tree_large`, `prop_tree_medium`,
+> `prop_tree_flower`, `prop_bush_small`, `prop_bush_flower`, `prop_pond`) tetap
+> terdaftar di manifest dan filenya ada di `public/`, tetapi sejak ADR 0012
+> **tidak lagi dipasang** di `halaman_sekolah` — halaman memakai gambar peta
+> penuh. Keduanya sengaja dipertahankan untuk pemakaian ruangan lain.
+
 ## Background
 
 | id                      | Label                  | Path                                | Tags                                               | Status |

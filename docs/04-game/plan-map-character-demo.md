@@ -63,14 +63,8 @@ Gedung sekolah dibagi menjadi 2 room data terpisah untuk memberikan fokus visual
 
 - **Fungsi**: Eksplorasi sains/lingkungan (siklus air, ekosistem tanaman). Memberikan suasana petualangan terbuka (_sense of wonder_).
 - **Ukuran**: 56×34 tile (896×544 px).
-- **Lantai & Dinding**:
-  - Lantai dasar: Rumput (`tile_floor_grass`).
-  - Batas keliling: Pagar tanaman (`tile_wall_hedge`) dan pagar kayu (`prop_fence`).
-  - Jalan setapak: Batu (`tile_floor_rock`).
-- **Objek/Prop (Diambil dari referensi Asset)**:
-  - Pohon rindang besar (`prop_tree_large`), pohon sedang (`prop_tree_medium`), dan pohon berbunga (`prop_tree_flower`).
-  - Semak kecil (`prop_bush_small`) dan semak bunga merah muda (`prop_bush_flower`).
-  - Kolam kecil (`prop_pond`) dengan air (`tile_floor_water`).
+- **Visual**: satu **gambar peta penuh** `map_halaman_sekolah` ([ADR 0012](../09-decisions/0012-room-map-image.md)) hasil jahitan `scripts/compose-map.mjs` dari The Fan-tasy Tileset — rumput, jalan batu, plaza bundar, petak bunga, kolam berpasir, pohon, semak, dan perabot taman. Ruangan **tidak** lagi menyusun `tile_floor_grass`/`tile_wall_hedge` + prop taman satu per satu.
+- **Collider (`zone`)**: `roomData.ts` menandai area padat dalam tile — keliling, kolam, petak bunga, pangkal tiap pohon/semak, dan perabot besar (bangku, sumur, papan, tiang lampu, papan petunjuk, tong, keranjang). Zona tidak digambar; ia memakai sumber data collider yang sama (ADR 0012).
 - **NPC**: Tirta (roh air) di tepi kolam, Pak Bima yang mengamati alam, dan Rani yang mencatat pengamatan.
 
 ---
@@ -121,18 +115,24 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 
 ## 3. Inventaris Aset & Pemetaan Sumber Referensi
 
-| Kategori                | Berkas Sumber                               | Target di ClassQuest (`public/assets/` & manifest)           | Spesifikasi Standar HD Ringan                                                                                                      |
-| ----------------------- | ------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **Pohon Rindang HD**    | `.../Trees_texture_shadow/Tree1.png`        | `prop_tree_large`                                            | 128×128 px (8×8 tile), detail bayangan daun bertekstur, ukuran file ~5 KB. Solid hanya di pangkal batang (lihat ADR 0011 di PR 2). |
-| **Pohon Sedang HD**     | `.../Trees_texture_shadow/Tree2.png`        | `prop_tree_medium`                                           | 64×64 px (4×4 tile), tekstur bayangan halus.                                                                                       |
-| **Pohon Berbunga**      | `.../Trees_texture_shadow/Flower_tree1.png` | `prop_tree_flower`                                           | 128×128 px, cocok untuk sudut observasi biologi di taman sekolah.                                                                  |
-| **Semak Bertekstur HD** | `...bushes.../Autumn_bush1.png`             | `prop_bush_small`                                            | 64×64 px bertekstur bayangan daun rimbun.                                                                                          |
-| **Semak Bunga**         | `...bushes.../Bush_pink_flowers1.png`       | `prop_bush_flower`                                           | 64×64 px, aksen bunga merah muda.                                                                                                  |
-| **Rak Buku**            | `main-characters-home.../Interior.png`      | `prop_shelf`                                                 | Potong `x=160 y=80 32×48`, collision di kaki furnitur.                                                                             |
-| **Pintu Kayu**          | `main-characters-home.../walls_floor.png`   | `prop_door`                                                  | Potong `x=112 y=96 32×32`, dipasang di dinding koridor.                                                                            |
-| **Kolam Taman**         | generator `tiles.mjs`                       | `prop_pond`                                                  | 96×64 px, kolam dengan bibir batu, riak, dan daun teratai.                                                                         |
-| **Lantai & Dinding**    | generator `tiles.mjs`                       | `tile_floor_corridor`, `tile_floor_wood`, `tile_floor_grass` | 16×16 px seamless; koridor memakai ubin teraso, kelas parket, halaman rumput.                                                      |
-| **MC Nino**             | generator `characters.mjs`                  | `char_nino` + portrait                                       | Spritesheet 8 arah 432×32 (18 frame 24×32), portrait 64×64.                                                                        |
+| Kategori                | Berkas Sumber                               | Target di ClassQuest (`public/assets/` & manifest)           | Spesifikasi Standar HD Ringan                                                                                              |
+| ----------------------- | ------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| **Pohon Rindang HD**    | `.../Trees_texture_shadow/Tree1.png`        | `prop_tree_large`                                            | 128×128 px (8×8 tile), detail bayangan daun bertekstur, ukuran file ~5 KB. Solid hanya di pangkal batang (lihat ADR 0011). |
+| **Pohon Sedang HD**     | `.../Trees_texture_shadow/Tree2.png`        | `prop_tree_medium`                                           | 64×64 px (4×4 tile), tekstur bayangan halus.                                                                               |
+| **Pohon Berbunga**      | `.../Trees_texture_shadow/Flower_tree1.png` | `prop_tree_flower`                                           | 128×128 px, cocok untuk sudut observasi biologi di taman sekolah.                                                          |
+| **Semak Bertekstur HD** | `...bushes.../Autumn_bush1.png`             | `prop_bush_small`                                            | 64×64 px bertekstur bayangan daun rimbun.                                                                                  |
+| **Semak Bunga**         | `...bushes.../Bush_pink_flowers1.png`       | `prop_bush_flower`                                           | 64×64 px, aksen bunga merah muda.                                                                                          |
+| **Rak Buku**            | `main-characters-home.../Interior.png`      | `prop_shelf`                                                 | Potong `x=160 y=80 32×48`, collision di kaki furnitur.                                                                     |
+| **Pintu Kayu**          | `main-characters-home.../walls_floor.png`   | `prop_door`                                                  | Potong `x=112 y=96 32×32`, dipasang di dinding koridor.                                                                    |
+| **Kolam Taman**         | generator `tiles.mjs`                       | `prop_pond`                                                  | 96×64 px, kolam dengan bibir batu, riak, dan daun teratai.                                                                 |
+| **Lantai & Dinding**    | generator `tiles.mjs`                       | `tile_floor_corridor`, `tile_floor_wood`, `tile_floor_grass` | 16×16 px seamless; koridor memakai ubin teraso, kelas parket, halaman rumput.                                              |
+| **MC Nino**             | generator `characters.mjs`                  | `char_nino` + portrait                                       | Spritesheet 8 arah 432×32 (18 frame 24×32), portrait 64×64.                                                                |
+
+> Sejak [ADR 0012](../09-decisions/0012-room-map-image.md), prop taman Craftpix
+> (`prop_tree_large`, `prop_tree_medium`, `prop_tree_flower`, `prop_bush_small`,
+> `prop_bush_flower`, `prop_pond`) **tidak lagi** dipasang di `halaman_sekolah`:
+> halaman memakai `map_halaman_sekolah`. Entri manifest dan berkasnya tetap ada
+> untuk pemakaian lain.
 
 ---
 
