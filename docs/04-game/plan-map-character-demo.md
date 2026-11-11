@@ -24,6 +24,13 @@ Dokumen ini merinci rencana teknis dan arsitektur untuk memperbarui dunia permai
 > yang dijahit `scripts/compose-map.mjs` dari The Fan-tasy Tileset, menggantikan
 > kombinasi `tile_floor_grass`/`tile_wall_hedge` + prop taman. Ruangan dalam
 > (lorong, kelas) tetap memakai jalur tile ADR 0010.
+>
+> **Rombakan visual karakter (2026-11-11).** Wajah semua karakter manusia
+> digambar ulang: mata 2×3 px dengan satu piksel kilau, mulut kecil, dan tanpa
+> piksel hidung yang dulu menyatu dengan mulut (tampak seperti kumis). Nino
+> memakai seragam lengkap dengan rok lipit dan kaus kaki. Pose serta proporsinya
+> memakai _The adventurer — Female — Free_ hanya sebagai acuan; tidak ada berkas
+> paket yang disalin (lihat [inventory.md](../07-assets/inventory.md#sumber-dan-lisensi)).
 
 ---
 
@@ -95,10 +102,11 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 
 ### 2.3. Standar Karakter (MC Nino & NPC)
 
-- **Sumber**: digambar generator repo (`scripts/lib/characters.mjs`). Referensi visual `Nino_Nakano_ver1.webp` hanya dipakai untuk siluet dan warna; tidak ada berkas seni berhak cipta yang disalin. `The Female Adventurer - Free` tidak dipakai karena frame-nya 64×64 dengan 6 arah dan mengandung garis kecepatan, sehingga tidak bisa dipaskan ke grid 24×32 tanpa mengubah gaya.
+- **Sumber**: digambar generator repo (`scripts/lib/characters.mjs`). Referensi visual `Nino_Nakano_ver1.webp` hanya dipakai untuk siluet dan warna; tidak ada berkas seni berhak cipta yang disalin. `The adventurer — Female — Free` (Sscary) dipakai **hanya sebagai acuan pose dan proporsi** saat menggambar ulang delapan arah; frame-nya 48×64 px dengan 6 arah sehingga tidak bisa dipaskan langsung ke grid 24×32. Tidak ada berkas paket itu yang disalin atau di-commit.
 - **Karakteristik**:
   - Frame karakter standar: **24×32 px** (proporsi chibi top-down 1.5×2 tile). Tidak ada frame 32×48; ADR 0009 sudah menetapkan 24×32.
   - Outline bersih 1 px gelap yang serasi dengan pohon dan dinding ruangan.
+  - Wajah standar: dua mata **2×3 px** dengan satu piksel kilau `bone` di sudut kiri atas, mulut kecil 2 px, dan tanpa piksel hidung — hidung `skinShade` yang menempel di atas mulut dulu terbaca seperti kumis.
   - Animasi jalan 8 arah yang mulus (gerakan kaki dan ayunan ekor kembar).
   - Bayangan karakter mengikuti elips bawaan generator; collider tetap kotak 12×8 px di kaki.
   - **Portrait Dialog**: Resolusi **64×64 px** di atas panel dialog DOM, menampilkan wajah Nino dengan pita kupu-kupu di kedua sisi.
@@ -141,6 +149,7 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 ### 4.1. Main Character (MC - Nino)
 
 - **Visual**: Siluet orisinal terinspirasi Nino (ekor kembar dan pita kupu-kupu) dengan proporsi chibi top-down 24×32 px, digambar generator dengan palet proyek. Rambut memakai aksen karakter `blush` (`#D98FA3`) beserta turunan `blushLight`/`blushShade`, jadi tidak ada warna di luar palet.
+- **Seragam**: kemeja `bone` dengan sisi `shirtShade`, rok lipit `skirt` (`mix(cool, night, 0.35)` beserta lipatan yang lebih gelap), kaus kaki `bone`, sepatu `neutral700`. Kaki telanjang dan kaus kaki hanya digambar untuk resep yang punya `skirt`; karakter lain tetap memakai `trouser`.
 - **Kerangka Animasi**: Struktur 8 arah ditetapkan proyek (bukan disalin dari pack mana pun):
   - Arah: `down`, `up`, `left`, `right`, `down-left`, `down-right`, `up-left`, `up-right`.
   - Total frame pada spritesheet horizontal 432×32 px (18 frame @ 24×32 px):
@@ -154,9 +163,9 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
     - Frame 14–15: Jalan serong kiri atas (Up-Left).
     - Frame 16–17: Jalan serong kanan atas (Up-Right).
 - **Collider**: Kotak tabrakan 12×8 px berjangkar di kaki (`PLAYER_BODY_WIDTH = 12`, `PLAYER_BODY_HEIGHT = 8`).
-- **Portrait**: 64×64 px wajah Nino dengan pita kupu-kupu untuk kotak dialog DOM.
+- **Portrait**: 64×64 px wajah Nino dengan pita kupu-kupu untuk kotak dialog DOM. Dagu diisi warna kulit dan leher dibuat sempit supaya latar panel tidak menembus lekuk rahang.
 
-> Catatan: `The Female Adventurer - Free` **tidak dipakai**. Berkas aslinya 384×64 per arah (6 frame 64×64, 6 arah) dan dua frame berisi garis kecepatan, jadi tidak cocok dengan grid 24×32 proyek.
+> Catatan: `The adventurer — Female — Free` (Sscary) **tidak disalin**. Berkas aslinya 48×64 per frame (8 frame, 6 arah) dan mengandung garis kecepatan, jadi tidak cocok dengan grid 24×32 proyek; yang dipakai hanya acuan pose dan proporsi.
 
 ### 4.2. NPC (Pak Bima, Tirta, Rani)
 
