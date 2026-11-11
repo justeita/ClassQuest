@@ -172,6 +172,7 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`04-game/scene-format.md`](./04-game/scene-format.md)                                                   | draft  | Cara cerita JSON jadi tampilan game                      |
 | [`04-game/world-design.md`](./04-game/world-design.md)                                                   | draft  | Satuan tile, perspektif, map, kamera, dan font           |
 | [`04-game/interaction-loop.md`](./04-game/interaction-loop.md)                                           | draft  | Perilaku saat siswa klik, jawab, atau menutup tab        |
+| [`04-game/plan-map-character-demo.md`](./04-game/plan-map-character-demo.md)                             | draft  | Rencana integrasi 2 map, karakter Nino MC, dan demo      |
 | [`04-game/accessibility.md`](./04-game/accessibility.md)                                                 | draft  | Keyboard, kontras, dan batas aksesibilitas MVP           |
 | [`05-frontend/routes.md`](./05-frontend/routes.md)                                                       | draft  | Daftar halaman dan endpoint                              |
 | [`05-frontend/teacher-dashboard.md`](./05-frontend/teacher-dashboard.md)                                 | draft  | Halaman guru: upload, status, ringkasan                  |
