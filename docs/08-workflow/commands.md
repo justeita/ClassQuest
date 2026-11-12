@@ -80,7 +80,7 @@ Jangan menambahkan skrip yang memanggil API berbayar ke `check`.
 # file yang benar-benar ada hari ini
 bun run test docs/docs.test.ts
 bun run test docs/02-data-model/story-schema.test.ts
-bun run test src/app/page.test.tsx
+bun run test "src/app/(landing)/page.test.tsx"
 
 # filter berdasarkan nama test
 bun run test -t "menerima cerita contoh"

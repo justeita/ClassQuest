@@ -24,9 +24,27 @@
   --color-brand-700: #1e40af;
   --color-brand-800: #1e3a8a;
   --color-brand-900: #172554;
-  /* Font judul & pixel; variabelnya dipasang di src/app/guru/layout.tsx. */
+  /* Font judul & pixel; variabelnya dipasang di src/app/guru/layout.tsx dan
+     src/app/(landing)/layout.tsx. */
   --font-heading: var(--font-plus-jakarta);
   --font-pixel: var(--font-pixelify);
+
+  /* --- Halaman pemilihan peran di `/` (lihat src/app/(landing)) ---
+     Dua palet peran: violet untuk guru, emerald untuk siswa. */
+  --color-guru-50: #f5f3ff;
+  --color-guru-100: #ede9fe;
+  --color-guru-200: #ddd6fe;
+  --color-guru-600: #7c3aed;
+  --color-guru-700: #6d28d9;
+  --color-guru-800: #5b21b6;
+  --color-guru-900: #4c1d95;
+  --color-siswa-50: #ecfdf5;
+  --color-siswa-100: #d1fae5;
+  --color-siswa-200: #a7f3d0;
+  --color-siswa-500: #10b981;
+  --color-siswa-600: #059669;
+  --color-siswa-700: #047857;
+  --color-siswa-800: #065f46;
 }
 
 @keyframes quest-bob {
@@ -511,6 +529,88 @@ body {
   .guru-press-pixel:active,
   .guru-dropzone:hover,
   .guru-dropzone[data-dragging="true"] {
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+ * Halaman pemilihan peran (`/`)
+ *
+ * Desain asalnya berkas HTML statis + Tailwind CDN. Kelas di bawah adalah
+ * bagian yang tidak bisa ditulis sebagai utility: kartu dan tombol bergaya pixel
+ * (bayangan padat, bukan blur) serta pola titik latar. Semua diberi awalan
+ * `landing-` supaya tidak bertabrakan dengan gaya portal guru maupun game.
+ *
+ * Gerak mengikuti aturan yang sama dengan portal guru
+ * (docs/05-frontend/ui-conventions.md): hanya `transform`/`box-shadow`, hover
+ * khusus perangkat berpenunjuk, dan tanpa pergeseran saat
+ * `prefers-reduced-motion: reduce`.
+ * ------------------------------------------------------------------------ */
+
+/* Inter untuk seluruh halaman; variabelnya dipasang di
+   src/app/(landing)/layout.tsx. */
+.landing-root {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Latar titik halus. */
+.landing-dots {
+  background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+}
+
+/* Kartu peran: bingkai tegas + bayangan padat. */
+.landing-pixel-card {
+  border: 2px solid #0f172a;
+  box-shadow: 4px 4px 0 #0f172a;
+}
+
+/* Tombol peran: terasa "masuk" saat ditekan. */
+.landing-btn-press {
+  border: 2px solid #0f172a;
+  box-shadow: 3px 3px 0 #0f172a;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-pixel-card {
+    transition:
+      transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .landing-btn-press {
+    transition:
+      transform 0.1s ease,
+      box-shadow 0.1s ease;
+  }
+
+  @media (hover: hover) {
+    .landing-pixel-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 6px 6px 0 #0f172a;
+    }
+
+    .landing-btn-press:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 #0f172a;
+    }
+  }
+
+  .landing-btn-press:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #0f172a;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-pixel-card,
+  .landing-btn-press {
+    transition: none;
+  }
+
+  .landing-pixel-card:hover,
+  .landing-btn-press:hover,
+  .landing-btn-press:active {
     transform: none;
   }
 }
