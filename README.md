@@ -40,7 +40,7 @@ Yang sudah berjalan di commit saat ini:
 | Game siswa dari cerita demo                  | Berjalan  | Buka `/play/<storyId>` cerita demo             |
 | Upload PDF + pembuatan job generasi          | Berjalan  | `POST /api/upload`                             |
 | Pipeline AI: ekstrak teks → outline → cerita | Berjalan  | `AI_PROVIDER=mock` atau provider nyata via env |
-| Login guru (kode akses + cookie sesi)        | Berjalan  | `POST /api/auth/login`                         |
+| Login guru (akun + cookie sesi)              | Berjalan  | `POST /api/auth/login`                         |
 | Manajemen cerita guru (Server Actions)       | Berjalan  | `src/app/guru/actions.ts`                      |
 | Simpan hasil bermain siswa + ringkasan       | Berjalan  | `src/server/play-results`                      |
 | UI dashboard guru (daftar, editor, publish)  | Belum ada | —                                              |
@@ -141,9 +141,12 @@ bun run build   # build produksi
 
 Aplikasi live: `TBD` (diisi setelah deploy pertama ke Vercel).
 
-Autentikasi guru memakai satu kode akses dari env `TEACHER_ACCESS_CODE`, tanpa
-pendaftaran. Kode akses demo: `TBD` (diisi setelah deploy). Endpoint masuk:
-`POST /api/auth/login` dengan body `{ "code": "<kode akses>" }`.
+Guru masuk dengan **username + sandi**; sandi disimpan sebagai hash scrypt di
+tabel `teachers`. Akun dibuat lewat `bun run db:seed` (lihat
+[`docs/08-workflow/setup.md`](docs/08-workflow/setup.md)). Akun demo bawaan:
+`guru` / `guru123` dan `siswa` / `siswa123` — ganti sebelum demo publik.
+Endpoint masuk: `POST /api/auth/login` dengan body
+`{ "username": "guru", "password": "..." }`.
 
 ## Penggunaan AI
 

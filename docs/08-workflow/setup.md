@@ -45,9 +45,14 @@ AI_MODEL=
 AI_BASE_URL=
 AI_TIMEOUT_MS=60000
 
-# Akses guru (sementara, sampai auth nyata)
-# Keduanya wajib agar login berhasil. Kosong = login selalu gagal.
-TEACHER_ACCESS_CODE=
+# Akun guru (sementara, sampai auth nyata). Login = username + password,
+# password disimpan sebagai hash scrypt di tabel `teachers`.
+# Kosong = akun demo bawaan (guru/guru123, siswa/siswa123) dipakai db:seed.
+TEACHER_SEED_USERNAME=
+TEACHER_SEED_PASSWORD=
+STUDENT_SEED_USERNAME=
+STUDENT_SEED_PASSWORD=
+# Wajib. Kosong = login selalu gagal.
 TEACHER_SESSION_SECRET=
 
 # Database (libSQL). Lokal: file:./local.db; produksi: Turso.
@@ -86,19 +91,24 @@ Vercel 4,5 MB adalah alasan batas upload PDF 4 MB.
    turso db tokens create classquest
    ```
 
-2. Jalankan migrasi dari laptop dengan URL dan token dari langkah 1. Jangan
-   menempel token ke repo, commit, atau chat:
+2. Jalankan migrasi dan seed akun dari laptop dengan URL dan token dari
+   langkah 1. Jangan menempel token ke repo, commit, atau chat:
 
    ```bash
    DATABASE_URL='libsql://...' DATABASE_AUTH_TOKEN='...' bun run db:migrate
+   DATABASE_URL='libsql://...' DATABASE_AUTH_TOKEN='...' \
+     TEACHER_SEED_USERNAME=guru TEACHER_SEED_PASSWORD='...' bun run db:seed
    ```
+
+   `db:seed` idempoten: akun yang id-nya sama diperbarui, bukan diduplikasi.
+   Yang dicetak hanya username; password tidak pernah ditampilkan.
 
 3. Import repo di Vercel. Framework Next.js terdeteksi otomatis; region function
    `sin1` diatur lewat `vercel.json`; Node.js 22.x.
 
 4. Set environment Production: `DATABASE_URL`, `DATABASE_AUTH_TOKEN`,
-   `TEACHER_ACCESS_CODE`, `TEACHER_SESSION_SECRET`, lalu variabel `AI_*` sesuai
-   provider. Jangan set `DATABASE_URL` ke `file:./local.db`: filesystem Vercel
+   `TEACHER_SESSION_SECRET`, lalu variabel `AI_*` sesuai provider. Variabel
+   `*_SEED_*` tidak perlu di Production: akun sudah ada di database. Jangan set `DATABASE_URL` ke `file:./local.db`: filesystem Vercel
    read-only. `.env.local` tidak ikut ter-deploy.
 
 5. Deploy dari `main`, lalu buka `https://<app>.vercel.app/api/health` dan

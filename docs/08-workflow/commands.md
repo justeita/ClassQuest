@@ -20,6 +20,7 @@ Semua perintah dijalankan dengan Bun. Sumber: `package.json`.
 | `bun run test`         | `vitest run`                           | Test sekali jalan                     |
 | `bun run test:watch`   | `vitest`                               | Test saat mengembangkan               |
 | `bun run db:migrate`   | `bun scripts/db-migrate.ts`            | Terapkan migrasi DB dari environment  |
+| `bun run db:seed`      | `bun scripts/db-seed.ts`               | Buat/perbarui akun guru & siswa       |
 | `bun run dev:publish`  | `bun scripts/dev-publish.ts <storyId>` | Terbitkan cerita guru demo untuk test |
 | `bun run format`       | `prettier --write .`                   | Rapikan format                        |
 | `bun run format:check` | `prettier --check .`                   | CI: pastikan format benar             |

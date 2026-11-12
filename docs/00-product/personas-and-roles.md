@@ -83,8 +83,11 @@ dan [`../08-workflow/ai-agent-rules.md`](../08-workflow/ai-agent-rules.md).
 
 ## Matriks izin (target MVP)
 
-MVP belum punya akun siswa. Guru masuk dengan **kode akses**; siswa cukup memakai
-**tautan yang dibagikan**. Kode kelas belum ada di MVP (masuk backlog).
+Guru masuk dengan **akun guru** (username + sandi). Tabel `students` dan akun
+siswa demo sudah ada, tetapi siswa **belum** diminta login: cukup memakai
+**tautan yang dibagikan**. Guru bisa membuat kelas dan menambah siswa di
+`/guru/kelas`; kode kelas (`QST-XXXX`) baru label tampilan — alur siswa
+memasukkan kode untuk bergabung masih backlog.
 
 | Aksi                    | Guru | Siswa (punya tautan) | Tanpa tautan |
 | ----------------------- | ---- | -------------------- | ------------ |

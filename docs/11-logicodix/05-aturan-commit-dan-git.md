@@ -31,7 +31,7 @@ Guidebook mewajibkan pesan commit menjelaskan perubahan secara jelas dengan awal
 | Awalan     | Dipakai untuk                                                    | Contoh                                              |
 | ---------- | ---------------------------------------------------------------- | --------------------------------------------------- |
 | `feat`     | Fitur baru yang terlihat pengguna atau menambah kemampuan sistem | `feat(editor): tambah validasi draf sebelum simpan` |
-| `fix`      | Perbaikan bug                                                    | `fix(login): tolak kode akses kosong`               |
+| `fix`      | Perbaikan bug                                                    | `fix(login): tolak sandi kosong`                    |
 | `docs`     | Perubahan dokumentasi saja                                       | `docs(logicodix): tambah checklist submission`      |
 | `style`    | Formatting, spasi, urutan import — tanpa mengubah perilaku       | `style(game): rapikan format tipe`                  |
 | `refactor` | Ubah struktur kode tanpa mengubah perilaku                       | `refactor(ai): pisahkan adapter provider`           |
@@ -44,7 +44,7 @@ khusus sebagai pesan yang tidak menjelaskan perubahan.
 ### Contoh yang benar
 
 ```text
-feat(auth): tambah login guru dengan kode akses
+feat(auth): tambah login guru dengan akun
 feat(ai): integrasi Gemini untuk ringkasan cerita otomatis
 fix(validation): perbaiki skema cerita yang null pada choices
 docs(readme): lengkapi bagian atribusi aset

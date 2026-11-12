@@ -88,8 +88,9 @@ id internal: `materials/{storyId}/{uploadId}.pdf`.
 
 Sampai auth nyata ada:
 
-- Dashboard guru dilindungi **kode akses guru** dari env (bukan rahasia kuat,
-  hanya penghalang demo).
+- Dashboard guru dilindungi **akun guru**: username + sandi, disimpan sebagai
+  hash scrypt di tabel `teachers` (bukan sistem keamanan penuh, hanya
+  penghalang demo). Token sesi bertanda tangan HMAC-SHA256 berlaku 8 jam.
 - Setiap Server Action memanggil `requireTeacher()` di baris pertama.
 - Endpoint `GET /api/stories/[storyId]` publik, tapi hanya mengembalikan
   `published` dan **tidak** menyertakan jawaban benar? — Tidak. Game butuh jawaban

@@ -31,7 +31,7 @@ Jangan hanya memikirkan API key. Semua ini termasuk:
 | Kunci API model              | `AI_API_KEY` untuk Gemini/OpenAI/Anthropic    |
 | Token akses layanan          | token deploy platform, token storage          |
 | Kredensial database          | connection string dengan password di dalamnya |
-| Kode akses guru              | `TEACHER_ACCESS_CODE`                         |
+| Sandi akun guru/siswa        | hash scrypt di tabel `teachers`/`students`    |
 | Secret signing               | session secret, JWT secret                    |
 | Kredensial storage           | `STORAGE_BUCKET` beserta key-nya              |
 | Kunci privat                 | `*.pem`, `*.key`, `id_rsa`                    |
@@ -66,8 +66,8 @@ file `.env` akan ikut ter-commit.
 ## Isi `.env.example`
 
 `.env.example` sudah memuat nama variabel yang dibaca `src/server/config.ts`
-(`AI_PROVIDER`, `AI_API_KEY`, `TEACHER_ACCESS_CODE`, `DATABASE_URL`, dst.) tanpa
-nilai asli. Aturan di bawah tetap berlaku: setiap `process.env.X` baru di kode
+(`AI_PROVIDER`, `AI_API_KEY`, `TEACHER_SESSION_SECRET`, `DATABASE_URL`, dst.)
+tanpa nilai asli. Aturan di bawah tetap berlaku: setiap `process.env.X` baru di kode
 wajib punya `X=` di `.env.example` pada commit yang sama.
 
 Bentuk yang harus ada ketika fitur AI dan penyimpanan masuk:
@@ -80,8 +80,10 @@ AI_MODEL=
 AI_BASE_URL=
 AI_TIMEOUT_MS=60000
 
-# Akses guru (sementara, sampai auth nyata)
-TEACHER_ACCESS_CODE=
+# Akun seed guru/siswa (sementara, sampai auth nyata). Kosong = akun demo.
+TEACHER_SEED_USERNAME=
+TEACHER_SEED_PASSWORD=
+TEACHER_SESSION_SECRET=
 
 # Database/storage (TBD, lihat docs/06-backend/persistence.md)
 DATABASE_URL=
