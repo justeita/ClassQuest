@@ -11,20 +11,20 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 
 ## Peta route
 
-| Route                            | Akses   | Render  | Fungsi                                     |
-| -------------------------------- | ------- | ------- | ------------------------------------------ |
-| `/`                              | Publik  | Statis  | Landing: apa ini, tombol masuk guru/siswa  |
-| `/guru/masuk`                    | Publik  | Dinamis | Login akun guru                            |
-| `/guru`                          | Guru    | Dinamis | Dashboard: ringkasan + aktivitas terbaru   |
-| `/guru/materi`                   | Guru    | Dinamis | Daftar materi + penyaring + modal detail   |
-| `/guru/materi/baru`              | Guru    | Dinamis | AI Studio (form materi → modul)            |
-| `/guru/materi/[storyId]`         | Guru    | Dinamis | Ringkasan + status generasi + aksi         |
-| `/guru/materi/[storyId]/edit`    | Guru    | Dinamis | Story editor                               |
-| `/guru/materi/[storyId]/preview` | Guru    | Dinamis | Preview game (versi draft)                 |
-| `/guru/kelas`                    | Guru    | Dinamis | Daftar kelas, detail kelas, kelas baru     |
-| `/guru/game`                     | Guru    | Dinamis | Koleksi game edukasi                       |
-| `/play/[storyId]`                | Publik* | Dinamis | Game siswa (termasuk layar hasil)          |
-| `/game`                          | Dev     | Client  | Boot Phaser placeholder, bukan route siswa |
+| Route                            | Akses   | Render  | Fungsi                                   |
+| -------------------------------- | ------- | ------- | ---------------------------------------- |
+| `/`                              | Publik  | Statis  | Landing: pilih peran guru/siswa          |
+| `/guru/masuk`                    | Publik  | Dinamis | Login akun guru                          |
+| `/guru`                          | Guru    | Dinamis | Dashboard: ringkasan + aktivitas terbaru |
+| `/guru/materi`                   | Guru    | Dinamis | Daftar materi + penyaring + modal detail |
+| `/guru/materi/baru`              | Guru    | Dinamis | AI Studio (form materi → modul)          |
+| `/guru/materi/[storyId]`         | Guru    | Dinamis | Ringkasan + status generasi + aksi       |
+| `/guru/materi/[storyId]/edit`    | Guru    | Dinamis | Story editor                             |
+| `/guru/materi/[storyId]/preview` | Guru    | Dinamis | Preview game (versi draft)               |
+| `/guru/kelas`                    | Guru    | Dinamis | Daftar kelas, detail kelas, kelas baru   |
+| `/guru/game`                     | Guru    | Dinamis | Koleksi game edukasi                     |
+| `/play/[storyId]`                | Publik* | Dinamis | Game siswa (termasuk layar hasil)        |
+| `/game`                          | Publik  | Client  | Demo Phaser; pintu siswa sementara       |
 
 \* Publik tapi hanya untuk cerita `published`; kalau tidak ada → `notFound()`.
 
@@ -78,9 +78,15 @@ Tidak ada route `/play/[storyId]/hasil`. Layar hasil adalah **overlay di dalam
 hidup di memori (skor, jawaban, `weakConcepts`). Pindah route berarti membuang
 state itu. Lihat [`game-player.md`](./game-player.md).
 
-`/game` **bukan** route siswa. Halaman itu hanya boot Phaser sebelum pipeline
-dan cerita siap: tanpa `storyId`, tanpa otorisasi, dan tidak ditautkan dari
-landing atau dashboard guru. Target siswa tetap `/play/[storyId]`.
+`/game` **bukan** route siswa resmi. Halaman itu hanya boot Phaser dengan
+`DEMO_STORY`: tanpa `storyId` dan tanpa otorisasi. Landing menautkan kartu
+"Arena Siswa" ke sini karena pembagian tautan `/play/[storyId]` belum ada;
+begitu tautan kelas tersedia, target siswa tetap `/play/[storyId]`.
+
+Landing `/` memakai route group `src/app/(landing)/` supaya punya layout sendiri
+(font Inter/Plus Jakarta/Pixelify + ikon Font Awesome) tanpa membebani halaman
+siswa/game. Kartu "Portal Guru" menautkan ke `/guru` — layout `(portal)`
+mengarahkan ke `/guru/masuk` bila sesi belum ada.
 
 ## Route API
 

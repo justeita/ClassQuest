@@ -51,14 +51,28 @@ Aturan:
   menyala; jawaban salah di game memakai penjelasan, bukan warna alarm.
 - Jangan menambah warna baru tanpa memperbarui dokumen ini.
 
+### Palet halaman pemilihan peran (`/`)
+
+Halaman `/` memilih peran lewat dua kartu, jadi ia punya dua palet sendiri di
+`@theme inline` `src/app/globals.css`:
+
+| Token     | Kartu       | Nada    | Warna inti                   |
+| --------- | ----------- | ------- | ---------------------------- |
+| `guru-*`  | Portal Guru | Violet  | 600 `#7c3aed`, 700 `#6d28d9` |
+| `siswa-*` | Arena Siswa | Emerald | 500 `#10b981`, 600 `#059669` |
+
+Dipakai **hanya** di `/`; jangan mencampurnya ke form guru atau ke game. Kedua
+palet ini juga menandai asal tombol (violet = guru, emerald = siswa).
+
 ## Tipografi
 
-| Peran         | Font                       | Ukuran                                |
-| ------------- | -------------------------- | ------------------------------------- |
-| UI guru       | Geist Sans                 | `text-sm` (14) body, `text-2xl` judul |
-| Judul halaman | Geist Sans                 | `text-2xl font-semibold`              |
-| Teks game     | Patrick Hand (`font-game`) | `clamp()` dari `src/game/layout.ts`   |
-| Kode/ID aset  | Geist Mono                 | `text-xs`                             |
+| Peran               | Font                                                                 | Ukuran                                |
+| ------------------- | -------------------------------------------------------------------- | ------------------------------------- |
+| UI guru             | Geist Sans                                                           | `text-sm` (14) body, `text-2xl` judul |
+| Judul halaman       | Geist Sans                                                           | `text-2xl font-semibold`              |
+| Halaman peran (`/`) | Inter (body), Plus Jakarta (`font-heading`), Pixelify (`font-pixel`) | `text-xs`–`text-4xl`                  |
+| Teks game           | Patrick Hand (`font-game`)                                           | `clamp()` dari `src/game/layout.ts`   |
+| Kode/ID aset        | Geist Mono                                                           | `text-xs`                             |
 
 - `--font-game` = `var(--font-handwriting)` didefinisikan di `@theme inline`
   `src/app/globals.css`; utility `font-game` dipakai HUD, dialog, prompt, dan
@@ -75,6 +89,10 @@ Aturan:
 Font dimuat di `src/app/layout.tsx`: Geist lewat `next/font/google`, Patrick Hand
 lewat `next/font/local` dari `public/fonts/`. Jangan memuat font lewat `<link>`
 manual.
+
+Font khusus satu area dimuat di layout area itu, bukan di root, supaya halaman
+lain tidak ikut mengunduhnya: portal guru di `src/app/guru/layout.tsx`, halaman
+peran di `src/app/(landing)/layout.tsx`.
 
 ## Spacing dan layout
 

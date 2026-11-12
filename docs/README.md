@@ -72,8 +72,8 @@ Jujur dulu, supaya tidak ada yang salah paham:
 | Bagian           | Keadaan sekarang                                                                     |
 | ---------------- | ------------------------------------------------------------------------------------ |
 | Aplikasi Next.js | Ada. Next 16.4.5, App Router, Tailwind 4, Bun.                                       |
-| Landing page     | Halaman pengenalan produk di `/` (bukan lagi starter `create-next-app`).             |
-| Halaman siswa    | `/play/[storyId]` sudah jalan dengan cerita demo; `/game` adalah shell dev Phaser.   |
+| Landing page     | Halaman pilih peran (guru/siswa) di `/` (bukan lagi starter `create-next-app`).      |
+| Halaman siswa    | `/play/[storyId]` sudah jalan; `/game` adalah demo Phaser dan pintu siswa di `/`.    |
 | UI guru          | Portal jalan: dashboard, materi, kelas, login. Editor cerita & preview belum ada.    |
 | Backend          | Upload PDF, job generasi, cerita, auth guru, dan hasil main sudah ada (libSQL).      |
 | Pipeline AI      | Ada: mock provider + Anthropic/OpenAI-compatible, dipilih lewat env.                 |

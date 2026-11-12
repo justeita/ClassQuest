@@ -58,9 +58,10 @@ isinya sudah ada di [`../README.md`](../README.md).
 
 | Path                                              | Ada? | Isi                                                            |
 | ------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `src/app/page.tsx`                                | ya   | Halaman pengenalan produk                                      |
+| `src/app/(landing)/page.tsx`                      | ya   | Landing: pilih peran guru/siswa                                |
+| `src/app/(landing)/layout.tsx`                    | ya   | Font + ikon halaman pemilihan peran                            |
 | `src/app/layout.tsx`                              | ya   | Layout global                                                  |
-| `src/app/page.test.tsx`                           | ya   | Test halaman pengenalan                                        |
+| `src/app/(landing)/page.test.tsx`                 | ya   | Test halaman pemilihan peran                                   |
 | `docs/02-data-model/story.example.json`           | ya   | Cerita contoh (fixture)                                        |
 | `docs/02-data-model/story.schema.json`            | ya   | Kontrak cerita versi mesin                                     |
 | `docs/02-data-model/story-schema.test.ts`         | ya   | Tes schema vs dokumen                                          |
@@ -190,7 +191,9 @@ src/
 ├── app/
 │   ├── layout.tsx
 │   ├── globals.css
-│   ├── page.tsx                       # landing + penjelasan singkat
+│   ├── (landing)/
+│   │   ├── layout.tsx                 # font + ikon halaman pemilihan peran
+│   │   └── page.tsx                   # landing: pilih peran (guru/siswa)
 │   ├── guru/
 │   │   ├── layout.tsx                 # font + toast portal guru
 │   │   ├── masuk/page.tsx             # login akun guru
