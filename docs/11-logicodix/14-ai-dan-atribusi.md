@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -136,25 +136,18 @@ alasan untuk tidak menulis sumbernya.
 
 Verifikasi ulang bila ada dependency baru: lisensi ada di `node_modules/<paket>/LICENSE`.
 
-### Aset default yang perlu dibereskan
+### Aset default create-next-app
 
-Repo ini masih memuat aset bawaan `create-next-app`:
+Repo ini **tidak lagi** memuat aset bawaan `create-next-app` (`file.svg`,
+`globe.svg`, `next.svg`, `vercel.svg`, `window.svg`). Kelimanya dihapus saat
+halaman pengenalan di `/` menggantikan halaman starter. Yang tersisa di
+`public/` adalah aset game (sebagian dari generator repo, sebagian pihak ketiga
+yang tercatat di README) dan font.
 
-```text
-public/file.svg
-public/globe.svg
-public/next.svg
-public/vercel.svg
-public/window.svg
-```
-
-Tiga pilihan, semuanya sah:
-
-1. **Hapus** kalau tidak dipakai. Paling bersih.
-2. **Atribusikan** di README sebagai aset template `create-next-app`.
-3. **Ganti** dengan aset buatan tim, lalu hapus yang lama.
-
-Jangan membiarkannya tanpa keterangan. Juri yang teliti akan bertanya asalnya.
+Kalau nanti menambah aset template lagi, pilih salah satu: **hapus** kalau tidak
+dipakai, **atribusikan** di README, atau **ganti** dengan aset buatan tim lalu
+hapus yang lama. Jangan membiarkannya tanpa keterangan — juri yang teliti akan
+bertanya asalnya.
 
 ## 5. Yang tidak boleh
 

@@ -32,14 +32,18 @@ const gameFont = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "ClassQuest",
-  description: "A collaborative learning experience for classes.",
+  title: {
+    default: "ClassQuest — materi pelajaran jadi game pixel",
+    template: "%s · ClassQuest",
+  },
+  description:
+    "ClassQuest mengubah materi pelajaran yang diunggah guru menjadi game pixel 2D bercerita, supaya siswa belajar lewat alur cerita dan tantangan.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="id"
       className={`${geistSans.variable} ${geistMono.variable} ${gameFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
