@@ -6,7 +6,9 @@ import {
   DEFAULT_DATABASE_URL,
   loadAiConfig,
   loadDatabaseConfig,
+  loadSeedConfig,
   loadTeacherAuthConfig,
+  DEFAULT_SEED_ACCOUNTS,
 } from "./config";
 
 /**
@@ -428,38 +430,46 @@ describe("loadDatabaseConfig", () => {
 });
 
 describe("loadTeacherAuthConfig", () => {
-  it("mengembalikan null saat kedua variabel belum diisi", () => {
-    expect(loadTeacherAuthConfig({})).toEqual({
-      accessCode: null,
+  it("mengembalikan null saat secret belum diisi", () => {
+    expect(loadTeacherAuthConfig({})).toEqual({ sessionSecret: null });
+    expect(loadTeacherAuthConfig({ TEACHER_SESSION_SECRET: "   " })).toEqual({
       sessionSecret: null,
     });
-    expect(
-      loadTeacherAuthConfig({
-        TEACHER_ACCESS_CODE: "",
-        TEACHER_SESSION_SECRET: "   ",
-      }),
-    ).toEqual({ accessCode: null, sessionSecret: null });
   });
 
-  it("membaca kedua nilai dan memangkas spasi", () => {
+  it("membaca secret dan memangkas spasi", () => {
     expect(
-      loadTeacherAuthConfig({
-        TEACHER_ACCESS_CODE: "  kode-demo  ",
-        TEACHER_SESSION_SECRET: "  secret-demo  ",
-      }),
-    ).toEqual({
-      accessCode: "kode-demo",
-      sessionSecret: "secret-demo",
-    });
+      loadTeacherAuthConfig({ TEACHER_SESSION_SECRET: "  secret-demo  " }),
+    ).toEqual({ sessionSecret: "secret-demo" });
   });
 
   it("membaca process.env bila sumber tidak diberikan", () => {
-    vi.stubEnv("TEACHER_ACCESS_CODE", "kode-dari-env");
     vi.stubEnv("TEACHER_SESSION_SECRET", "secret-dari-env");
 
     expect(loadTeacherAuthConfig()).toEqual({
-      accessCode: "kode-dari-env",
       sessionSecret: "secret-dari-env",
+    });
+  });
+});
+
+describe("loadSeedConfig", () => {
+  it("memakai akun demo bawaan saat environment kosong", () => {
+    expect(loadSeedConfig({})).toEqual(DEFAULT_SEED_ACCOUNTS);
+  });
+
+  it("membaca dan memangkas nilai dari environment", () => {
+    expect(
+      loadSeedConfig({
+        TEACHER_SEED_USERNAME: "  bu-guru  ",
+        TEACHER_SEED_PASSWORD: "  sandi-baru  ",
+        STUDENT_SEED_USERNAME: "  siswa-a  ",
+        STUDENT_SEED_PASSWORD: "  sandi-siswa  ",
+      }),
+    ).toEqual({
+      teacherUsername: "bu-guru",
+      teacherPassword: "sandi-baru",
+      studentUsername: "siswa-a",
+      studentPassword: "sandi-siswa",
     });
   });
 });

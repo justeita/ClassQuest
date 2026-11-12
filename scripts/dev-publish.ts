@@ -13,9 +13,15 @@
  * Script ini tidak pernah mencetak credential atau URL koneksi.
  */
 
-import { TEACHER_ID } from "../src/server/auth";
 import { getReadyDb } from "../src/server/db";
 import { publishStory, StoryNotFoundError } from "../src/server/stories";
+
+/**
+ * Id guru demo, sama dengan yang dipakai `bun run db:seed`. Skrip CLI tidak
+ * punya sesi, jadi id ini yang dipakai; `publishStory` tetap memeriksa bahwa
+ * ceritanya milik guru tersebut.
+ */
+const TEACHER_ID = "teacher_demo";
 
 async function main(): Promise<void> {
   const storyId = process.argv[2]?.trim();

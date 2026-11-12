@@ -30,6 +30,7 @@ import {
   teacherRateLimitKey,
 } from "./identity";
 import {
+  CLASSROOM_RATE_LIMIT,
   LOGIN_RATE_LIMIT,
   PLAY_RESULT_RATE_LIMIT,
   PUBLIC_STORY_RATE_LIMIT,
@@ -164,4 +165,20 @@ export async function guardPublicStoryRead(): Promise<RateLimitGate> {
   } catch {
     return ALLOWED;
   }
+}
+
+/**
+ * Server Action kelas/siswa — 60 tulisan per jam per guru.
+ *
+ * Dipanggil **setelah** `requireTeacher()` berhasil, jadi percobaan tanpa sesi
+ * tidak menambah hitungan. Fail open: guru yang sah tetap bisa menambah siswa
+ * walau penghitung bermasalah; batas ini pelindung penyalahgunaan, bukan
+ * gerbang keamanan utama (otorisasi tetap `requireTeacher()`).
+ */
+export function guardClassroomWrite(teacherId: string): Promise<RateLimitGate> {
+  return guardWithDatabase(
+    CLASSROOM_RATE_LIMIT,
+    teacherRateLimitKey(CLASSROOM_RATE_LIMIT.name, teacherId),
+    "open",
+  );
 }

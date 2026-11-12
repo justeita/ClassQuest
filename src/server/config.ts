@@ -3,11 +3,12 @@
  *
  * **Satu-satunya** modul yang membaca `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`,
  * `AI_BASE_URL`, `AI_TIMEOUT_MS`, `DATABASE_URL`, `DATABASE_AUTH_TOKEN`,
- * `TEACHER_ACCESS_CODE`, dan `TEACHER_SESSION_SECRET` dari `process.env`
+ * `TEACHER_SEED_USERNAME`, `TEACHER_SEED_PASSWORD`, dan
+ * `TEACHER_SESSION_SECRET` dari `process.env`
  * (`docs/03-ai-pipeline/provider-setup.md`, `docs/06-backend/persistence.md`,
  * `docs/08-workflow/setup.md`). Modul lain memakai hasil `loadAiConfig()`,
- * `loadDatabaseConfig()`, atau `loadTeacherAuthConfig()` supaya test tidak perlu
- * menyentuh environment global dan supaya satu nilai tidak dibaca di dua tempat
+ * `loadDatabaseConfig()`, `loadTeacherAuthConfig()`, atau `loadSeedConfig()`
+ * supaya test tidak perlu menyentuh environment global dan supaya satu nilai tidak dibaca di dua tempat
  * dengan aturan berbeda.
  *
  * Aturan yang dipegang di sini:
@@ -87,16 +88,41 @@ export type DatabaseConfig = {
 };
 
 /**
- * Konfigurasi auth guru. Kedua nilai boleh `null`: login memperlakukan
- * konfigurasi tidak lengkap sebagai gagal (fail closed), bukan memakai nilai
- * default atau secret acak per proses.
+ * Konfigurasi sesi guru. Nilai boleh `null`: login memperlakukan secret yang
+ * belum diisi sebagai gagal (fail closed), bukan memakai nilai default atau
+ * secret acak per proses.
+ *
+ * Password guru **tidak** ada di sini; password disimpan sebagai hash di tabel
+ * `teachers` dan diisi lewat `bun run db:seed`.
  */
 export type TeacherAuthConfig = {
-  /** Kode akses tunggal untuk demo. `null` = belum diisi. */
-  accessCode: string | null;
   /** Kunci HMAC untuk cookie sesi. `null` = belum diisi. */
   sessionSecret: string | null;
 };
+
+/**
+ * Kredensial akun seed untuk `bun run db:seed`.
+ *
+ * Sengaja bukan bagian konfigurasi runtime: aplikasi tidak pernah membaca
+ * akun dari environment, hanya dari database. Nilai bawaan adalah akun demo
+ * yang didokumentasikan di `docs/08-workflow/setup.md`; ganti lewat environment
+ * sebelum deploy sungguhan.
+ */
+export type SeedConfig = {
+  teacherUsername: string;
+  teacherPassword: string;
+  /** Akun siswa disiapkan untuk fase berikutnya; `/play` tetap berbasis tautan. */
+  studentUsername: string;
+  studentPassword: string;
+};
+
+/** Akun demo bawaan. Hanya untuk seed; bukan rahasia produksi. */
+export const DEFAULT_SEED_ACCOUNTS = {
+  teacherUsername: "guru",
+  teacherPassword: "guru123",
+  studentUsername: "siswa",
+  studentPassword: "siswa123",
+} as const;
 
 /**
  * Error konfigurasi. `message` aman ditampilkan (tidak memuat nilai rahasia);
@@ -196,12 +222,13 @@ export function loadDatabaseConfig(
 }
 
 /**
- * Baca konfigurasi auth guru.
+ * Baca konfigurasi sesi guru.
  *
  * Tidak ada nilai default dan tidak ada secret acak per proses: instance
- * serverless yang berbeda harus bisa memverifikasi token yang sama. Bila salah
- * satu nilai kosong, `loginTeacher()` selalu gagal dan `verifySessionToken()`
- * tidak pernah menerima token (lihat `src/server/auth.ts`).
+ * serverless yang berbeda harus bisa memverifikasi token yang sama. Bila
+ * `TEACHER_SESSION_SECRET` kosong, `loginTeacher()` selalu gagal dan
+ * `verifySessionToken()` tidak pernah menerima token (lihat
+ * `src/server/auth.ts`).
  *
  * Nilai tidak pernah dicetak atau dimasukkan ke pesan error. Pesan yang aman
  * ditampilkan boleh menyebut **nama** variabel, bukan isinya.
@@ -212,8 +239,32 @@ export function loadTeacherAuthConfig(
   env: EnvSource = process.env,
 ): TeacherAuthConfig {
   return {
-    accessCode: read(env, "TEACHER_ACCESS_CODE"),
     sessionSecret: read(env, "TEACHER_SESSION_SECRET"),
+  };
+}
+
+/**
+ * Baca kredensial akun seed untuk `scripts/db-seed.ts`.
+ *
+ * Variabel kosong jatuh ke akun demo bawaan, supaya `bun run db:seed` bisa
+ * dipakai tanpa konfigurasi tambahan. Nilai tidak pernah dicetak.
+ *
+ * @param env sumber environment; default `process.env`.
+ */
+export function loadSeedConfig(env: EnvSource = process.env): SeedConfig {
+  return {
+    teacherUsername:
+      read(env, "TEACHER_SEED_USERNAME") ??
+      DEFAULT_SEED_ACCOUNTS.teacherUsername,
+    teacherPassword:
+      read(env, "TEACHER_SEED_PASSWORD") ??
+      DEFAULT_SEED_ACCOUNTS.teacherPassword,
+    studentUsername:
+      read(env, "STUDENT_SEED_USERNAME") ??
+      DEFAULT_SEED_ACCOUNTS.studentUsername,
+    studentPassword:
+      read(env, "STUDENT_SEED_PASSWORD") ??
+      DEFAULT_SEED_ACCOUNTS.studentPassword,
   };
 }
 

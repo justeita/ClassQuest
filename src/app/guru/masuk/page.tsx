@@ -48,7 +48,7 @@ export default function MasukPage() {
           </div>
         </div>
 
-        <div className="relative z-10 my-auto max-w-lg space-y-6 py-6">
+        <div className="guru-enter relative z-10 my-auto max-w-lg space-y-6 py-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/20 px-3.5 py-1.5 text-xs font-bold tracking-wide text-amber-300">
             <i className="fa-solid fa-wand-magic-sparkles" aria-hidden />{" "}
             Transformasi Silabus Menjadi Misi Game
@@ -92,11 +92,11 @@ export default function MasukPage() {
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center justify-between gap-4 border-t border-slate-800 pt-4 pr-6 text-xs text-slate-400 sm:pr-10">
+        <div className="guru-fade relative z-10 flex items-center justify-between gap-4 border-t border-slate-800 pt-4 pr-6 text-xs text-slate-400 sm:pr-10">
           <span>© 2026 Class Quest Studio Engine</span>
           <span className="flex shrink-0 items-center gap-1.5 font-semibold text-emerald-400">
             <i
-              className="fa-solid fa-circle animate-pulse text-[8px]"
+              className="fa-solid fa-circle animate-pulse motion-reduce:animate-none text-[8px]"
               aria-hidden
             />{" "}
             Server Active

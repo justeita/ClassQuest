@@ -38,6 +38,7 @@ import { createClient, type Client } from "@libsql/client";
 
 import { applyMigrations } from "@/server/db/migrations";
 import {
+  guardClassroomWrite,
   guardLogin,
   guardPlayResult,
   guardPublicStoryRead,
@@ -47,6 +48,7 @@ import {
 } from "./index";
 import { RATE_LIMITED_MESSAGE, rateLimitedResponse } from "./response";
 import {
+  CLASSROOM_RATE_LIMIT,
   LOGIN_RATE_LIMIT,
   PLAY_RESULT_RATE_LIMIT,
   PUBLIC_STORY_RATE_LIMIT,
@@ -104,13 +106,24 @@ afterEach(() => {
   }
 });
 
-const expect429 = async (response: Response, minRetryAfter = 1) => {
+/**
+ * `minRetryAfter` bawaan 1 detik, bukan nilai jendela: `retryAfter` adalah
+ * **sisa** jendela berjalan, jadi nilainya menyusut sampai 1 detik tepat sebelum
+ * jendela berganti. Yang diuji di sini: ada angka nyata, tidak melebihi panjang
+ * jendela, dan konsisten dengan `details`.
+ */
+const expect429 = async (
+  response: Response,
+  minRetryAfter = 1,
+  maxRetryAfter = 24 * 60 * 60,
+) => {
   expect(response.status).toBe(429);
   expect(response.headers.get("Cache-Control")).toBe("no-store");
 
   const retryAfter = Number(response.headers.get("Retry-After"));
   expect(Number.isInteger(retryAfter)).toBe(true);
   expect(retryAfter).toBeGreaterThanOrEqual(minRetryAfter);
+  expect(retryAfter).toBeLessThanOrEqual(maxRetryAfter);
 
   const body = (await response.json()) as {
     error: { code: string; message: string; details?: Record<string, unknown> };
@@ -150,7 +163,11 @@ describe("guardUpload*", () => {
     await drain(guardUploadIp, UPLOAD_IP_RATE_LIMIT.limit);
 
     const gate = await guardUploadIp();
-    await expect429(gate.response as Response, 60);
+    await expect429(
+      gate.response as Response,
+      1,
+      UPLOAD_IP_RATE_LIMIT.windowSeconds,
+    );
   });
 
   it("menolak setelah batas per guru terlewati, apa pun IP-nya", async () => {
@@ -160,7 +177,11 @@ describe("guardUpload*", () => {
     );
     setIp("203.0.113.99");
     const gate = await guardUploadTeacher("teacher_demo");
-    await expect429(gate.response as Response, 60);
+    await expect429(
+      gate.response as Response,
+      1,
+      UPLOAD_TEACHER_RATE_LIMIT.windowSeconds,
+    );
   });
 
   it("menolak guru yang melewati batas per guru", async () => {
@@ -170,7 +191,11 @@ describe("guardUpload*", () => {
     );
 
     const gate = await guardUploadTeacher("teacher_demo");
-    await expect429(gate.response as Response, 60);
+    await expect429(
+      gate.response as Response,
+      1,
+      UPLOAD_TEACHER_RATE_LIMIT.windowSeconds,
+    );
 
     // Guru lain masih boleh.
     expect((await guardUploadTeacher("teacher_lain")).response).toBeNull();
@@ -179,7 +204,11 @@ describe("guardUpload*", () => {
   it("batas global menolak guru mana pun", async () => {
     await drain(guardUploadGlobal, UPLOAD_GLOBAL_RATE_LIMIT.limit);
 
-    await expect429((await guardUploadGlobal()).response as Response, 60);
+    await expect429(
+      (await guardUploadGlobal()).response as Response,
+      1,
+      UPLOAD_GLOBAL_RATE_LIMIT.windowSeconds,
+    );
   });
 
   it("limiter gagal → 500 generik (fail closed) tanpa detail", async () => {
@@ -225,6 +254,29 @@ describe("guardPlayResult", () => {
     dbRef.failWith = new Error("database mati");
 
     const gate = await guardPlayResult();
+    expect(gate.response).toBeNull();
+    expect(gate.result).toBeNull();
+  });
+});
+
+describe("guardClassroomWrite", () => {
+  it("menolak setelah batas per guru, guru lain tidak terpengaruh", async () => {
+    for (let index = 0; index < CLASSROOM_RATE_LIMIT.limit; index += 1) {
+      expect((await guardClassroomWrite("teacher_demo")).response).toBeNull();
+    }
+
+    await expect429(
+      (await guardClassroomWrite("teacher_demo")).response as Response,
+    );
+
+    // Hitungan per guru, bukan global: guru lain masih bisa menyimpan.
+    expect((await guardClassroomWrite("teacher_lain")).response).toBeNull();
+  });
+
+  it("limiter gagal → diizinkan (fail open, tanpa respons)", async () => {
+    dbRef.failWith = new Error("database mati");
+
+    const gate = await guardClassroomWrite("teacher_demo");
     expect(gate.response).toBeNull();
     expect(gate.result).toBeNull();
   });

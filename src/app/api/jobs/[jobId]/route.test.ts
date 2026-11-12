@@ -44,16 +44,13 @@ vi.mock("@/server/db", () => ({ getReadyDb: getReadyDbMock }));
 import { JOB_ERROR_MESSAGES } from "@/server/jobs/run";
 import { JOB_STALE_AFTER_SECONDS } from "@/server/jobs/limits";
 import { applyMigrations } from "@/server/db/migrations";
-import {
-  createSessionToken,
-  TEACHER_ID,
-  TEACHER_SESSION_COOKIE,
-} from "@/server/auth";
+import { createSessionToken, TEACHER_SESSION_COOKIE } from "@/server/auth";
 
 import { GET } from "./route";
 
-const ACCESS_CODE = "kode-demo-rahasia-4c1e";
 const SESSION_SECRET = "secret-uji-sesi-yang-panjang-9b2f";
+const TEACHER_ID = "teacher_demo";
+const TEACHER_DISPLAY_NAME = "Guru Demo";
 
 const OTHER_TEACHER_ID = "teacher_lain";
 const OTHER_STORY_ID = "st_milik_guru_lain";
@@ -122,7 +119,6 @@ async function setJob(
 const iso = (ms: number) => new Date(ms).toISOString();
 
 beforeEach(async () => {
-  vi.stubEnv("TEACHER_ACCESS_CODE", ACCESS_CODE);
   vi.stubEnv("TEACHER_SESSION_SECRET", SESSION_SECRET);
   vi.stubEnv("NODE_ENV", "test");
 
@@ -133,7 +129,12 @@ beforeEach(async () => {
 
   cookieStore.get.mockReset();
   getReadyDbMock.mockClear();
-  useSession(createSessionToken(TEACHER_ID, Date.now()));
+  useSession(
+    createSessionToken({
+      teacherId: TEACHER_ID,
+      displayName: TEACHER_DISPLAY_NAME,
+    }),
+  );
 
   await db.execute({
     sql: "insert into teachers (id, display_name) values (?, 'Guru Demo')",

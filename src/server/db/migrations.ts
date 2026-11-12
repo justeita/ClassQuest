@@ -170,6 +170,106 @@ create index if not exists rate_limits_window_idx on rate_limits (window_start);
 `;
 
 /**
+ * Migrasi 0004: akun guru dan siswa.
+ *
+ * Sebelumnya guru masuk dengan satu `TEACHER_ACCESS_CODE` dari environment.
+ * Sekarang setiap guru punya baris `teachers` dengan `username` unik dan
+ * `password_hash` scrypt (`src/server/password.ts`). Kolom `access_code` lama
+ * dihapus supaya tidak ada dua sumber kebenaran yang bisa berbeda.
+ *
+ * Tabel `students` disiapkan untuk akun siswa (username + password hash).
+ * Halaman `/play/[storyId]` **belum** memakai login siswa: siswa tetap membuka
+ * tautan/QR, sesuai `docs/00-product/personas-and-roles.md`. Kolom
+ * `teacher_id` menautkan siswa ke guru pemilik kelasnya dan boleh kosong untuk
+ * akun demo yang belum punya kelas.
+ *
+ * `username` disimpan huruf kecil (dinormalisasi di `normalizeUsername()`);
+ * index unik memakai kolom itu, dan `null` tetap diizinkan untuk baris lama.
+ */
+const ACCOUNTS_SQL = `
+alter table teachers add column username text;
+alter table teachers add column password_hash text;
+alter table teachers drop column access_code;
+
+create unique index if not exists teachers_username_idx on teachers (username);
+
+create table if not exists students (
+  id            text primary key,
+  teacher_id    text references teachers(id),
+  display_name  text not null,
+  username      text not null,
+  password_hash text not null,
+  created_at    text not null default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+create unique index if not exists students_username_idx on students (username);
+create index if not exists students_teacher_idx on students (teacher_id);
+`;
+
+/**
+ * Migrasi 0005: kelas dan siswa yang bisa dikelola guru.
+ *
+ * Halaman `/guru/kelas` sebelumnya hanya memakai data contoh di
+ * `src/components/guru/data.ts` (4 kelas, 30/28/32/30 siswa). Sekarang kelas
+ * disimpan di tabel `classrooms` dan siswa di `students`, sehingga daftar siswa
+ * mulai **kosong**: guru membuat kelas, lalu menambahkan siswa satu per satu.
+ *
+ * Tabel `students` dibangun ulang karena tiga hal yang tidak bisa dilakukan
+ * `alter table` di SQLite: menghapus `not null` dari `username`/`password_hash`,
+ * menambah `classroom_id`, dan menambah `nis`. Rebuild dilakukan dalam satu
+ * transaksi migrasi; tidak ada tabel lain yang mereferensikan `students`,
+ * jadi `drop`/`rename` aman.
+ *
+ * Aturan yang dipegang:
+ *
+ * - `classroom_id` boleh `null` (siswa belum masuk kelas) dan `on delete set
+ *   null`: menghapus kelas tidak boleh menghapus identitas siswa.
+ * - `username`/`password_hash` boleh `null` karena akun login siswa **belum**
+ *   dipakai; `/play/[storyId]` tetap berbasis tautan. Seed `siswa` tetap
+ *   menyimpan keduanya.
+ * - `nis` unik per guru (`students_nis_idx`); NIS sama di sekolah lain boleh.
+ * - `code` kelas unik dan hanya label tampilan: belum ada alur siswa memasukkan
+ *   kode kelas (`docs/00-product/mvp-scope.md` masih menaruhnya di backlog).
+ */
+const CLASSROOMS_SQL = `
+create table if not exists classrooms (
+  id            text primary key,
+  teacher_id    text not null references teachers(id),
+  name          text not null,
+  subject       text not null,
+  grade_level   text not null,
+  code          text not null,
+  academic_year text not null,
+  created_at    text not null default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+create unique index if not exists classrooms_code_idx on classrooms (code);
+create index if not exists classrooms_teacher_idx on classrooms (teacher_id, created_at desc);
+
+create table students_next (
+  id            text primary key,
+  teacher_id    text not null references teachers(id),
+  classroom_id  text references classrooms(id) on delete set null,
+  nis           text,
+  display_name  text not null,
+  username      text,
+  password_hash text,
+  created_at    text not null default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+insert into students_next (id, teacher_id, display_name, username, password_hash, created_at)
+  select id, teacher_id, display_name, username, password_hash, created_at from students;
+
+drop table students;
+alter table students_next rename to students;
+
+create unique index if not exists students_username_idx on students (username);
+create index if not exists students_teacher_idx on students (teacher_id);
+create index if not exists students_classroom_idx on students (classroom_id);
+create unique index if not exists students_nis_idx on students (teacher_id, nis);
+`;
+
+/**
  * Daftar migrasi berurutan. Jangan mengubah entri yang sudah pernah dipakai;
  * tambahkan entri baru di akhir.
  */
@@ -188,6 +288,16 @@ export const MIGRATIONS: readonly Migration[] = [
     id: "0003_rate_limits",
     name: "Tabel penghitung rate limit (key hash, window_start, count)",
     sql: RATE_LIMITS_SQL,
+  },
+  {
+    id: "0004_accounts",
+    name: "Akun guru (username/password) dan tabel students",
+    sql: ACCOUNTS_SQL,
+  },
+  {
+    id: "0005_classrooms_students",
+    name: "Kelas dan siswa yang dikelola guru (students: classroom_id, nis, akun opsional)",
+    sql: CLASSROOMS_SQL,
   },
 ];
 

@@ -1,24 +1,24 @@
 /**
- * Auth guru berbasis satu access code.
+ * Auth guru berbasis akun (username + password).
  *
- * Ini **penghalang demo**, bukan sistem keamanan penuh
- * (`docs/01-architecture/security-and-privacy.md`). Satu kode akses dari
- * environment berlaku untuk semua guru. Setelah kode benar, server menerbitkan
- * cookie sesi bertanda tangan HMAC-SHA256; tidak ada akun, pendaftaran, atau
- * reset password.
+ * Akun disimpan di tabel `teachers` (`username`, `password_hash`); password
+ * hanya pernah masuk database sebagai hash scrypt (`src/server/password.ts`).
+ * Setelah kredensial benar, server menerbitkan cookie sesi bertanda tangan
+ * HMAC-SHA256. Ini tetap **penghalang demo**, bukan sistem keamanan penuh
+ * (`docs/01-architecture/security-and-privacy.md`): belum ada pendaftaran
+ * mandiri, reset password, atau multi-sekolah.
  *
  * Aturan yang dipegang:
  *
- * - `TEACHER_ACCESS_CODE` dan `TEACHER_SESSION_SECRET` hanya dibaca lewat
- *   `src/server/config.ts`.
+ * - `TEACHER_SESSION_SECRET` hanya dibaca lewat `src/server/config.ts`.
  * - Tidak ada nilai default dan tidak ada secret acak per proses. Instance
  *   serverless berbeda harus bisa memverifikasi token yang sama.
- * - Gagal dengan aman: konfigurasi kosong berarti login selalu gagal dan token
+ * - Gagal dengan aman: secret kosong berarti login selalu gagal dan token
  *   tidak pernah dianggap sah.
- * - Tidak ada kode, token, atau secret yang disimpan di database atau masuk ke
- *   pesan error. Kolom `teachers.access_code` dibiarkan `null` karena sumber
- *   kebenaran kode ada di environment; menyimpan hash di sana hanya akan menjadi
- *   salinan basi yang tidak dipakai.
+ * - Username tidak dikenal, password salah, dan akun tanpa hash dijawab sama
+ *   (`AuthError` 401). Verifikasi tetap dijalankan walau username tidak ada
+ *   supaya waktu respons tidak membocorkan akun mana yang terdaftar.
+ * - Tidak ada password, hash, atau secret yang masuk ke pesan error.
  *
  * Modul ini hanya boleh diimpor dari server code. `import "server-only"` di
  * bawah membuat impor dari komponen client gagal saat build.
@@ -26,18 +26,13 @@
 
 import "server-only";
 
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { cookies } from "next/headers";
 
 import { loadTeacherAuthConfig } from "./config";
 import { getReadyDb } from "./db";
-
-/** Id baris `teachers` tetap untuk demo (satu guru, bukan multi-akun). */
-export const TEACHER_ID = "teacher_demo";
-
-/** Nama tampilan bawaan; docs tidak menetapkan nilai lain. */
-export const TEACHER_DISPLAY_NAME = "Guru Demo";
+import { verifyPassword } from "./password";
 
 /** Nama cookie sesi guru. */
 export const TEACHER_SESSION_COOKIE = "classquest_teacher_session";
@@ -51,8 +46,9 @@ export const TEACHER_SESSION_TTL_SECONDS = TEACHER_SESSION_TTL_MS / 1000;
 /** Batas wajar panjang token; mencegah payload raksasa diproses. */
 const MAX_TOKEN_LENGTH = 2048;
 
-/** Batas panjang `teacherId` di payload. */
+/** Batas panjang nilai identitas di payload token. */
 const MAX_TEACHER_ID_LENGTH = 200;
+const MAX_DISPLAY_NAME_LENGTH = 120;
 
 /** Kode error auth yang dikenal kontrak API. */
 export const AUTH_ERROR_STATUS = {
@@ -62,11 +58,11 @@ export const AUTH_ERROR_STATUS = {
 export type AuthErrorCode = keyof typeof AUTH_ERROR_STATUS;
 
 /**
- * Pesan statis. Tidak pernah memuat kode akses, token, secret, atau pesan dari
+ * Pesan statis. Tidak pernah memuat username, password, token, atau secret dari
  * runtime. Jangan menyisipkan nilai input ke sini.
  */
 const AUTH_ERROR_MESSAGES: Record<AuthErrorCode, string> = {
-  UNAUTHORIZED: "Kode akses guru tidak valid atau sesi sudah berakhir.",
+  UNAUTHORIZED: "Username atau sandi tidak dikenali, atau sesi sudah berakhir.",
 };
 
 /** Error auth yang aman dikirim ke klien (bentuk `ApiError` di route). */
@@ -85,13 +81,32 @@ export class AuthError extends Error {
 /** Isi payload token sesi. `exp` adalah epoch milidetik. */
 export type TeacherSession = {
   teacherId: string;
+  displayName: string;
   exp: number;
 };
 
-/** Hash SHA-256 supaya kedua sisi `timingSafeEqual` selalu sama panjang. */
-function sha256(value: string): Buffer {
-  return createHash("sha256").update(value, "utf8").digest();
-}
+/** Identitas guru yang terautentikasi, dipakai halaman dan Server Action. */
+export type TeacherIdentity = {
+  teacherId: string;
+  displayName: string;
+};
+
+/** Kredensial yang dikirim form masuk. */
+export type LoginCredentials = {
+  username: string;
+  password: string;
+};
+
+/**
+ * Hash scrypt sah untuk password acak yang tidak pernah dipakai siapa pun.
+ *
+ * Dipakai saat username tidak ditemukan supaya jalur "akun tidak ada" tetap
+ * menjalankan scrypt dengan biaya yang sama seperti jalur "password salah".
+ * Nilainya bukan rahasia: yang dilindungi adalah waktu respons, bukan hash ini.
+ */
+const DUMMY_PASSWORD_HASH =
+  "scrypt$16384$8$1$rDbvw0hfM5O1RoqHT4lN2A==$" +
+  "+8/6HHGk779JnZKHzuFELC8NLNLwf5XBupnDTYBdeY/wmuFXMlpdrfI3TNB0kYYdJBjvHv+s+mO1UAECmJ4dbQ==";
 
 function hmac(encodedPayload: string, secret: string): Buffer {
   return createHmac("sha256", secret).update(encodedPayload, "utf8").digest();
@@ -109,36 +124,27 @@ function decodeBase64Url(value: string): Buffer | null {
   return decoded.toString("base64url") === value ? decoded : null;
 }
 
-/**
- * Bandingkan kode akses dengan `TEACHER_ACCESS_CODE`.
- *
- * Kedua sisi di-hash SHA-256 lebih dulu agar panjangnya selalu sama, lalu
- * dibandingkan dengan `timingSafeEqual`. Kode kosong, konfigurasi kosong, dan
- * kode salah semuanya menghasilkan `false`.
- */
-export function verifyAccessCode(code: string): boolean {
-  const { accessCode } = loadTeacherAuthConfig();
-
-  if (accessCode === null) return false;
-  if (typeof code !== "string" || code === "") return false;
-
-  return timingSafeEqual(sha256(accessCode), sha256(code));
+/** Username disimpan dan dicari dalam bentuk huruf kecil tanpa spasi tepi. */
+export function normalizeUsername(username: string): string {
+  return username.trim().toLowerCase();
 }
 
 /**
  * Buat token sesi: `base64url(JSON payload).base64url(HMAC-SHA256)`.
  *
- * @param teacherId id guru yang ditandatangani, bukan data rahasia.
+ * @param identity id + nama tampilan guru (bukan data rahasia).
  * @param now waktu acuan dalam epoch milidetik; bisa diganti di test.
- * @throws {AuthError} bila `TEACHER_SESSION_SECRET` kosong atau `teacherId`
- * tidak sah.
+ * @throws {AuthError} bila `TEACHER_SESSION_SECRET` kosong atau identitas tidak
+ * sah.
  */
 export function createSessionToken(
-  teacherId: string,
+  identity: TeacherIdentity,
   now: number = Date.now(),
 ): string {
   const { sessionSecret } = loadTeacherAuthConfig();
   if (sessionSecret === null) throw new AuthError();
+
+  const { teacherId, displayName } = identity;
 
   if (
     typeof teacherId !== "string" ||
@@ -148,10 +154,19 @@ export function createSessionToken(
     throw new AuthError();
   }
 
+  if (
+    typeof displayName !== "string" ||
+    displayName === "" ||
+    displayName.length > MAX_DISPLAY_NAME_LENGTH
+  ) {
+    throw new AuthError();
+  }
+
   if (!Number.isSafeInteger(now)) throw new AuthError();
 
   const payload: TeacherSession = {
     teacherId,
+    displayName,
     exp: now + TEACHER_SESSION_TTL_MS,
   };
   const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString(
@@ -166,7 +181,7 @@ function readSessionPayload(value: unknown): TeacherSession | null {
   if (typeof value !== "object" || value === null) return null;
 
   const payload = value as Record<string, unknown>;
-  const { teacherId, exp } = payload;
+  const { teacherId, displayName, exp } = payload;
 
   if (
     typeof teacherId !== "string" ||
@@ -176,11 +191,27 @@ function readSessionPayload(value: unknown): TeacherSession | null {
     return null;
   }
 
+  // Token lama (sebelum akun ada) tidak punya `displayName`. Token itu tetap
+  // ditandatangani secret yang sama, jadi terima dengan nama netral daripada
+  // memaksa semua guru login ulang saat deploy.
+  if (
+    displayName !== undefined &&
+    (typeof displayName !== "string" ||
+      displayName === "" ||
+      displayName.length > MAX_DISPLAY_NAME_LENGTH)
+  ) {
+    return null;
+  }
+
   if (typeof exp !== "number" || !Number.isSafeInteger(exp) || exp <= 0) {
     return null;
   }
 
-  return { teacherId, exp };
+  return {
+    teacherId,
+    displayName: typeof displayName === "string" ? displayName : "Guru",
+    exp,
+  };
 }
 
 /**
@@ -188,8 +219,8 @@ function readSessionPayload(value: unknown): TeacherSession | null {
  *
  * Menolak token kosong/terlalu panjang, format selain `payload.signature`,
  * base64url yang tidak sah, tanda tangan salah (termasuk secret berbeda),
- * payload yang bukan `{ teacherId, exp }`, dan token kedaluwarsa. Mengembalikan
- * `null` untuk semua kegagalan; pemanggil memutuskan cara gagal.
+ * payload yang bukan `{ teacherId, displayName, exp }`, dan token kedaluwarsa.
+ * Mengembalikan `null` untuk semua kegagalan; pemanggil memutuskan cara gagal.
  *
  * @param now waktu acuan dalam epoch milidetik; bisa diganti di test.
  */
@@ -238,26 +269,6 @@ export function verifySessionToken(
   return payload;
 }
 
-/**
- * Pastikan baris guru demo ada. Insert idempoten, aman dipanggil berkali-kali.
- *
- * `access_code` sengaja tidak diisi (tetap `null`): kode mentah tidak pernah
- * disimpan, dan hash di kolom itu tidak dipakai untuk verifikasi karena sumber
- * kebenaran ada di environment.
- *
- * @throws {DatabaseError} bila database tidak bisa diakses.
- */
-export async function ensureTeacherRow(): Promise<string> {
-  const db = await getReadyDb();
-
-  await db.execute({
-    sql: "insert into teachers (id, display_name) values (?, ?) on conflict(id) do nothing",
-    args: [TEACHER_ID, TEACHER_DISPLAY_NAME],
-  });
-
-  return TEACHER_ID;
-}
-
 /** Atribut cookie sesi. `secure` hanya aktif di production. */
 function sessionCookieOptions() {
   return {
@@ -269,25 +280,73 @@ function sessionCookieOptions() {
   };
 }
 
-/**
- * Verifikasi kode lalu terbitkan cookie sesi.
- *
- * Bila kode salah atau konfigurasi tidak lengkap, tidak ada cookie yang diset
- * dan `AuthError` dilempar. Baris guru hanya dipastikan ada setelah kode benar,
- * supaya percobaan kode salah tidak menyentuh database.
- *
- * @throws {AuthError} dengan kode `UNAUTHORIZED` (HTTP 401).
- */
-export async function loginTeacher(code: string): Promise<void> {
-  if (!verifyAccessCode(code)) throw new AuthError();
+type TeacherRow = {
+  id: string;
+  display_name: string;
+  password_hash: string | null;
+};
 
-  // `verifyAccessCode` hanya memeriksa kode; secret tetap wajib ada sebelum
-  // token dibuat. Keduanya kosong atau salah satu kosong = gagal.
+/** Cari akun guru berdasarkan username ternormalisasi. */
+async function findTeacherByUsername(
+  username: string,
+): Promise<TeacherRow | null> {
+  const db = await getReadyDb();
+  const result = await db.execute({
+    sql: "select id, display_name, password_hash from teachers where username = ? limit 1",
+    args: [username],
+  });
+
+  const row = result.rows[0];
+  if (row === undefined) return null;
+
+  return {
+    id: String(row.id),
+    display_name: String(row.display_name),
+    password_hash:
+      row.password_hash === null || row.password_hash === undefined
+        ? null
+        : String(row.password_hash),
+  };
+}
+
+/**
+ * Verifikasi username + password lalu terbitkan cookie sesi.
+ *
+ * Username dinormalisasi (huruf kecil, tanpa spasi tepi) sebelum dicari. Bila
+ * akun tidak ada, scrypt tetap dijalankan terhadap hash dummy supaya waktu
+ * respons tidak menunjukkan akun mana yang terdaftar.
+ *
+ * @throws {AuthError} dengan kode `UNAUTHORIZED` (HTTP 401) untuk semua
+ * kegagalan kredensial, termasuk konfigurasi sesi yang belum diisi.
+ */
+export async function loginTeacher(
+  credentials: LoginCredentials,
+): Promise<void> {
   const { sessionSecret } = loadTeacherAuthConfig();
   if (sessionSecret === null) throw new AuthError();
 
-  const teacherId = await ensureTeacherRow();
-  const token = createSessionToken(teacherId);
+  const username = normalizeUsername(credentials.username);
+  if (
+    username === "" ||
+    typeof credentials.password !== "string" ||
+    credentials.password === ""
+  ) {
+    throw new AuthError();
+  }
+
+  const teacher = await findTeacherByUsername(username);
+
+  const passwordHash = teacher?.password_hash ?? DUMMY_PASSWORD_HASH;
+  const passwordOk = await verifyPassword(credentials.password, passwordHash);
+
+  if (!passwordOk || teacher === null || teacher.password_hash === null) {
+    throw new AuthError();
+  }
+
+  const token = createSessionToken({
+    teacherId: teacher.id,
+    displayName: teacher.display_name,
+  });
 
   const store = await cookies();
   store.set(TEACHER_SESSION_COOKIE, token, sessionCookieOptions());
@@ -302,11 +361,11 @@ export async function logoutTeacher(): Promise<void> {
 /**
  * Lindungi route/Server Action guru.
  *
- * @returns `{ teacherId }` dari token yang sah.
+ * @returns `{ teacherId, displayName }` dari token yang sah.
  * @throws {AuthError} dengan kode `UNAUTHORIZED` (HTTP 401) bila cookie tidak
  * ada, rusak, kedaluwarsa, atau ditandatangani secret lain.
  */
-export async function requireTeacher(): Promise<{ teacherId: string }> {
+export async function requireTeacher(): Promise<TeacherIdentity> {
   const store = await cookies();
   const token = store.get(TEACHER_SESSION_COOKIE)?.value;
 
@@ -315,5 +374,8 @@ export async function requireTeacher(): Promise<{ teacherId: string }> {
   const session = verifySessionToken(token);
   if (session === null) throw new AuthError();
 
-  return { teacherId: session.teacherId };
+  return {
+    teacherId: session.teacherId,
+    displayName: session.displayName,
+  };
 }

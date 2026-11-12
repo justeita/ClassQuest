@@ -102,6 +102,20 @@ export const PUBLIC_STORY_RATE_LIMIT: RateLimitPolicy = {
 };
 
 /**
+ * Aksi kelas/siswa (`createClassroom`, `addStudent`): 60 per jam per guru.
+ *
+ * Keduanya Server Action yang bisa dipanggil berulang oleh skrip selama sesi
+ * guru masih hidup, dan setiap panggilan menulis satu baris. Batas ini jauh di
+ * atas kebutuhan manusiawi (menambah 60 siswa per jam cukup untuk satu kelas
+ * penuh) tetapi menutup pengisian database dengan sampah.
+ */
+export const CLASSROOM_RATE_LIMIT: RateLimitPolicy = {
+  name: "classroom-write",
+  limit: 60,
+  windowSeconds: HOUR,
+};
+
+/**
  * Umur maksimum baris `rate_limits` sebelum dibersihkan, dalam detik.
  * Satu hari cukup untuk semua jendela yang dipakai (maksimum 1 hari).
  */
