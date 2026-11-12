@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -15,15 +15,37 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 | -------------------------------- | ------- | ------- | ------------------------------------------ |
 | `/`                              | Publik  | Statis  | Landing: apa ini, tombol masuk guru/siswa  |
 | `/guru/masuk`                    | Publik  | Dinamis | Kode akses guru                            |
-| `/guru`                          | Guru    | Dinamis | Daftar materi + status                     |
-| `/guru/materi/baru`              | Guru    | Dinamis | Form upload                                |
+| `/guru`                          | Guru    | Dinamis | Dashboard: ringkasan + aktivitas terbaru   |
+| `/guru/materi`                   | Guru    | Dinamis | Daftar materi + penyaring + modal detail   |
+| `/guru/materi/baru`              | Guru    | Dinamis | AI Studio (form materi → modul)            |
 | `/guru/materi/[storyId]`         | Guru    | Dinamis | Ringkasan + status generasi + aksi         |
 | `/guru/materi/[storyId]/edit`    | Guru    | Dinamis | Story editor                               |
 | `/guru/materi/[storyId]/preview` | Guru    | Dinamis | Preview game (versi draft)                 |
+| `/guru/kelas`                    | Guru    | Dinamis | Daftar kelas, detail kelas, kelas baru     |
+| `/guru/game`                     | Guru    | Dinamis | Koleksi game edukasi                       |
 | `/play/[storyId]`                | Publik* | Dinamis | Game siswa (termasuk layar hasil)          |
 | `/game`                          | Dev     | Client  | Boot Phaser placeholder, bukan route siswa |
 
 \* Publik tapi hanya untuk cerita `published`; kalau tidak ada → `notFound()`.
+
+### Status implementasi portal guru
+
+`/guru`, `/guru/materi`, `/guru/materi/baru`, `/guru/kelas`, dan `/guru/game`
+sudah dirender dari komponen di `src/components/guru/`, tetapi **belum
+tersambung ke data**:
+
+| Bagian                  | Sekarang                                           | Saat wiring                                  |
+| ----------------------- | -------------------------------------------------- | -------------------------------------------- |
+| Sumber data             | `src/components/guru/data.ts` (contoh statis)      | `src/server/stories` + query DB              |
+| `/guru/masuk`           | Toast + pindah ke `/guru`                          | `POST /api/auth/login`, lalu set cookie sesi |
+| Otorisasi halaman guru  | Belum ada                                          | `requireTeacher()` di layout `(portal)`      |
+| AI Studio "Buat Cerita" | Pratinjau lokal dari isian form                    | Server Action `publishStory` / pipeline AI   |
+| Simpan draf AI Studio   | `localStorage` (kunci `classquest.guru.ai-studio`) | Tabel `stories` (status draft)               |
+| Kelas & penugasan game  | State komponen (hilang saat muat ulang)            | Tabel kelas/siswa/penugasan                  |
+
+Sampai tabel di atas terisi, halaman-halaman itu adalah **tampilan** dan tidak
+boleh dipakai untuk menyimpan data nyata. Saat wiring, `requireTeacher()` tetap
+wajib dipasang di layout `(portal)` — lihat bagian "Yang tidak boleh dilakukan".
 
 Tidak ada route `/play/[storyId]/hasil`. Layar hasil adalah **overlay di dalam
 `GameShell`** pada halaman yang sama, karena ia butuh state permainan yang masih
@@ -139,10 +161,16 @@ route internal.
 
 ## Layout
 
-| Layout                    | Isi                                            |
-| ------------------------- | ---------------------------------------------- |
-| `src/app/layout.tsx`      | `<html>`, font, `globals.css`, metadata global |
-| `src/app/guru/layout.tsx` | Shell dashboard: sidebar/nav, cek sesi guru    |
+| Layout                                | Isi                                                       |
+| ------------------------------------- | --------------------------------------------------------- |
+| `src/app/layout.tsx`                  | `<html>`, font, `globals.css`, metadata global            |
+| `src/app/guru/layout.tsx`             | Font portal guru (Inter/Jakarta/Pixelify) + toast         |
+| `src/app/guru/(portal)/layout.tsx`    | `PortalShell`: sidebar/nav + header, hanya halaman portal |
+| `src/components/guru/PortalShell.tsx` | Markup sidebar/header portal guru                         |
+
+`/guru/masuk` berada di bawah `src/app/guru/layout.tsx` tetapi **di luar** route
+group `(portal)`, jadi ia memakai font dan toast yang sama tanpa sidebar. Di
+dalam group itu, `src/app/guru/(portal)/page.tsx` adalah `/guru`.
 
 Game **tidak** memakai layout guru. Ia memakai halaman sendiri yang fullscreen
 (`src/app/play/[storyId]/`).
