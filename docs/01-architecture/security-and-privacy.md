@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -81,12 +81,13 @@ Urutan pemeriksaan (semua di server, walau client juga mengecek):
 5. Jumlah halaman ≤ batas.
 6. Ada teks yang bisa diekstrak (kalau tidak → `NO_TEXT_LAYER`).
 
-Nama file asli hanya disimpan sebagai metadata tampilan. Path penyimpanan memakai
-id internal: `materials/{storyId}/{uploadId}.pdf`.
+Nama file asli hanya disimpan sebagai metadata tampilan, setelah disanitasi
+(`src/server/upload/filename.ts`). PDF **tidak** disimpan ke disk, bucket, atau
+database — hanya diproses di memori selama job (ADR 0013).
 
 ## Otorisasi
 
-Sampai auth nyata ada:
+Aturan otorisasi:
 
 - Dashboard guru dilindungi **akun guru**: username + sandi, disimpan sebagai
   hash scrypt di tabel `teachers` (bukan sistem keamanan penuh, hanya

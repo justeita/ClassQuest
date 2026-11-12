@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -13,7 +13,7 @@ batas kepercayaannya.**
 
 | Data             | Bentuk               | Disimpan di                                        | Pemilik    |
 | ---------------- | -------------------- | -------------------------------------------------- | ---------- |
-| PDF materi       | file biner           | object storage (TBD)                               | guru       |
+| PDF materi       | file biner           | tidak disimpan (hanya di memori selama job)        | guru       |
 | Teks per halaman | `string[]`           | memori selama job (boleh di kolom job untuk debug) | sistem     |
 | Outline          | `OutlineChapter[]`   | memori selama job (boleh di kolom job untuk debug) | sistem     |
 | Cerita           | `Story` (JSON)       | DB (JSONB/JSON)                                    | guru       |
@@ -42,7 +42,7 @@ sequenceDiagram
     C->>C: cek tipe dan ukuran
     C->>R: POST /api/upload
     R->>R: cek ulang + magic bytes
-    R->>R: simpan file
+    R->>R: baca bytes di memori
     R->>R: buat story (processing) + job (queued)
     R-->>C: 202 { jobId, storyId }
     C->>R: GET /api/jobs/[jobId] (tiap 1,5 detik)

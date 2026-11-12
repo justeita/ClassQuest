@@ -1,14 +1,16 @@
 ---
 status: tbd
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
 # Persistence dan Storage
 
-> **Status: belum diputuskan.** Keputusan dicatat di
-> [ADR 0005](../09-decisions/0005-persistence-and-storage.md). Dokumen ini
-> menetapkan **kebutuhan** dan **skema target**, bukan vendor.
+> **Status: sebagian sudah diputuskan.** Vendor database sudah dipilih:
+> **Turso (libSQL)** — lihat
+> [ADR 0013](../09-decisions/0013-hosting-vercel-turso.md). Storage PDF
+> **tidak dipakai**: PDF hanya diproses di memori. Dokumen ini menetapkan
+> **kebutuhan** dan **skema target**, bukan detail implementasi.
 
 ## Kebutuhan
 
@@ -31,8 +33,9 @@ owner: tim ClassQuest
 | **SQLite + Prisma (lokal/VPS)**   | Paling sederhana, cepat, tanpa jaringan        | Tidak cocok untuk serverless multi-instance          |
 | **File JSON di disk**             | Nol setup                                      | Tidak aman, tidak konkuren, jangan untuk demo publik |
 
-**Rekomendasi awal:** Supabase, karena satu layanan menutup DB + storage dan
-cukup untuk demo. Tetap perlu ADR sebelum dipakai.
+**Keputusan:** [ADR 0013](../09-decisions/0013-hosting-vercel-turso.md) memilih
+**Turso (libSQL)** sebagai database produksi. Tabel opsi di atas adalah catatan
+awal; keputusan resminya ada di ADR tersebut.
 
 ## Skema target
 
@@ -291,12 +294,13 @@ AI", tambahkan sebagai kolom terpisah (mis. `reviewed_at`), bukan status baru.
 
 ## Migrasi
 
-- Migrasi disimpan di `supabase/migrations/` atau `drizzle/` (tergantung pilihan).
+- Migrasi disimpan di `src/server/db/migrations.ts`; dijalankan otomatis oleh
+  `getReadyDb()` pada pemanggilan database pertama.
 - Setiap migrasi harus bisa dijalankan dari database kosong.
 - Jangan mengubah migrasi yang sudah dijalankan; buat migrasi baru.
 - Skema dokumen ini dan migrasi harus sinkron di PR yang sama.
 
-## Auth (TBD)
+## Auth
 
 MVP memakai akun yang dibuat admin lewat `bun run db:seed`:
 
@@ -333,4 +337,4 @@ nyata dan tabel `teachers`/`students` di atas.
 - [ ] Mendukung transaksi untuk publish.
 - [ ] Ada cara backup/export.
 - [ ] Kredensial hanya di server.
-- [ ] Keputusan dicatat di ADR 0005.
+- [ ] Keputusan dicatat di ADR 0013.

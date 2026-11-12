@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -14,9 +14,10 @@ owner: tim ClassQuest
 | **Siswa** | Bermain dan belajar lewat cerita                | Game fullscreen, tantangan, hasil         |
 | **Tim**   | Membangun dan mendemokan                        | Repo, docs, panel admin minimal           |
 
-Tidak ada peran "admin sekolah" di MVP. Autentikasi masih `TBD`
-(lihat [`../06-backend/persistence.md`](../06-backend/persistence.md) dan
-ADR [0005](../09-decisions/0005-persistence-and-storage.md)).
+Tidak ada peran "admin sekolah" di MVP. Akun guru dibuat lewat `bun run db:seed`
+lalu login dengan username + sandi; siswa belum diminta login, cukup memakai
+tautan yang dibagikan. Detail teknis ada di
+[`../06-backend/persistence.md`](../06-backend/persistence.md).
 
 ## Guru (persona utama)
 
@@ -81,7 +82,7 @@ pendek, tidak sabar dengan instruksi panjang.
 **Aturan kerja tim:** lihat [`../08-workflow/git-and-pr.md`](../08-workflow/git-and-pr.md)
 dan [`../08-workflow/ai-agent-rules.md`](../08-workflow/ai-agent-rules.md).
 
-## Matriks izin (target MVP)
+## Matriks izin
 
 Guru masuk dengan **akun guru** (username + sandi). Tabel `students` dan akun
 siswa demo sudah ada, tetapi siswa **belum** diminta login: cukup memakai
@@ -105,6 +106,8 @@ melayani cerita `published`, dan endpoint publik menolak selain itu. Itu bukan
 keamanan sungguhan untuk data rahasia — hanya pembatas agar siswa tidak menemukan
 cerita yang belum siap.
 
-Implementasi izin guru: `TBD`. Kandidat: cookie sesi guru sederhana atau kode
-akses per guru. Jangan menganggap ini sudah aman untuk data nyata; lihat
+Implementasi izin guru: cookie sesi bertanda tangan HMAC-SHA256 (berlaku 8 jam)
+yang diperiksa `requireTeacher()` di setiap halaman portal dan Server Action. Ini
+penghalang demo, bukan sistem keamanan produksi. Jangan menganggap ini sudah aman
+untuk data nyata; lihat
 [`../01-architecture/security-and-privacy.md`](../01-architecture/security-and-privacy.md).

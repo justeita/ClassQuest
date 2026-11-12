@@ -4,9 +4,10 @@ ClassQuest mengubah materi pelajaran yang diunggah guru menjadi game pixel 2D
 bercerita, supaya siswa belajar lewat alur cerita dan tantangan, bukan hafalan.
 
 > **Status:** dalam pengembangan aktif menjelang Hacking Week LOGICODIX 2026.
-> Backend (upload, pipeline AI, cerita, auth guru, hasil main) dan halaman game
-> siswa sudah jalan; UI guru dan landing page belum. Rencana lengkap ada di
-> [docs/](docs/README.md).
+> Backend (upload, pipeline AI, cerita, auth guru, hasil main), halaman game
+> siswa, portal guru (dashboard, materi, kelas), dan halaman pengenalan di `/`
+> sudah jalan; yang belum ada adalah editor cerita dan preview draft. Rencana
+> lengkap ada di [docs/](docs/README.md).
 
 ## Tim
 
@@ -35,24 +36,28 @@ repo: [@justeita](https://github.com/justeita) dan
 
 Yang sudah berjalan di commit saat ini:
 
-| Fitur                                        | Status    | Cara mencoba                                   |
-| -------------------------------------------- | --------- | ---------------------------------------------- |
-| Game siswa dari cerita demo                  | Berjalan  | Buka `/play/<storyId>` cerita demo             |
-| Upload PDF + pembuatan job generasi          | Berjalan  | `POST /api/upload`                             |
-| Pipeline AI: ekstrak teks → outline → cerita | Berjalan  | `AI_PROVIDER=mock` atau provider nyata via env |
-| Login guru (akun + cookie sesi)              | Berjalan  | `POST /api/auth/login`                         |
-| Manajemen cerita guru (Server Actions)       | Berjalan  | `src/app/guru/actions.ts`                      |
-| Simpan hasil bermain siswa + ringkasan       | Berjalan  | `src/server/play-results`                      |
-| UI dashboard guru (daftar, editor, publish)  | Belum ada | —                                              |
+| Fitur                                        | Status   | Cara mencoba                                   |
+| -------------------------------------------- | -------- | ---------------------------------------------- |
+| Game siswa dari cerita demo                  | Berjalan | Buka `/play/<storyId>` cerita demo             |
+| Upload PDF + pembuatan job generasi          | Berjalan | `POST /api/upload`                             |
+| Pipeline AI: ekstrak teks → outline → cerita | Berjalan | `AI_PROVIDER=mock` atau provider nyata via env |
+| Login guru (akun + cookie sesi)              | Berjalan | `POST /api/auth/login`                         |
+| Manajemen cerita guru (Server Actions)       | Berjalan | `src/app/guru/actions.ts`                      |
+| Simpan hasil bermain siswa + ringkasan       | Berjalan | `src/server/play-results`                      |
+| Portal guru: dashboard, materi, kelas        | Berjalan | Buka `/guru/masuk` setelah `bun run db:seed`   |
+| Kelas & siswa (buat kelas, tambah siswa)     | Berjalan | `/guru/kelas`                                  |
 
 ### Rencana
 
-Urutan pengerjaan ada di [docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hackathon-plan.md).
+Yang belum ada di commit ini adalah **editor cerita**
+(`/guru/materi/[storyId]/edit`) dan **preview draft** — dua langkah terakhir dari
+alur "guru meninjau dan mengedit cerita sebelum publish". Detail dan urutan
+pengerjaan ada di
+[docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hackathon-plan.md).
 
-1. Guru mengunggah PDF materi dan memantau status generasi.
-2. AI menyusun kerangka chapter lalu menulis cerita per chapter.
-3. Guru meninjau dan mengedit cerita sebelum publish.
-4. Siswa memainkan cerita di browser dan mendapat layar hasil.
+1. Editor cerita: guru mengubah dialog dan soal tanpa menyentuh JSON.
+2. Preview draft: guru melihat hasil edit sebelum dipublish.
+3. Deploy ke Vercel + Turso dan melengkapi berkas submission.
 
 ## Teknologi
 
@@ -112,9 +117,34 @@ cp .env.example .env.local
 
 ### Konfigurasi
 
-Saat ini `.env.example` hanya berisi komentar karena aplikasi belum membaca satu
-variabel pun. Begitu fitur AI dan penyimpanan masuk, nama variabelnya ditambahkan
-di sana tanpa nilai rahasia. Tidak ada kredensial di repo ini.
+Salin `.env.example` menjadi `.env.local`, lalu isi nilainya. `.env.example`
+sudah memuat **semua** nama variabel yang dibaca server, tanpa nilai asli:
+
+```bash
+# Provider AI (lihat docs/03-ai-pipeline/provider-setup.md)
+AI_PROVIDER=mock        # mock berjalan tanpa kunci; provider nyata lewat env
+AI_API_KEY=
+AI_MODEL=
+AI_BASE_URL=
+AI_TIMEOUT_MS=60000
+
+# Akun seed guru dan siswa. Keempatnya wajib diisi; tidak ada akun demo bawaan.
+TEACHER_SEED_USERNAME=
+TEACHER_SEED_PASSWORD=
+STUDENT_SEED_USERNAME=
+STUDENT_SEED_PASSWORD=
+
+# Wajib. Kosong berarti login selalu gagal.
+TEACHER_SESSION_SECRET=
+
+# Database libSQL. Lokal: file:./local.db; produksi: Turso.
+DATABASE_URL=file:./local.db
+DATABASE_AUTH_TOKEN=
+```
+
+Detail langkah setup dan deploy ada di
+[docs/08-workflow/setup.md](docs/08-workflow/setup.md). Jangan commit
+`.env.local`; tidak ada kredensial di repo ini.
 
 ### Menjalankan
 

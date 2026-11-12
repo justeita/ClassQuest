@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -72,9 +72,9 @@ Jujur dulu, supaya tidak ada yang salah paham:
 | Bagian           | Keadaan sekarang                                                                     |
 | ---------------- | ------------------------------------------------------------------------------------ |
 | Aplikasi Next.js | Ada. Next 16.4.5, App Router, Tailwind 4, Bun.                                       |
-| Landing page     | Masih halaman starter `create-next-app`.                                             |
+| Landing page     | Halaman pengenalan produk di `/` (bukan lagi starter `create-next-app`).             |
 | Halaman siswa    | `/play/[storyId]` sudah jalan dengan cerita demo; `/game` adalah shell dev Phaser.   |
-| UI guru          | Belum ada halaman. Baru Server Actions di `src/app/guru/actions.ts`.                 |
+| UI guru          | Portal jalan: dashboard, materi, kelas, login. Editor cerita & preview belum ada.    |
 | Backend          | Upload PDF, job generasi, cerita, auth guru, dan hasil main sudah ada (libSQL).      |
 | Pipeline AI      | Ada: mock provider + Anthropic/OpenAI-compatible, dipilih lewat env.                 |
 | Aset game        | Sudah ada di `public/assets/` (hasil `bun run assets:generate` + aset pihak ketiga). |
