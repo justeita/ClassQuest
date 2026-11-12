@@ -14,6 +14,19 @@
   --font-game: var(--font-handwriting);
   /* Naik-turun halus penanda "!" di atas NPC pemberi quest. */
   --animate-quest-bob: quest-bob 2.4s ease-in-out infinite;
+
+  /* --- Portal guru (desain dari `guru.html`, lihat src/app/guru) --- */
+  --color-brand-50: #f0f7ff;
+  --color-brand-100: #e0effe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-500: #2563eb;
+  --color-brand-600: #1d4ed8;
+  --color-brand-700: #1e40af;
+  --color-brand-800: #1e3a8a;
+  --color-brand-900: #172554;
+  /* Font judul & pixel; variabelnya dipasang di src/app/guru/layout.tsx. */
+  --font-heading: var(--font-plus-jakarta);
+  --font-pixel: var(--font-pixelify);
 }
 
 @keyframes quest-bob {
@@ -128,4 +141,67 @@ body {
   to {
     transform: translate3d(0, 9px, 0);
   }
+}
+
+/* --------------------------------------------------------------------------
+ * Portal guru
+ *
+ * Desain asalnya berkas HTML statis + Tailwind CDN. Kelas di bawah adalah
+ * bagian yang tidak bisa ditulis sebagai utility: clip-path lengkungan, kartu
+ * bergaya pixel, dan scrollbar tipis. Semua diberi awalan `guru-` supaya tidak
+ * bertabrakan dengan gaya game.
+ * ------------------------------------------------------------------------ */
+
+/* Inter untuk seluruh portal; variabel dipasang di src/app/guru/layout.tsx. */
+.guru-root {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Lengkungan pemisah panel kiri halaman masuk. */
+.guru-wave-clip {
+  clip-path: url(#guruWaveDesktop);
+}
+
+@media (max-width: 1024px) {
+  .guru-wave-clip {
+    clip-path: url(#guruWaveMobile);
+  }
+}
+
+/* Kartu metode pembelajaran yang sedang dipilih. */
+.guru-theme-selected {
+  border-color: #2563eb !important;
+  background-color: #f0f7ff !important;
+  box-shadow: 4px 4px 0 #2563eb;
+}
+
+/* Kartu bergaya pixel semi-formal: bayangan padat, bukan blur. */
+.guru-pixel-card {
+  border: 2px solid #cbd5e1;
+  box-shadow: 3px 3px 0 #cbd5e1;
+  transition: all 0.15s ease;
+}
+
+.guru-pixel-card:hover {
+  border-color: #1e293b;
+  box-shadow: 4px 4px 0 #1e293b;
+}
+
+/* Scrollbar tipis di area konten portal. */
+.guru-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.guru-scroll::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.guru-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.guru-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
