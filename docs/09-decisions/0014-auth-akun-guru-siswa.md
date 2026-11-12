@@ -56,8 +56,9 @@ Alasan utama:
 Asumsi: jumlah guru kecil (satu sekolah demo), dan akun boleh dibuat/diganti
 lewat CLI (`bun run db:seed`), bukan lewat UI admin.
 
-**Siswa belum login.** Tabel `students` dan akun demo `siswa` di-seed, tetapi
-`/play/[storyId]` tetap bisa dibuka lewat tautan/QR sesuai
+**Siswa belum login.** Tabel `students` dan akun siswa di-seed dari
+`STUDENT_SEED_*`, tetapi `/play/[storyId]` tetap bisa dibuka lewat tautan/QR
+sesuai
 [`../00-product/personas-and-roles.md`](../00-product/personas-and-roles.md).
 Mewajibkan login siswa akan mengubah alur demo dan belum dibutuhkan.
 

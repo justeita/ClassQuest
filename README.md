@@ -143,10 +143,15 @@ Aplikasi live: `TBD` (diisi setelah deploy pertama ke Vercel).
 
 Guru masuk dengan **username + sandi**; sandi disimpan sebagai hash scrypt di
 tabel `teachers`. Akun dibuat lewat `bun run db:seed` (lihat
-[`docs/08-workflow/setup.md`](docs/08-workflow/setup.md)). Akun demo bawaan:
-`guru` / `guru123` dan `siswa` / `siswa123` — ganti sebelum demo publik.
+[`docs/08-workflow/setup.md`](docs/08-workflow/setup.md)) dengan
+`TEACHER_SEED_*`/`STUDENT_SEED_*` dari environment. Tidak ada akun demo bawaan:
+seed gagal bila variabel itu kosong.
+
+Akun demo untuk juri memakai username dan sandi yang diisi lewat environment saat
+deploy. Sesuai aturan kredensial, nilainya tidak ditulis di repositori; kredensial
+aktif dicantumkan pada kolom **Akun Demonstrasi** di formulir submission.
 Endpoint masuk: `POST /api/auth/login` dengan body
-`{ "username": "guru", "password": "..." }`.
+`{ "username": "<username>", "password": "<sandi>" }`.
 
 ## Penggunaan AI
 

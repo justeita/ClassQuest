@@ -318,7 +318,8 @@ MVP memakai akun yang dibuat admin lewat `bun run db:seed`:
   diminta login (`docs/00-product/personas-and-roles.md`). Kode kelas hanya
   label tampilan sampai alur "siswa memasukkan kode kelas" dibuat.
 - Tidak ada pendaftaran mandiri atau reset password. Akun diganti lewat
-  `bun run db:seed` dengan `TEACHER_SEED_*`/`STUDENT_SEED_*`.
+  `bun run db:seed` dengan `TEACHER_SEED_*`/`STUDENT_SEED_*`; keempat variabel
+  wajib diisi (tidak ada akun demo bawaan, sesuai aturan kredensial).
 
 Jangan mengklaim ini aman untuk produksi. Untuk produksi, gunakan penyedia auth
 nyata dan tabel `teachers`/`students` di atas.

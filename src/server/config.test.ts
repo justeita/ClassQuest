@@ -8,7 +8,7 @@ import {
   loadDatabaseConfig,
   loadSeedConfig,
   loadTeacherAuthConfig,
-  DEFAULT_SEED_ACCOUNTS,
+  SeedConfigError,
 } from "./config";
 
 /**
@@ -453,8 +453,35 @@ describe("loadTeacherAuthConfig", () => {
 });
 
 describe("loadSeedConfig", () => {
-  it("memakai akun demo bawaan saat environment kosong", () => {
-    expect(loadSeedConfig({})).toEqual(DEFAULT_SEED_ACCOUNTS);
+  it("menolak environment kosong dan menyebut variabel yang kurang", () => {
+    let caught: unknown;
+    try {
+      loadSeedConfig({});
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(SeedConfigError);
+    const error = caught as SeedConfigError;
+    expect(error.variables).toEqual([
+      "TEACHER_SEED_USERNAME",
+      "TEACHER_SEED_PASSWORD",
+      "STUDENT_SEED_USERNAME",
+      "STUDENT_SEED_PASSWORD",
+    ]);
+    expect(error.message).toContain("TEACHER_SEED_PASSWORD");
+    expect(error.message).toContain("STUDENT_SEED_PASSWORD");
+  });
+
+  it("menolak sandi yang kosong meski username terisi", () => {
+    expect(() =>
+      loadSeedConfig({
+        TEACHER_SEED_USERNAME: "bu-guru",
+        TEACHER_SEED_PASSWORD: "   ",
+        STUDENT_SEED_USERNAME: "siswa-a",
+        STUDENT_SEED_PASSWORD: "",
+      }),
+    ).toThrow(SeedConfigError);
   });
 
   it("membaca dan memangkas nilai dari environment", () => {

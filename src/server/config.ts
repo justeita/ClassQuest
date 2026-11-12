@@ -104,9 +104,9 @@ export type TeacherAuthConfig = {
  * Kredensial akun seed untuk `bun run db:seed`.
  *
  * Sengaja bukan bagian konfigurasi runtime: aplikasi tidak pernah membaca
- * akun dari environment, hanya dari database. Nilai bawaan adalah akun demo
- * yang didokumentasikan di `docs/08-workflow/setup.md`; ganti lewat environment
- * sebelum deploy sungguhan.
+ * akun dari environment, hanya dari database. Tidak ada nilai bawaan:
+ * `docs/11-logicodix/06-keamanan-kredensial.md` melarang sandi hardcoded, jadi
+ * `bun run db:seed` mewajibkan keempat variabel di bawah terisi.
  */
 export type SeedConfig = {
   teacherUsername: string;
@@ -116,13 +116,27 @@ export type SeedConfig = {
   studentPassword: string;
 };
 
-/** Akun demo bawaan. Hanya untuk seed; bukan rahasia produksi. */
-export const DEFAULT_SEED_ACCOUNTS = {
-  teacherUsername: "guru",
-  teacherPassword: "guru123",
-  studentUsername: "siswa",
-  studentPassword: "siswa123",
-} as const;
+/** Variabel yang wajib diisi sebelum `bun run db:seed`. */
+const SEED_VARIABLES = [
+  "TEACHER_SEED_USERNAME",
+  "TEACHER_SEED_PASSWORD",
+  "STUDENT_SEED_USERNAME",
+  "STUDENT_SEED_PASSWORD",
+] as const;
+
+/**
+ * Error kredensial seed. `message` aman ditampilkan karena hanya memuat nama
+ * variabel, bukan nilainya.
+ */
+export class SeedConfigError extends Error {
+  readonly variables: readonly string[];
+
+  constructor(message: string, variables: readonly string[] = []) {
+    super(message);
+    this.name = "SeedConfigError";
+    this.variables = variables;
+  }
+}
 
 /**
  * Error konfigurasi. `message` aman ditampilkan (tidak memuat nilai rahasia);
@@ -246,25 +260,28 @@ export function loadTeacherAuthConfig(
 /**
  * Baca kredensial akun seed untuk `scripts/db-seed.ts`.
  *
- * Variabel kosong jatuh ke akun demo bawaan, supaya `bun run db:seed` bisa
- * dipakai tanpa konfigurasi tambahan. Nilai tidak pernah dicetak.
+ * Tidak ada nilai bawaan: semua variabel wajib terisi. Ini mencegah sandi demo
+ * tertulis di repositori (`docs/11-logicodix/06-keamanan-kredensial.md` poin 1).
+ * Nilai tidak pernah dicetak.
  *
  * @param env sumber environment; default `process.env`.
+ * @throws {SeedConfigError} bila ada variabel yang kosong atau tidak diset.
  */
 export function loadSeedConfig(env: EnvSource = process.env): SeedConfig {
+  const missing = SEED_VARIABLES.filter((name) => read(env, name) === null);
+
+  if (missing.length > 0) {
+    throw new SeedConfigError(
+      `Kredensial seed belum lengkap. Isi variabel berikut di environment: ${missing.join(", ")}.`,
+      missing,
+    );
+  }
+
   return {
-    teacherUsername:
-      read(env, "TEACHER_SEED_USERNAME") ??
-      DEFAULT_SEED_ACCOUNTS.teacherUsername,
-    teacherPassword:
-      read(env, "TEACHER_SEED_PASSWORD") ??
-      DEFAULT_SEED_ACCOUNTS.teacherPassword,
-    studentUsername:
-      read(env, "STUDENT_SEED_USERNAME") ??
-      DEFAULT_SEED_ACCOUNTS.studentUsername,
-    studentPassword:
-      read(env, "STUDENT_SEED_PASSWORD") ??
-      DEFAULT_SEED_ACCOUNTS.studentPassword,
+    teacherUsername: read(env, "TEACHER_SEED_USERNAME")!,
+    teacherPassword: read(env, "TEACHER_SEED_PASSWORD")!,
+    studentUsername: read(env, "STUDENT_SEED_USERNAME")!,
+    studentPassword: read(env, "STUDENT_SEED_PASSWORD")!,
   };
 }
 

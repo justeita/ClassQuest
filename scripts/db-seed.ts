@@ -17,12 +17,12 @@
  * - Username dinormalisasi (huruf kecil, tanpa spasi tepi) sebelum disimpan.
  * - Akun yang sudah ada diperbarui (idempoten), bukan diduplikasi.
  * - Yang dicetak hanya username dan peran; password tidak pernah dicetak.
- * - Tanpa `TEACHER_SEED_*`/`STUDENT_SEED_*`, akun demo bawaan
- *   (`DEFAULT_SEED_ACCOUNTS`) yang dipakai. Ganti lewat environment sebelum
- *   deploy sungguhan.
+ * - Keempat variabel `TEACHER_SEED_*`/`STUDENT_SEED_*` **wajib** diisi. Tidak
+ *   ada akun demo bawaan, supaya sandi tidak tertulis di repositori
+ *   (`docs/11-logicodix/06-keamanan-kredensial.md`).
  */
 
-import { loadSeedConfig } from "../src/server/config";
+import { loadSeedConfig, SeedConfigError } from "../src/server/config";
 import { normalizeUsername } from "../src/server/auth";
 import { getReadyDb } from "../src/server/db";
 import { DatabaseError } from "../src/server/db";
@@ -133,18 +133,18 @@ async function main(): Promise<void> {
     `Akun siap: guru "${normalizeUsername(teacher.username)}", siswa "${normalizeUsername(student.username)}".`,
   );
   console.log(
-    "Sandi tidak dicetak. Ganti TEACHER_SEED_PASSWORD/STUDENT_SEED_PASSWORD sebelum deploy sungguhan.",
+    "Sandi tidak dicetak. Gunakan sandi unik untuk akun produksi/juri.",
   );
 }
 
 try {
   await main();
 } catch (error) {
-  // Hanya pesan DatabaseError yang sudah dijamin bebas URL/token.
+  // Pesan SeedConfigError/DatabaseError sudah dijamin tidak memuat nilai rahasia.
   const message =
-    error instanceof DatabaseError
+    error instanceof SeedConfigError || error instanceof DatabaseError
       ? error.message
-      : "Seed akun gagal. Periksa konfigurasi DATABASE_URL, DATABASE_AUTH_TOKEN, dan hak akses database.";
+      : "Seed akun gagal. Periksa konfigurasi TEACHER_SEED_*, STUDENT_SEED_*, DATABASE_URL, DATABASE_AUTH_TOKEN, dan hak akses database.";
   console.error(message);
   process.exitCode = 1;
 }

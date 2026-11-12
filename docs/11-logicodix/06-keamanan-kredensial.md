@@ -80,9 +80,12 @@ AI_MODEL=
 AI_BASE_URL=
 AI_TIMEOUT_MS=60000
 
-# Akun seed guru/siswa (sementara, sampai auth nyata). Kosong = akun demo.
+# Akun seed guru/siswa (sementara, sampai auth nyata). Wajib diisi sebelum
+# db:seed; tidak ada nilai bawaan.
 TEACHER_SEED_USERNAME=
 TEACHER_SEED_PASSWORD=
+STUDENT_SEED_USERNAME=
+STUDENT_SEED_PASSWORD=
 TEACHER_SESSION_SECRET=
 
 # Database/storage (TBD, lihat docs/06-backend/persistence.md)
