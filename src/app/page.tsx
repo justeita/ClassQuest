@@ -26,13 +26,13 @@ const LANGKAH = [
   {
     nomor: "3",
     judul: "Guru meninjau, siswa bermain",
-    isi: "Guru memperbaiki isi lalu menerbitkannya. Siswa membuka tautan dan langsung bermain.",
+    isi: "Guru memeriksa hasil AI lalu menerbitkannya. Siswa membuka tautan dan langsung bermain.",
   },
 ];
 
 const UNGGULAN = [
   "Bisa untuk materi apa pun yang teksnya terbaca, bukan hanya satu mata pelajaran.",
-  "Semua keluaran AI bisa dibaca dan diedit guru sebelum sampai ke siswa.",
+  "Semua keluaran AI diperiksa guru sebelum diterbitkan, bukan langsung sampai ke siswa.",
   "Game berjalan di browser: siswa tidak perlu memasang aplikasi.",
 ];
 

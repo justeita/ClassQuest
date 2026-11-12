@@ -37,8 +37,10 @@ classquest/
 ├── bunfig.toml
 ├── eslint.config.mjs
 ├── next.config.ts
+├── next-env.d.ts
 ├── package.json
 ├── tsconfig.json
+├── vercel.json
 ├── vitest.config.mjs
 └── vitest.setup.ts
 ```
@@ -275,9 +277,12 @@ src/
 │   └── config.ts                      # satu-satunya pembaca environment
 │
 └── lib/
-    ├── env.ts                         # validasi env server
-    └── utils.ts
+    ├── academic-year.ts               # normalisasi tahun ajaran (YYYY/YYYY)
+    └── academic-year.test.ts
 ```
+
+Pembaca environment ada di `src/server/config.ts`; `src/lib` hanya menampung
+utilitas murni tanpa I/O.
 
 ## Konvensi
 
