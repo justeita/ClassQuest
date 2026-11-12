@@ -1,12 +1,38 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
+import { Suspense } from "react";
 
 import { GamesGrid } from "@/components/guru/GamesGrid";
+import { GamesSkeleton } from "@/components/guru/skeletons";
+import { requireTeacher } from "@/server/auth";
+import { getReadyDb } from "@/server/db";
+import { listStories, MAX_STORIES_PAGE_LIMIT } from "@/server/stories";
 
 export const metadata: Metadata = {
   title: "My Games",
 };
 
-/** `/guru/game` — koleksi game edukasi milik guru. */
+/**
+ * `/guru/game` — koleksi game dari cerita milik guru.
+ *
+ * Tidak ada tabel game terpisah: satu cerita = satu game, sesuai
+ * `docs/02-data-model/story-schema.md` (cerita adalah kontrak tunggal).
+ */
 export default function GamePage() {
-  return <GamesGrid />;
+  return (
+    <Suspense fallback={<GamesSkeleton />}>
+      <GamesList />
+    </Suspense>
+  );
+}
+
+async function GamesList() {
+  await connection();
+  const { teacherId } = await requireTeacher();
+  const items = await listStories(await getReadyDb(), {
+    teacherId,
+    limit: MAX_STORIES_PAGE_LIMIT,
+  });
+
+  return <GamesGrid items={items} />;
 }

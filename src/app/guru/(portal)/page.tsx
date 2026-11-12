@@ -1,29 +1,32 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { connection } from "next/server";
+import { Suspense } from "react";
 
 import { DashboardStatCard } from "@/components/guru/StatCard";
-import {
-  CURRENT_TEACHER,
-  PORTAL_STATS,
-  RECENT_ACTIVITY,
-  type RecentActivityKind,
-} from "@/components/guru/data";
+import { STORY_STATUS_META, formatUpdatedAt } from "@/components/guru/logic";
+import { DashboardSkeleton } from "@/components/guru/skeletons";
+import { requireTeacher } from "@/server/auth";
+import { getReadyDb } from "@/server/db";
+import { listStories } from "@/server/stories";
 
 export const metadata: Metadata = {
   title: "Dashboard",
 };
 
-/** Label dan warna lencana kartu aktivitas, sesuai desain asal. */
-const ACTIVITY_BADGE: Record<
-  RecentActivityKind,
-  { label: string; className: string }
-> = {
-  game: { label: "Active", className: "bg-emerald-500" },
-  material: { label: "PDF Modul", className: "bg-blue-500" },
-  quiz: { label: "HOTS Quiz", className: "bg-purple-500" },
-};
+/** Jumlah kartu "aktivitas terbaru" di dashboard. */
+const RECENT_LIMIT = 6;
 
+/** Batas baris yang dibaca untuk statistik; `listStories` membatasi di server. */
+const STATS_LIMIT = 100;
+
+/**
+ * `/guru` — dashboard guru.
+ *
+ * Data berasal dari `listStories` (`src/server/stories`), bukan angka contoh.
+ * Bagian yang membaca database ada di dalam `<Suspense>` supaya kerangka
+ * halaman tetap bisa dirender lebih dulu (`docs/05-frontend/routes.md`).
+ */
 export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -39,45 +42,80 @@ export default function DashboardPage() {
           </h1>
           <p className="text-xs leading-relaxed text-slate-600 sm:text-sm">
             Selamat datang kembali,{" "}
-            <b className="text-brand-700">{CURRENT_TEACHER.fullName}</b>{" "}
-            Konversikan bahan ajar formal Anda menjadi game instruksional
-            interaktif dengan Class Quest AI Engine.
+            <Suspense fallback="Guru">
+              <TeacherGreeting />
+            </Suspense>{" "}
+            Ubah bahan ajar PDF menjadi game instruksional interaktif dengan
+            Class Quest AI Engine.
           </p>
         </div>
 
         <Link
           href="/guru/materi/baru"
-          className="relative z-10 flex shrink-0 items-center gap-2.5 rounded-xl border-2 border-slate-900 bg-brand-600 px-5 py-3.5 font-pixel text-xs font-bold text-white shadow-[4px_4px_0px_#172554] transition hover:bg-brand-700 active:translate-y-1"
+          className="guru-press-pixel relative z-10 flex shrink-0 items-center gap-2.5 rounded-xl border-2 border-slate-900 bg-brand-600 px-5 py-3.5 font-pixel text-xs font-bold text-white shadow-[4px_4px_0px_#172554] transition hover:bg-brand-700"
         >
           <i className="fa-solid fa-wand-magic-sparkles text-sm" aria-hidden />
           <span>CREATE NEW GAME</span>
         </Link>
       </section>
 
-      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardOverview />
+      </Suspense>
+    </div>
+  );
+}
+
+/**
+ * Nama guru dari sesi. Dipisah dan dibungkus `<Suspense>` di pemanggil karena
+ * ditampilkan di dalam paragraf sapaan, di luar data dashboard.
+ */
+async function TeacherGreeting() {
+  await connection();
+  const { displayName } = await requireTeacher();
+
+  return <b className="text-brand-700">{displayName}</b>;
+}
+
+/** Isi dashboard yang butuh sesi + database. */
+async function DashboardOverview() {
+  await connection();
+  const { teacherId } = await requireTeacher();
+  const stories = await listStories(await getReadyDb(), {
+    teacherId,
+    limit: STATS_LIMIT,
+  });
+
+  const published = stories.filter((item) => item.status === "published");
+  const draft = stories.filter((item) => item.status === "draft");
+  const processing = stories.filter((item) => item.status === "processing");
+
+  return (
+    <>
+      <section className="guru-stagger grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <DashboardStatCard
-          label="Total Games"
-          value={PORTAL_STATS.totalGames}
+          label="Total Materials"
+          value={stories.length}
+          icon="fa-book-open"
+          tone="purple"
+        />
+        <DashboardStatCard
+          label="Published Games"
+          value={published.length}
           icon="fa-gamepad"
           tone="blue"
         />
         <DashboardStatCard
-          label="Active Classes"
-          value={PORTAL_STATS.activeClasses}
-          icon="fa-users"
-          tone="indigo"
-        />
-        <DashboardStatCard
-          label="Total Students"
-          value={PORTAL_STATS.totalStudents}
-          icon="fa-graduation-cap"
+          label="Need Review"
+          value={draft.length}
+          icon="fa-clipboard-check"
           tone="emerald"
         />
         <DashboardStatCard
-          label="Materials"
-          value={PORTAL_STATS.materials}
-          icon="fa-book-open"
-          tone="purple"
+          label="In Progress"
+          value={processing.length}
+          icon="fa-gears"
+          tone="amber"
         />
       </section>
 
@@ -98,55 +136,73 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {RECENT_ACTIVITY.map((activity) => {
-            const badge = ACTIVITY_BADGE[activity.kind];
+        {stories.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <ul className="guru-stagger divide-y divide-slate-100">
+            {stories.slice(0, RECENT_LIMIT).map((item) => {
+              const meta = STORY_STATUS_META[item.status];
 
-            return (
-              <article
-                key={activity.id}
-                className="group flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-slate-200 bg-slate-50 transition hover:border-brand-500"
-              >
-                <div>
-                  <div className="relative h-36 w-full overflow-hidden bg-slate-800">
-                    <Image
-                      src={activity.image}
-                      alt=""
-                      fill
-                      sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                      className="object-cover opacity-90 transition duration-500 group-hover:scale-105"
-                    />
-                    <div
-                      className={`absolute right-3 top-3 rounded-lg px-2.5 py-1 font-pixel text-[10px] text-white shadow ${badge.className}`}
-                    >
-                      {badge.label}
+              return (
+                <li key={item.id}>
+                  <Link
+                    href={`/guru/materi/${item.id}`}
+                    className="group flex flex-col justify-between gap-2 py-3 transition hover:bg-slate-50 sm:flex-row sm:items-center"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-heading text-sm font-bold text-slate-900 transition group-hover:text-brand-600">
+                        {item.title}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-medium text-slate-500">
+                        {item.subject} • {item.gradeLevel}
+                      </p>
                     </div>
-                  </div>
 
-                  <div className="space-y-2 p-4">
-                    <h3 className="font-heading text-sm font-bold text-slate-900 transition group-hover:text-brand-600">
-                      {activity.title}
-                    </h3>
-                    <p className="line-clamp-2 text-xs text-slate-600">
-                      {activity.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 text-[11px] font-medium text-slate-500">
-                  <span>
-                    <i className="fa-regular fa-clock mr-1" aria-hidden />{" "}
-                    {activity.time}
-                  </span>
-                  <span className="font-bold text-slate-700">
-                    {activity.meta}
-                  </span>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                    <div className="flex shrink-0 items-center gap-3 text-[11px]">
+                      <span
+                        className={`rounded-full border px-2.5 py-0.5 font-pixel text-[10px] ${meta.badge}`}
+                      >
+                        {meta.label}
+                      </span>
+                      <span className="text-slate-400">
+                        <i
+                          className="fa-regular fa-calendar mr-1"
+                          aria-hidden
+                        />
+                        {formatUpdatedAt(item.updatedAt)}
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
+    </>
+  );
+}
+
+/** Empty state yang menjelaskan alur dalam tiga langkah (teacher-dashboard.md). */
+function EmptyState() {
+  return (
+    <div className="guru-pop rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+      <i
+        className="fa-solid fa-wand-magic-sparkles mb-2 text-3xl text-slate-300"
+        aria-hidden
+      />
+      <p className="text-sm font-bold text-slate-700">Belum ada materi</p>
+      <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
+        Unggah PDF materi, biarkan AI menyusun ceritanya, lalu review dan
+        bagikan tautannya ke siswa.
+      </p>
+      <Link
+        href="/guru/materi/baru"
+        className="guru-press-pixel mt-4 inline-flex items-center gap-2 rounded-xl border-2 border-slate-900 bg-brand-600 px-4 py-2.5 font-pixel text-xs font-bold text-white shadow-[3px_3px_0px_#172554] transition hover:bg-brand-700"
+      >
+        <i className="fa-solid fa-cloud-arrow-up" aria-hidden />
+        <span>UPLOAD MATERI PERTAMA</span>
+      </Link>
     </div>
   );
 }
