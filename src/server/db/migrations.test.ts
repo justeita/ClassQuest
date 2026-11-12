@@ -113,8 +113,192 @@ describe("migrate — skema awal", () => {
     expect(await tableNames(db)).not.toContain("rate_limits");
 
     const result = await migrate(db);
-    expect(result.applied).toEqual(["0003_rate_limits"]);
+    expect(result.applied).toEqual([
+      "0003_rate_limits",
+      "0004_accounts",
+      "0005_classrooms_students",
+    ]);
     expect(await tableNames(db)).toContain("rate_limits");
+  });
+
+  it("migrasi 0004 menambah akun guru dan tabel students", async () => {
+    const db = useDb();
+    const before = MIGRATIONS.filter((migration) =>
+      [
+        "0001_initial_schema",
+        "0002_relax_source_file_path",
+        "0003_rate_limits",
+      ].includes(migration.id),
+    );
+
+    await applyMigrations(db, before);
+    expect(await tableNames(db)).not.toContain("students");
+
+    // Hanya sampai 0004: 0005 membangun ulang tabel `students`, jadi kolom
+    // bentuk 0004 harus diperiksa sebelum migrasi itu ikut dijalankan.
+    const upTo0004 = MIGRATIONS.filter(
+      (migration) => migration.id !== "0005_classrooms_students",
+    );
+    const result = await applyMigrations(db, upTo0004);
+    expect(result.applied).toEqual(["0004_accounts"]);
+    expect(await tableNames(db)).toContain("students");
+
+    const teachers = await db.execute("pragma table_info(teachers)");
+    const teacherColumns = teachers.rows.map((row) => String(row.name));
+    expect(teacherColumns).toEqual(
+      expect.arrayContaining([
+        "id",
+        "display_name",
+        "username",
+        "password_hash",
+      ]),
+    );
+    // Kode akses lama dihapus supaya tidak ada dua sumber kebenaran.
+    expect(teacherColumns).not.toContain("access_code");
+
+    const students = await db.execute("pragma table_info(students)");
+    expect(students.rows.map((row) => String(row.name))).toEqual(
+      expect.arrayContaining([
+        "id",
+        "teacher_id",
+        "display_name",
+        "username",
+        "password_hash",
+        "created_at",
+      ]),
+    );
+  });
+
+  it("migrasi 0005 menambah classrooms dan membangun ulang students", async () => {
+    const db = useDb();
+    const before = MIGRATIONS.filter(
+      (migration) => migration.id !== "0005_classrooms_students",
+    );
+
+    await applyMigrations(db, before);
+    // Baris lama (mis. akun `siswa` hasil seed) harus selamat melewati rebuild.
+    await db.execute(
+      "insert into teachers (id, display_name, username) values ('t1', 'Guru 1', 'guru')",
+    );
+    await db.execute(
+      "insert into students (id, teacher_id, display_name, username, password_hash) values ('s1', 't1', 'Siswa Sebelumnya', 'siswa', 'hash')",
+    );
+
+    const result = await migrate(db);
+    expect(result.applied).toEqual(["0005_classrooms_students"]);
+
+    expect(await tableNames(db)).toContain("classrooms");
+    expect(await tableNames(db)).not.toContain("students_next");
+
+    const classrooms = await db.execute("pragma table_info(classrooms)");
+    expect(classrooms.rows.map((row) => String(row.name))).toEqual(
+      expect.arrayContaining([
+        "id",
+        "teacher_id",
+        "name",
+        "subject",
+        "grade_level",
+        "code",
+        "academic_year",
+        "created_at",
+      ]),
+    );
+
+    const students = await db.execute("pragma table_info(students)");
+    const columns = students.rows.map((row) => String(row.name));
+    expect(columns).toEqual(
+      expect.arrayContaining(["classroom_id", "nis", "display_name"]),
+    );
+
+    const kept = await db.execute(
+      "select id, username, password_hash, classroom_id, nis from students",
+    );
+    expect(kept.rows).toHaveLength(1);
+    expect(kept.rows[0]).toMatchObject({
+      id: "s1",
+      username: "siswa",
+      password_hash: "hash",
+      classroom_id: null,
+      nis: null,
+    });
+
+    // Siswa baru tidak butuh akun: cukup nama.
+    await db.execute(
+      "insert into students (id, teacher_id, display_name) values ('s2', 't1', 'Siswa Tanpa Akun')",
+    );
+  });
+
+  it("kode kelas unik dan NIS unik per guru", async () => {
+    const db = useDb();
+    await migrate(db);
+
+    await db.execute(
+      "insert into teachers (id, display_name) values ('t1', 'Guru 1'), ('t2', 'Guru 2')",
+    );
+    await db.execute(
+      "insert into classrooms (id, teacher_id, name, subject, grade_level, code, academic_year) values ('c1', 't1', 'A', 'Mtk', 'SMA Grade 10', 'QST-AAAA', '2026/2027')",
+    );
+    await expect(
+      db.execute(
+        "insert into classrooms (id, teacher_id, name, subject, grade_level, code, academic_year) values ('c2', 't2', 'B', 'Mtk', 'SMA Grade 11', 'QST-AAAA', '2026/2027')",
+      ),
+    ).rejects.toBeTruthy();
+
+    await db.execute(
+      "insert into students (id, teacher_id, classroom_id, nis, display_name) values ('s1', 't1', 'c1', '1001', 'Ani')",
+    );
+    await expect(
+      db.execute(
+        "insert into students (id, teacher_id, classroom_id, nis, display_name) values ('s2', 't1', 'c1', '1001', 'Budi')",
+      ),
+    ).rejects.toBeTruthy();
+
+    // NIS yang sama boleh di guru lain.
+    await db.execute(
+      "insert into students (id, teacher_id, nis, display_name) values ('s3', 't2', '1001', 'Cici')",
+    );
+    // NIS `null` tidak dihitung duplikat.
+    await db.execute(
+      "insert into students (id, teacher_id, nis, display_name) values ('s4', 't1', null, 'Dodi'), ('s5', 't1', null, 'Eka')",
+    );
+
+    // Menghapus kelas tidak menghapus siswanya.
+    await db.execute("delete from classrooms where id = 'c1'");
+    const orphan = await db.execute(
+      "select classroom_id from students where id = 's1'",
+    );
+    expect(orphan.rows[0]?.classroom_id).toBeNull();
+  });
+
+  it("username guru dan siswa unik", async () => {
+    const db = useDb();
+    await migrate(db);
+
+    await db.execute(
+      "insert into teachers (id, display_name, username) values ('t1', 'Guru 1', 'guru')",
+    );
+    await expect(
+      db.execute(
+        "insert into teachers (id, display_name, username) values ('t2', 'Guru 2', 'guru')",
+      ),
+    ).rejects.toBeTruthy();
+
+    await db.execute(
+      "insert into students (id, teacher_id, display_name, username, password_hash) values ('s1', 't1', 'Siswa 1', 'siswa', 'x')",
+    );
+    await expect(
+      db.execute(
+        "insert into students (id, teacher_id, display_name, username, password_hash) values ('s2', 't1', 'Siswa 2', 'siswa', 'x')",
+      ),
+    ).rejects.toBeTruthy();
+
+    // `null` tetap boleh untuk baris lama tanpa akun.
+    await db.execute(
+      "insert into teachers (id, display_name) values ('t3', 'Guru Lama')",
+    );
+    await db.execute(
+      "insert into teachers (id, display_name) values ('t4', 'Guru Lama 2')",
+    );
   });
 
   it("membuat kolom yang diwajibkan docs", async () => {

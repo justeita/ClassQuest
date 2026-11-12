@@ -26,6 +26,8 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0011 | [Sub-collider prop besar](0011-large-prop-subcollider.md)            | **Accepted** | Game                |
 | 0012 | [Peta ruangan sebagai satu gambar](0012-room-map-image.md)           | Accepted     | Game, aset          |
 | 0013 | [Hosting Vercel dan database Turso](0013-hosting-vercel-turso.md)    | Accepted     | Deploy, backend     |
+| 0014 | [Auth akun guru dan siswa](0014-auth-akun-guru-siswa.md)             | **Proposed** | Auth, backend       |
+| 0015 | [Tabel kelas dan siswa](0015-kelas-dan-siswa.md)                     | **Proposed** | Kelas, backend      |
 
 ## Status
 

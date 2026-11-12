@@ -43,7 +43,7 @@ type StatCardProps = {
 
 export function StatCard({ label, value, icon, tone }: StatCardProps) {
   return (
-    <div className="guru-pixel-card flex items-center gap-4 rounded-2xl bg-white p-4">
+    <div className="guru-pixel-card guru-lift flex items-center gap-4 rounded-2xl bg-white p-4">
       <div
         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 text-lg ${TONE[tone].box}`}
       >
@@ -63,7 +63,7 @@ export function StatCard({ label, value, icon, tone }: StatCardProps) {
 
 export function DashboardStatCard({ label, value, icon, tone }: StatCardProps) {
   return (
-    <div className="guru-pixel-card flex items-center justify-between rounded-2xl bg-white p-5">
+    <div className="guru-pixel-card guru-lift flex items-center justify-between rounded-2xl bg-white p-5">
       <div className="space-y-1">
         <p className="font-pixel text-xs font-semibold uppercase tracking-wider text-slate-500">
           {label}

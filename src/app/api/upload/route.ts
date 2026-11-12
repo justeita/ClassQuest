@@ -37,7 +37,7 @@
 
 import { z } from "zod";
 
-import { AuthError, ensureTeacherRow, requireTeacher } from "@/server/auth";
+import { AuthError, requireTeacher } from "@/server/auth";
 import {
   apiErrorResponse,
   INTERNAL_ERROR_MESSAGE,
@@ -178,7 +178,8 @@ export async function POST(request: Request): Promise<Response> {
     const storyId = crypto.randomUUID();
     const jobId = crypto.randomUUID();
 
-    await ensureTeacherRow();
+    // Baris `teachers` sudah ada karena guru harus login dulu; id-nya berasal
+    // dari sesi, bukan dari input klien.
     const db = await getReadyDb();
     const tx = await db.transaction("write");
 

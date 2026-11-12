@@ -60,16 +60,16 @@ Tiga hal yang paling mudah dilupakan dari gambar itu:
 
 ## Tanggung jawab per lapisan
 
-| Lapisan          | Isi                                               | Aturan                                                       |
-| ---------------- | ------------------------------------------------- | ------------------------------------------------------------ |
-| `src/app`        | Route, layout, page, route handler, server action | Tipis. Tidak berisi logika domain.                           |
-| `src/components` | UI React reusable (guru + shell game)             | Tidak memanggil AI langsung.                                 |
-| `src/story`      | Schema, tipe, validator, scoring, fallback        | **Pure functions**, mudah dites, tidak tahu DB/HTTP.         |
-| `src/ai`         | Prompt builder, provider client, pipeline, repair | Tidak tahu React. Hanya input teks + output `Story`.         |
-| `src/assets`     | Manifest aset (sumber kebenaran id aset)          | Statis, tanpa dependensi runtime.                            |
-| `src/game`       | Phaser scenes, bridge ke React, loader aset       | Hanya jalan di client. Tidak melakukan fetch ke DB langsung. |
-| `src/server`     | Akses DB, storage, job                            | Satu-satunya tempat yang menyentuh kredensial.               |
-| `src/lib`        | Utilitas kecil, pembacaan env (`env.ts`)          | Tanpa domain. Tidak tahu `Story`, tidak tahu React.          |
+| Lapisan          | Isi                                                 | Aturan                                                       |
+| ---------------- | --------------------------------------------------- | ------------------------------------------------------------ |
+| `src/app`        | Route, layout, page, route handler, server action   | Tipis. Tidak berisi logika domain.                           |
+| `src/components` | UI React reusable (guru + shell game)               | Tidak memanggil AI langsung.                                 |
+| `src/story`      | Schema, tipe, validator, scoring, fallback          | **Pure functions**, mudah dites, tidak tahu DB/HTTP.         |
+| `src/ai`         | Prompt builder, provider client, pipeline, repair   | Tidak tahu React. Hanya input teks + output `Story`.         |
+| `src/assets`     | Manifest aset (sumber kebenaran id aset)            | Statis, tanpa dependensi runtime.                            |
+| `src/game`       | Phaser scenes, bridge ke React, loader aset         | Hanya jalan di client. Tidak melakukan fetch ke DB langsung. |
+| `src/server`     | Akses DB, storage, job                              | Satu-satunya tempat yang menyentuh kredensial.               |
+| `src/lib`        | Utilitas kecil, env (`env.ts`), aturan tahun ajaran | Murni, tanpa React/DB. Boleh dipakai client **dan** server.  |
 
 Aturan dependensi (tidak boleh dibalik):
 
@@ -78,8 +78,9 @@ app → components → story
 app → server → story + ai + assets
 ai  → story + assets
 game → story + assets
+app, components, server → lib (aturan bersama, mis. tahun ajaran)
 story → assets (untuk validasi id)
-story, assets → (tidak mengimpor apa pun dari app/server/game)
+lib, story, assets → (tidak mengimpor apa pun dari app/server/game)
 ```
 
 ## Keputusan arsitektur kunci

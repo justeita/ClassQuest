@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { CURRENT_TEACHER } from "./data";
 import { useToast } from "./toast";
@@ -59,11 +59,45 @@ function isActive(pathname: string, href: string): boolean {
  * Kerangka portal guru: sidebar, header lengket, dan area konten yang
  * menggulir sendiri. Dipasang oleh `src/app/guru/(portal)/layout.tsx`, jadi
  * halaman masuk (`/guru/masuk`) tidak ikut memakai sidebar.
+ *
+ * `teacherName` berasal dari sesi nyata (layout memanggil `requireTeacher()`).
+ * Level/XP/gold masih hiasan desain karena belum ada tabel progres guru.
  */
-export function PortalShell({ children }: { children: ReactNode }) {
+export function PortalShell({
+  children,
+  teacherName,
+}: {
+  children: ReactNode;
+  teacherName: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const showToast = useToast();
+  const [keluar, setKeluar] = useState(false);
+
+  const initials = teacherName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+
+  /** Hapus cookie sesi di server, lalu kembali ke halaman masuk. */
+  async function keluarAkun() {
+    if (keluar) return;
+    setKeluar(true);
+
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Cookie sesi mungkin masih ada, tetapi layout (portal) akan
+      // mengarahkan ulang ke halaman masuk saat sesi tidak sah.
+    }
+
+    showToast("Sesi kerja Anda telah diakhiri.", "info");
+    router.replace("/guru/masuk");
+    router.refresh();
+  }
 
   // Halaman paling spesifik menang: `/guru/materi/baru` bukan `/guru/materi`.
   const active = NAV.filter((item) => isActive(pathname, item.href)).sort(
@@ -107,7 +141,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
                       key={item.href}
                       href={item.href}
                       aria-current={selected ? "page" : undefined}
-                      className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-xs font-semibold transition md:w-full ${
+                      className={`guru-press flex items-center gap-3 rounded-xl px-3.5 py-3 text-xs font-semibold transition md:w-full ${
                         selected
                           ? "border border-brand-500 bg-brand-600 text-white shadow-[3px_3px_0px_#172554]"
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -125,7 +159,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
                 <button
                   type="button"
                   onClick={() => showToast("Menu Analytics dibuka", "info")}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 md:w-full"
+                  className="guru-press flex items-center gap-3 rounded-xl px-3.5 py-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 md:w-full"
                 >
                   <i
                     className="fa-solid fa-chart-column w-4 shrink-0 text-sm"
@@ -142,11 +176,11 @@ export function PortalShell({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 overflow-hidden">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-amber-400 text-xs font-bold text-slate-900 shadow">
-                {CURRENT_TEACHER.initials}
+                {initials}
               </div>
               <div className="overflow-hidden text-left">
                 <p className="truncate text-xs font-bold text-slate-900">
-                  {CURRENT_TEACHER.name}
+                  {teacherName}
                 </p>
                 <p className="font-pixel text-[10px] text-amber-600">
                   LVL. {CURRENT_TEACHER.level} Educator
@@ -155,12 +189,10 @@ export function PortalShell({ children }: { children: ReactNode }) {
             </div>
             <button
               type="button"
-              onClick={() => {
-                showToast("Sesi kerja Anda telah diakhiri.", "info");
-                router.push("/guru/masuk");
-              }}
+              onClick={keluarAkun}
+              disabled={keluar}
               title="Keluar Akun"
-              className="shrink-0 rounded p-1.5 text-slate-400 transition hover:text-rose-600"
+              className="shrink-0 rounded p-1.5 text-slate-400 transition hover:text-rose-600 disabled:opacity-50"
             >
               <i
                 className="fa-solid fa-arrow-right-from-bracket text-xs"
@@ -175,7 +207,10 @@ export function PortalShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-0 flex-1 flex-col bg-slate-50 md:overflow-hidden">
         <header className="sticky top-0 z-20 flex shrink-0 items-center justify-between border-b-2 border-slate-200 bg-white px-6 py-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <h1 className="font-heading text-lg font-extrabold text-slate-900">
+            <h1
+              key={title}
+              className="guru-enter font-heading text-lg font-extrabold text-slate-900"
+            >
               {title}
             </h1>
           </div>
@@ -195,7 +230,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={() => showToast("Tidak ada notifikasi baru", "info")}
-              className="relative flex h-9 w-9 items-center justify-center rounded-xl border-2 border-slate-300 bg-white text-slate-700 shadow-[2px_2px_0px_#cbd5e1] transition hover:bg-slate-50"
+              className="guru-press relative flex h-9 w-9 items-center justify-center rounded-xl border-2 border-slate-300 bg-white text-slate-700 shadow-[2px_2px_0px_#cbd5e1] transition hover:bg-slate-50"
             >
               <i className="fa-regular fa-bell text-sm" aria-hidden />
               <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border border-white bg-rose-500" />

@@ -6,7 +6,9 @@ import {
   DEFAULT_DATABASE_URL,
   loadAiConfig,
   loadDatabaseConfig,
+  loadSeedConfig,
   loadTeacherAuthConfig,
+  SeedConfigError,
 } from "./config";
 
 /**
@@ -428,38 +430,73 @@ describe("loadDatabaseConfig", () => {
 });
 
 describe("loadTeacherAuthConfig", () => {
-  it("mengembalikan null saat kedua variabel belum diisi", () => {
-    expect(loadTeacherAuthConfig({})).toEqual({
-      accessCode: null,
+  it("mengembalikan null saat secret belum diisi", () => {
+    expect(loadTeacherAuthConfig({})).toEqual({ sessionSecret: null });
+    expect(loadTeacherAuthConfig({ TEACHER_SESSION_SECRET: "   " })).toEqual({
       sessionSecret: null,
     });
-    expect(
-      loadTeacherAuthConfig({
-        TEACHER_ACCESS_CODE: "",
-        TEACHER_SESSION_SECRET: "   ",
-      }),
-    ).toEqual({ accessCode: null, sessionSecret: null });
   });
 
-  it("membaca kedua nilai dan memangkas spasi", () => {
+  it("membaca secret dan memangkas spasi", () => {
     expect(
-      loadTeacherAuthConfig({
-        TEACHER_ACCESS_CODE: "  kode-demo  ",
-        TEACHER_SESSION_SECRET: "  secret-demo  ",
-      }),
-    ).toEqual({
-      accessCode: "kode-demo",
-      sessionSecret: "secret-demo",
-    });
+      loadTeacherAuthConfig({ TEACHER_SESSION_SECRET: "  secret-demo  " }),
+    ).toEqual({ sessionSecret: "secret-demo" });
   });
 
   it("membaca process.env bila sumber tidak diberikan", () => {
-    vi.stubEnv("TEACHER_ACCESS_CODE", "kode-dari-env");
     vi.stubEnv("TEACHER_SESSION_SECRET", "secret-dari-env");
 
     expect(loadTeacherAuthConfig()).toEqual({
-      accessCode: "kode-dari-env",
       sessionSecret: "secret-dari-env",
+    });
+  });
+});
+
+describe("loadSeedConfig", () => {
+  it("menolak environment kosong dan menyebut variabel yang kurang", () => {
+    let caught: unknown;
+    try {
+      loadSeedConfig({});
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(SeedConfigError);
+    const error = caught as SeedConfigError;
+    expect(error.variables).toEqual([
+      "TEACHER_SEED_USERNAME",
+      "TEACHER_SEED_PASSWORD",
+      "STUDENT_SEED_USERNAME",
+      "STUDENT_SEED_PASSWORD",
+    ]);
+    expect(error.message).toContain("TEACHER_SEED_PASSWORD");
+    expect(error.message).toContain("STUDENT_SEED_PASSWORD");
+  });
+
+  it("menolak sandi yang kosong meski username terisi", () => {
+    expect(() =>
+      loadSeedConfig({
+        TEACHER_SEED_USERNAME: "bu-guru",
+        TEACHER_SEED_PASSWORD: "   ",
+        STUDENT_SEED_USERNAME: "siswa-a",
+        STUDENT_SEED_PASSWORD: "",
+      }),
+    ).toThrow(SeedConfigError);
+  });
+
+  it("membaca dan memangkas nilai dari environment", () => {
+    expect(
+      loadSeedConfig({
+        TEACHER_SEED_USERNAME: "  bu-guru  ",
+        TEACHER_SEED_PASSWORD: "  sandi-baru  ",
+        STUDENT_SEED_USERNAME: "  siswa-a  ",
+        STUDENT_SEED_PASSWORD: "  sandi-siswa  ",
+      }),
+    ).toEqual({
+      teacherUsername: "bu-guru",
+      teacherPassword: "sandi-baru",
+      studentUsername: "siswa-a",
+      studentPassword: "sandi-siswa",
     });
   });
 });

@@ -35,7 +35,7 @@ Kode error yang dipakai:
 
 | Kode             | HTTP | Arti                                                  |
 | ---------------- | ---- | ----------------------------------------------------- |
-| `UNAUTHORIZED`   | 401  | Sesi tidak ada/kedaluwarsa; kode akses guru tidak sah |
+| `UNAUTHORIZED`   | 401  | Sesi tidak ada/kedaluwarsa; kredensial guru tidak sah |
 | `FORBIDDEN`      | 403  | Bukan pemilik cerita                                  |
 | `NOT_FOUND`      | 404  | Cerita/job tidak ada (termasuk bukan milik guru)      |
 | `INVALID_INPUT`  | 400  | Body/field request tidak valid                        |
@@ -190,14 +190,18 @@ Aturan:
 
 ## `POST /api/auth/login`
 
-Tukar kode akses guru dengan cookie sesi. Satu kode berlaku untuk semua guru
-(demo). Detail auth: [`persistence.md`](./persistence.md#auth-tbd).
+Tukar kredensial akun guru (username + password) dengan cookie sesi. Akun
+disimpan di tabel `teachers`; password hanya pernah tersimpan sebagai hash
+scrypt. Detail auth: [`persistence.md`](./persistence.md#auth-tbd).
 
 **Request:** `application/json`
 
 ```json
-{ "code": "<kode akses guru>" }
+{ "username": "guru", "password": "<sandi guru>" }
 ```
+
+`username` tidak peka huruf besar-kecil dan spasi tepi dimangkas sebelum
+dicari. Batas panjang: 64 karakter untuk `username`, 200 untuk `password`.
 
 **Response `200`:**
 
@@ -207,26 +211,30 @@ Tukar kode akses guru dengan cookie sesi. Satu kode berlaku untuk semua guru
 
 Cookie sesi (`classquest_teacher_session`) di-set `httpOnly`, `sameSite=lax`,
 `path=/`, `secure` hanya di production, `maxAge` 8 jam. Isinya token bertanda
-tangan; token tidak pernah dikirim di body.
+tangan berisi `teacherId` dan `displayName`; token tidak pernah dikirim di body.
 
 **Kegagalan:**
 
-| Kondisi                                                 | Response            |
-| ------------------------------------------------------- | ------------------- |
-| Body bukan JSON, tanpa `code`, atau `code` bukan string | `400 INVALID_INPUT` |
-| `code` kosong                                           | `401 UNAUTHORIZED`  |
-| `code` salah                                            | `401 UNAUTHORIZED`  |
-| `TEACHER_ACCESS_CODE`/secret belum diisi                | `401 UNAUTHORIZED`  |
+| Kondisi                                                       | Response            |
+| ------------------------------------------------------------- | ------------------- |
+| Body bukan JSON, tanpa `username`/`password`, atau tipe salah | `400 INVALID_INPUT` |
+| `username` atau `password` kosong                             | `401 UNAUTHORIZED`  |
+| Username tidak terdaftar                                      | `401 UNAUTHORIZED`  |
+| Password salah                                                | `401 UNAUTHORIZED`  |
+| Akun belum punya `password_hash` (baris lama)                 | `401 UNAUTHORIZED`  |
+| `TEACHER_SESSION_SECRET` belum diisi                          | `401 UNAUTHORIZED`  |
 
-Tiga baris `401` di atas memakai **pesan yang sama**. Klien tidak boleh bisa
-membedakan "salah" dari "belum dikonfigurasi". Tidak ada kode akses, token, atau
-secret di respons.
+Semua baris `401` di atas memakai **pesan yang sama**. Klien tidak boleh bisa
+membedakan "username salah" dari "password salah" atau "belum dikonfigurasi".
+Tidak ada username, password, hash, token, atau secret di respons. Verifikasi
+tetap menjalankan scrypt walau username tidak ditemukan, supaya waktu respons
+tidak menunjukkan akun mana yang terdaftar.
 
 **Rate limit:** 10 percobaan per 10 menit per IP, dihitung untuk **semua**
-percobaan dan diperiksa **sebelum** body dibaca dan sebelum kode diverifikasi.
-Melewati batas → `429 RATE_LIMITED` + header `Retry-After` (lihat bagian
-[Rate limit](#rate-limit)). Kalau penghitungnya sendiri gagal, login **fail
-closed**: `500 INTERNAL` dengan pesan generik.
+percobaan dan diperiksa **sebelum** body dibaca dan sebelum kredensial
+diverifikasi. Melewati batas → `429 RATE_LIMITED` + header `Retry-After` (lihat
+bagian [Rate limit](#rate-limit)). Kalau penghitungnya sendiri gagal, login
+**fail closed**: `500 INTERNAL` dengan pesan generik.
 
 ---
 
@@ -291,13 +299,49 @@ Jangan menyertakan status dependency internal yang bisa membocorkan infrastruktu
 
 ## Server Actions (bukan endpoint publik)
 
-| Action           | Input                             | Output                                      |
-| ---------------- | --------------------------------- | ------------------------------------------- |
-| `saveStoryDraft` | `{ storyId, story, baseVersion }` | `SaveStoryResult` (lihat di bawah)          |
-| `publishStory`   | `{ storyId, version }`            | `{ ok: true }` atau `{ ok: false, errors }` |
-| `deleteStory`    | `{ storyId }`                     | `{ ok: true }`                              |
-| `archiveStory`   | `{ storyId }`                     | `{ ok: true }`                              |
-| `savePlayResult` | `{ storyId, result }`             | `{ ok: true }` (opsional)                   |
+| Action            | Input                             | Output                                      |
+| ----------------- | --------------------------------- | ------------------------------------------- |
+| `saveStoryDraft`  | `{ storyId, story, baseVersion }` | `SaveStoryResult` (lihat di bawah)          |
+| `publishStory`    | `{ storyId, version }`            | `{ ok: true }` atau `{ ok: false, errors }` |
+| `deleteStory`     | `{ storyId }`                     | `{ ok: true }`                              |
+| `archiveStory`    | `{ storyId }`                     | `{ ok: true }`                              |
+| `savePlayResult`  | `{ storyId, result }`             | `{ ok: true }` (opsional)                   |
+| `createClassroom` | `{ name, subject, grade, year }`  | `CreateClassroomResult` (lihat di bawah)    |
+| `addStudent`      | `{ classroomId, name, nis }`      | `AddStudentResult` (lihat di bawah)         |
+
+Bentuk hasil aksi kelas/siswa (`src/app/guru/(portal)/kelas/actions.ts`):
+
+```ts
+type CreateClassroomResult =
+  { ok: true; classroom: ClassroomDetail } | { ok: false; message: string };
+
+type AddStudentResult =
+  { ok: true; student: StudentListItem } | { ok: false; message: string };
+```
+
+Aturan:
+
+- Semua action memanggil `requireTeacher()` lebih dulu; tanpa sesi guru hasilnya
+  redirect ke `/guru/masuk`.
+- `nis` opsional. Kosong → server memberi nomor urut mulai `1001` (melewati
+  nomor terpakai). Diisi → dinormalisasi ke huruf besar, pola
+  `[A-Za-z0-9._-]{1,20}`, dan harus unik per guru.
+- `year` (tahun ajaran) **bukan teks bebas**. Hanya bentuk baku `YYYY/YYYY`
+  (2000–2099, tahun kedua = tahun pertama + 1) yang diterima lewat
+  `normalizeAcademicYear()` (`src/lib/academic-year.ts`). Nilai lain — spasi,
+  `2026-2027`, `2026 / 2027`, karakter kontrol, zero-width, emoji, digit
+  non-ASCII — dijawab `{ ok: false, message: ACADEMIC_YEAR_INVALID_MESSAGE }`,
+  tidak dipotong atau diperbaiki diam-diam. UI menawarkannya lewat `YearPicker`.
+- `code` kelas dibuat server (`QST-XXXX`), bukan dikirim client.
+- Teks lain (`name`, `subject`, `grade`) dibersihkan `cleanText()`: karakter
+  kontrol diganti spasi, karakter tak terlihat (zero-width, penanda arah
+  RTL/LTR, BOM) dibuang, spasi ganda dirapatkan, lalu dipotong ke batas kolom.
+- Kedua action dibatasi `guardClassroomWrite()`: 60 tulisan per jam per guru
+  (`docs/06-backend/api-contract.md` bagian Rate limit). Kelebihan dijawab
+  `{ ok: false, message }` statis.
+- Kegagalan database dan kegagalan validasi dijawab `{ ok: false, message }`
+  dengan pesan statis berbahasa Indonesia. Tidak ada status code karena Server
+  Action; detail error tidak pernah dikirim ke client.
 
 Bentuk `SaveStoryResult` — **satu-satunya** bentuk yang dipakai editor, dashboard,
 dan dokumen lain:
@@ -371,13 +415,14 @@ yang sudah ada.
 Batas yang berlaku sekarang. Angka tinggal di
 `src/server/rate-limit/limits.ts`; kalau berubah, ubah keduanya.
 
-| Endpoint                     | Batas                                                       | Penyimpanan | Saat limiter gagal |
-| ---------------------------- | ----------------------------------------------------------- | ----------- | ------------------ |
-| `POST /api/auth/login`       | 10 per 10 menit per IP                                      | database    | **fail closed**    |
-| `POST /api/upload`           | 20 per jam per IP, 10 per jam per guru, 100 per hari global | database    | **fail closed**    |
-| `savePlayResult` (action)    | 120 per 10 menit per IP                                     | database    | fail open          |
-| `GET /api/stories/[storyId]` | 120 per menit per IP                                        | memori      | fail open          |
-| `GET /api/jobs/*`            | 60 per menit per sesi                                       | belum ada   | —                  |
+| Endpoint                                | Batas                                                       | Penyimpanan | Saat limiter gagal |
+| --------------------------------------- | ----------------------------------------------------------- | ----------- | ------------------ |
+| `POST /api/auth/login`                  | 10 per 10 menit per IP                                      | database    | **fail closed**    |
+| `POST /api/upload`                      | 20 per jam per IP, 10 per jam per guru, 100 per hari global | database    | **fail closed**    |
+| `savePlayResult` (action)               | 120 per 10 menit per IP                                     | database    | fail open          |
+| `createClassroom`/`addStudent` (action) | 60 per jam per guru                                         | database    | fail open          |
+| `GET /api/stories/[storyId]`            | 120 per menit per IP                                        | memori      | fail open          |
+| `GET /api/jobs/*`                       | 60 per menit per sesi                                       | belum ada   | —                  |
 
 ### Respons saat batas terlampaui
 

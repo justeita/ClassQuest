@@ -179,7 +179,9 @@ body {
 .guru-pixel-card {
   border: 2px solid #cbd5e1;
   box-shadow: 3px 3px 0 #cbd5e1;
-  transition: all 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .guru-pixel-card:hover {
@@ -204,4 +206,311 @@ body {
 
 .guru-scroll::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* --------------------------------------------------------------------------
+ * Gerak portal guru
+ *
+ * Satu sistem kecil untuk seluruh `/guru`: halaman masuk, transisi halaman,
+ * kartu, tabel, modal, dropdown, toast, skeleton, dan progres generasi.
+ *
+ * Aturan yang dipegang:
+ *
+ * - **Semua `animation` berada di dalam `prefers-reduced-motion:
+ *   no-preference`.** Di luar blok itu tidak ada animasi sama sekali, jadi
+ *   pengguna yang meminta gerak dikurangi melihat halaman final — bukan versi
+ *   setengah jalan yang tersangkut di `opacity: 0`.
+ * - **Hanya `opacity` dan `transform`.** Tidak ada `height`, `margin`, atau
+ *   `top` yang dianimasikan, supaya tidak ada layout shift dan animasi tetap
+ *   jalan di compositor.
+ * - **Durasi pendek (120–300 ms) dan jarak kecil (≤ 8 px).** Ini portal kerja;
+ *   animasi tidak boleh menunda guru membaca atau menekan tombol.
+ * - **`backwards`, bukan `both`.** Setelah animasi masuk selesai, `transform`
+ *   kembali bebas sehingga hover kartu tetap bekerja.
+ * ------------------------------------------------------------------------ */
+
+@keyframes guru-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes guru-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes guru-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes guru-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes guru-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes guru-progress-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(400%);
+  }
+}
+
+@keyframes guru-pulse-ring {
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+}
+
+/* Dasar skeleton: hanya bingkai; kilauannya yang dianimasikan. */
+.guru-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: #f1f5f9;
+}
+
+/* Isi bilah progres generasi; kilau berjalan di dalamnya. */
+.guru-progress-fill {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Tombol yang ditekan terasa "masuk" satu piksel. */
+.guru-press {
+  transition:
+    transform 0.1s ease,
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+/* Tombol bergaya pixel: bayangan padat ikut hilang saat ditekan. */
+.guru-press-pixel {
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease;
+}
+
+/* Area unggah saat berkas diseret di atasnya. */
+.guru-dropzone {
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* --- Masuk halaman & elemen ------------------------------------------- */
+
+  .guru-page-enter {
+    animation: guru-fade-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  .guru-enter {
+    animation: guru-fade-up 0.26s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  .guru-pop {
+    animation: guru-pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  }
+
+  .guru-fade {
+    animation: guru-fade 0.2s ease-out backwards;
+  }
+
+  .guru-toast-in {
+    animation: guru-toast-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  /* Daftar kartu: masuk berurutan, maksimal 8 langkah supaya tidak lambat. */
+  .guru-stagger > * {
+    animation: guru-fade-up 0.26s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  .guru-stagger > :nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .guru-stagger > :nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .guru-stagger > :nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .guru-stagger > :nth-child(4) {
+    animation-delay: 120ms;
+  }
+  .guru-stagger > :nth-child(5) {
+    animation-delay: 160ms;
+  }
+  .guru-stagger > :nth-child(6) {
+    animation-delay: 200ms;
+  }
+  .guru-stagger > :nth-child(7) {
+    animation-delay: 240ms;
+  }
+  .guru-stagger > :nth-child(8) {
+    animation-delay: 280ms;
+  }
+  .guru-stagger > :nth-child(n + 9) {
+    animation-delay: 320ms;
+  }
+
+  /* Baris tabel: hanya opacity; `transform` pada `tr` tidak konsisten. */
+  .guru-stagger-fade > * {
+    animation: guru-fade 0.22s ease-out backwards;
+  }
+
+  .guru-stagger-fade > :nth-child(2) {
+    animation-delay: 30ms;
+  }
+  .guru-stagger-fade > :nth-child(3) {
+    animation-delay: 60ms;
+  }
+  .guru-stagger-fade > :nth-child(4) {
+    animation-delay: 90ms;
+  }
+  .guru-stagger-fade > :nth-child(n + 5) {
+    animation-delay: 120ms;
+  }
+
+  /* --- Interaksi -------------------------------------------------------- */
+
+  .guru-lift {
+    transition:
+      transform 0.16s ease,
+      border-color 0.16s ease,
+      box-shadow 0.16s ease;
+  }
+
+  /* Hanya perangkat berpenunjuk: di layar sentuh, `:hover` bisa menempel
+     setelah ketukan sehingga kartu "melayang" terus. */
+  @media (hover: hover) {
+    .guru-lift:hover {
+      transform: translateY(-3px);
+    }
+
+    .guru-dropzone:hover {
+      transform: translateY(-1px);
+    }
+  }
+
+  .guru-press:active {
+    transform: translateY(1px);
+  }
+
+  .guru-press-pixel:active {
+    transform: translate(3px, 3px);
+    box-shadow: none;
+  }
+
+  .guru-dropzone[data-dragging="true"] {
+    border-color: #2563eb;
+    background-color: #f0f7ff;
+    transform: scale(1.01);
+  }
+
+  /* Tahap generasi yang sedang berjalan: cincin tipis yang berdenyut. Cincin
+     dibuat sebagai pseudo-element supaya yang dianimasikan hanya `opacity` dan
+     `transform` — `box-shadow` akan memaksa repaint tiap frame. */
+  .guru-step-active {
+    position: relative;
+  }
+
+  .guru-step-active::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 2px solid #2563eb;
+    border-radius: inherit;
+    pointer-events: none;
+    animation: guru-pulse-ring 1.8s ease-out infinite;
+  }
+
+  /* --- Loading ---------------------------------------------------------- */
+
+  .guru-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.75),
+      transparent
+    );
+    animation: guru-shimmer 1.5s ease-in-out infinite;
+  }
+
+  .guru-progress-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.45),
+      transparent
+    );
+    animation: guru-progress-sweep 1.8s ease-in-out infinite;
+  }
+}
+
+/* Gerak dikurangi: hilangkan transisi dan semua pergeseran yang tersisa.
+   Perubahan warna/garis tetap ada (bukan gerak), jadi keadaan akhir selalu
+   terlihat — tidak ada elemen yang tertahan di tengah animasi. */
+@media (prefers-reduced-motion: reduce) {
+  .guru-lift,
+  .guru-press,
+  .guru-press-pixel,
+  .guru-dropzone {
+    transition: none;
+  }
+
+  .guru-lift:hover,
+  .guru-press:active,
+  .guru-press-pixel:active,
+  .guru-dropzone:hover,
+  .guru-dropzone[data-dragging="true"] {
+    transform: none;
+  }
 }

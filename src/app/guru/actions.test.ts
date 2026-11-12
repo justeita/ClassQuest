@@ -46,7 +46,6 @@ import { applyMigrations } from "@/server/db/migrations";
 import {
   AuthError,
   createSessionToken,
-  TEACHER_ID,
   TEACHER_SESSION_COOKIE,
 } from "@/server/auth";
 import { buildFallbackStory } from "@/story/fallback";
@@ -58,8 +57,9 @@ import {
 } from "./actions";
 import { STORY_NOT_FOUND_ISSUE, STORY_TOO_LARGE_ISSUE } from "@/server/stories";
 
-const ACCESS_CODE = "kode-demo-rahasia-4c1e";
 const SESSION_SECRET = "secret-uji-sesi-yang-panjang-9b2f";
+const TEACHER_ID = "teacher_demo";
+const TEACHER_DISPLAY_NAME = "Guru Demo";
 
 const OTHER_TEACHER_ID = "teacher_lain";
 const STORY_ID = "st_guru_action_story";
@@ -78,7 +78,6 @@ function useSession(token: string | null | undefined): void {
 let db: Client;
 
 beforeEach(async () => {
-  vi.stubEnv("TEACHER_ACCESS_CODE", ACCESS_CODE);
   vi.stubEnv("TEACHER_SESSION_SECRET", SESSION_SECRET);
   vi.stubEnv("NODE_ENV", "test");
 
@@ -90,7 +89,12 @@ beforeEach(async () => {
   getReadyDbMock.mockClear();
   revalidatePathMock.mockClear();
 
-  useSession(createSessionToken(TEACHER_ID, Date.now()));
+  useSession(
+    createSessionToken({
+      teacherId: TEACHER_ID,
+      displayName: TEACHER_DISPLAY_NAME,
+    }),
+  );
 
   await db.execute({
     sql: "insert into teachers (id, display_name) values (?, 'Guru Demo')",

@@ -417,3 +417,42 @@ export const STALE_JOB_ERROR = {
   code: STALE_ERROR_CODE,
   message: staleMessage(),
 } as const;
+
+/* -------------------------------------------------------------------------- */
+/* Job terbaru milik satu cerita                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Id job terbaru untuk satu cerita milik guru, atau `null`.
+ *
+ * Dipakai halaman `/guru/materi/[storyId]`: `storyId` bukan `jobId`, jadi
+ * halaman butuh cara menemukan job yang harus dipolling lewat
+ * `GET /api/jobs/[jobId]`. `storyId` yang tidak valid, cerita milik guru lain,
+ * dan cerita tanpa job sama-sama `null` — halaman lalu menampilkan ringkasan
+ * tanpa progres, bukan membocorkan keberadaan cerita.
+ */
+export async function getLatestJobId(
+  db: Pick<Client, "execute">,
+  input: { storyId: string; teacherId: string },
+): Promise<string | null> {
+  if (
+    typeof input.storyId !== "string" ||
+    input.storyId === "" ||
+    input.storyId.length > MAX_JOB_ID_LENGTH
+  ) {
+    return null;
+  }
+
+  const result = await db.execute({
+    sql: `select j.id as id
+            from jobs j
+            join stories s on s.id = j.story_id
+           where j.story_id = ? and s.teacher_id = ?
+           order by j.started_at desc, j.rowid desc
+           limit 1`,
+    args: [input.storyId, input.teacherId],
+  });
+
+  const id = result.rows[0]?.id;
+  return typeof id === "string" && id !== "" ? id : null;
+}

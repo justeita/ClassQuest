@@ -38,7 +38,9 @@ cukup untuk demo. Ini rekomendasi, bukan keputusan.
 
 ## Yang harus diputuskan bersamaan
 
-1. **Auth guru:** kode akses env (paling cepat) vs Supabase Auth.
+1. **Auth guru:** kode akses env (paling cepat) vs Supabase Auth — diputuskan
+   di [ADR 0014](0014-auth-akun-guru-siswa.md): akun di database, tanpa vendor
+   auth.
 2. **Eksekusi job:** `after()` (paling cepat) vs queue.
 3. **Hasil main:** disimpan server atau hanya lokal.
 

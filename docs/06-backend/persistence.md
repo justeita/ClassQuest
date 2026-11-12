@@ -41,6 +41,8 @@ Nama tabel dan kolom ini yang dipakai kode, apa pun vendornya.
 ```mermaid
 erDiagram
     teachers ||--o{ stories : membuat
+    teachers ||--o{ classrooms : memiliki
+    classrooms ||--o{ students : berisi
     stories ||--o{ story_versions : punya_versi
     stories ||--o{ jobs : punya_proses
     stories ||--o{ play_results : dimainkan
@@ -48,7 +50,26 @@ erDiagram
     teachers {
         text id PK
         text display_name
-        text access_code "hash akses guru"
+        text username UK "login guru"
+        text password_hash "scrypt, bukan plaintext"
+    }
+    classrooms {
+        text id PK
+        text teacher_id FK
+        text name
+        text subject
+        text grade_level
+        text code UK "QST-XXXX, label tampilan"
+        text academic_year
+    }
+    students {
+        text id PK
+        text teacher_id FK
+        text classroom_id FK "boleh null"
+        text nis "unik per guru, boleh null"
+        text display_name
+        text username UK "boleh null: akun siswa belum dipakai"
+        text password_hash "scrypt, boleh null"
     }
     stories {
         text id PK
@@ -86,13 +107,44 @@ Diagram di atas versi ringkas. SQL di bawah yang mengikat; kalau keduanya
 berbeda, SQL yang menang dan diagram harus diperbaiki.
 
 ```sql
--- Guru (minimal; auth bisa disederhanakan di MVP)
+-- Guru: satu baris per akun (username + hash scrypt)
 create table teachers (
-  id           text primary key,
-  display_name text not null,
-  access_code  text,              -- hash, bukan plaintext
-  created_at   timestamptz not null default now()
+  id            text primary key,
+  display_name  text not null,
+  username      text unique,      -- huruf kecil, tanpa spasi tepi
+  password_hash text,             -- scrypt$N$r$p$salt$hash; null = belum punya akun
+  created_at    timestamptz not null default now()
 );
+
+-- Siswa: identitas untuk halaman /guru/kelas.
+-- Akun login belum dipakai (siswa bermain lewat tautan), jadi username dan
+-- password_hash boleh null. NIS unik per guru, bukan global.
+create table students (
+  id            text primary key,
+  teacher_id    text not null references teachers(id),
+  classroom_id  text references classrooms(id) on delete set null,
+  nis           text,             -- huruf besar, [A-Za-z0-9._-]{1,20}
+  display_name  text not null,
+  username      text unique,      -- null = belum punya akun login
+  password_hash text,             -- scrypt$N$r$p$salt$hash
+  created_at    timestamptz not null default now()
+);
+
+create unique index students_nis_idx on students (teacher_id, nis);
+
+-- Kelas: satu baris per kelas yang dibuat guru. Daftar awal kosong.
+create table classrooms (
+  id            text primary key,
+  teacher_id    text not null references teachers(id),
+  name          text not null,
+  subject       text not null,
+  grade_level   text not null,
+  code          text not null unique,  -- QST-XXXX; label tampilan, belum dipakai siswa
+  academic_year text not null,
+  created_at    timestamptz not null default now()
+);
+
+create index classrooms_teacher_idx on classrooms (teacher_id, created_at desc);
 
 -- Cerita: satu baris per materi
 create table stories (
@@ -168,6 +220,11 @@ create index play_results_story_idx on play_results (story_id, created_at desc);
   "boleh dimainkan". Jangan menaruh status di dalam JSON cerita.
 - **`source_file_path`** bukan URL. Signed URL dibuat saat dibutuhkan.
 - **Jangan menyimpan jawaban siswa per opsi** di MVP. Cukup agregat.
+- **`classrooms` dan `students` dipisah** supaya satu siswa punya satu kelas
+  (`classroom_id` boleh `null`) dan menghapus kelas tidak menghapus identitas
+  siswa (`on delete set null`). Daftar siswa selalu dibaca per kelas.
+- **NIS unik per guru**, bukan global: dua sekolah boleh memakai `1001`. NIS
+  kosong diisi otomatis mulai `1001` dan dilewati bila sudah terpakai.
 
 ## Storage
 
@@ -241,19 +298,31 @@ AI", tambahkan sebagai kolom terpisah (mis. `reviewed_at`), bukan status baru.
 
 ## Auth (TBD)
 
-MVP cukup:
+MVP memakai akun yang dibuat admin lewat `bun run db:seed`:
 
-- Satu kode akses guru dari env (`TEACHER_ACCESS_CODE`), dibandingkan dengan
-  perbandingan waktu-tetap setelah di-hash.
+- Login guru = `username` + `password`. Username dinormalisasi (huruf kecil,
+  spasi tepi dimangkas) lalu dicari di `teachers`. Password dibandingkan dengan
+  hash scrypt di `teachers.password_hash` (`src/server/password.ts`) memakai
+  perbandingan waktu-tetap.
+- Username tidak dikenal dan password salah dijawab sama (`401`). Verifikasi
+  tetap menjalankan scrypt terhadap hash dummy saat akun tidak ada, supaya waktu
+  respons tidak menunjukkan akun mana yang terdaftar.
 - Setelah berhasil, server menerbitkan cookie `httpOnly` berisi token bertanda
-  tangan HMAC-SHA256 dengan `TEACHER_SESSION_SECRET`; masa berlaku 8 jam.
+  tangan HMAC-SHA256 dengan `TEACHER_SESSION_SECRET`; masa berlaku 8 jam. Token
+  memuat `teacherId` + `displayName`, bukan password atau hash.
 - `requireTeacher()` memverifikasi tanda tangan dan masa berlaku token, lalu
-  mengembalikan identitas guru dari baris `teachers` tetap (`teacher_demo`).
-- Tidak ada pendaftaran, reset password, atau multi-guru. Kolom `access_code`
-  dibiarkan kosong karena kode mentah tidak boleh disimpan.
+  mengembalikan `{ teacherId, displayName }`. Tidak ada query database per
+  request.
+- Tabel `students` dan `classrooms` dipakai `/guru/kelas` (buat kelas + tambah
+  siswa), tetapi halaman `/play/[storyId]` masih berbasis tautan: siswa belum
+  diminta login (`docs/00-product/personas-and-roles.md`). Kode kelas hanya
+  label tampilan sampai alur "siswa memasukkan kode kelas" dibuat.
+- Tidak ada pendaftaran mandiri atau reset password. Akun diganti lewat
+  `bun run db:seed` dengan `TEACHER_SEED_*`/`STUDENT_SEED_*`; keempat variabel
+  wajib diisi (tidak ada akun demo bawaan, sesuai aturan kredensial).
 
 Jangan mengklaim ini aman untuk produksi. Untuk produksi, gunakan penyedia auth
-nyata dan tabel `teachers` di atas.
+nyata dan tabel `teachers`/`students` di atas.
 
 ## Checklist sebelum memilih vendor
 

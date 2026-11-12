@@ -76,11 +76,7 @@ vi.mock("node:fs/promises", () => {
 });
 
 import { applyMigrations } from "@/server/db/migrations";
-import {
-  createSessionToken,
-  TEACHER_ID,
-  TEACHER_SESSION_COOKIE,
-} from "@/server/auth";
+import { createSessionToken, TEACHER_SESSION_COOKIE } from "@/server/auth";
 import { teacherRateLimitKey } from "@/server/rate-limit/identity";
 import { MAX_PDF_BYTES } from "@/server/upload";
 import { globalRateLimitKey } from "@/server/rate-limit/identity";
@@ -92,10 +88,11 @@ import {
 
 import { POST } from "./route";
 
-const ACCESS_CODE = "kode-demo-rahasia-4c1e";
 /** IP palsu (dokumen contoh RFC 5737); hanya untuk test. */
 const CLIENT_IP = "203.0.113.50";
 const SESSION_SECRET = "secret-uji-sesi-yang-panjang-9b2f";
+const TEACHER_ID = "teacher_demo";
+const TEACHER_DISPLAY_NAME = "Guru Demo";
 
 const VALID_FIELDS = {
   title: "Siklus Air untuk Kelas 5",
@@ -209,18 +206,33 @@ async function rowCounts(
 let db: Client;
 
 beforeEach(async () => {
-  vi.stubEnv("TEACHER_ACCESS_CODE", ACCESS_CODE);
   vi.stubEnv("TEACHER_SESSION_SECRET", SESSION_SECRET);
 
   db = createClient({ url: ":memory:" });
   await applyMigrations(db);
+  // Guru harus sudah ada barisnya karena id sesi dipakai langsung sebagai
+  // `stories.teacher_id` (login yang membuat baris ini).
+  await db.execute({
+    sql: "insert into teachers (id, display_name, username, password_hash) values (?, ?, ?, ?)",
+    args: [
+      TEACHER_ID,
+      TEACHER_DISPLAY_NAME,
+      "guru_uji",
+      "scrypt$bukan-hash-uji",
+    ],
+  });
   dbRef.current = db;
   dbRef.failWith = null;
 
   cookieStore.get.mockReset();
   scheduleJobMock.mockClear();
   getReadyDbMock.mockClear();
-  authenticate(createSessionToken(TEACHER_ID));
+  authenticate(
+    createSessionToken({
+      teacherId: TEACHER_ID,
+      displayName: TEACHER_DISPLAY_NAME,
+    }),
+  );
   sendAsIp();
 });
 
@@ -484,7 +496,12 @@ describe("POST /api/upload — rate limit", () => {
       // per IP (20), bukan batas per guru (10).
       // Sesi guru lain. Nama `authenticate` dipakai (bukan `use...`) supaya
       // aturan React Hooks tidak menganggapnya hook saat dipanggil di loop.
-      authenticate(createSessionToken(`teacher_ip_${i}`));
+      authenticate(
+        createSessionToken({
+          teacherId: `teacher_ip_${i}`,
+          displayName: TEACHER_DISPLAY_NAME,
+        }),
+      );
       sendAsIp(CLIENT_IP);
       // Sesi guru lain harus punya baris `teachers` (foreign key stories).
       await db.execute({
@@ -604,7 +621,12 @@ describe("POST /api/upload — rate limit", () => {
   });
 
   it("penghitung database gagal → 500 generik tanpa detail (fail closed)", async () => {
-    authenticate(createSessionToken(TEACHER_ID));
+    authenticate(
+      createSessionToken({
+        teacherId: TEACHER_ID,
+        displayName: TEACHER_DISPLAY_NAME,
+      }),
+    );
     dbRef.failWith = new Error("SQLITE_BUSY: pesan driver yang rahasia");
 
     const response = await POST(multipartRequest({}));

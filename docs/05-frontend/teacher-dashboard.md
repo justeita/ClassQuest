@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -11,15 +11,17 @@ yang paling menentukan apakah ide ini terasa berguna atau merepotkan.
 
 ## Halaman
 
-### `/guru/masuk` — kode akses
+### `/guru/masuk` — akun guru
 
-Satu-satunya halaman guru yang bisa dibuka tanpa sesi. Isinya: satu field kode
-akses, tombol "Masuk", dan pesan error yang tidak membocorkan apakah kodenya
-"salah" atau "tidak ada" (keduanya dijawab sama). Setelah berhasil, set cookie
-sesi guru lalu redirect ke `/guru`.
+Satu-satunya halaman guru yang bisa dibuka tanpa sesi. Isinya: field
+**username** dan **sandi** (dengan tombol tampilkan/sembunyikan), tombol
+"MASUK KE PORTAL", dan pesan error yang tidak membocorkan apakah username-nya
+tidak terdaftar atau sandinya salah (keduanya dijawab `401` dengan pesan yang
+sama). Setelah berhasil, server menyetel cookie sesi lalu halaman redirect ke
+`/guru`; sidebar dan sapaan dashboard memakai `displayName` dari sesi.
 
-Belum ada akun, belum ada reset password. Kalau kode hilang, pemilik repo
-menggantinya manual di database.
+Belum ada pendaftaran mandiri atau reset sandi. Akun dibuat/diganti lewat
+`bun run db:seed` (lihat [`../08-workflow/setup.md`](../08-workflow/setup.md)).
 
 ### `/guru` — daftar materi
 
@@ -101,6 +103,9 @@ Tiga keadaan:
 | `StoryList`          | Daftar materi + status                        |
 | `ShareDialog`        | Tautan + kode kelas + tombol salin            |
 | `DeleteStoryDialog`  | Konfirmasi hapus (ketik judul bila published) |
+| `ClassesBrowser`     | Daftar kelas, detail kelas, modal buat kelas  |
+| `CreateClassModal`   | Form kelas baru (nama, mapel, jenjang, tahun) |
+| `AddStudentModal`    | Form tambah siswa (nama, NIS opsional)        |
 
 ## Alur status generasi
 
@@ -150,13 +155,23 @@ Aturan polling:
 - Statistik per siswa.
 - Duplikasi cerita.
 
+Catatan untuk "folder/kelas": kelas **sudah ada** sebagai halaman
+(`/guru/kelas` + tabel `classrooms`/`students`), tetapi belum dipakai untuk
+mengelompokkan materi atau menugaskan game. Yang tetap di luar MVP adalah
+folder materi dan statistik/progres per siswa.
+
 ## Checklist implementasi
 
-- [ ] Upload memvalidasi tipe dan ukuran di client dan server.
-- [ ] Guru langsung diarahkan ke halaman status.
-- [ ] Progress per tahap, bukan spinner kosong.
-- [ ] Polling berhenti dengan benar.
-- [ ] Error dalam bahasa manusia.
-- [ ] Empty state menjelaskan alur.
-- [ ] Tombol hapus punya konfirmasi.
-- [ ] `requireTeacher()` di semua aksi.
+- [x] Upload memvalidasi tipe dan ukuran di client dan server.
+- [x] Guru langsung diarahkan ke halaman status.
+- [x] Progress per tahap, bukan spinner kosong.
+- [x] Polling berhenti dengan benar.
+- [x] Error dalam bahasa manusia.
+- [x] Empty state menjelaskan alur.
+- [x] Tombol hapus punya konfirmasi.
+- [x] `requireTeacher()` di semua aksi.
+
+Catatan status: upload, halaman status, polling, aksi cerita, dan empty state
+sudah tersambung (`src/app/guru/(portal)/`). Yang belum ada adalah **editor
+cerita**, **preview versi draft**, dan `ShareDialog` dengan kode kelas — lihat
+tabel status di [`routes.md`](./routes.md#status-implementasi-portal-guru).

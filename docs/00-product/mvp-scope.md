@@ -35,8 +35,9 @@ MVP dianggap selesai jika alur ini berjalan tanpa intervensi manual:
 | Game              | Alur linear per chapter dengan eksplorasi top-down per scene (map dummy, ADR 0008), gerak 4 arah + collision, interaksi NPC memicu dialog, tantangan, hasil |
 | Aset              | Sprite karakter, background, musik, SFX, UI — jumlah terbatas                                                                                               |
 | Penyimpanan lokal | Progres siswa di `localStorage`                                                                                                                             |
+| Kelas & siswa     | Guru membuat kelas dan menambah siswa (nama + NIS opsional); kode `QST-XXXX` hanya label                                                                    |
 | Persistence       | Satu database + satu storage (pilihan di ADR 0005)                                                                                                          |
-| Akses             | Tautan publik, tanpa akun siswa. Kode kelas: **backlog**, bukan MVP                                                                                         |
+| Akses             | Tautan publik, tanpa akun siswa. Kode kelas hanya label; alur "siswa memasukkan kode": **backlog**                                                          |
 | Deployment        | Satu environment (production demo)                                                                                                                          |
 
 ## Out of scope (tegas)
@@ -64,7 +65,8 @@ Korbankan dari atas, bukan dari bawah.
 4. Musik per scene → satu musik per chapter.
 5. Animasi transisi → cut/fade sederhana.
 6. Edit urutan scene → cukup edit teks & soal.
-7. Kode kelas → cukup tautan. (Karena itu kode kelas tidak ada di "In scope".)
+7. Kode kelas dipakai siswa untuk bergabung → cukup tautan. (Kode `QST-XXXX`
+   tetap dibuat sebagai label kelas, tetapi tidak dipakai untuk bergabung.)
 8. Ringkasan `weakConcepts` lintas sesi → cukup ringkasan per sesi.
 
 Riwayat versi **tidak** ada di cut line. Setiap simpan di server selalu membuat

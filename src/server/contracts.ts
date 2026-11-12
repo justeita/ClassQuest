@@ -60,6 +60,15 @@ export type PublishStoryResult =
 /** Hasil `archiveStory` / `deleteStory`. */
 export type SimpleActionResult = { ok: true } | { ok: false };
 
+/**
+ * Status cerita, sesuai enum di `docs/06-backend/persistence.md`.
+ *
+ * Diekspor supaya dashboard, daftar materi, dan game memakai satu definisi
+ * yang sama (bukan menyalin union di tiap komponen).
+ */
+export type StoryStatus =
+  "processing" | "draft" | "published" | "failed" | "archived";
+
 /** Satu baris daftar cerita di dashboard guru. */
 export type StoryListItem = {
   id: string;
@@ -67,7 +76,7 @@ export type StoryListItem = {
   subject: string;
   gradeLevel: string;
   language: string;
-  status: "processing" | "draft" | "published" | "failed" | "archived";
+  status: StoryStatus;
   updatedAt: string;
   /** `used_fallback` dari versi terbaru. */
   usedFallback: boolean;
@@ -82,7 +91,7 @@ export type StoryDetail = {
   subject: string;
   gradeLevel: string;
   language: string;
-  status: "processing" | "draft" | "published" | "failed" | "archived";
+  status: StoryStatus;
   updatedAt: string;
   /** Versi terbaru. */
   version: number;
@@ -127,3 +136,46 @@ export type SavePlayResultOutcome =
       ok: false;
       reason: "not_found" | "invalid" | "too_large" | "rate_limited";
     };
+
+/* -------------------------------------------------------------------------- */
+/* Kelas dan siswa                                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Satu siswa di halaman `/guru/kelas`.
+ *
+ * `classroomId` boleh `null` (siswa belum masuk kelas). `username` boleh
+ * `null`: akun login siswa belum dipakai, jadi siswa baru cukup punya nama
+ * (dan NIS opsional). Tidak ada hasil bermain di sini — statistik per siswa
+ * belum ada di MVP (`docs/05-frontend/teacher-dashboard.md`).
+ */
+export type StudentListItem = {
+  id: string;
+  classroomId: string | null;
+  name: string;
+  nis: string | null;
+  /** Username akun siswa; `null` = siswa tanpa akun login. */
+  username: string | null;
+  /** ISO-8601; ditampilkan apa adanya oleh formatter UI. */
+  createdAt: string;
+};
+
+/** Satu kelas milik guru. */
+export type ClassroomDetail = {
+  id: string;
+  name: string;
+  subject: string;
+  grade: string;
+  code: string;
+  year: string;
+  students: StudentListItem[];
+  createdAt: string;
+};
+
+/** Hasil aksi tambah siswa. */
+export type AddStudentResult =
+  { ok: true; student: StudentListItem } | { ok: false; message: string };
+
+/** Hasil aksi tambah kelas. */
+export type CreateClassroomResult =
+  { ok: true; classroom: ClassroomDetail } | { ok: false; message: string };

@@ -194,7 +194,7 @@ setelah demo selesai.
 | "Isinya bisa salah?"                        | "Bisa. Karena itu guru wajib review sebelum publish, dan setiap soal wajib punya penjelasan." |
 | "Gambarnya dibuat AI?"                      | "Tidak. Aset disiapkan di awal, AI hanya menyusun cerita dari aset itu. Hasilnya konsisten."  |
 | "Bagaimana kalau materinya bahasa Inggris?" | "Cerita mengikuti bahasa materinya."                                                          |
-| "Siswa butuh akun?"                         | "Tidak. Cukup tautan atau kode kelas."                                                        |
+| "Siswa butuh akun?"                         | "Tidak. Cukup tautan ke cerita. Kode kelas hanya label, bukan cara bergabung."                |
 | "Berapa biayanya per cerita?"               | Sebut angka nyata dari percobaan terakhir. Kalau belum diukur, katakan belum diukur.          |
 | "Bisa untuk semua mata pelajaran?"          | "Bisa, selama materinya teks yang bisa dibaca. PDF hasil scan belum, itu backlog."            |
 

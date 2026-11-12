@@ -14,7 +14,7 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 | Route                            | Akses   | Render  | Fungsi                                     |
 | -------------------------------- | ------- | ------- | ------------------------------------------ |
 | `/`                              | Publik  | Statis  | Landing: apa ini, tombol masuk guru/siswa  |
-| `/guru/masuk`                    | Publik  | Dinamis | Kode akses guru                            |
+| `/guru/masuk`                    | Publik  | Dinamis | Login akun guru                            |
 | `/guru`                          | Guru    | Dinamis | Dashboard: ringkasan + aktivitas terbaru   |
 | `/guru/materi`                   | Guru    | Dinamis | Daftar materi + penyaring + modal detail   |
 | `/guru/materi/baru`              | Guru    | Dinamis | AI Studio (form materi → modul)            |
@@ -30,22 +30,48 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 
 ### Status implementasi portal guru
 
-`/guru`, `/guru/materi`, `/guru/materi/baru`, `/guru/kelas`, dan `/guru/game`
-sudah dirender dari komponen di `src/components/guru/`, tetapi **belum
-tersambung ke data**:
+Portal guru sudah tersambung ke backend. Tidak ada lagi data contoh untuk
+kelas/siswa:
 
-| Bagian                  | Sekarang                                           | Saat wiring                                  |
-| ----------------------- | -------------------------------------------------- | -------------------------------------------- |
-| Sumber data             | `src/components/guru/data.ts` (contoh statis)      | `src/server/stories` + query DB              |
-| `/guru/masuk`           | Toast + pindah ke `/guru`                          | `POST /api/auth/login`, lalu set cookie sesi |
-| Otorisasi halaman guru  | Belum ada                                          | `requireTeacher()` di layout `(portal)`      |
-| AI Studio "Buat Cerita" | Pratinjau lokal dari isian form                    | Server Action `publishStory` / pipeline AI   |
-| Simpan draf AI Studio   | `localStorage` (kunci `classquest.guru.ai-studio`) | Tabel `stories` (status draft)               |
-| Kelas & penugasan game  | State komponen (hilang saat muat ulang)            | Tabel kelas/siswa/penugasan                  |
+| Bagian                  | Sekarang                                                              |
+| ----------------------- | --------------------------------------------------------------------- |
+| Sumber data materi/game | `src/server/stories` (`listStories`, `getStoryDetail`)                |
+| Statistik dashboard     | Dihitung dari hasil `listStories` milik guru                          |
+| `/guru/masuk`           | `POST /api/auth/login`; kode salah/`429` dijawab pesan berbeda        |
+| Keluar                  | `POST /api/auth/logout` dari sidebar                                  |
+| Otorisasi halaman guru  | `requireTeacher()` di layout `(portal)`; tiap page memanggil lagi     |
+| AI Studio               | `POST /api/upload` (multipart) → redirect ke detail materi            |
+| Progres generasi        | `GenerationProgress` polling `GET /api/jobs/[jobId]` tiap 1,5 s       |
+| Aksi cerita             | Server Action `publishStory`/`archiveStory`/`deleteStory`             |
+| Kelas & siswa           | `src/server/classrooms`; Server Action `createClassroom`/`addStudent` |
+| Penugasan game          | **Belum ada** — UI menampilkan keterangan, bukan tombol               |
 
-Sampai tabel di atas terisi, halaman-halaman itu adalah **tampilan** dan tidak
-boleh dipakai untuk menyimpan data nyata. Saat wiring, `requireTeacher()` tetap
-wajib dipasang di layout `(portal)` — lihat bagian "Yang tidak boleh dilakukan".
+Catatan wiring:
+
+- `storyId` bukan `jobId`. Halaman detail mencari job terbaru milik guru lewat
+  `getLatestJobId()` (`src/server/jobs/status.ts`); query-nya ikut memfilter
+  `stories.teacher_id`, jadi cerita guru lain dan cerita tanpa job sama-sama
+  tidak menghasilkan job.
+- Layout `(portal)` memakai `export const instant = false` + `await connection()`
+  — pola resmi Next 16 untuk segmen yang membaca sesi (`cookies()`). Tanpa
+  `connection()`, `verifySessionToken()` memanggil `Date.now()` saat prerender
+  dan dev server melaporkan `blocking-prerender-current-time`.
+- Halaman yang memanggil `requireTeacher()` sendiri di dalam `<Suspense>` juga
+  memanggil `connection()` di komponen async-nya (aturan Cache Components:
+  data tak ter-cache harus di dalam batas Suspense).
+- `/guru/materi/[storyId]` adalah route `◐`, jadi `notFound()` untuk cerita yang
+  tidak ada / bukan milik guru hanya menghasilkan **soft 404**: UI 404 terkirim,
+  tetapi status HTTP tetap `200` (perilaku yang sama dengan `/play/[storyId]`
+  sebelum `src/proxy.ts` ditambahkan). Yang dilindungi di sini adalah
+  kepemilikan data, bukan status HTTP; kalau status 404 asli dibutuhkan,
+  pemeriksaan harus dipindah ke `src/proxy.ts` seperti route siswa.
+- Editor cerita (`/guru/materi/[storyId]/edit`), preview draft, dan pembagian
+  tautan lewat undangan **belum ada**; tautan siswa cukup `/play/[storyId]`.
+- `/guru/kelas` membaca `listClassrooms()` dan menampilkan daftar kosong bila
+  guru belum punya kelas. Buat kelas dan tambah siswa lewat Server Action di
+  `src/app/guru/(portal)/kelas/actions.ts`; setelah sukses komponen memanggil
+  `router.refresh()` supaya daftar kembali dari server, bukan state klien.
+  Menghapus/mengedit siswa dan membagikan kode kelas **belum ada**.
 
 Tidak ada route `/play/[storyId]/hasil`. Layar hasil adalah **overlay di dalam
 `GameShell`** pada halaman yang sama, karena ia butuh state permainan yang masih
@@ -58,14 +84,14 @@ landing atau dashboard guru. Target siswa tetap `/play/[storyId]`.
 
 ## Route API
 
-| Method | Route                    | Fungsi                                   |
-| ------ | ------------------------ | ---------------------------------------- |
-| `POST` | `/api/auth/login`        | Tukar kode akses dengan cookie sesi      |
-| `POST` | `/api/auth/logout`       | Hapus cookie sesi                        |
-| `POST` | `/api/upload`            | Terima PDF, buat story + job             |
-| `GET`  | `/api/jobs/[jobId]`      | Status generasi                          |
-| `GET`  | `/api/stories/[storyId]` | Cerita `published` untuk game (no-store) |
-| `GET`  | `/api/health`            | Cek hidup + versi build                  |
+| Method | Route                    | Fungsi                                    |
+| ------ | ------------------------ | ----------------------------------------- |
+| `POST` | `/api/auth/login`        | Tukar username + sandi dengan cookie sesi |
+| `POST` | `/api/auth/logout`       | Hapus cookie sesi                         |
+| `POST` | `/api/upload`            | Terima PDF, buat story + job              |
+| `GET`  | `/api/jobs/[jobId]`      | Status generasi                           |
+| `GET`  | `/api/stories/[storyId]` | Cerita `published` untuk game (no-store)  |
+| `GET`  | `/api/health`            | Cek hidup + versi build                   |
 
 Detail kontrak: [`../06-backend/api-contract.md`](../06-backend/api-contract.md).
 
@@ -131,6 +157,13 @@ Aturan:
 - Jangan memakai `export const dynamic = "force-dynamic"` sebagai jalan pintas;
   pahami dulu kenapa data dianggap statis.
 - Caching opt-in dengan `use cache` hanya untuk data yang memang stabil.
+- Setiap segmen portal yang memuat data punya `loading.tsx` sendiri, memakai
+  kerangka bersama di `src/components/guru/skeletons.tsx`. `Suspense` di dalam
+  halaman memakai kerangka yang sama, jadi navigasi tidak menampilkan dua bentuk
+  loading berbeda.
+- `src/app/guru/(portal)/loading.tsx` adalah boundary induk yang tidak tahu
+  halaman tujuan. Isinya indikator loading biasa (spinner + teks), bukan
+  skeleton, supaya halaman materi tidak sempat menampilkan kerangka dashboard.
 
 ### Server Actions
 

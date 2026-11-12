@@ -43,6 +43,7 @@ import type {
   SimpleActionResult,
   StoryDetail,
   StoryListItem,
+  StoryStatus,
 } from "@/server/contracts";
 
 /* -------------------------------------------------------------------------- */
@@ -66,8 +67,7 @@ export const MAX_VALIDATION_ISSUES = 50;
 export const STORIES_PAGE_LIMIT = 20;
 export const MAX_STORIES_PAGE_LIMIT = 100;
 
-export type StoryStatus =
-  "processing" | "draft" | "published" | "failed" | "archived";
+export type { StoryStatus };
 
 const STORY_STATUSES: readonly StoryStatus[] = [
   "processing",
