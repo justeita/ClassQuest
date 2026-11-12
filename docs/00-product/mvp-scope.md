@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -36,7 +36,7 @@ MVP dianggap selesai jika alur ini berjalan tanpa intervensi manual:
 | Aset              | Sprite karakter, background, musik, SFX, UI — jumlah terbatas                                                                                               |
 | Penyimpanan lokal | Progres siswa di `localStorage`                                                                                                                             |
 | Kelas & siswa     | Guru membuat kelas dan menambah siswa (nama + NIS opsional); kode `QST-XXXX` hanya label                                                                    |
-| Persistence       | Satu database + satu storage (pilihan di ADR 0005)                                                                                                          |
+| Persistence       | Satu database libSQL/Turso; PDF tidak disimpan (ADR 0013)                                                                                                   |
 | Akses             | Tautan publik, tanpa akun siswa. Kode kelas hanya label; alur "siswa memasukkan kode": **backlog**                                                          |
 | Deployment        | Satu environment (production demo)                                                                                                                          |
 

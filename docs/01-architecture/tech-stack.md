@@ -1,12 +1,12 @@
 ---
 status: stable
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
 # Tech Stack
 
-Versi di bawah diambil dari `package.json` dan `bun.lock` pada 2026-11-08. Kalau
+Versi di bawah diambil dari `package.json` dan `bun.lock` pada 2026-11-12. Kalau
 memperbarui dependency, perbarui tabel ini di PR yang sama.
 
 ## Runtime dan framework
@@ -23,33 +23,38 @@ memperbarui dependency, perbarui tabel ini di PR yang sama.
 
 ## Tooling
 
-| Alat                  | Versi     | Fungsi                                   |
-| --------------------- | --------- | ---------------------------------------- |
-| ESLint                | `10.14.0` | `eslint-config-next` + Prettier          |
-| Prettier              | `3.9.10`  | Format seluruh repo                      |
-| Vitest                | `5.1.0`   | Unit/component test, `jsdom`             |
-| Testing Library React | `16.3.3`  | Render komponen                          |
-| jsdom                 | `31.0.0`  | Environment test                         |
-| Ajv                   | `8.20.0`  | Validasi `story.schema.json` di tes docs |
-| server-only           | `0.0.1`   | Guard modul server (kredensial/DB)       |
+| Alat                  | Versi     | Fungsi                          |
+| --------------------- | --------- | ------------------------------- |
+| ESLint                | `10.14.0` | `eslint-config-next` + Prettier |
+| Prettier              | `3.9.10`  | Format seluruh repo             |
+| Vitest                | `5.1.0`   | Unit/component test, `jsdom`    |
+| Testing Library React | `16.3.3`  | Render komponen                 |
+| jsdom                 | `31.0.0`  | Environment test                |
 
-Ajv sengaja dipasang sekarang, sebelum validatornya ada. Alasannya: bentuk cerita
-harus bisa diuji sejak hari pertama, dan tes docs butuh validator JSON Schema
-yang tidak mengarang aturan sendiri. Nanti validator aplikasi boleh memakai Ajv
-yang sama, supaya bentuk yang diterima tes dan yang diterima game persis sama.
+## Dependency runtime
 
-## Dependency yang direncanakan (belum terpasang)
+| Paket               | Versi    | Untuk                                                      |
+| ------------------- | -------- | ---------------------------------------------------------- |
+| `@libsql/client`    | `0.18.0` | Database libSQL/Turso (ADR 0013)                           |
+| `unpdf`             | `2.1.0`  | Ekstraksi teks PDF, hanya di memori                        |
+| `ajv`               | `8.20.0` | Validasi `story.schema.json` (sumber bentuk yang mengikat) |
+| `zod`               | `4.6.7`  | Tipe `Story` + validasi body request/route                 |
+| `@anthropic-ai/sdk` | `1.6.0`  | Provider AI `anthropic` (ADR 0006 masih terbuka)           |
+| `server-only`       | `0.0.1`  | Guard modul server (kredensial/DB)                         |
 
-Jangan menambahkannya sebelum fiturnya dikerjakan, tapi ini arah yang disepakati:
+Dua validator dipakai sengaja dan tidak tumpang tindih:
 
-| Paket               | Untuk              | Catatan                                |
-| ------------------- | ------------------ | -------------------------------------- |
-| `unpdf`/`pdf-parse` | Ekstraksi teks PDF | Pilih yang jalan di Node runtime Next. |
-| DB client           | Persistence        | Tergantung ADR 0005.                   |
+- **Ajv** menegakkan `docs/02-data-model/story.schema.json` — bentuk cerita yang
+  mengikat. `src/story/validate.ts` hanya menerjemahkan error Ajv ke kode yang
+  dilihat guru/AI.
+- **Zod** menyalin bentuk itu ke tipe `Story` (`src/story/schema.ts`) sekaligus
+  memvalidasi body request/route (mis. `POST /api/upload`). Guard drift
+  `src/story/schema.test.ts` gagal kalau zod dan JSON Schema menyimpang.
 
-**Validasi cerita tidak butuh package baru.** `ajv` sudah terpasang dan dipakai
-`docs/02-data-model/story-schema.test.ts`; validator aplikasi memakai Ajv yang
-sama. Jangan menambahkan Zod — dua validator berarti dua definisi kebenaran.
+Ajv sengaja dipasang sejak awal, sebelum validatornya ada: bentuk cerita harus
+bisa diuji sejak hari pertama, dan tes docs butuh validator JSON Schema yang
+tidak mengarang aturan sendiri. Validator aplikasi memakai Ajv yang sama, supaya
+bentuk yang diterima tes dan yang diterima game persis sama.
 
 ## Fakta Next.js 16.4.5 yang wajib diketahui
 

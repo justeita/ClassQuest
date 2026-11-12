@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -45,8 +45,8 @@ flowchart TB
   T1 --> R2
   S1 -->|"GET cerita published"| R1
   R3 --> LLM["Penyedia LLM<br/>(TBD, ADR 0006)"]
-  D1 --> DB["Database<br/>(TBD, ADR 0005)"]
-  R1 --> ST["Object storage PDF<br/>(TBD, ADR 0005)"]
+  D1 --> DB["Database Turso/libSQL<br/>(ADR 0013)"]
+  R1 --> MEM["PDF hanya di memori<br/>(tidak disimpan)"]
 ```
 
 Tiga hal yang paling mudah dilupakan dari gambar itu:
@@ -104,14 +104,20 @@ lib, story, assets → (tidak mengimpor apa pun dari app/server/game)
   memakai `export const runtime`. Lihat [`tech-stack.md`](./tech-stack.md).
 - **Dua bahasa UI.** Editor guru adalah form biasa; game adalah canvas. Konsistensi
   visual dijaga lewat design token bersama, bukan lewat satu framework UI.
-- **Belum ada auth nyata.** Jangan simpan data sensitif; lihat
+- **Auth guru masih penghalang demo.** Akun dibuat lewat `bun run db:seed` dan
+  sesinya cookie bertanda tangan 8 jam — bukan sistem keamanan produksi. Jangan
+  simpan data sensitif; lihat
   [`security-and-privacy.md`](./security-and-privacy.md).
 
 ## Yang belum diputuskan
 
-| Pertanyaan                       | Dokumen                                                                |
-| -------------------------------- | ---------------------------------------------------------------------- |
-| Database & storage apa?          | [ADR 0005](../09-decisions/0005-persistence-and-storage.md)            |
-| Provider LLM apa?                | [ADR 0006](../09-decisions/0006-ai-provider.md)                        |
-| Auth guru seperti apa?           | [`../06-backend/persistence.md`](../06-backend/persistence.md)         |
-| Job berjalan sinkron atau async? | [`../06-backend/jobs-and-limits.md`](../06-backend/jobs-and-limits.md) |
+| Pertanyaan        | Dokumen                                         |
+| ----------------- | ----------------------------------------------- |
+| Provider LLM apa? | [ADR 0006](../09-decisions/0006-ai-provider.md) |
+
+Sisanya sudah diputuskan: database produksi **Turso** (libSQL) di
+[ADR 0013](../09-decisions/0013-hosting-vercel-turso.md), storage PDF **tidak
+dipakai** (PDF hanya di memori), auth guru memakai akun + cookie sesi
+([`../06-backend/persistence.md`](../06-backend/persistence.md)), dan job
+berjalan asinkron lewat `after()`
+([`../06-backend/jobs-and-limits.md`](../06-backend/jobs-and-limits.md)).

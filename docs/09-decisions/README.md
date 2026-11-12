@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -60,14 +60,20 @@ Tidak perlu ADR untuk: rename variabel, perbaikan bug, penambahan test.
 
 ## Keputusan yang masih terbuka
 
-| Pertanyaan                            | ADR  | Target              |
-| ------------------------------------- | ---- | ------------------- |
-| Database & storage apa?               | 0005 | Sebelum backend     |
-| Provider LLM apa?                     | 0006 | Sebelum pipeline    |
-| Auth guru seperti apa?                | 0005 | Setelah demo        |
-| Job async pakai `after()` atau queue? | 0005 | Saat butuh produksi |
-| Resolusi internal 640×360?            | 0009 | Sebelum PR aset     |
-| Map per scene + kamera mengikuti?     | 0010 | Sebelum PR map      |
+ADR berikut statusnya masih `Proposed` (lihat tabel Daftar di atas):
+
+| Pertanyaan                                  | ADR  | Target                |
+| ------------------------------------------- | ---- | --------------------- |
+| Persistence sisa: eksekusi job & hasil main | 0005 | Saat butuh produksi   |
+| Provider LLM apa?                           | 0006 | Sebelum pipeline      |
+| Auth akun guru (ganti kode akses bersama)   | 0014 | Sebelum demo publik   |
+| Skema kelas dan siswa                       | 0015 | Sebelum kelas dipakai |
+
+Bagian database dan storage dari ADR 0005 sudah dijawab
+[ADR 0013](0013-hosting-vercel-turso.md) yang `Accepted` (Turso/libSQL, tanpa
+storage PDF); yang tersisa di 0005 adalah eksekusi job dan penyimpanan hasil
+main. ADR 0014 dan 0015 sudah diimplementasikan di kode, tetapi statusnya masih
+`Proposed` sampai ditinjau ulang setelah hackathon.
 
 ## Aturan
 

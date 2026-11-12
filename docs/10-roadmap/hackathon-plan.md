@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -31,15 +31,17 @@ tanpa pipeline, jadi keduanya jalan bersamaan, bukan berurutan.
 
 ### Gerbang keputusan (ADR)
 
-Dua hal di bawah ini **belum diputuskan** dan tidak boleh dianggap selesai:
+Gerbang Fase 1 (persistence) sudah terpenuhi:
+[ADR 0013](../09-decisions/0013-hosting-vercel-turso.md) (`Accepted`) menetapkan
+database libSQL/Turso dan PDF hanya diproses di memori (tanpa storage), jadi
+Fase 1 tidak lagi menunggu keputusan ADR 0005.
 
-| Sebelum                 | ADR                                                                          | Kalau belum diputuskan                                                                         |
-| ----------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Fase 1 (upload + job)   | [0005](../09-decisions/0005-persistence-and-storage.md) — database & storage | Pakai penyimpanan in-memory/file lokal, dan **tulis di README** bahwa data hilang saat restart |
-| Fase 3 (provider nyata) | [0006](../09-decisions/0006-ai-provider.md) — provider LLM                   | Tetap di `AI_PROVIDER=mock`; demo memakai fallback                                             |
+Satu gerbang yang **masih terbuka**:
 
-Artinya: Fase 1 **boleh** dikerjakan sebelum ADR 0005 `Accepted`, asalkan
-sementara memakai storage sementara dan tidak mengklaim persistence sudah final.
+| Sebelum                 | ADR                                                        | Kalau belum diputuskan                             |
+| ----------------------- | ---------------------------------------------------------- | -------------------------------------------------- |
+| Fase 3 (provider nyata) | [0006](../09-decisions/0006-ai-provider.md) — provider LLM | Tetap di `AI_PROVIDER=mock`; demo memakai fallback |
+
 Fase 3 **tidak** boleh mengunci provider sebelum ADR 0006 `Accepted`.
 
 ### Fase 0 — Fondasi (0–2 jam)
@@ -188,8 +190,10 @@ placeholder akan bertabrakan dengan rencana itu sendiri.
 
 ## Setelah hackathon
 
-1. Ubah ADR 0005/0006 dari `Proposed` menjadi `Accepted` (atau ganti). Tiga
-   tempat harus diubah bersamaan: badan ADR, front-matter `status:`, dan baris
+1. Tinjau ADR yang masih `Proposed` — 0005 (sisa: job & hasil main), 0006
+   (provider LLM), 0014 (auth akun), dan 0015 (kelas & siswa) — lalu ubah ke
+   `Accepted` atau ganti. Tiga tempat harus diubah bersamaan: badan ADR,
+   front-matter `status:`, dan baris
    indeks di [`../09-decisions/README.md`](../09-decisions/README.md). Front-matter
    memakai `tbd` (bukan `Proposed`) karena hanya mengenal `stable|draft|tbd`;
    pemetaannya: `Proposed` → `tbd`, `Accepted` → `stable`.

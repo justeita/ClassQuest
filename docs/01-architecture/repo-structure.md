@@ -12,39 +12,35 @@ owner: tim ClassQuest
 classquest/
 ├── .github/                 # CI, CODEOWNERS, template issue/PR
 ├── docs/                    # dokumentasi proyek (baca docs/README.md)
-├── public/                  # aset statis (masih placeholder Next)
+├── public/                  # aset statis: aset game (public/assets) + font
+├── scripts/                 # generator aset, migrasi/seed DB, publish dev
 ├── src/
-│   ├── app/
-│   │   ├── favicon.ico
-│   │   ├── game/
-│   │   │   └── page.tsx     # halaman dev Phaser, bukan route siswa
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   ├── page.test.tsx
-│   │   └── page.tsx         # masih halaman starter
-│   ├── components/
-│   │   └── game/
-│   │       └── GameCanvas.tsx
-│   └── game/
-│       ├── config.ts
-│       ├── createGame.ts
-│       ├── types.ts
-│       └── scenes/
-│           ├── GameScene.ts
-│           └── PreloadScene.ts
+│   ├── app/                 # route & layout App Router (rincian di tabel bawah)
+│   ├── components/          # komponen React: guru/ (portal) + game/ (shell)
+│   ├── ai/                  # prompt builder, provider LLM, pipeline
+│   ├── assets/              # manifest aset (sumber kebenaran id aset)
+│   ├── game/                # Phaser: scene, map, gerak, bridge ke React
+│   ├── lib/                 # utilitas murni (mis. aturan tahun ajaran)
+│   ├── server/              # auth, db, cerita, job, kelas, hasil main, rate limit
+│   ├── story/               # schema, validator, scoring, fallback
+│   ├── proxy.ts             # gerbang 404 /play/[storyId]
+│   └── test/                # setup/helper test
 ├── AGENTS.md
 ├── CONTRIBUTING.md
 ├── README.md
 ├── SECURITY.md
 ├── .env.example
 ├── .gitignore
+├── .prettierignore
 ├── .prettierrc
 ├── bun.lock
 ├── bunfig.toml
 ├── eslint.config.mjs
 ├── next.config.ts
+├── next-env.d.ts
 ├── package.json
 ├── tsconfig.json
+├── vercel.json
 ├── vitest.config.mjs
 └── vitest.setup.ts
 ```
@@ -62,9 +58,9 @@ isinya sudah ada di [`../README.md`](../README.md).
 
 | Path                                              | Ada? | Isi                                                            |
 | ------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `src/app/page.tsx`                                | ya   | Halaman starter, masih placeholder                             |
+| `src/app/page.tsx`                                | ya   | Halaman pengenalan produk                                      |
 | `src/app/layout.tsx`                              | ya   | Layout global                                                  |
-| `src/app/page.test.tsx`                           | ya   | Contoh test komponen pertama                                   |
+| `src/app/page.test.tsx`                           | ya   | Test halaman pengenalan                                        |
 | `docs/02-data-model/story.example.json`           | ya   | Cerita contoh (fixture)                                        |
 | `docs/02-data-model/story.schema.json`            | ya   | Kontrak cerita versi mesin                                     |
 | `docs/02-data-model/story-schema.test.ts`         | ya   | Tes schema vs dokumen                                          |
@@ -270,16 +266,23 @@ src/
 │   └── bridge.ts                      # event bus Phaser ↔ React
 │
 ├── server/
-│   ├── db.ts                          # client DB (TBD)
-│   ├── storage.ts                     # simpan PDF (TBD)
-│   ├── stories.ts                     # query/mutation cerita
-│   ├── jobs.ts                        # status job generasi
-│   └── auth.ts                        # sesi guru (TBD)
+│   ├── db/                            # client libSQL + migrasi + getReadyDb
+│   ├── auth.ts                        # akun guru + token sesi + requireTeacher
+│   ├── stories/                       # query/mutation cerita + versi
+│   ├── jobs/                          # status job + penjadwalan job
+│   ├── classrooms/                    # kelas & siswa
+│   ├── play-results/                  # simpan hasil bermain siswa
+│   ├── rate-limit/                    # batas per IP/guru/global
+│   ├── upload/                        # validasi PDF di memori
+│   └── config.ts                      # satu-satunya pembaca environment
 │
 └── lib/
-    ├── env.ts                         # validasi env server
-    └── utils.ts
+    ├── academic-year.ts               # normalisasi tahun ajaran (YYYY/YYYY)
+    └── academic-year.test.ts
 ```
+
+Pembaca environment ada di `src/server/config.ts`; `src/lib` hanya menampung
+utilitas murni tanpa I/O.
 
 ## Konvensi
 

@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -26,16 +26,15 @@ niatnya, tapi kejadiannya.
 
 Jangan hanya memikirkan API key. Semua ini termasuk:
 
-| Jenis                        | Contoh di proyek ini                          |
-| ---------------------------- | --------------------------------------------- |
-| Kunci API model              | `AI_API_KEY` untuk Gemini/OpenAI/Anthropic    |
-| Token akses layanan          | token deploy platform, token storage          |
-| Kredensial database          | connection string dengan password di dalamnya |
-| Sandi akun guru/siswa        | hash scrypt di tabel `teachers`/`students`    |
-| Secret signing               | session secret, JWT secret                    |
-| Kredensial storage           | `STORAGE_BUCKET` beserta key-nya              |
-| Kunci privat                 | `*.pem`, `*.key`, `id_rsa`                    |
-| Kredensial pihak ketiga lain | webhook secret, service account JSON          |
+| Jenis                        | Contoh di proyek ini                         |
+| ---------------------------- | -------------------------------------------- |
+| Kunci API model              | `AI_API_KEY` untuk Gemini/OpenAI/Anthropic   |
+| Token akses layanan          | token deploy platform (Vercel)               |
+| Kredensial database          | `DATABASE_AUTH_TOKEN` Turso, password di URL |
+| Sandi akun guru/siswa        | hash scrypt di tabel `teachers`/`students`   |
+| Secret signing               | session secret, JWT secret                   |
+| Kunci privat                 | `*.pem`, `*.key`, `id_rsa`                   |
+| Kredensial pihak ketiga lain | webhook secret, service account JSON         |
 
 Yang **bukan** kredensial dan boleh ada di repo:
 
@@ -70,7 +69,7 @@ file `.env` akan ikut ter-commit.
 tanpa nilai asli. Aturan di bawah tetap berlaku: setiap `process.env.X` baru di kode
 wajib punya `X=` di `.env.example` pada commit yang sama.
 
-Bentuk yang harus ada ketika fitur AI dan penyimpanan masuk:
+Bentuk yang sudah ada di `.env.example` (dan harus tetap begitu):
 
 ```bash
 # Provider AI (lihat docs/03-ai-pipeline/provider-setup.md)
@@ -80,17 +79,17 @@ AI_MODEL=
 AI_BASE_URL=
 AI_TIMEOUT_MS=60000
 
-# Akun seed guru/siswa (sementara, sampai auth nyata). Wajib diisi sebelum
-# db:seed; tidak ada nilai bawaan.
+# Akun seed guru/siswa (penghalang demo). Wajib diisi sebelum db:seed;
+# tidak ada nilai bawaan.
 TEACHER_SEED_USERNAME=
 TEACHER_SEED_PASSWORD=
 STUDENT_SEED_USERNAME=
 STUDENT_SEED_PASSWORD=
 TEACHER_SESSION_SECRET=
 
-# Database/storage (TBD, lihat docs/06-backend/persistence.md)
+# Database libSQL/Turso (ADR 0013). Kosong = file lokal ./local.db.
 DATABASE_URL=
-STORAGE_BUCKET=
+DATABASE_AUTH_TOKEN=
 ```
 
 Aturan isi `.env.example`:

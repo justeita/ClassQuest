@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-12
 owner: tim ClassQuest
 ---
 
@@ -35,7 +35,8 @@ Buka http://localhost:3000.
 
 ## Environment
 
-`.env.example` saat ini hanya berisi komentar. Variabel yang akan dibutuhkan:
+`.env.example` sudah memuat semua nama variabel yang dibaca server, tanpa nilai
+asli. Yang perlu diisi:
 
 ```bash
 # Provider AI (lihat docs/03-ai-pipeline/provider-setup.md)
@@ -45,7 +46,7 @@ AI_MODEL=
 AI_BASE_URL=
 AI_TIMEOUT_MS=60000
 
-# Akun guru (sementara, sampai auth nyata). Login = username + password,
+# Akun guru (penghalang demo): login = username + password,
 # password disimpan sebagai hash scrypt di tabel `teachers`.
 # Kosong = seed gagal. Tidak ada akun demo bawaan; keempat variabel wajib.
 TEACHER_SEED_USERNAME=
