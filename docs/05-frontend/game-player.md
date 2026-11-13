@@ -144,8 +144,10 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   kotak ini sama persis di dua keadaan supaya konsisten. Saat pemain dekat, kotak
   hanya naik-turun ringan. Saat NPC di luar pandangan, kotak menjadi **beacon** di
   tepi layar dengan cincin denyut dan penunjuk kecil di atas kotak yang berputar
-  mengikuti arah NPC. Beacon didekatkan ke tepi bingkai game (ujung penunjuk boleh
-  sedikit terpotong) tetapi tetap tembus klik, jadi tidak ada tombol HUD yang
+  mengikuti arah NPC. Beacon tetap dekat tepi bingkai game, tetapi penunjuk arah
+  dan cincin denyutnya utuh di semua sisi — jarak aman (`INSET_PENANDA` 24 px)
+  selalu lebih besar dari jangkauan penunjuk, jadi tidak ada bagian yang
+  terpotong tepi kanvas. Beacon juga tembus klik, jadi tidak ada tombol HUD yang
   tertutup. Beacon ikut bergeser saat pemain berjalan mendekat, lalu berubah
   kembali menjadi kotak `!` ketika NPC masuk layar. Kotak `!` **tidak** hilang
   saat pemain mendekat: chip `Space` muncul di kanannya, di atas papan nama,

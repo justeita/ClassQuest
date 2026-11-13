@@ -1,14 +1,17 @@
 "use client";
 
 import type { NpcMarker as MarkerView } from "@/game/gameBus";
-import { cqw, persenLebar, persenTinggi, ukuranHuruf } from "@/game/layout";
+import {
+  PENANDA,
+  cqw,
+  persenLebar,
+  persenTinggi,
+  ukuranHuruf,
+} from "@/game/layout";
 
 type NpcMarkerProps = {
   marker: MarkerView;
 };
-
-/** Sisi kotak penanda quest, dalam piksel internal. */
-const UKURAN_KOTAK = 26;
 
 /**
  * Kotak `!` yang sama dipakai di dua keadaan, supaya UI penanda quest konsisten:
@@ -65,9 +68,9 @@ function BeaconTepi({ marker }: { marker: MarkerView }) {
         <span
           className="absolute"
           style={{
-            width: cqw(9),
-            height: cqw(7),
-            transform: `translate(-50%, -50%) translateY(${cqw(-19)})`,
+            width: cqw(PENANDA.penunjuk.lebar),
+            height: cqw(PENANDA.penunjuk.tinggi),
+            transform: `translate(-50%, -50%) translateY(${cqw(-PENANDA.penunjuk.geser)})`,
           }}
         >
           <span
@@ -92,8 +95,8 @@ function KotakSeru({ className = "" }: { className?: string }) {
     <span
       className={`relative flex items-center justify-center border border-[#E8A87C]/80 bg-[#0b120e]/90 font-bold leading-none text-[#E8A87C] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)] ${className}`}
       style={{
-        width: cqw(UKURAN_KOTAK),
-        height: cqw(UKURAN_KOTAK),
+        width: cqw(PENANDA.kotak),
+        height: cqw(PENANDA.kotak),
         fontSize: ukuranHuruf(17, 13, 30),
       }}
     >

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { GAME_HEIGHT, GAME_WIDTH } from "./constants";
+import { JANGKAUAN_PENUNJUK } from "./layout";
 import {
   INSET_PENANDA,
   duniaKeLayar,
@@ -148,5 +149,36 @@ describe("posisiPenanda", () => {
     expect(posisi.tepi).toBe(true);
     expect(posisi.x).toBeGreaterThanOrEqual(0);
     expect(posisi.y).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("INSET_PENANDA", () => {
+  it("menyisakan ruang penuh untuk penunjuk beacon di keempat sisi", () => {
+    // Penunjuk arah beacon menjulur keluar dari pusat kotak; kalau tepi lebih
+    // dekat dari jangkauannya, penunjuk terpotong dan beacon tidak terbaca.
+    for (const sisi of [
+      INSET_PENANDA.atas,
+      INSET_PENANDA.kanan,
+      INSET_PENANDA.bawah,
+      INSET_PENANDA.kiri,
+    ]) {
+      expect(sisi).toBeGreaterThan(JANGKAUAN_PENUNJUK);
+    }
+
+    // Sama di semua sisi: penunjuk tidak lagi terpotong di kiri/kanan/bawah.
+    expect(INSET_PENANDA.kanan).toBe(INSET_PENANDA.kiri);
+    expect(INSET_PENANDA.bawah).toBe(INSET_PENANDA.kanan);
+    expect(INSET_PENANDA.atas).toBe(INSET_PENANDA.kanan);
+    expect(INSET_PENANDA.kanan).toBe(24);
+  });
+
+  it("menjepit beacon jauh dari tepi sehingga penunjuknya utuh di layar", () => {
+    // NPC jauh di kanan-bawah: penunjuk menghadap keluar, ujungnya tetap di
+    // dalam kanvas 640×360.
+    const posisi = posisiPenanda({ x: 5000, y: 5000 }, 640, 360);
+
+    expect(posisi.x + JANGKAUAN_PENUNJUK).toBeLessThanOrEqual(640);
+    expect(posisi.y + JANGKAUAN_PENUNJUK).toBeLessThanOrEqual(360);
+    expect(5000 - posisi.x).toBeGreaterThan(0);
   });
 });

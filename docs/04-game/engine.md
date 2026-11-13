@@ -265,9 +265,12 @@ indikator konsisten: saat dekat kotak naik-turun ringan (`animate-quest-bob`,
 magnitudo 4 px); saat NPC berada di luar pandangan, `posisiPenanda()` (`layar.ts`)
 menjepit posisinya ke tepi layar dan kotak menjadi **beacon** — ditambah cincin
 denyut dan **penunjuk kecil di atas kotak** yang berputar mengikuti `sudut` arah
-NPC. `INSET_PENANDA` (24 px atas, 16 px sisi lain) mendekatkan beacon ke tepi
-bingkai game; ujung penunjuk boleh sedikit terpotong dan tidak ada tombol HUD
-yang tertutup karena `pointer-events-none`. Karena posisinya dihitung ulang tiap
+NPC. `INSET_PENANDA` (24 px semua sisi) menahan beacon agar tetap dekat tepi
+bingkai game, tetapi tidak lebih dekat dari jangkauan penunjuknya
+(`JANGKAUAN_PENUNJUK` 22,5 px dari pusat kotak) — dulu sisi kiri/kanan/bawah
+hanya 16 px sehingga penunjuk arah habis terpotong tepi kanvas. Penunjuk dan
+cincin denyut kini utuh di keempat sisi, dan tidak ada tombol HUD yang tertutup
+karena `pointer-events-none`. Karena posisinya dihitung ulang tiap
 frame, beacon ikut bergeser ketika pemain berjalan mendekat dan berubah mulus
 menjadi kotak `!` begitu NPC masuk layar.
 

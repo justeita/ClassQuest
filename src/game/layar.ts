@@ -1,4 +1,5 @@
 import { GAME_HEIGHT, GAME_WIDTH } from "./constants";
+import { JANGKAUAN_PENUNJUK } from "./layout";
 
 /**
  * Konversi koordinat dunia ke ruang layar internal 640×360.
@@ -96,17 +97,20 @@ export function terlihatDiLayar(
 /**
  * Jarak aman penanda dari tepi layar, dalam piksel internal.
  *
- * Beacon tepi sengaja didekatkan ke tepi: kotaknya berukuran 26 px (setengah
- * 13 px), jadi 16 px masih menyisakan 3 px di dalam layar. Penunjuk boleh
- * sedikit menonjol keluar — ujungnya terpotong rapi oleh bingkai game dan
- * justru memperkuat kesan "menunjuk keluar". Sisi atas 24 px memberi ruang
- * agar penunjuk tidak habis terpotong.
+ * Beacon menempel di tepi, tetapi penunjuk arahnya menjulur keluar sampai
+ * `JANGKAUAN_PENUNJUK` (22,5 px) dari pusat kotak. Bila pusat beacon lebih
+ * dekat dari itu ke tepi, penunjuk — satu-satunya petunjuk arah NPC — terpotong
+ * tepi kanvas dan beacon jadi tidak terbaca. Dulu sisi kiri/kanan/bawah hanya
+ * 16 px sehingga penunjuknya habis terpotong, sementara sisi atas 24 px aman;
+ * sekarang keempat sisi memakai nilai yang sama dengan sisa 1,5 px.
+ *
+ * Cincin denyut juga melebar sampai ~22 px dari pusat, jadi ikut tertampung.
  */
 export const INSET_PENANDA = {
-  atas: 24,
-  kanan: 16,
-  bawah: 16,
-  kiri: 16,
+  atas: Math.ceil(JANGKAUAN_PENUNJUK + 1.5),
+  kanan: Math.ceil(JANGKAUAN_PENUNJUK + 1.5),
+  bawah: Math.ceil(JANGKAUAN_PENUNJUK + 1.5),
+  kiri: Math.ceil(JANGKAUAN_PENUNJUK + 1.5),
 } as const;
 
 /** Jarak aman penanda; isi keempat sisi bila perlu nilai khusus. */
