@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -125,6 +125,7 @@ type ValidationResult = {
 | `E_TEXT_TOO_LONG` | `options[].text` / `items[].text` | 120   |
 | `E_TEXT_TOO_LONG` | `acceptedAnswers[]`               | 60    |
 | `E_TEXT_TOO_LONG` | `hints[]`                         | 140   |
+| `E_TEXT_TOO_LONG` | `cast[].smallTalk`                | 240   |
 | `E_TEXT_EMPTY`    | Semua field teks wajib            | min 1 |
 
 Batas ini bukan selera: textbox game hanya muat ~180 karakter per halaman pada

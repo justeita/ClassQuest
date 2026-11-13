@@ -122,7 +122,7 @@ bergerigi bersama pixel art.
   disampaikan lewat teks tersembunyi (`Selesai`/`Aktif`/`Terkunci`), bukan hanya
   ikon.
 - Penanda `!` murni dekoratif (`aria-hidden`); informasinya sudah ada di panel
-  quest dan chip `Space`.
+  quest dan kotak `Space`.
 
 - Ukuran huruf memakai `clamp(min, Ncqw, max)` dari `src/game/layout.ts`, jadi
   teks ikut membesar bersama canvas tetapi tidak pernah turun di bawah `min`.

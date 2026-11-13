@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -185,11 +185,14 @@ bukan dunia terbuka:
 - Pemain spawn di titik tetap saat masuk ruangan baru (atau saat "Ulangi
   chapter"), lalu bergerak 4 arah dengan collision sederhana (arcade physics,
   gravity 0).
-- NPC/objek interaksi punya zona kecil; saat pemain berada di dalamnya, chip
-  `Space` muncul di atas NPC pemberi quest dan memicu deretan beat
-  dialog/tantangan. NPC lain tidak memicu dialog.
+- NPC/objek interaksi punya zona 30 px; saat pemain berada di dalamnya, kotak
+  `Space` bergaya seperti penanda `!` muncul dan memicu deretan beat
+  dialog/tantangan pada NPC pemberi quest. Pada pemberi quest kotak itu menjadi
+  satu paket dengan `!` (naik-turun bersama) dan meluncur keluar darinya; pada
+  NPC non-peran yang menyapa singkat lewat `smallTalk`, kotak yang sama muncul
+  sebagai pop-up tanpa memicu beat.
 - Penanda `!` hanya ada di atas pemberi quest scene aktif, mengikuti kamera.
-  Penanda dan chip disembunyikan selama dialog, tantangan, atau menu.
+  Penanda dan kotak `Space` disembunyikan selama dialog, tantangan, atau menu.
 - Untuk MVP, data map, spawn, penempatan NPC, dan collision didefinisikan **di
   sisi game** (`src/game/`, map dummy) dan tidak mengubah kontrak Story JSON.
 - Gerak terkunci saat textbox, overlay tantangan, atau menu terbuka.

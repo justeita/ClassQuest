@@ -16,4 +16,15 @@ describe("cerita demo", () => {
     expect(findDemoStory("st_tidak_ada")).toBeUndefined();
     expect(findDemoStory("")).toBeUndefined();
   });
+
+  it("setiap karakter non-pemain punya obrolan singkat", () => {
+    // Demo memperlihatkan bahwa semua warga bisa disapa, bukan hanya pemberi
+    // quest. Cerita asli boleh membiarkan field ini kosong (ADR 0016).
+    const tanpaObrolan = DEMO_STORY.cast
+      .filter((member) => member.role !== "player")
+      .filter((member) => !member.smallTalk?.trim())
+      .map((member) => member.id);
+
+    expect(tanpaObrolan).toEqual([]);
+  });
 });

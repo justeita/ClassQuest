@@ -1,13 +1,21 @@
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { act, cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { NpcMarker } from "./NpcMarker";
-import { persenLebar, persenTinggi } from "@/game/layout";
+import { PENANDA, cqw, persenLebar, persenTinggi } from "@/game/layout";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 function penandaDekat() {
   return document.querySelector<HTMLElement>('[data-tanda="dekat"]');
+}
+
+/** Elemen paket di dalam penanda dekat: pembungkus `!` (+ `Space`). */
+function paketDekat() {
+  return penandaDekat()?.firstElementChild as HTMLElement | null;
 }
 
 describe("NpcMarker", () => {
@@ -22,11 +30,67 @@ describe("NpcMarker", () => {
     expect(pembungkus?.style.left).toBe(persenLebar(200));
     expect(pembungkus?.style.top).toBe(persenTinggi(120));
 
-    // Kotak memakai gaya HUD yang sama dengan beacon, dengan animasi bob.
+    // Animasi idle duduk di paket, bukan di kotak `!` saja, supaya `!` dan
+    // `Space` naik-turun bersama.
+    expect(paketDekat()?.className).toContain("animate-quest-bob");
+
+    // Kotak memakai gaya HUD yang sama dengan beacon.
     const kotak = screen.getByText("!");
-    expect(kotak.className).toContain("animate-quest-bob");
     expect(kotak.className).toContain("bg-[#0b120e]/90");
     expect(kotak.className).toContain("text-[#E8A87C]");
+    expect(kotak.className).not.toContain("animate-quest-bob");
+
+    // Tanpa prompt, tidak ada kotak `Space`.
+    expect(screen.queryByText("Space")).not.toBeInTheDocument();
+  });
+
+  it("menempelkan kotak Space di kanan ! dalam satu paket saat pemain di zona", () => {
+    render(
+      <NpcMarker
+        marker={{ npcId: "char_npc_10", x: 200, y: 120 }}
+        prompt="Space"
+      />,
+    );
+
+    // `!` dan `Space` berada di paket yang sama, jadi ikut naik-turun bersama.
+    const paket = paketDekat();
+    const kotakSpace = screen.getByText("Space");
+    expect(paket?.contains(kotakSpace)).toBe(true);
+    expect(paket?.contains(screen.getByText("!"))).toBe(true);
+
+    // Benar-benar menempel: sudut kiri `Space` di tepi kanan `!`, tinggi sama.
+    expect(kotakSpace.className).toContain("absolute");
+    expect(kotakSpace.className).toContain("left-full");
+    expect(kotakSpace.style.height).toBe(cqw(PENANDA.kotak));
+    // Muncul meluncur keluar dari `!`.
+    expect(kotakSpace.className).toContain("animate-quest-slide-in");
+    expect(kotakSpace.className).not.toContain("animate-quest-slide-out");
+  });
+
+  it("mengeluarkan kotak Space dengan animasi saat pemain keluar zona", () => {
+    vi.useFakeTimers();
+
+    const { rerender } = render(
+      <NpcMarker
+        marker={{ npcId: "char_npc_10", x: 200, y: 120 }}
+        prompt="Space"
+      />,
+    );
+    expect(screen.getByText("Space").className).toContain(
+      "animate-quest-slide-in",
+    );
+
+    // Prompt hilang: kotak ditahan sebentar dan memainkan animasi keluar.
+    rerender(<NpcMarker marker={{ npcId: "char_npc_10", x: 200, y: 120 }} />);
+    const keluar = screen.getByText("Space");
+    expect(keluar.className).toContain("animate-quest-slide-out");
+    expect(keluar.className).not.toContain("animate-quest-slide-in");
+
+    // Setelah durasi keluar, kotak baru benar-benar dilepas dari DOM.
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(screen.queryByText("Space")).not.toBeInTheDocument();
   });
 
   it("menampilkan beacon tepi layar dengan penunjuk arah", () => {

@@ -25,11 +25,21 @@ export type DialogueView = {
   waiting: boolean;
 };
 
-/** Chip prompt interaksi; koordinat dalam piksel internal 640×360. */
+/**
+ * Kotak prompt interaksi; koordinat dalam piksel internal 640×360.
+ *
+ * `menempel` membedakan dua asal prompt supaya tampilannya konsisten dengan
+ * konteksnya: **true** untuk pemberi quest — saat `!` terlihat, kotak duduk
+ * rapat di sampingnya dan meluncur keluar darinya; **false** untuk obrolan
+ * singkat (ADR 0016) — tidak ada penanda, jadi kotak muncul sebagai pop-up
+ * halus. Kotak yang tampil sendiri selalu dipusatkan di atas NPC, termasuk
+ * kotak pemberi quest saat penandanya sedang jadi beacon tepi layar.
+ */
 export type PromptView = {
   text: string;
   x: number;
   y: number;
+  menempel: boolean;
 };
 
 /**

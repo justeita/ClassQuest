@@ -35,63 +35,72 @@
       "name": "Pak Wira",
       "role": "mentor",
       "spriteId": "char_npc_10",
-      "description": "Kepala desa yang tenang dan percaya bahwa matematika membuat keputusan lebih adil."
+      "description": "Kepala desa yang tenang dan percaya bahwa matematika membuat keputusan lebih adil.",
+      "smallTalk": "Semua keputusan desa dimulai dari catatan yang rapi. Kalau angkanya jujur, hasilnya juga adil."
     },
     {
       "id": "char_npc_1",
       "name": "Bu Sri",
       "role": "npc",
       "spriteId": "char_npc_1",
-      "description": "Juru masak pesta yang hafal semua resep kue desa."
+      "description": "Juru masak pesta yang hafal semua resep kue desa.",
+      "smallTalk": "Dapur ini selalu wangi kayu manis. Kalau laparmu datang, cicipi dulu satu kue kecil, ya."
     },
     {
       "id": "char_npc_3",
       "name": "Pak Darto",
       "role": "npc",
       "spriteId": "char_npc_3",
-      "description": "Petani yang mencatat setiap hasil panen di buku lusuhnya."
+      "description": "Petani yang mencatat setiap hasil panen di buku lusuhnya.",
+      "smallTalk": "Tanah tidak pernah bohong. Yang perlu kita rapikan cuma cara mencatat hasilnya."
     },
     {
       "id": "char_npc_4",
       "name": "Bu Lastri",
       "role": "npc",
       "spriteId": "char_npc_4",
-      "description": "Pembuat kue yang teliti saat membagi porsi untuk tamu."
+      "description": "Pembuat kue yang teliti saat membagi porsi untuk tamu.",
+      "smallTalk": "Membagi kue itu latihan pecahan paling menyenangkan. Semua kebagian, tidak ada yang lebih."
     },
     {
       "id": "char_npc_5",
       "name": "Pak Joko",
       "role": "npc",
       "spriteId": "char_npc_5",
-      "description": "Penjaga lumbung yang rajin menimbang hasil panen."
+      "description": "Penjaga lumbung yang rajin menimbang hasil panen.",
+      "smallTalk": "Timbangan ini setia menemaniku sejak muda. Beratnya berapa pun, ya harus ditulis apa adanya."
     },
     {
       "id": "char_npc_6",
       "name": "Kak Nia",
       "role": "npc",
       "spriteId": "char_npc_6",
-      "description": "Pemuda panitia pesta yang mengurus stan dan harga."
+      "description": "Pemuda panitia pesta yang mengurus stan dan harga.",
+      "smallTalk": "Harga di papan harus pas. Salah sedikit saja, pembeli bisa bingung dan pesta jadi ribut."
     },
     {
       "id": "char_npc_7",
       "name": "Mbah Karto",
       "role": "npc",
       "spriteId": "char_npc_7",
-      "description": "Sesepuh desa yang hafal cerita setiap musim panen."
+      "description": "Sesepuh desa yang hafal cerita setiap musim panen.",
+      "smallTalk": "Setiap musim panen punya ceritanya sendiri. Dari yang paling ramai sampai yang gagal, aku ingat semua."
     },
     {
       "id": "char_npc_8",
       "name": "Bu Ratna",
       "role": "npc",
       "spriteId": "char_npc_8",
-      "description": "Guru desa yang membantu menulis laporan panen."
+      "description": "Guru desa yang membantu menulis laporan panen.",
+      "smallTalk": "Laporan yang baik bukan yang paling panjang, tapi yang angkanya bisa dipercaya."
     },
     {
       "id": "char_npc_9",
       "name": "Dewi",
       "role": "npc",
       "spriteId": "char_npc_9",
-      "description": "Teman Nara yang senang menata piring dan membuat papan pengumuman."
+      "description": "Teman Nara yang senang menata piring dan membuat papan pengumuman.",
+      "smallTalk": "Aku suka menata piring. Setiap potongan punya tempatnya supaya meja pesta terlihat rapi."
     }
   ],
   "chapters": [
