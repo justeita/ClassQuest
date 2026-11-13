@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -115,6 +115,22 @@ Alasan:
 - Jika jumlah ruangan bergambar penuh bertambah sampai sinkronisasi collider
   manual sering salah: buat alat pratinjau collider atau data collider terpisah.
 - Jika kelak butuh peta besar antar-ruangan atau kamera zoom: itu ADR baru.
+
+## Catatan lanjutan (2026-11-13)
+
+Arah "ruangan per `RoomData`" di atas sudah **tidak berlaku** untuk game yang
+jalan sekarang. Dunia berganti menjadi **satu peta desa** (`world_map_village`,
+2390×1792) dengan 80 potongan objek dan 9 NPC, hasil editor
+`pixel-map-placer.html` yang diimpor `scripts/import-world.mjs`. Tidak ada
+`map_halaman_sekolah`, `RoomData`, atau `kind: "map"` lagi; yang berlaku adalah
+kind `world` (`src/game/world/village.json`). Asetnya dibuat tim dengan alat AI
+generatif, bukan penjahitan The Fan-tasy Tileset. Rincian yang berlaku ada di
+[`../04-game/world-design.md`](../04-game/world-design.md) dan
+[`../07-assets/inventory.md`](../07-assets/inventory.md).
+
+Gagasan inti ADR ini — **gambar peta sebagai seni, collider dari data editor** —
+justru menjadi dasar dunia desa: sel collision dicat di editor yang sama dengan
+tempat objek ditempatkan.
 
 ## Referensi
 

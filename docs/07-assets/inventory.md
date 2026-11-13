@@ -230,18 +230,22 @@ Urutan yang disarankan agar game tetap bisa tampil:
 
 ## Sumber dan lisensi
 
-| Kelompok aset                                                              | Sumber                                                                             | Lisensi                                                       |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `bg_default`, `ui_*`, `sfx_*`                                              | Dibuat generator repo (`scripts/lib/*.mjs`)                                        | Milik proyek                                                  |
-| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default` | Paket aset proyek di `Asset/assets_classquest`, disalin `scripts/import-world.mjs` | Milik proyek / campuran paket gratis — lihat catatan di bawah |
-| Font Patrick Hand (`public/fonts/`)                                        | Google Fonts                                                                       | SIL OFL 1.1                                                   |
+| Kelompok aset                                                              | Sumber                                                                  | Lisensi      |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------ |
+| `bg_default`, `ui_*`, `sfx_*`                                              | Dibuat generator repo (`scripts/lib/*.mjs`)                             | Milik proyek |
+| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default` | Dibuat tim dengan alat AI generatif, disalin `scripts/import-world.mjs` | Milik proyek |
+| Font Patrick Hand (`public/fonts/`)                                        | Google Fonts                                                            | SIL OFL 1.1  |
 
-Tabel rinci per paket (pembuat, tautan, dan batas lisensi) sedang dilengkapi
-di [`asset-guide.md`](asset-guide.md) dan
-[`../../README.md`](../../README.md#atribusi-pihak-ketiga). Selama catatan itu
-belum lengkap, **jangan menambah** aset baru dari paket luar tanpa mencatat
-sumbernya lebih dulu: guidebook LOGICODIX mewajibkan atribusi setiap aset
-pihak ketiga.
+Aset dunia desa (peta, potongan objek, karakter, potret, dan lagu) **dibuat tim
+sendiri dengan alat AI generatif**, lalu disusun di editor peta
+`pixel-map-placer.html`. Tidak ada aset yang diambil dari situs paket aset gratis
+maupun dari game komersial. Yang di-commit hanya berkas jadi yang dipakai game,
+bukan berkas mentah atau berkas proyek editor.
+
+Kalau nanti menambah aset dari pihak ketiga, catat sumber, pembuat, dan
+lisensinya lebih dulu di [`asset-guide.md`](asset-guide.md) dan
+[`../../README.md`](../../README.md#atribusi-pihak-ketiga): guidebook LOGICODIX
+mewajibkan atribusi setiap aset pihak ketiga.
 
 Jangan mengisi kolom ini dengan "Google Images" atau nama game komersial.
 

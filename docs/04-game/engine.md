@@ -1,10 +1,10 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
-# Arsitektur Game (Phaser 4.2.1)
+# Arsitektur Game (Phaser 4)
 
 Game berjalan **sepenuhnya di client**. Server hanya mengirim `Story` dan
 menerima hasil. Tidak ada Phaser di server, tidak ada `window` saat SSR.
@@ -12,17 +12,18 @@ menerima hasil. Tidak ada Phaser di server, tidak ada `window` saat SSR.
 - Keputusan engine: [ADR 0004](../09-decisions/0004-phaser-4.md)
 - UI hybrid: [ADR 0007](../09-decisions/0007-hybrid-ui.md)
 - Desain: [`game-design.md`](./game-design.md)
+- Dunia dan data peta: [`world-design.md`](./world-design.md)
 
 ## Pembagian tanggung jawab
 
-| Bagian                      | Teknologi        | Isi                                             |
-| --------------------------- | ---------------- | ----------------------------------------------- |
-| Dunia, background, karakter | Phaser           | Sprite, posisi, animasi, transisi               |
-| Dialog                      | Hybrid           | Panel + portrait Phaser, teks typewriter di DOM |
-| Tantangan                   | React DOM        | Form, tombol, input, feedback, aksesibilitas    |
-| HUD, menu, hasil            | React DOM        | Panel quest, jeda, layar hasil                  |
-| State cerita                | TypeScript murni | `StoryRunner` (tanpa Phaser)                    |
-| Persistensi progres         | `localStorage`   | Ditulis oleh React, dibaca saat mulai           |
+| Bagian                 | Teknologi        | Isi                                             |
+| ---------------------- | ---------------- | ----------------------------------------------- |
+| Dunia, peta, karakter  | Phaser           | Sprite, posisi, urutan gambar (depth), kamera   |
+| Dialog                 | Hybrid           | Panel + portrait Phaser, teks typewriter di DOM |
+| Tantangan              | React DOM        | Form, tombol, input, feedback, aksesibilitas    |
+| HUD, menu, hasil       | React DOM        | Panel quest, jeda, layar hasil                  |
+| State cerita           | TypeScript murni | `StoryRunner` (tanpa Phaser)                    |
+| Persistensi preferensi | `localStorage`   | Pengaturan audio, dibaca React saat mount       |
 
 Alasannya: input teks dan aksesibilitas jauh lebih baik di DOM, sementara dunia
 game butuh render loop. Memaksakan semuanya ke canvas akan memperlambat
@@ -33,49 +34,56 @@ pengembangan dan merusak aksesibilitas.
 Kode yang ada hari ini (`src/game/config.ts`):
 
 ```ts
-// src/game/config.ts
 import Phaser from "phaser";
+
+import type { Story } from "@/story/schema";
+
+import type { GameBus } from "./gameBus";
 import { GameScene } from "./scenes/GameScene";
 import { PreloadScene } from "./scenes/PreloadScene";
 
-export const GAME_WIDTH = 480;
-export const GAME_HEIGHT = 270;
+export { GAME_WIDTH, GAME_HEIGHT } from "./constants";
+
+import { GAME_HEIGHT, lebarInternal } from "./constants";
 
 export function createGameConfig(
   parent: HTMLElement,
+  story: Story,
+  bus?: GameBus,
 ): Phaser.Types.Core.GameConfig {
+  const lebar = lebarInternal(
+    parent.clientHeight > 0 ? parent.clientWidth / parent.clientHeight : 16 / 9,
+  );
+
   return {
     type: Phaser.AUTO,
     parent,
-    width: GAME_WIDTH,
+    width: lebar,
     height: GAME_HEIGHT,
     backgroundColor: "#14201a",
     pixelArt: true,
-    roundPixels: true, // Phaser 4 default false — wajib diset eksplisit
+    roundPixels: true,
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    physics: {
-      default: "arcade",
-      arcade: {
-        gravity: { x: 0, y: 0 },
-        debug: false,
-      },
-    },
-    scene: [PreloadScene, GameScene],
+    scene: [new PreloadScene(story), new GameScene(story, bus)],
   };
 }
 ```
 
-Resolusi internal **640×360** (16:9, ADR 0009) dan latar `#14201a`. Angka dan warna ini
-harus sama dengan [`game-design.md`](./game-design.md#resolusi-dan-skala) dan
-[`../07-assets/asset-guide.md`](../07-assets/asset-guide.md). Mengubahnya berarti
-mengubah ukuran aset juga.
+Yang penting dari konfigurasi ini:
 
-Physics arcade dipasang dengan gravitasi nol untuk gerak pemain dan collision top-down
-per ADR 0008 — pemain dan NPC sebagai sprite arcade, dinding/objek padat sebagai
-static body (`PlayerConfig.speed` di `src/game/types.ts`).
+- **Tinggi internal 360**, lebarnya mengikuti rasio layar lewat `lebarInternal()`
+  (dikunci 640–960). Layar lebar menampilkan **lebih banyak dunia ke samping**,
+  bukan bar hitam (FIT) atau potongan atas-bawah (ENVELOP). Angka dan warna ini
+  harus sama dengan [`game-design.md`](./game-design.md#resolusi-dan-skala) dan
+  [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md).
+- **Tidak ada `physics`.** Gerak dan tabrakan dihitung sendiri oleh
+  `movement.ts` + `world/collision.ts` dari data editor; tidak ada satu pun
+  `Arcade.Sprite` atau static body.
+- Scene diberi `story` dan `bus` lewat konstruktor, bukan `registry`. Scene tidak
+  lagi memuat fixture sendiri.
 
 Catatan Phaser 4:
 
@@ -84,7 +92,7 @@ Catatan Phaser 4:
   `setTintMode()`.
 - FX dan mask kini satu sistem filter. Jangan menyalin contoh Phaser 3.
 - `Phaser.Geom.Point` tidak ada; pakai `Phaser.Math.Vector2`.
-- `DynamicTexture` butuh `render()` setelah menggambar.
+- `DynamicTexture` butuh `render()` setelah digambar.
 
 ## Integrasi dengan Next.js 16
 
@@ -98,18 +106,37 @@ Catatan Phaser 4:
 
 ### Komponen host
 
-Kode yang ada hari ini (`src/components/game/GameCanvas.tsx`):
+`GameShell.tsx` memegang **layar** (judul → main → hasil), bukan state cerita:
 
 ```tsx
-// src/components/game/GameCanvas.tsx
-"use client";
+export function GameShell({ story }: { story: Story }) {
+  const [layar, setLayar] = useState<"judul" | "main" | "hasil">("judul");
+  const [hasil, setHasil] = useState<PlayResult | null>(null);
+  const [sesi, setSesi] = useState(0);
 
-import { useEffect, useRef } from "react";
-import type { GameHandle } from "@/game/types";
+  return (
+    <div className="relative h-full w-full overflow-hidden">
+      {layar === "judul" ? (
+        <TitleScreen story={story} onStart={mulai} />
+      ) : (
+        <GameCanvas key={sesi} story={story} onFinished={selesai} />
+      )}
+      {layar === "hasil" && hasil && (
+        <ResultScreen result={hasil} onMainLagi={mainLagi} />
+      )}
+    </div>
+  );
+}
+```
 
-export function GameCanvas() {
+`GameCanvas` memasang Phaser setelah "Mulai" (bukan di belakang layar judul) dan
+menjembatani dunia dengan overlay DOM:
+
+```tsx
+export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<GameHandle | null>(null);
+  const busRef = useRef<GameBus | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -120,7 +147,10 @@ export function GameCanvas() {
     void import("@/game/createGame")
       .then(({ createGame }) => {
         if (cancelled) return;
-        gameRef.current = createGame(container);
+        const game = createGame(container, story);
+        gameRef.current = game;
+        busRef.current = game.bus;
+        // ...pasang pendengar bus di sini...
       })
       .catch((error: unknown) => {
         console.error("Gagal memuat game:", error);
@@ -130,8 +160,9 @@ export function GameCanvas() {
       cancelled = true;
       gameRef.current?.destroy();
       gameRef.current = null;
+      busRef.current = null;
     };
-  }, []);
+  }, [story]);
 
   return (
     <div
@@ -144,7 +175,7 @@ export function GameCanvas() {
 }
 ```
 
-Yang perlu diperhatikan dari kode ini:
+Yang perlu diperhatikan:
 
 - Modul `@/game/createGame` diimpor **di dalam** `useEffect`, bukan di top-level.
   `createGame.ts` mengimpor Phaser, jadi top-level import akan membuat `window is
@@ -154,38 +185,15 @@ not defined` saat build.
 - Flag `cancelled` menutup celah balapan: `import()` bisa selesai setelah cleanup
   dijalankan, dan tanpa flag itu game akan hidup tanpa pemilik.
 - `GameHandle.destroy()` memanggil `game.destroy(true)`, jadi canvas ikut dilepas.
+- Callback `onFinished` disimpan di ref agar identitas baru tidak memuat ulang
+  Phaser.
+- `key={sesi}` di `GameShell` memaksa remount saat "Main lagi" supaya cerita
+  dimulai dari awal.
 
 Catatan penting: **jangan** memberi `aria-hidden="true"` pada host canvas. Itu
 menghapus seluruh game dari accessibility tree, padahal
 [`accessibility.md`](./accessibility.md) mewajibkan canvas punya `aria-label` dan
 bisa menerima fokus keyboard. Yang dekoratif cukup elemen di dalam canvas.
-
-### Keadaan sekarang vs target
-
-`GameCanvas`, `createGame`, dan scene placeholder **sudah ada**. `GameShell`,
-bridge, dan `Story` belum. Bentuk target saat cerita siap:
-
-```tsx
-type Props = {
-  story: Story;
-  onEvent: (event: GameEvent) => void;
-};
-
-// di dalam useEffect:
-const [PhaserModule, { createGameConfig }] = await Promise.all([
-  import("phaser"),
-  import("@/game/config"),
-]);
-const bridge = createBridge();
-bridge.on("event", onEvent);
-game = new PhaserModule.default.Game(createGameConfig(hostRef.current));
-game.registry.set("story", story);
-game.registry.set("bridge", bridge);
-```
-
-Selama `story` dan `bridge` belum ada, halaman `/game` hanya menampilkan scene
-placeholder. Jangan menambahkan props itu setengah jalan — tunggu `Story` dari
-`src/story/schema.ts` ada lebih dulu.
 
 ### Jebakan `<Activity>` di Next 16
 
@@ -195,9 +203,9 @@ state route yang ditinggalkan. Artinya:
 - Saat pengguna pindah route, **effect cleanup dijalankan** → game dihancurkan.
 - Saat kembali, effect dijalankan lagi → game dibuat ulang.
 
-Konsekuensi: **jangan** mengandalkan state di dalam Phaser untuk menyimpan progres.
-Semua progres harus ada di `localStorage` (atau state React di atas), dan game
-harus bisa dibuat ulang dari `story` + `progress`.
+Konsekuensi: **jangan** mengandalkan state di dalam Phaser untuk menyimpan
+progres. Game harus bisa dibuat ulang dari `story` saja; posisi pemain dan kursor
+cerita dimulai ulang dari awal.
 
 ### SSR
 
@@ -211,13 +219,12 @@ ditandai `"use client"` dan diimpor dinamis.
 
 ## Scene Phaser
 
-| Scene          | Tanggung jawab sekarang                                                                                           | Target                                 |
-| -------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| `PreloadScene` | Langsung pindah ke `GameScene`                                                                                    | Muat aset cerita + progress bar        |
-| `GameScene`    | Ruangan dari `maps/` (tile + prop + NPC per `roomId`), gerak, interaksi NPC, dialog typewriter dari `StoryRunner` | Kamera follow + transisi antar-ruangan |
-| `ResultScene`  | Belum ada                                                                                                         | (Opsional) transisi akhir              |
+| Scene          | Tanggung jawab sekarang                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| `PreloadScene` | Muat seluruh aset dunia desa + aset cerita; gambar progres di canvas; lanjut ke `GameScene` |
+| `GameScene`    | Bangun dunia sekali, gerak 8 arah, interaksi NPC, dialog typewriter, tantangan lewat bus    |
 
-`GameScene` menjalankan siklus ADR 0008: fase `explore` (ruangan dari `map.ts`,
+`GameScene` menjalankan siklus ADR 0008: fase `explore` (dunia dari `VILLAGE`,
 pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()`
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). Teks dialog dikirim ke React sebagai event `dialogue` dan
@@ -227,58 +234,55 @@ pemberi quest scene aktif yang memunculkan prompt dan bisa memulai dialog; NPC
 lain tetap menjadi penghalang. Penanda `!` dikirim lewat event `markers` dan
 dirender `NpcMarker.tsx`. Posisi prompt dan penanda dikonversi dari koordinat
 dunia ke layar memakai `camera.scrollX/scrollY` (`layar.ts`), lalu diperbarui
-maksimal ~11 kali per detik — bukan tiap frame. Speaker disorot, beat
-`transition` fade otomatis, beat `challenge` dibuka sebagai overlay React.
+maksimal ~11 kali per detik (bukan tiap frame). Speaker disorot, beat `transition`
+fade otomatis, beat `challenge` dibuka sebagai overlay React.
 
-Ruangan punya identitas `roomId`, terpisah dari `sceneId`. Perpindahan scene
-dalam ruangan yang sama **tidak** membangun ulang peta dan **tidak**
-mengembalikan pemain ke spawn; posisi terakhir dipertahankan. Spawn hanya dipakai
-saat masuk `roomId` baru atau saat "Ulangi chapter".
+Dunia dibangun **sekali** di `create()`: tidak ada `roomId`, tidak ada bangun
+ulang saat pindah chapter. Perpindahan scene hanya menukar musik dan NPC pemberi
+quest; posisi terakhir pemain dipertahankan. Spawn hanya dipakai saat memulai
+cerita atau saat "Ulangi chapter".
 
 `ChallengeScene` **tidak ada** — tantangan adalah overlay React.
 
 ## Pemuatan aset
 
-Hanya muat aset yang dipakai (`assetUsage`), bukan seluruh manifest.
+`PreloadScene` memuat **seluruh aset dunia** (kind `world`: peta, 80 potongan
+objek, 10 spritesheet karakter, dan musik default) karena dunia tidak bisa
+dirender sebagian. Aset cerita ditambahkan di atasnya lewat
+`collectStoryAssets(story)` di `src/game/sceneAssets.ts`:
 
 ```ts
-// src/game/systems/asset-loader.ts
-export function queueStoryAssets(
-  load: Phaser.Loader.LoaderPlugin,
-  story: Story,
-) {
-  for (const id of story.assetUsage.backgrounds) {
-    const asset = ASSETS_BY_ID.get(id);
-    if (asset) load.image(asset.id, asset.path);
-  }
-  for (const id of story.assetUsage.sprites) {
-    const asset = ASSETS_BY_ID.get(id);
-    if (asset)
-      load.spritesheet(asset.id, asset.path, {
-        frameWidth: 24,
-        frameHeight: 32,
-      });
-  }
-  for (const id of story.assetUsage.music) {
-    const asset = ASSETS_BY_ID.get(id);
-    if (asset) load.audio(asset.id, asset.path);
+const dipakai = new Set<string>(RUNTIME_ASSET_IDS);
+
+for (const chapter of story.chapters) {
+  if (chapter.backgroundId) dipakai.add(chapter.backgroundId);
+  if (chapter.musicId) dipakai.add(chapter.musicId);
+  for (const scene of chapter.scenes) {
+    if (scene.backgroundId) dipakai.add(scene.backgroundId);
+    if (scene.musicId) dipakai.add(scene.musicId);
   }
 }
+
+for (const karakter of story.cast) {
+  dipakai.add(karakter.spriteId);
+}
+
+return ASSETS.filter((asset) => dipakai.has(asset.id));
 ```
 
 Aturan:
 
 - Key di Phaser **sama dengan `assetId`**. Jangan membuat key lain.
-- Kalau `loaderror`, game lanjut tanpa crash; aset itu tampil kosong. Belum ada
-  penggantian otomatis ke sprite cadangan.
+- Spritesheet karakter memakai `frameWidth`/`frameHeight` dari manifest, karena
+  tiap karakter desa punya lebar frame sendiri.
+- Tanpa penanganan `loaderror` dan tanpa sprite cadangan: `manifest.test.ts`
+  menjamin setiap id manifest punya berkasnya.
 - Tampilkan progress yang jujur; jangan freeze tanpa indikator.
 
 ## Bridge Phaser ↔ React
 
 Implementasi: `src/game/gameBus.ts` — emitter kecil bertipe (bukan
 `EventEmitter` global) agar mudah dites dan tidak bocor antar-instance.
-Semua event/command di bawah sudah dipakai; `DialogueView` dan `PromptView`
-didefinisikan di `gameBus.ts` dan dirender komponen DOM.
 
 Event yang dikirim **dari** Phaser:
 
@@ -295,6 +299,12 @@ type GameEvent =
       explanation: string;
     }
   | { type: "finished"; result: PlayResult }
+  | {
+      type: "log";
+      name: string | null;
+      text: string;
+      sceneJudul: string | null;
+    }
   | { type: "quest"; view: QuestState }
   | { type: "skipping"; aktif: boolean }
   | { type: "error"; code: string };
@@ -304,19 +314,19 @@ type GameEvent =
 `{ text, x, y }` dan `NpcMarker` = `{ npcId, x, y }`, keduanya dalam koordinat
 layar internal 640×360 (sudah dikurangi scroll kamera). `QuestState` berisi
 chapter, scene aktif, daftar quest turunan scene, dan `activeQuestId`; status
-`selesai | aktif | terkunci` dihitung dari posisi `StoryRunner`, bukan ditulis
-di Story JSON. Teks dialog dikirim bertahap saat typewriter berjalan, dan React
-tidak perlu tahu beat mana yang aktif.
+`selesai | aktif | terkunci` dihitung dari posisi `StoryRunner`, bukan ditulis di
+Story JSON. Teks dialog dikirim bertahap saat typewriter berjalan, dan React tidak
+perlu tahu beat mana yang aktif.
 
 Perintah **ke** Phaser:
 
 ```ts
 type GameCommand =
+  | { type: "submit_answer"; challengeId: string; answer: Answer }
+  | { type: "resolve_challenge"; challengeId: string; correct: boolean }
   | { type: "advance" }
   | { type: "skip_start" }
   | { type: "skip_stop" }
-  | { type: "submit_answer"; challengeId: string; answer: Answer }
-  | { type: "resolve_challenge"; challengeId: string; correct: boolean }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "restart_chapter" }
@@ -331,13 +341,16 @@ Aturan yang mengikat:
   `correctOptionId`, `correctAnswer`, `correctOrder`, `acceptedAnswers`, atau
   `explanation`. Overlay tidak boleh menerima jawaban.
 - Penilaian dijalankan di sisi game (pemegang `Story`) memakai `scoreAnswer()`
-  dari `src/story/scoring.ts`; hasilnya dikirim sebagai `graded`.
+  dari `src/story/scoring.ts`; hasilnya dikirim sebagai `graded`. Skor memakai
+  percobaan **pertama**; jawaban ulang tidak menimpa.
 - Selama fase `challenge`, input dialog diabaikan sampai `resolve_challenge`
   diterima. `skip_start`/`skip_stop` memajukan beat bertahap ala tahan-tombol
-  Persona (time-lapse 100 ms per beat selama ditahan) dan berhenti di beat
-  soal; hanya beat dialog/narasi yang dilewati, dan beat `transition` tetap
-  diputar. Saat time-lapse berjalan, event `skipping` mengabarkan
-  `aktif: true/false` supaya DOM bisa menampilkan status.
+  Persona (time-lapse 100 ms per beat selama ditahan) dan berhenti di beat soal;
+  hanya beat dialog/narasi yang dilewati, dan beat `transition` tetap diputar.
+  Saat time-lapse berjalan, event `skipping` mengabarkan `aktif: true/false`
+  supaya DOM bisa menampilkan status.
+- `pause` membekukan loop scene dan mengecilkan musik; `freeze` (buku log)
+  membekukan dunia tanpa mengecilkan musik.
 
 ## Alur state
 
@@ -362,7 +375,7 @@ dites tanpa browser dan tanpa Phaser.
 ## Konsekuensi performa
 
 - Satu instance `Phaser.Game` per halaman. Jangan membuat game baru tiap render.
-- `useEffect` dependency harus stabil (`story` dan `onEvent` di-memo).
+- `useEffect` dependency harus stabil (`story` di-memo; callback disimpan di ref).
 - Aset audio dimuat sekali per cerita; jangan memuat ulang saat pindah scene.
 - Hindari membuat `Text` baru setiap frame; update teks yang ada.
 
@@ -374,13 +387,15 @@ Yang sudah berlaku di kode hari ini:
 - [x] Phaser diimpor dinamis di dalam `useEffect`.
 - [x] `game.destroy(true)` di cleanup.
 - [x] `pixelArt: true`, `roundPixels: true`.
-- [x] `scale.mode = FIT`, resolusi dasar 640×360 (ADR 0009); halaman
-      full-bleed dan kanvas selalu tampil utuh di dalamnya.
+- [x] `scale.mode = FIT`, tinggi dasar 360 dengan lebar adaptif (ADR 0009);
+      halaman full-bleed dan kanvas selalu tampil utuh di dalamnya.
+- [x] Key aset = `assetId`.
+- [x] Bridge mengirim `GameEvent` dan menerima `GameCommand`.
+- [x] Tidak ada state penting hanya di dalam Phaser (progres dihitung ulang dari
+      `story`).
 - [x] `bun run build` tidak menghasilkan error `window is not defined`.
 
-Yang belum, karena fiturnya belum ada:
+Belum ada:
 
-- [ ] Key aset = `assetId`.
-- [ ] `loaderror` punya fallback.
-- [ ] Tidak ada state penting hanya di dalam Phaser.
-- [ ] Bridge mengirim `GameEvent` dan menerima `GameCommand`.
+- [ ] `loaderror` punya fallback eksplisit (dijaga lewat `manifest.test.ts`).
+- [ ] Persistensi progres ke `localStorage` (baru preferensi audio).
