@@ -14,6 +14,10 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 | Route                            | Akses   | Render  | Fungsi                                   |
 | -------------------------------- | ------- | ------- | ---------------------------------------- |
 | `/`                              | Publik  | Statis  | Landing: pilih peran guru/siswa          |
+| `/privasi`                       | Publik  | Statis  | Kebijakan privasi                        |
+| `/syarat`                        | Publik  | Statis  | Syarat & ketentuan layanan               |
+| `/penafian`                      | Publik  | Statis  | Penafian peran AI dan skor               |
+| `/cookie`                        | Publik  | Statis  | Cookie dan penyimpanan lokal             |
 | `/guru/masuk`                    | Publik  | Dinamis | Login akun guru                          |
 | `/guru`                          | Guru    | Dinamis | Dashboard: ringkasan + aktivitas terbaru |
 | `/guru/materi`                   | Guru    | Dinamis | Daftar materi + penyaring + modal detail |
@@ -88,6 +92,17 @@ Landing `/` memakai route group `src/app/(landing)/` supaya punya layout sendiri
 (font Inter/Plus Jakarta/Pixelify + ikon Font Awesome) tanpa membebani halaman
 siswa/game. Kartu "Portal Guru" menautkan ke `/guru` — layout `(portal)`
 mengarahkan ke `/guru/masuk` bila sesi belum ada.
+
+Empat dokumen legal juga berada di group `(landing)` dan memakai kerangka yang
+sama (`src/components/legal/LegalPage.tsx`): kepala/kaki halaman brand, pill
+navigasi antar dokumen, satu `h1` per route, dan tautan dokumen lain di kaki
+halaman. Desain asalnya adalah satu halaman SPA dengan sub-tab; di sini setiap
+dokumen punya URL sendiri supaya bisa dibagikan dan dicetak.
+
+Isi dokumen legal **mengikuti perilaku aplikasi**, bukan templat. Jangan
+mencantumkan XP, leaderboard, lencana, token kelas, atau kunci penyimpanan yang
+tidak dipakai kode — sama seperti aturan copy di
+[`ui-conventions.md`](./ui-conventions.md#halaman-legal-privasi-syarat-penafian-cookie).
 
 ## Route API
 

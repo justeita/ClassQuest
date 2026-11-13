@@ -111,6 +111,10 @@ jadi keduanya harus tetap tampil sebagai satu bingkai:
   game, berisi ikon brand, nama produk, semboyan, penyelenggara kompetisi, hak
   cipta, dan tautan "Kembali ke atas". Tautan itu memakai `href="#atas"`, dan
   `id="atas"` dipasang di `AppHeader` supaya berlaku di kedua halaman.
+- **Tautan legal** — `AppFooter` juga memuat navigasi "Tautan legal" ke
+  `/privasi`, `/syarat`, `/penafian`, dan `/cookie` (lihat bagian
+  [Halaman legal](#halaman-legal-privasi-syarat-penafian-cookie)). Tautan peran
+  tetap tidak diulang di sini.
 
 Aturan:
 
@@ -121,6 +125,36 @@ Aturan:
 - Jangan menambah tautan peran di kaki halaman. Kartu peran sudah jadi jalan
   masuknya, dan tautan kembar membuat halaman 404 punya dua tautan bernama sama
   sehingga tes `getByRole` jadi ambigu.
+
+### Halaman legal (`/privasi`, `/syarat`, `/penafian`, `/cookie`)
+
+Empat dokumen legal memakai bahasa visual halaman peran dan kerangka bersama
+`src/components/legal/LegalPage.tsx`:
+
+| Bagian       | Isi                                                                   |
+| ------------ | --------------------------------------------------------------------- |
+| Kepala       | Tautan "Beranda" + tombol cetak (client, `window.print()`)            |
+| Navigasi     | `LegalNav`: empat pill dokumen, halaman aktif ditandai `aria-current` |
+| Artikel      | Badge, `h1`, ringkasan, tanggal diperbarui, dan kotak pemberitahuan   |
+| Isi          | Satu `<section>` per poin; `<h2>` untuk setiap poin                   |
+| Kaki artikel | Identitas singkat + tautan kembali ke beranda                         |
+
+Aturan:
+
+- **Satu dokumen = satu route.** Jangan mengembalikan sub-tab SPA dari desain
+  asal; tab berbasis JavaScript membuat dokumen tidak bisa ditautkan langsung.
+- **Isi harus benar.** Dokumen legal adalah halaman publik terakhir yang sering
+  dibaca juri. Jangan mencantumkan fitur backlog (XP, leaderboard, lencana,
+  token kelas) atau kunci penyimpanan yang tidak dipakai kode. Kunci yang benar:
+  `classquest_teacher_session` (cookie sesi guru, 8 jam) dan
+  `classquest:settings:v1` (localStorage volume audio).
+- **Jangan menjanjikan perlindungan yang tidak ada.** Tidak ada anti-cheat,
+  tidak ada email sekolah, dan aplikasi ini demo — tulis apa adanya.
+- Pakai kelas `landing-*` yang sudah ada; jangan menambah CSS khusus halaman
+  legal.
+- Tautan internal memakai `next/link`; tombol cetak satu-satunya bagian client.
+- `src/app/(landing)/legal.test.tsx` menjaga judul, navigasi aktif, tautan kaki
+  halaman, dan kebenaran kunci cookie.
 
 ## Tipografi
 
