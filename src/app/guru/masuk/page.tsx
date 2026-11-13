@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 
 import { LoginForm } from "@/components/guru/LoginForm";
 
@@ -35,8 +36,15 @@ export default function MasukPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] opacity-10 [background-size:16px_16px]" />
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-slate-900 bg-amber-400 font-pixel text-xl text-slate-900 shadow-[3px_3px_0px_#000]">
-            <i className="fa-solid fa-gamepad" aria-hidden />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-navy bg-krem p-1.5 shadow-[3px_3px_0px_#000]">
+            <Image
+              src="/brand/classquest_icon.png"
+              alt=""
+              width={44}
+              height={44}
+              priority
+              className="h-full w-full object-contain"
+            />
           </div>
           <div>
             <h2 className="font-pixel text-lg tracking-wider text-white">
