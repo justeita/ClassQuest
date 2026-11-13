@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -28,6 +28,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0013 | [Hosting Vercel dan database Turso](0013-hosting-vercel-turso.md)    | Accepted     | Deploy, backend     |
 | 0014 | [Auth akun guru dan siswa](0014-auth-akun-guru-siswa.md)             | **Proposed** | Auth, backend       |
 | 0015 | [Tabel kelas dan siswa](0015-kelas-dan-siswa.md)                     | **Proposed** | Kelas, backend      |
+| 0016 | [Obrolan singkat NPC di luar perannya](0016-obrolan-singkat-npc.md)  | Accepted     | Game, data cerita   |
 
 ## Status
 

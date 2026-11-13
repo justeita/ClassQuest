@@ -81,7 +81,7 @@ describe("storySchema menerima cerita contoh", () => {
 });
 
 describe("field opsional", () => {
-  it("menerima cerita tanpa points, hints, gaps, override scene, dan deskripsi", () => {
+  it("menerima cerita tanpa points, hints, gaps, override scene, deskripsi, dan obrolan", () => {
     const story = withExample((draft) => {
       for (const challenge of challenges(draft)) delete challenge.points;
       delete source(draft).gaps;
@@ -92,7 +92,10 @@ describe("field opsional", () => {
           delete scene.musicId;
         }
       }
-      for (const character of cast(draft)) delete character.description;
+      for (const character of cast(draft)) {
+        delete character.description;
+        delete character.smallTalk;
+      }
     });
 
     expect(storySchema.safeParse(story).success).toBe(true);
@@ -350,6 +353,18 @@ const invalidCases: InvalidCase[] = [
     name: "deskripsi karakter lebih dari 160",
     story: withExample((draft) => {
       cast(draft)[0].description = "A".repeat(161);
+    }),
+  },
+  {
+    name: "obrolan singkat karakter kosong",
+    story: withExample((draft) => {
+      cast(draft)[0].smallTalk = "";
+    }),
+  },
+  {
+    name: "obrolan singkat karakter lebih dari 240",
+    story: withExample((draft) => {
+      cast(draft)[0].smallTalk = "A".repeat(241);
     }),
   },
 ];

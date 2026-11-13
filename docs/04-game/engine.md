@@ -238,10 +238,11 @@ pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). Teks dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx`; React membalas command `advance`. Prompt interaksi
-memakai event `prompt` dan chip DOM `InteractHint.tsx` (ADR 0007). Hanya NPC
-pemberi quest scene aktif yang memunculkan prompt dan bisa memulai dialog; NPC
-lain tetap menjadi penghalang. Penanda `!` dikirim lewat event `markers` dan
-dirender `NpcMarker.tsx`.
+memakai event `prompt` dan chip DOM `InteractHint.tsx` (ADR 0007). Pemberi quest
+scene aktif memulai dialog; NPC lain yang punya `smallTalk` menampilkan satu
+kalimat singkat lewat textbox yang sama tanpa menggeser cerita (ADR 0016), dan
+NPC tanpa obrolan tetap menjadi penghalang. Penanda `!` hanya untuk pemberi
+quest, dikirim lewat event `markers` dan dirender `NpcMarker.tsx`.
 
 Posisi prompt dan penanda dikonversi dari koordinat dunia ke layar memakai
 `duniaKeLayar()` (`layar.ts`), yang memperhitungkan `scroll` **dan** `zoom`

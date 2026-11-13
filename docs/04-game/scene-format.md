@@ -92,8 +92,10 @@ dijelajahi:
   → indikator `Space` muncul → `Space`/`Enter` memutar deretan beat scene itu
   (fase `dialog`); gerak terkunci sampai deretan beat habis.
 
-Hanya **NPC pemberi quest** scene aktif yang memunculkan prompt dan bisa memulai
-dialog; NPC lain tetap berdiri sebagai penghalang.
+Pemberi quest memutar deretan beat scene dan mengunci gerak sampai deretan itu
+habis. NPC non-peran yang punya `smallTalk` (ADR 0016) menampilkan satu kalimat
+di textbox yang sama, lalu pemain langsung kembali ke `explore`; NPC tanpa
+keduanya tetap berdiri sebagai penghalang.
 
 ## Peta visual
 

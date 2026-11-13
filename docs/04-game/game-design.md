@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -186,8 +186,8 @@ bukan dunia terbuka:
   chapter"), lalu bergerak 4 arah dengan collision sederhana (arcade physics,
   gravity 0).
 - NPC/objek interaksi punya zona kecil; saat pemain berada di dalamnya, chip
-  `Space` muncul di atas NPC pemberi quest dan memicu deretan beat
-  dialog/tantangan. NPC lain tidak memicu dialog.
+  `Space` muncul dan memicu deretan beat dialog/tantangan pada NPC pemberi quest.
+  NPC non-peran bisa menyapa singkat lewat `smallTalk` tanpa memicu beat.
 - Penanda `!` hanya ada di atas pemberi quest scene aktif, mengikuti kamera.
   Penanda dan chip disembunyikan selama dialog, tantangan, atau menu.
 - Untuk MVP, data map, spawn, penempatan NPC, dan collision didefinisikan **di
