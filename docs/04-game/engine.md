@@ -238,7 +238,9 @@ pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). Teks dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx`; React membalas command `advance`. Prompt interaksi
-memakai event `prompt` dan kotak DOM `InteractHint.tsx` (ADR 0007). Pemberi quest
+memakai event `prompt`: kotak `Space` pemberi quest dirender `NpcMarker.tsx`
+(menyatu dengan `!`), sedangkan obrolan singkat dirender `InteractHint.tsx`
+(ADR 0007). Pemberi quest
 scene aktif memulai dialog; NPC lain yang punya `smallTalk` menampilkan satu
 kalimat singkat lewat textbox yang sama tanpa menggeser cerita (ADR 0016), dan
 NPC tanpa obrolan tetap menjadi penghalang. Penanda `!` hanya untuk pemberi
@@ -276,19 +278,22 @@ frame, beacon ikut bergeser ketika pemain berjalan mendekat dan berubah mulus
 menjadi kotak `!` begitu NPC masuk layar.
 
 Kotak `!` **tidak** diganti kotak `Space` saat pemain mendekat: pemberi quest
-menampilkan keduanya bersamaan agar indikator quest tidak hilang-muncul. Kotak
-`Space` memakai gaya yang sama dengan `!` (latar, garis, dan teks aksen, tinggi
-`PENANDA.kotak`) dan digeser rapat ke kanan penanda (`GESER_PROMPT` setengah
-lebar `!`), jadi `[!][Space]` terbaca sebagai satu widget; dasar keduanya
-sejajar (`JARAK_PROMPT` 24 px). Saat pemain masuk zona, pemberi quest memakai
-`animate-quest-slide-in` (titik tumbuh di tepi kiri) sehingga kotak meluncur
-keluar dari `!`. NPC obrolan singkat tidak punya penanda, jadi kotaknya muncul
-halus lewat `animate-quest-pop` (pop-up), bukan meluncur ke kanan. Animasi hanya
-jalan sekali per kemunculan: React memakai ulang kotak yang sama saat
-koordinatnya berubah tiap frame. Zona interaksi memakai histeresis — masuk di
-30 px, keluar di 38 px — supaya kotak tidak berkedip saat pemain berdiri di
-batas zona. Speaker disorot, beat `transition` fade otomatis, beat `challenge`
-dibuka sebagai overlay React.
+menampilkan keduanya sebagai **satu paket**. `NpcMarker.tsx` membungkus `!` dan
+`Space` dalam satu `div` ber-animasi idle (`animate-quest-bob`), jadi keduanya
+naik-turun **bersama** dan tidak terlihat terpisah; kotak `Space` (komponen
+`KotakSpace.tsx` yang dipakai bersama) diletakkan absolut di `left-full` — rapat
+di tepi kanan `!` tanpa celah, tinggi sama (`PENANDA.kotak`) — sehingga lebar
+paket tetap seukuran `!` dan penanda tetap di tengah NPC. Saat pemain masuk zona,
+kotak `Space` meluncur keluar dari `!` (`animate-quest-slide-in`, titik tumbuh di
+tepi kiri). NPC obrolan singkat tidak punya penanda, jadi kotaknya (`InteractHint.tsx`)
+muncul sendiri di atas papan nama sebagai pop-up (`animate-quest-pop`), bukan
+meluncur ke kanan. Bila pemberi quest ada di zona tetapi penandanya sedang jadi
+**beacon tepi layar**, tidak ada `!` di kepala NPC sehingga kotak `Space`
+kembali tampil sendiri. Animasi hanya jalan sekali per kemunculan: React memakai
+ulang kotak yang sama saat koordinatnya berubah tiap frame. Zona interaksi
+memakai histeresis — masuk di 30 px, keluar di 38 px — supaya kotak tidak
+berkedip saat pemain berdiri di batas zona. Speaker disorot, beat `transition`
+fade otomatis, beat `challenge` dibuka sebagai overlay React.
 
 Dunia dibangun **sekali** di `create()`: tidak ada `roomId`, tidak ada bangun
 ulang saat pindah chapter. Perpindahan scene hanya menukar musik dan NPC pemberi

@@ -20,12 +20,18 @@ type NpcHintLayerProps = {
 };
 
 /**
- * Papan nama NPC, penanda quest, dan chip `Space`, dipisah dari `GameCanvas`.
+ * Papan nama NPC, penanda quest, dan kotak `Space`, dipisah dari `GameCanvas`.
  *
- * Pemisahan ini bukan soal rapi-rapian: scene mengirim posisi **setiap frame**
- * supaya tanda tetap menempel pada NPC saat kamera bergeser. Kalau posisi itu
- * masuk ke state `GameCanvas`, seluruh overlay (HUD, dialog, jurnal) ikut
- * dirender ulang 60 kali per detik. Di sini hanya elemen kecil yang berubah.
+ * Prompt pemberi quest tidak berdiri sendiri: ia digabung ke paket penanda `!`
+ * supaya keduanya naik-turun bersama. Prompt NPC obrolan singkat (dan prompt
+ * pemberi quest saat penandanya jadi beacon tepi) tetap tampil sendiri lewat
+ * `InteractHint`.
+ *
+ * Pemisahan dari `GameCanvas` bukan soal rapi-rapian: scene mengirim posisi
+ * **setiap frame** supaya tanda tetap menempel pada NPC saat kamera bergeser.
+ * Kalau posisi itu masuk ke state `GameCanvas`, seluruh overlay (HUD, dialog,
+ * jurnal) ikut dirender ulang 60 kali per detik. Di sini hanya elemen kecil
+ * yang berubah.
  *
  * Posisi dikirim scene hanya saat berubah (dibulatkan ke piksel internal), dan
  * React mengabaikan `setState` dengan nilai sama, jadi saat pemain diam tidak
@@ -49,15 +55,32 @@ export function NpcHintLayer({ bus, tersembunyi }: NpcHintLayerProps) {
 
   if (tersembunyi) return null;
 
+  // Prompt pemberi quest digabung ke paket penanda `!` di `NpcMarker`, supaya
+  // `!` dan `Space` naik-turun bersama sebagai satu widget. Bila penanda sedang
+  // menjadi beacon tepi layar, tidak ada `!` di kepala NPC, jadi kotak tetap
+  // tampil sendiri lewat `InteractHint`.
+  const promptGabung =
+    hint !== null && hint.menempel && penanda.some((p) => p.tepi !== true)
+      ? hint.text
+      : null;
+
   return (
     <>
       {nama.map((plate) => (
         <NpcNameplate key={plate.npcId} plate={plate} />
       ))}
       {penanda.map((marker) => (
-        <NpcMarker key={marker.npcId} marker={marker} />
+        <NpcMarker
+          key={marker.npcId}
+          marker={marker}
+          prompt={
+            marker.tepi !== true && promptGabung !== null
+              ? promptGabung
+              : undefined
+          }
+        />
       ))}
-      {hint && <InteractHint hint={hint} />}
+      {hint && promptGabung === null && <InteractHint hint={hint} />}
     </>
   );
 }

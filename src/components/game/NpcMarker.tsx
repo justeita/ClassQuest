@@ -1,5 +1,6 @@
 "use client";
 
+import { KotakSpace } from "@/components/game/KotakSpace";
 import type { NpcMarker as MarkerView } from "@/game/gameBus";
 import {
   PENANDA,
@@ -11,19 +12,27 @@ import {
 
 type NpcMarkerProps = {
   marker: MarkerView;
+  /**
+   * Teks tombol interaksi bila pemain berada di zona pemberi quest ini. Saat
+   * ada, kotak `Space` menjadi **satu paket** dengan kotak `!`: duduk rapat di
+   * kanannya dan naik-turun bersama animasi idle yang sama.
+   */
+  prompt?: string;
 };
 
 /**
  * Kotak `!` yang sama dipakai di dua keadaan, supaya UI penanda quest konsisten:
  *
  * - **Dekat**: NPC terlihat, kotak duduk di atas papan namanya dan naik-turun.
+ *   Bila pemain di zona interaksi, kotak `Space` menempel di kanannya dalam satu
+ *   paket yang ikut naik-turun (lihat `prompt`).
  * - **Tepi**: NPC di luar pandangan, kotak yang sama menjadi beacon di tepi
  *   layar dengan penunjuk arah yang berputar mengikuti `sudut`.
  *
  * `z-30` menaruh beacon di depan baris HUD, tetapi `pointer-events-none`
  * menjaga tombol di bawahnya tetap bisa diklik.
  */
-export function NpcMarker({ marker }: NpcMarkerProps) {
+export function NpcMarker({ marker, prompt }: NpcMarkerProps) {
   if (marker.tepi === true) {
     return <BeaconTepi marker={marker} />;
   }
@@ -33,9 +42,22 @@ export function NpcMarker({ marker }: NpcMarkerProps) {
       data-tanda="dekat"
       className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full font-game"
       style={{ left: persenLebar(marker.x), top: persenTinggi(marker.y) }}
-      aria-hidden="true"
     >
-      <KotakSeru className="animate-quest-bob" />
+      {/*
+        Satu paket: kotak `!` dan (bila ada) kotak `Space` dibungkus satu
+        elemen ber-animasi idle, jadi keduanya naik-turun **bersama** dan tidak
+        terlihat terpisah. Kotak `Space` diletakkan absolut di kanan `!` supaya
+        tidak menambah lebar paket — penanda tetap di tengah NPC.
+      */}
+      <div className="relative animate-quest-bob">
+        <KotakSeru />
+        {prompt ? (
+          <KotakSpace
+            text={prompt}
+            className="absolute left-full top-0 origin-left animate-quest-slide-in"
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -93,6 +115,7 @@ function BeaconTepi({ marker }: { marker: MarkerView }) {
 function KotakSeru({ className = "" }: { className?: string }) {
   return (
     <span
+      aria-hidden="true"
       className={`relative flex items-center justify-center border border-[#E8A87C]/80 bg-[#0b120e]/90 font-bold leading-none text-[#E8A87C] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)] ${className}`}
       style={{
         width: cqw(PENANDA.kotak),

@@ -187,10 +187,10 @@ bukan dunia terbuka:
   gravity 0).
 - NPC/objek interaksi punya zona 30 px; saat pemain berada di dalamnya, kotak
   `Space` bergaya seperti penanda `!` muncul dan memicu deretan beat
-  dialog/tantangan pada NPC pemberi quest. Pada pemberi quest kotak itu menempel
-  di kanan `!` dan meluncur keluar darinya; pada NPC non-peran yang menyapa
-  singkat lewat `smallTalk`, kotak yang sama muncul sebagai pop-up tanpa memicu
-  beat.
+  dialog/tantangan pada NPC pemberi quest. Pada pemberi quest kotak itu menjadi
+  satu paket dengan `!` (naik-turun bersama) dan meluncur keluar darinya; pada
+  NPC non-peran yang menyapa singkat lewat `smallTalk`, kotak yang sama muncul
+  sebagai pop-up tanpa memicu beat.
 - Penanda `!` hanya ada di atas pemberi quest scene aktif, mengikuti kamera.
   Penanda dan kotak `Space` disembunyikan selama dialog, tantangan, atau menu.
 - Untuk MVP, data map, spawn, penempatan NPC, dan collision didefinisikan **di
