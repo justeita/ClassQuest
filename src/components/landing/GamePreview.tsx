@@ -43,8 +43,9 @@ export function GamePreview() {
         </p>
 
         {/* Dialog meniru gaya Persona (ADR 0017): potret tanpa bingkai berdiri
-            di belakang panel, dasar gambar sejajar dasar panel, jadi dadanya
-            tertutup dan wajahnya menjulang di atas kotak. */}
+            di **atas** panel, dasarnya sejajar tepi atas kotak, jadi tidak ada
+            bagian potret yang tertutup. Slot berukuran tetap + `object-contain`
+            supaya kepala tetap terpusat saat ekspresi berganti. */}
         <div className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
           <div className="relative">
             <Image
@@ -52,7 +53,7 @@ export function GamePreview() {
               alt="Potret Pak Wira"
               width={512}
               height={512}
-              className="pointer-events-none absolute bottom-0 left-2 h-28 w-auto sm:left-3 sm:h-36"
+              className="pointer-events-none absolute bottom-full left-12 h-28 w-32 -translate-x-1/2 object-contain object-bottom sm:left-16 sm:h-36 sm:w-40"
             />
 
             <div className="relative rounded-lg border-2 border-slate-900 bg-slate-900/92 px-3 pb-2.5 pt-2 sm:px-4">

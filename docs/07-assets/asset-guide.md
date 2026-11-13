@@ -99,8 +99,10 @@ manifest (dari `src/assets/characterFrames.ts`), karena ukurannya tidak seragam.
 Nama folder mengikuti berkas sumber (`mc`, `npc_1`, …), bukan id manifest.
 Manifest karakter memetakan keenamnya lewat `portraits`, dan **semua ekspresi
 wajib ada** untuk setiap karakter. Potret tidak memakai bingkai: `DialogueBox`
-menggambarnya di belakang panel dialog dengan dasar sejajar dasar panel, jadi
-dadanya tertutup dan wajahnya menjulang di atas kotak (ADR 0017). Karena potret
+menggambarnya di atas panel dialog dengan dasar sejajar tepi atas panel, jadi
+tidak ada bagian potret yang tertutup kotak (ADR 0017). Importer juga
+menyeragamkan lebar kanvas tiap karakter dan memusatkan kepala, supaya potret
+tidak bergeser saat ekspresi berganti. Karena potret
 dirender DOM, berkasnya tidak dimuat `PreloadScene`.
 
 ### Musik

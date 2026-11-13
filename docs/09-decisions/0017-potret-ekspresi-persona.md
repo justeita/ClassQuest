@@ -4,7 +4,7 @@ last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
-# 0017 — Potret Berekspresi, Digambar di Belakang Kotak Dialog
+# 0017 — Potret Berekspresi, Dipasang di Atas Kotak Dialog
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-13
@@ -42,7 +42,7 @@ pixelated` ([ADR 0009](0009-resolution-and-scale.md)).
 | ------------------------------------------------------- | ----------------------------------- | --------------------------------------------------- |
 | A. Tetap satu potret per karakter                       | Tidak ada perubahan kontrak         | Ekspresi cerita tidak pernah terlihat               |
 | B. Ganti potret di canvas Phaser, bingkai dipertahankan | Memakai jalur gambar yang sudah ada | Tetap 64×64 bergerigi; bingkai kecil menutupi wajah |
-| **C. Potret DOM di belakang panel, field `expression`** | Tajam, gaya Persona, data-driven    | Panel dialog harus ikut pindah ke DOM               |
+| **C. Potret DOM di atas panel, field `expression`**     | Tajam, gaya Persona, data-driven    | Panel dialog harus ikut pindah ke DOM               |
 | D. Potret DOM di dalam bingkai `ui_portrait_frame`      | Tidak menyentuh tata letak panel    | Bingkai justru membatasi; bukan gaya yang dituju    |
 
 Opsi B mempertahankan tekstur 64 px yang, setelah upscale, membuat mata dan
@@ -52,7 +52,7 @@ ketajaman tetapi tetap memaksa potret kecil di dalam kotak.
 ## Keputusan
 
 **Kami memilih opsi C: enam ekspresi per karakter, dirender DOM tanpa bingkai,
-berdiri di belakang panel dialog.**
+berdiri di atas panel dialog.**
 
 Aturan bentuknya:
 
@@ -82,8 +82,10 @@ Alasan:
 
 1. Potret dirender browser pada resolusi layar asli, jadi wajahnya tajam —
    sedangkan panel tetap pixel karena memang dibuat pixel.
-2. Tanpa bingkai, dasar potret sejajar dasar panel: dada tertutup panel, kepala
-   menjulang di atasnya. Itu siluet dialog Persona yang dituju.
+2. Tanpa bingkai, dasar potret sejajar tepi atas panel: tidak ada bagian potret
+   yang tertutup kotak, dan kepalanya menjulang penuh di atas dialog. Slot tetap
+   - importer yang memusatkan kepala membuat pergantian ekspresi tidak
+     menggeser potret. Itu siluet dialog Persona yang dituju.
 3. `expression` opsional membuat cerita lama, fixture, dan hasil generator tetap
    valid tanpa migrasi.
 4. Satu daftar ekspresi mencegah zod, JSON Schema, manifest, dan prompt

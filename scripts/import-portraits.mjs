@@ -27,6 +27,13 @@
  * ke `TINGGI_POTRET`, supaya semua karakter tampil sebesar mungkin tanpa
  * membawa piksel transparan yang tidak terpakai. Penyekalaan memakai rata-rata
  * kotak berbobot alpha (premultiplied), jadi tepi rambut tidak berhalo gelap.
+ *
+ * Setelah dipotong, lebar tiap ekspresi satu karakter berbeda-beda. Kalau
+ * ditempel dengan lebar tetap, pusat kepalanya bergeser ke kiri/kanan tiap kali
+ * ekspresi berganti — potret tampak "maju-mundur". Karena itu keenam ekspresi
+ * satu karakter disusun ulang ke kanvas **selebar sama** dengan pusat kepala
+ * (rata-rata x berbobot alpha pada pita kepala) dijepit ke tengah kanvas.
+ * Hasilnya rasionya identik, jadi potret bisa ditaruh di slot tetap tanpa goyang.
  */
 
 import {
@@ -39,7 +46,7 @@ import {
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { encodePng } from "./lib/pixel.mjs";
+import { createCanvas, encodePng } from "./lib/pixel.mjs";
 import { decodePng } from "./lib/png.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -86,6 +93,12 @@ const TINGGI_POTRET = 512;
 
 /** Ambang alpha untuk menghitung kotak isi (buang bercak hampir transparan). */
 const AMBANG_ALPHA = 16;
+
+/**
+ * Porsi atas gambar yang dianggap "kepala" (kepala sampai bahu). Dipakai untuk
+ * menghitung pusat kepala; 35% atas cukup memuat wajah tanpa terseret badan.
+ */
+const PORSI_KEPALA = 0.35;
 
 /** Nama berkas tanpa ekstensi → ekspresi; `null` bila tidak ada yang cocok. */
 function ekspresiDariNama(nama) {
@@ -203,6 +216,49 @@ function rapikan(image) {
   return { width: outW, height: outH, data };
 }
 
+/** Pusat horizontal kepala: rata-rata x berbobot alpha pada pita kepala. */
+function pusatKepala(image) {
+  const yMax = Math.max(1, Math.round(image.height * PORSI_KEPALA));
+  let jumlah = 0;
+  let bobot = 0;
+  for (let y = 0; y < yMax; y += 1) {
+    for (let x = 0; x < image.width; x += 1) {
+      const a = image.data[(y * image.width + x) * 4 + 3];
+      if (a < AMBANG_ALPHA) continue;
+      jumlah += x * a;
+      bobot += a;
+    }
+  }
+  return bobot > 0 ? jumlah / bobot : image.width / 2;
+}
+
+/**
+ * Susun enam potret satu karakter ke kanvas selebar sama, pusat kepala di tengah.
+ *
+ * `gambar` = `Map<ekspresi, kanvas rapikan>`. Lebar kanvas diambil dua kali
+ * jangkauan terjauh dari pusat kepala ke tepi gambar, supaya tiap gambar tetap
+ * utuh saat kepalanya dipusatkan. Hasil: rasio semua ekspresi identik.
+ */
+function seragamkan(gambar) {
+  const pusat = new Map();
+  let lebar = 1;
+  for (const [ekspresi, img] of gambar) {
+    const c = pusatKepala(img);
+    pusat.set(ekspresi, c);
+    lebar = Math.max(lebar, 2 * Math.max(c, img.width - c));
+  }
+  lebar = Math.ceil(lebar);
+
+  const hasil = new Map();
+  for (const [ekspresi, img] of gambar) {
+    const kanvas = createCanvas(lebar, TINGGI_POTRET);
+    const x = Math.round(lebar / 2 - pusat.get(ekspresi));
+    kanvas.blit(img, x, 0);
+    hasil.set(ekspresi, kanvas);
+  }
+  return hasil;
+}
+
 /** Hapus keluaran lama supaya folder sumber yang dihapus tidak menyisakan berkas. */
 rmSync(join(ROOT, "public", "assets", "portrait"), {
   recursive: true,
@@ -216,12 +272,17 @@ for (const { folder, nama, pemain } of PETA) {
   const dir = join(ROOT, "public", "assets", "portrait", nama);
   mkdirSync(dir, { recursive: true });
 
+  const potret = seragamkan(
+    new Map(
+      EKSPRESI.map((ekspresi) => [ekspresi, rapikan(gambar.get(ekspresi))]),
+    ),
+  );
+
   for (const ekspresi of EKSPRESI) {
-    const png = Buffer.from(encodePng(rapikan(gambar.get(ekspresi))));
+    const png = Buffer.from(encodePng(potret.get(ekspresi)));
     writeFileSync(join(dir, `${ekspresi}.png`), png);
     jumlah += 1;
   }
-
   log(
     `  ${`portrait/${nama}/`.padEnd(22)} ${EKSPRESI.length} ekspresi` +
       `${pemain ? " · pemain (MC)" : ""}`,

@@ -256,7 +256,7 @@ Keputusan (ADR 0007, diperluas ADR 0017): **teks permainan pindah ke DOM**.
 
 - Panel `ui_textbox`, potret, nama, isi dialog, dan indikator "lanjut" dirender
   React (`DialogueBox.tsx`). Potret anime tidak dibungkus bingkai: ia berdiri di
-  belakang panel dengan dasar sejajar dasar panel, dan berekspresi sesuai field
+  atas panel dengan dasar sejajar tepi atasnya, dan berekspresi sesuai field
   `expression` beat. Prompt interaksi `Space` juga DOM (`InteractHint.tsx`).
 - Font: **Patrick Hand** (SIL Open Font License), disimpan lokal di
   `public/fonts/` (`patrick-hand-latin.woff2`,

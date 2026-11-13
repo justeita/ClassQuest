@@ -24,11 +24,13 @@ type DialogueBoxProps = {
  * `image-rendering: pixelated` juga) dan potret serta huruf dirender browser
  * pada resolusi layar asli — potret anime tidak ikut bergerigi.
  *
- * Gaya Persona: potret **tidak** dibungkus bingkai. Ia berdiri di belakang
- * panel, dasar gambar sejajar dasar panel, jadi dadanya tertutup panel dan
- * kepalanya menjulang di atasnya. Posisi memakai persen dari `TEXTBOX` dan
- * `PORTRAIT` (sumber angka sama dengan `layout.ts`); ukuran huruf dan padding
- * memakai `cqw` supaya ikut skala canvas.
+ * Gaya Persona: potret **tidak** dibungkus bingkai. Ia berdiri di **atas**
+ * panel — dasar gambar sejajar tepi atas panel, jadi tidak ada bagian potret
+ * yang tertutup kotak. Slot potret berukuran tetap (`PORTRAIT`) dan gambarnya
+ * `object-contain`, jadi lebar berbeda antar-karakter tetap terpusat pada
+ * `PORTRAIT.centerX`; kepala tidak lagi goyang saat ekspresi berganti. Posisi
+ * memakai persen dari `TEXTBOX` dan `PORTRAIT` (sumber angka sama dengan
+ * `layout.ts`); ukuran huruf dan padding memakai `cqw` supaya ikut skala canvas.
  */
 export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
   if (!view.visible) return null;
@@ -53,20 +55,22 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
       role="presentation"
     >
       {
-        /* Potret dulu supaya panel (z-10) menutupi bagian bawahnya. Tinggi
-            memakai `cqw` (skala seragam ruang game), bukan persen tinggi:
-            persen akan dihitung terhadap tinggi panel, bukan tinggi kanvas. */
+        /* Potret di atas panel: `bottom-100%` menaruh dasarnya di tepi atas
+            panel, `left` + `translateX(-50%)` memusatkan slot pada `centerX`.
+            `object-contain` menjaga potret tetap di slot yang sama walau lebar
+            kanvas beda antar-karakter, jadi kepala tidak goyang. */
         view.portrait && (
           <Image
             src={view.portrait.src}
             alt={view.portrait.alt}
             width={512}
             height={512}
-            className="pointer-events-none absolute bottom-0 select-none"
+            className="pointer-events-none absolute bottom-full select-none object-contain object-bottom"
             style={{
-              left: cqw(PORTRAIT.insetX),
+              left: cqw(PORTRAIT.centerX),
+              transform: "translateX(-50%)",
+              width: cqw(PORTRAIT.width),
               height: cqw(PORTRAIT.height),
-              width: "auto",
             }}
           />
         )

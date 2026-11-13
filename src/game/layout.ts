@@ -40,18 +40,26 @@ export const CHALLENGE = {
 } as const;
 
 /**
- * Potret dialog gaya Persona (ADR 0017): tanpa bingkai, gambar berdiri di
- * belakang panel dialog dengan kepala menjulang di atas tepi atasnya.
+ * Potret dialog gaya Persona (ADR 0017): tanpa bingkai, gambarnya berdiri **di
+ * atas** panel dialog — dasarnya sejajar tepi atas panel, jadi tidak ada bagian
+ * potret yang tertutup kotak.
  *
- * `height` memakai px ruang internal; lebar mengikuti rasio asli tiap potret.
- * Sisi bawah potret disejajarkan dengan sisi bawah panel, jadi bagian dadanya
- * tertutup panel — bukan dipotong oleh kotak potret.
+ * Slot ini berukuran tetap (`width`×`height`) dan gambarnya dirender
+ * `object-contain`, jadi potret lebar berbeda tetap terpusat di `centerX` tanpa
+ * menggeser kepala. `scripts/import-portraits.mjs` sudah menyeragamkan lebar
+ * kanvas tiap karakter dan menjepit pusat kepalanya ke tengah, jadi pergantian
+ * ekspresi tidak menggoyang potret ke kiri/kanan.
  */
 export const PORTRAIT = {
-  /** Tinggi gambar potret (px internal); cukup besar agar wajah terbaca. */
-  height: 236,
-  /** Geser dari tepi kiri panel supaya tidak menempel persis di sudut. */
-  insetX: 6,
+  /** Tinggi slot potret (px internal). */
+  height: 220,
+  /**
+   * Lebar slot (px internal); cukup untuk potret terlebar (kanvas 582 px saat
+   * tinggi aslinya 512) supaya tidak ada karakter yang menyentuh tepi layar.
+   */
+  width: 252,
+  /** Titik x pusat kepala potret dari tepi kiri ruang game (px internal). */
+  centerX: 130,
 } as const;
 
 /**

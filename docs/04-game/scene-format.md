@@ -117,26 +117,29 @@ bebas bergerak.
 │                     │PEMAIN │  ← di posisi dunianya  │
 │                     └───────┘                        │
 │  ┌───────────┐                                       │
-│  │           │                                       │
+│  │           │  ← tanpa bingkai                      │
 │  │  POTRET   │                                       │
-│  │  (tanpa   │                                       │
-│  │  bingkai) │┌────────────────────────────────────┐ │
-│  │           ││ TEXTBOX (ui_textbox)               │ │
-│  └───────────┘│ Nama                               │ │
-│               │ Teks dialog...                     │ │
-│               └────────────────────────────────────┘ │
+│  │  (di atas │                                       │
+│  │   textbox)│                                       │
+│  │           │                                       │
+│  └───────────┘                                       │
+│ ┌──────────────────────────────────────────────────┐ │
+│ │ TEXTBOX (ui_textbox)                             │ │
+│ │ Nama                                             │ │
+│ │ Teks dialog...                                   │ │
+│ └──────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────┘
 ```
 
-| Elemen    | Posisi/ukuran                                                             |
-| --------- | ------------------------------------------------------------------------- |
-| Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`         |
-| Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                          |
-| Textbox   | 608×104, terpusat horizontal, `y=240`, menempel layar (`setScrollFactor`) |
-| Potret    | Tinggi 236 px internal, dasar sejajar dasar panel, tanpa bingkai (DOM)    |
-| Nama      | Di dalam textbox, baris pertama (DOM)                                     |
-| Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)            |
-| Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                   |
+| Elemen    | Posisi/ukuran                                                                |
+| --------- | ---------------------------------------------------------------------------- |
+| Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`            |
+| Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                             |
+| Textbox   | 608×104, terpusat horizontal, `y=240`, menempel layar (`setScrollFactor`)    |
+| Potret    | Slot 252×220 px internal, dasar sejajar tepi atas panel, tanpa bingkai (DOM) |
+| Nama      | Di dalam textbox, baris pertama (DOM)                                        |
+| Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)               |
+| Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                      |
 
 > **Semua di DOM (ADR 0007 + ADR 0017).** Phaser hanya memegang state typewriter
 > (`textbox.ts`); panel `ui_textbox`, potret, nama, isi dialog, dan indikator
@@ -208,8 +211,8 @@ terjadi sebelum beat pertama scene.
 - Sprite speaker disorot: `setTint(0xffffff)` untuk yang bicara, `setTint(0x9a9a9a)`
   untuk yang tidak. **Ingat:** `setTintFill()` sudah dihapus di Phaser 4.
 - Potret diambil dari `portraits[expression]` milik karakter; `expression`
-  opsional dan default `neutral`. Potret digambar DOM di belakang panel, tanpa
-  bingkai (ADR 0017).
+  opsional dan default `neutral`. Potret digambar DOM **di atas** panel, dasar
+  sejajar tepi atasnya, tanpa bingkai (ADR 0017).
 
 ### `challenge`
 
