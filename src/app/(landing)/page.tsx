@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { AppFooter } from "@/components/brand/AppFooter";
+import { AppHeader } from "@/components/brand/AppHeader";
+
 /**
  * Halaman pengenalan produk di `/`.
  *
@@ -29,35 +32,19 @@ const FITUR_SISWA = [
 export default function Home() {
   return (
     <>
-      {/* Latar dekoratif: titik halus + dua cahaya lembut di sudut. */}
+      {/* Latar dekoratif: titik halus + dua cahaya lembut di sudut. Dikurung
+          `overflow-hidden` supaya cahaya yang keluar tepi layar tidak menambah
+          tinggi dokumen — tanpa itu ada ±80 px ruang kosong di bawah footer. */}
       <div
-        className="landing-dots pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-0 overflow-hidden"
         aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -top-20 left-10 h-72 w-72 rounded-full bg-guru-100 opacity-60 blur-3xl"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -bottom-20 right-10 h-72 w-72 rounded-full bg-siswa-100 opacity-60 blur-3xl"
-        aria-hidden="true"
-      />
+      >
+        <div className="landing-dots absolute inset-0" />
+        <div className="absolute -top-20 left-10 h-72 w-72 rounded-full bg-guru-100 opacity-60 blur-3xl" />
+        <div className="absolute -bottom-20 right-10 h-72 w-72 rounded-full bg-siswa-100 opacity-60 blur-3xl" />
+      </div>
 
-      <header className="relative z-20 flex w-full shrink-0 items-center justify-center border-b-2 border-slate-900 bg-white px-6 py-3 shadow-sm">
-        <div className="flex select-none items-center gap-2.5 sm:gap-3.5">
-          <div className="flex h-9 w-9 shrink-0 -rotate-2 items-center justify-center rounded-xl border-2 border-slate-900 bg-guru-600 font-pixel text-lg text-white shadow-[2px_2px_0px_#0f172a]">
-            <i className="fa-solid fa-gamepad" aria-hidden="true" />
-          </div>
-
-          <span className="font-pixel text-2xl font-bold tracking-wider text-slate-900 sm:text-3xl">
-            Class Quest
-          </span>
-
-          <span className="shrink-0 rounded-lg border-2 border-slate-900 bg-slate-100 px-2 py-0.5 font-pixel text-[10px] font-bold tracking-wider text-slate-700 shadow-[2px_2px_0px_#0f172a] sm:text-xs">
-            EDU-OS v2.4
-          </span>
-        </div>
-      </header>
+      <AppHeader />
 
       <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-4 py-8 text-center">
         <div className="mb-5 max-w-2xl space-y-1">
@@ -217,19 +204,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="relative z-20 w-full shrink-0 border-t-2 border-slate-900 bg-white px-6 py-3 text-xs text-slate-500">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 sm:flex-row">
-          <p>
-            © 2026 <b className="text-slate-800">Class Quest Engine</b>.
-            Gamified Formal Learning System.
-          </p>
-          <div className="flex items-center gap-4 font-medium text-slate-600">
-            <span>Panduan</span>
-            <span aria-hidden="true">•</span>
-            <span>Pusat Bantuan</span>
-          </div>
-        </div>
-      </footer>
+      <AppFooter />
     </>
   );
 }

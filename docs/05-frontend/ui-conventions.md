@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -61,8 +61,10 @@ Halaman `/` memilih peran lewat dua kartu, jadi ia punya dua palet sendiri di
 | `guru-*`  | Portal Guru | Violet  | 600 `#7c3aed`, 700 `#6d28d9` |
 | `siswa-*` | Arena Siswa | Emerald | 500 `#10b981`, 600 `#059669` |
 
-Dipakai **hanya** di `/`; jangan mencampurnya ke form guru atau ke game. Kedua
-palet ini juga menandai asal tombol (violet = guru, emerald = siswa).
+Dipandang sebagai palet halaman peran (`/`) dan halaman 404 (`/_not-found`),
+karena keduanya memakai bahasa visual yang sama; jangan mencampurnya ke form guru
+atau ke game. Kedua palet ini juga menandai asal tombol (violet = guru, emerald =
+siswa).
 
 ## Tipografi
 
@@ -227,6 +229,9 @@ Aturan:
 ## Ikon
 
 - Gunakan SVG inline atau aset di `public/icons/`.
+- Logo brand **bukan** ikon: pakai `public/brand/classquest_logo.png` lewat
+  `next/image` (tinggi 48/56 px), jangan meniru dengan ikon Font Awesome + teks.
+  Lihat [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md#aset-brand-bukan-aset-game).
 - Ikon dekoratif: `aria-hidden="true"`.
 - Ikon yang berdiri sendiri sebagai tombol wajib punya `aria-label`.
 - Jangan mencampur banyak gaya ikon.

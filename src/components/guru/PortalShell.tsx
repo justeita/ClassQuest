@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -112,19 +113,20 @@ export function PortalShell({
     <div className="flex min-h-screen flex-col bg-slate-100 md:h-screen md:flex-row md:overflow-hidden">
       <aside className="z-30 flex w-full shrink-0 flex-col justify-between border-b border-slate-200 bg-white text-slate-800 shadow-md md:relative md:h-full md:w-64 md:border-b-0 md:border-r">
         <div>
-          <div className="flex items-center justify-between gap-3 border-b border-slate-200 p-4 md:justify-start md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-slate-900 bg-amber-400 font-pixel text-lg text-slate-900 shadow-[3px_3px_0px_#000]">
-                <i className="fa-solid fa-gamepad" aria-hidden />
-              </div>
-              <div>
-                <h2 className="font-pixel text-lg leading-tight tracking-wide text-brand-700">
-                  Class Quest
-                </h2>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  Teacher Portal
-                </p>
-              </div>
+          <div className="flex items-center border-b border-slate-200 p-4 md:p-5">
+            <div>
+              <Image
+                src="/brand/classquest_logo.png"
+                alt="Class Quest"
+                width={1809}
+                height={428}
+                priority
+                sizes="203px"
+                className="h-12 w-auto"
+              />
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Teacher Portal
+              </p>
             </div>
           </div>
 

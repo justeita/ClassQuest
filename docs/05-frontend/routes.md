@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -25,6 +25,7 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 | `/guru/game`                     | Guru    | Dinamis | Koleksi game edukasi                     |
 | `/play/[storyId]`                | Publik* | Dinamis | Game siswa (termasuk layar hasil)        |
 | `/game`                          | Publik  | Client  | Demo Phaser; pintu siswa sementara       |
+| `/_not-found`                    | Publik  | Statis  | Halaman 404 (`src/app/not-found.tsx`)    |
 
 \* Publik tapi hanya untuk cerita `published`; kalau tidak ada → `notFound()`.
 
@@ -223,6 +224,21 @@ Game **tidak** memakai layout guru. Ia memakai halaman sendiri yang fullscreen
 | Job gagal                      | Halaman detail dengan alasan + tombol coba lagi                |
 | Error server                   | `error.tsx` per segmen, pesan ramah + tombol ulang             |
 | Loading                        | `loading.tsx`/`Suspense` dengan skeleton, bukan spinner kosong |
+
+### Halaman 404
+
+`src/app/not-found.tsx` adalah satu-satunya halaman 404. Ia melayani URL yang
+tidak cocok dengan route mana pun, `notFound()` dari segmen mana pun, dan
+rewrite `/_not-found` di `src/proxy.ts`.
+
+Karena file itu berada di akar `app/`, ia dirender di dalam
+`src/app/layout.tsx` — **bukan** di dalam layout `(landing)` atau `guru`. Font
+Inter/Plus Jakarta/Pixelify dan ikon Font Awesome karena itu dimuat di file itu
+sendiri. Tampilannya mengikuti tema halaman peran (`/`): latar titik, kartu
+pixel, dan tautan ke dua pintu. Kepala dan kaki halaman memakai komponen bersama
+`src/components/brand/AppHeader.tsx` dan `AppFooter.tsx` — jangan menyalin
+markahnya ke halaman ketiga. Jangan membuat halaman 404 kedua per area: satu
+tema 404 untuk seluruh aplikasi.
 
 Khusus `/play/[storyId]`: status `404` dihasilkan `src/proxy.ts` sebelum halaman
 dirender, karena route itu `◐` (App Shell terkirim lebih dulu) sehingga

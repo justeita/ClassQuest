@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -61,6 +61,10 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/(landing)/page.tsx`                      | ya   | Landing: pilih peran guru/siswa                                |
 | `src/app/(landing)/layout.tsx`                    | ya   | Font + ikon halaman pemilihan peran                            |
 | `src/app/layout.tsx`                              | ya   | Layout global                                                  |
+| `src/app/not-found.tsx`                           | ya   | Halaman 404 global, tema halaman peran (`/`)                   |
+| `src/app/not-found.test.tsx`                      | ya   | Tes halaman 404 (judul + tautan keluar)                        |
+| `src/components/brand/AppHeader.tsx`              | ya   | Kepala halaman bersama `/` dan 404                             |
+| `src/components/brand/AppFooter.tsx`              | ya   | Kaki halaman bersama `/` dan 404                               |
 | `src/app/(landing)/page.test.tsx`                 | ya   | Test halaman pemilihan peran                                   |
 | `docs/02-data-model/story.example.json`           | ya   | Cerita contoh (fixture)                                        |
 | `docs/02-data-model/story.schema.json`            | ya   | Kontrak cerita versi mesin                                     |
@@ -178,6 +182,10 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/server/jobs/status.ts`                       | ya   | Status job untuk polling + `getLatestJobId`                    |
 | `src/server/jobs/status.test.ts`                  | ya   | Tes pencarian job terbaru milik guru                           |
 | `public/assets`                                   | ya   | File aset game (dibuat `bun run assets:generate`)              |
+| `public/brand`                                    | ya   | Logo + ikon brand (bukan aset game, tanpa id manifest)         |
+| `src/app/favicon.ico`                             | ya   | Favicon 16/32/48 px dari ikon brand                            |
+| `src/app/icon.png`                                | ya   | Ikon aplikasi 192×192                                          |
+| `src/app/apple-icon.png`                          | ya   | `apple-touch-icon` 192×192                                     |
 | `scripts/generate-assets.mjs`                     | ya   | Generator aset pixel + audio, tanpa dependensi                 |
 | `scripts/dev-publish.ts`                          | ya   | Script dev penerbit cerita                                     |
 
