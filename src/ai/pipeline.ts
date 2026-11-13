@@ -25,7 +25,13 @@
 
 import { buildFallbackStory } from "../story/fallback";
 import { STORY_SCHEMA_VERSION } from "../story/schema";
-import type { Challenge, Chapter, Character, Story } from "../story/schema";
+import type {
+  Challenge,
+  Chapter,
+  Character,
+  Story,
+  StoryFlag,
+} from "../story/schema";
 import type { AssetManifest } from "../story/validate";
 import { validateStory } from "../story/validate";
 import { validateChapter, validateOutline } from "../story/validate-parts";
@@ -263,6 +269,55 @@ export type AssembleOptions = {
 };
 
 /**
+ * Deklarasi flag yang dipakai chapter.
+ *
+ * Prompt tidak mengajarkan `onWrong`/`textVariants` (lihat task 25b), jadi
+ * cerita biasa tetap tanpa `flags` dan bentuknya sama persis seperti sebelum
+ * fitur bercabang ada. Fixture mock (dan model yang kelak memakai field itu)
+ * mendapat deklarasi otomatis di sini; nilai awalnya `false` supaya teks utama
+ * dipakai sampai siswa menjawab salah. Urutan mengikuti kemunculan pertama,
+ * sehingga hasilnya deterministik.
+ */
+const collectFlags = (
+  chapters: readonly Chapter[],
+): StoryFlag[] | undefined => {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  const add = (value: unknown) => {
+    if (typeof value !== "string" || value.length === 0) return;
+    if (seen.has(value)) return;
+    seen.add(value);
+    ids.push(value);
+  };
+
+  for (const chapter of chapters) {
+    for (const scene of chapter?.scenes ?? []) {
+      for (const beat of scene?.beats ?? []) {
+        if (beat?.type === "dialogue") {
+          for (const variant of beat.textVariants ?? []) {
+            add(variant?.when?.flag);
+          }
+        } else if (beat?.type === "challenge") {
+          for (const flagId of Object.keys(beat.onWrong?.setFlags ?? {})) {
+            add(flagId);
+          }
+          for (const detour of beat.onWrong?.detour ?? []) {
+            if (detour?.type !== "dialogue") continue;
+            for (const variant of detour.textVariants ?? []) {
+              add(variant?.when?.flag);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return ids.length === 0
+    ? undefined
+    : ids.map((id) => ({ id, default: false }));
+};
+
+/**
  * Gabungkan chapter menjadi `Story` yang siap divalidasi.
  *
  * Yang dibangun di sini dan tidak pernah dipercayakan ke model:
@@ -296,6 +351,7 @@ export function assemble(
 
   const chapters = [...parts.chapters];
   const challenges = [...parts.challenges];
+  const flags = collectFlags(chapters);
   const gaps = normalizeGaps([
     ...(outline.gaps ?? []),
     ...(options.gaps ?? []),
@@ -323,6 +379,7 @@ export function assemble(
     chapters,
     challenges,
     assetUsage: computeAssetUsage(chapters, cast),
+    ...(flags === undefined ? {} : { flags }),
   };
 }
 

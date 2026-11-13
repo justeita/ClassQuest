@@ -222,6 +222,99 @@ describe("bentuk cerita cadangan", () => {
   });
 });
 
+describe("percabangan cerita cadangan", () => {
+  /** Semua beat `challenge` dari seluruh scene, dengan tipe yang menyempit. */
+  const challengeBeats = (story: ReturnType<typeof build>) =>
+    story.chapters.flatMap((chapter) =>
+      chapter.scenes.flatMap((scene) =>
+        scene.beats.filter(
+          (beat): beat is Extract<typeof beat, { type: "challenge" }> =>
+            beat.type === "challenge",
+        ),
+      ),
+    );
+
+  it("mendeklarasikan paling banyak dua flag flg_* dan tetap valid", () => {
+    const { story, result } = check({ concepts: CONCEPTS });
+
+    expect(result.ok).toBe(true);
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toEqual([]);
+
+    const flags = story.flags ?? [];
+    expect(flags.length).toBeGreaterThan(0);
+    expect(flags.length).toBeLessThanOrEqual(2);
+    for (const flag of flags) {
+      expect(flag.id).toMatch(/^flg_[a-z0-9_]+$/);
+      expect(flag.default).toBe(false);
+    }
+  });
+
+  it("memberi minimal satu onWrong pada tantangan chapter pertama", () => {
+    const { story } = check({ concepts: CONCEPTS });
+    const withOnWrong = challengeBeats(story).filter((beat) => beat.onWrong);
+
+    // Syarat task: fallback harus memuat minimal satu onWrong supaya fitur
+    // bercabang bisa didemokan tanpa AI.
+    expect(withOnWrong.length).toBeGreaterThanOrEqual(1);
+
+    for (const beat of withOnWrong) {
+      expect(beat.maxAttempts).toBe(2);
+      expect(beat.onWrong?.retryQuestions).toHaveLength(1);
+      expect(beat.onWrong?.retryQuestions?.[0]?.length ?? 0).toBeGreaterThan(0);
+
+      const detour = beat.onWrong?.detour ?? [];
+      expect(detour.length).toBeGreaterThanOrEqual(1);
+      expect(detour.length).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it("menyalakan flag yang dideklarasikan lewat setFlags", () => {
+    const { story } = check({ concepts: CONCEPTS });
+    const declared = new Set((story.flags ?? []).map((flag) => flag.id));
+
+    for (const beat of challengeBeats(story)) {
+      for (const flagId of Object.keys(beat.onWrong?.setFlags ?? {})) {
+        expect(declared.has(flagId), flagId).toBe(true);
+      }
+    }
+  });
+
+  it("memakai textVariants yang bereaksi pada flag terdeklarasi", () => {
+    const { story } = check({ concepts: CONCEPTS });
+    const declared = new Set((story.flags ?? []).map((flag) => flag.id));
+    const used = new Set<string>();
+
+    for (const chapter of story.chapters) {
+      for (const scene of chapter.scenes) {
+        for (const beat of scene.beats) {
+          if (beat.type !== "dialogue") continue;
+          for (const variant of beat.textVariants ?? []) {
+            used.add(variant.when.flag);
+          }
+        }
+      }
+    }
+
+    expect(used.size).toBeGreaterThan(0);
+    for (const flagId of used) expect(declared.has(flagId), flagId).toBe(true);
+  });
+
+  it("detour hanya memakai speaker yang sudah ada di cast", () => {
+    const { story } = check({ concepts: CONCEPTS });
+    const speakerIds = new Set(story.cast.map((character) => character.id));
+
+    for (const beat of challengeBeats(story)) {
+      for (const detourBeat of beat.onWrong?.detour ?? []) {
+        if (detourBeat.type !== "dialogue") continue;
+        expect(speakerIds.has(detourBeat.speakerId), detourBeat.speakerId).toBe(
+          true,
+        );
+      }
+    }
+  });
+});
+
 describe("determinisme dan kemurnian", () => {
   it("dua panggilan dengan input sama menghasilkan cerita yang sama", () => {
     const input: FallbackStoryInput = {

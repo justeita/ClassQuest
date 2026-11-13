@@ -158,6 +158,29 @@ describe("jalur bahagia", () => {
     expectValid(result);
   });
 
+  it("membawa percabangan fixture ke Story tanpa jatuh ke fallback", async () => {
+    const result = await run(happy());
+
+    expect(result.usedFallback).toBe(false);
+    expectValid(result);
+
+    // `assemble` menurunkan deklarasi flag dari pemakaian nyata di chapter,
+    // karena draft chapter tidak boleh mendeklarasikan `flags` sendiri.
+    expect(result.story.flags?.map((flag) => flag.id)).toEqual([
+      "flg_salah_daun",
+      "flg_salah_hijau",
+    ]);
+
+    const onWrong = result.story.chapters
+      .flatMap((chapter) => chapter.scenes)
+      .flatMap((scene) => scene.beats)
+      .filter(
+        (beat) => beat.type === "challenge" && beat.onWrong !== undefined,
+      );
+
+    expect(onWrong.length).toBeGreaterThanOrEqual(1);
+  });
+
   it("menghitung assetUsage di kode, urut dan tanpa duplikat", async () => {
     const result = await run(happy());
 
@@ -539,5 +562,47 @@ describe("assemble", () => {
     expect(story.source.concepts).toEqual(outline.concepts);
     expect(story.meta.id).toBe(META.id);
     expect(story.chapters).toHaveLength(3);
+  });
+
+  it("menurunkan flags dari percabangan chapter, urut kemunculan pertama", () => {
+    const outline = json<Parameters<typeof assemble>[0]>("outline/valid.json");
+    const payloads = ["chapter/valid.json", "chapter/ch_02.json"].map((path) =>
+      json<{
+        chapter: Story["chapters"][number];
+        challenges: Story["challenges"];
+      }>(path),
+    );
+
+    const story = assemble(
+      outline,
+      {
+        chapters: payloads.map((payload) => payload.chapter),
+        challenges: payloads.flatMap((payload) => payload.challenges),
+      },
+      { meta: META },
+    );
+
+    expect(story.flags).toEqual([
+      { id: "flg_salah_daun", default: false },
+      { id: "flg_salah_hijau", default: false },
+    ]);
+  });
+
+  it("tidak menambah flags bila tidak ada percabangan sama sekali", () => {
+    const outline = json<Parameters<typeof assemble>[0]>("outline/valid.json");
+    const payload = json<{
+      chapter: Story["chapters"][number];
+      challenges: Story["challenges"];
+    }>("chapter/ch_03.json");
+
+    const story = assemble(
+      outline,
+      { chapters: [payload.chapter], challenges: payload.challenges },
+      { meta: META },
+    );
+
+    // Cerita biasa (tanpa onWrong/textVariants) berbentuk sama persis seperti
+    // sebelum fitur bercabang ada.
+    expect("flags" in story).toBe(false);
   });
 });
