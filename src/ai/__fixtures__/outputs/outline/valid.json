@@ -5,22 +5,22 @@
   "concepts": ["Fotosintesis", "Klorofil", "Glukosa"],
   "cast": [
     {
-      "id": "char_nara",
+      "id": "char_mc",
       "name": "Nara",
       "role": "player",
-      "spriteId": "char_nara"
+      "spriteId": "char_mc"
     },
     {
-      "id": "char_pak_bima",
+      "id": "char_npc_10",
       "name": "Pak Bima",
       "role": "mentor",
-      "spriteId": "char_pak_bima"
+      "spriteId": "char_npc_10"
     },
     {
-      "id": "char_tirta",
+      "id": "char_npc_1",
       "name": "Tirta",
       "role": "npc",
-      "spriteId": "char_tirta"
+      "spriteId": "char_npc_1"
     }
   ],
   "chapters": [
