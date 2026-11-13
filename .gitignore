@@ -30,6 +30,8 @@
 # misc
 .DS_Store
 *.pem
+# skrip coba-coba pemilik repo, tidak ikut di-commit
+/scripts/build-nino-sprite.mjs
 
 # debug
 npm-debug.log*

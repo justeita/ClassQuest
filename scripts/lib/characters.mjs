@@ -19,8 +19,8 @@ import { PALETTE, RAMP } from "./palette.mjs";
 
 export const FRAME_WIDTH = 24;
 export const FRAME_HEIGHT = 32;
-/** 2 idle + 2 jalan × 8 arah. */
-export const FRAME_COUNT = 18;
+/** Satu frame per arah hadap. */
+export const FRAME_COUNT = 8;
 
 const OUTLINE = PALETTE.ink;
 
@@ -444,26 +444,20 @@ function buildSpiritFrame(recipe, dir, step) {
 /* Sheet                                                                      */
 /* -------------------------------------------------------------------------- */
 
-/** Susunan frame: idle 2, jalan bawah, atas, kiri, kanan — masing-masing 2. */
+/**
+ * Satu frame per arah (tanpa animasi jalan), mengikuti urutan editor peta:
+ * depan, depan-kanan, kanan, belakang-kanan, belakang, belakang-kiri, kiri,
+ * depan-kiri. Semua frame memakai pose berdiri (`step: null`).
+ */
 const FRAME_PLAN = [
-  { dir: "down", step: null, alt: false },
-  { dir: "down", step: null, alt: true },
-  { dir: "down", step: 0 },
-  { dir: "down", step: 1 },
-  { dir: "up", step: 0 },
-  { dir: "up", step: 1 },
-  { dir: "left", step: 0 },
-  { dir: "left", step: 1 },
-  { dir: "right", step: 0 },
-  { dir: "right", step: 1 },
-  { dir: "down-left", step: 0 },
-  { dir: "down-left", step: 1 },
-  { dir: "down-right", step: 0 },
-  { dir: "down-right", step: 1 },
-  { dir: "up-left", step: 0 },
-  { dir: "up-left", step: 1 },
-  { dir: "up-right", step: 0 },
-  { dir: "up-right", step: 1 },
+  { dir: "down" },
+  { dir: "down-right" },
+  { dir: "right" },
+  { dir: "up-right" },
+  { dir: "up" },
+  { dir: "up-left" },
+  { dir: "left" },
+  { dir: "down-left" },
 ];
 
 /** Sisi kanan digambar sebagai cermin kiri (termasuk diagonal). */
@@ -498,8 +492,8 @@ export function characterSheet(name) {
   FRAME_PLAN.forEach((plan, index) => {
     const grid =
       recipe.hairStyle === "spirit"
-        ? buildSpiritFrame(recipe, plan.dir, plan.step)
-        : buildHumanFrame(recipe, plan.dir, plan.step);
+        ? buildSpiritFrame(recipe, plan.dir, plan.step ?? null)
+        : buildHumanFrame(recipe, plan.dir, plan.step ?? null);
     const frame =
       CERMIN.has(plan.dir) && recipe.hairStyle !== "spirit"
         ? grid.mirrored()
@@ -527,7 +521,7 @@ export function characterDefaultSheet() {
   };
   const sheet = createCanvas(FRAME_WIDTH * FRAME_COUNT, FRAME_HEIGHT);
   FRAME_PLAN.forEach((plan, index) => {
-    const grid = buildHumanFrame(recipe, plan.dir, plan.step);
+    const grid = buildHumanFrame(recipe, plan.dir, plan.step ?? null);
     const frame = CERMIN.has(plan.dir) ? grid.mirrored() : grid;
     paintFrame(sheet, frame, index * FRAME_WIDTH, plan.alt === true);
   });

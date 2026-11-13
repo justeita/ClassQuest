@@ -1,20 +1,22 @@
 #!/usr/bin/env bun
 /**
- * Membuat ulang seluruh aset game di `public/assets/`.
+ * Membuat ulang aset generik ClassQuest di `public/assets/`.
  *
  *   bun run assets:generate            # gambar + audio
  *   bun run assets:generate -- --only=image
  *   bun run assets:generate -- --only=audio
+ *
+ * Yang dibuat di sini hanya aset **generik**: latar default, siluet karakter
+ * default, panel UI, dan efek suara. Karakter desa, potret, peta, dan lagu
+ * berasal dari paket aset pemilik proyek dan disalin oleh
+ * `scripts/import-world.mjs`; berkasnya tidak boleh ditimpa generator.
  *
  * Gambar digambar dengan kanvas piksel di `scripts/lib/` (tanpa dependensi,
  * deterministik). Audio disintesis ke WAV lalu dienkode ke OGG memakai ffmpeg:
  * variabel lingkungan `FFMPEG` bila ada, kalau tidak `ffmpeg` dari PATH.
  *
  * Aturan: hasil gambar harus identik kotak demi kotak bila dijalankan ulang,
- * jadi tidak ada waktu, locale, atau PRNG tanpa benih di dalamnya. Audio
- * disintesis deterministik, tetapi berkas OGG tidak dijamin byte-identik antar
- * versi ffmpeg (encoder menulis string vendor sendiri) — yang di-commit adalah
- * hasil sekali jadi, bukan hasil yang dihitung ulang saat build.
+ * jadi tidak ada waktu, locale, atau PRNG tanpa benih di dalamnya.
  */
 
 import { spawnSync } from "node:child_process";
@@ -23,54 +25,14 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { encodePng } from "./lib/pixel.mjs";
-import {
-  backgroundDefault,
-  classroomDay,
-  cloudSky,
-  libraryEvening,
-  mountainNight,
-  riverDay,
-  schoolyardDay,
-  schoolyardEvening,
-} from "./lib/scenes.mjs";
+import { backgroundDefault } from "./lib/scenes.mjs";
 import {
   characterDefaultSheet,
-  characterSheet,
   defaultPanel,
-  portrait,
   portraitFrame,
   textboxPanel,
 } from "./lib/characters.mjs";
-import {
-  propBlackboard,
-  propDefault,
-  propDesk,
-  propFence,
-  propPond,
-  propTree,
-  tileCanopy,
-  tileDefault,
-  tileFloorCloud,
-  tileFloorCorridor,
-  tileFloorGrass,
-  tileFloorRock,
-  tileFloorWater,
-  tileFloorWood,
-  tileWallHedge,
-  tileWallPlaster,
-  tileWallRock,
-} from "./lib/tiles.mjs";
-import {
-  musicAdventure,
-  musicDefault,
-  musicEnding,
-  musicMystery,
-  musicSchoolCalm,
-  sfxClick,
-  sfxCorrect,
-  sfxPage,
-  sfxWrong,
-} from "./lib/audio.mjs";
+import { sfxClick, sfxCorrect, sfxPage, sfxWrong } from "./lib/audio.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC = join(ROOT, "public");
@@ -80,57 +42,14 @@ const PUBLIC = join(ROOT, "public");
 /* -------------------------------------------------------------------------- */
 
 const IMAGES = [
-  ["bg/classroom_day.png", classroomDay],
-  ["bg/schoolyard_day.png", schoolyardDay],
-  ["bg/schoolyard_evening.png", schoolyardEvening],
-  ["bg/cloud_sky.png", cloudSky],
-  ["bg/mountain_night.png", mountainNight],
-  ["bg/river_day.png", riverDay],
-  ["bg/library_evening.png", libraryEvening],
   ["bg/default.png", backgroundDefault],
-  ["char/nara.png", () => characterSheet("nara")],
-  ["char/pak_bima.png", () => characterSheet("bima")],
-  ["char/tirta.png", () => characterSheet("tirta")],
-  ["char/rani.png", () => characterSheet("rani")],
-  ["char/nino.png", () => characterSheet("nino")],
   ["char/default.png", characterDefaultSheet],
-  ["portrait/nara.png", () => portrait("nara")],
-  ["portrait/pak_bima.png", () => portrait("bima")],
-  ["portrait/tirta.png", () => portrait("tirta")],
-  ["portrait/rani.png", () => portrait("rani")],
-  ["portrait/nino.png", () => portrait("nino")],
   ["ui/textbox.png", textboxPanel],
   ["ui/portrait_frame.png", portraitFrame],
   ["ui/default.png", defaultPanel],
-
-  /* Tile lantai dan dinding (map top-down, ADR 0010) */
-  ["tile/floor_wood.png", tileFloorWood],
-  ["tile/floor_grass.png", tileFloorGrass],
-  ["tile/floor_cloud.png", tileFloorCloud],
-  ["tile/floor_rock.png", tileFloorRock],
-  ["tile/floor_water.png", tileFloorWater],
-  ["tile/floor_corridor.png", tileFloorCorridor],
-  ["tile/wall_plaster.png", tileWallPlaster],
-  ["tile/wall_hedge.png", tileWallHedge],
-  ["tile/wall_rock.png", tileWallRock],
-  ["tile/canopy.png", tileCanopy],
-  ["tile/default.png", tileDefault],
-
-  /* Prop padat dengan collider dari data yang sama */
-  ["prop/desk.png", propDesk],
-  ["prop/blackboard.png", propBlackboard],
-  ["prop/tree.png", propTree],
-  ["prop/fence.png", propFence],
-  ["prop/pond.png", propPond],
-  ["prop/default.png", propDefault],
 ];
 
 const AUDIO = [
-  ["music/school_calm.ogg", musicSchoolCalm],
-  ["music/adventure.ogg", musicAdventure],
-  ["music/mystery.ogg", musicMystery],
-  ["music/ending.ogg", musicEnding],
-  ["music/default.ogg", musicDefault],
   ["sfx/click.ogg", sfxClick],
   ["sfx/correct.ogg", sfxCorrect],
   ["sfx/wrong.ogg", sfxWrong],
@@ -203,9 +122,8 @@ function writeAudio(relativePath, factory, binary) {
 
   const sampleRate = 44100;
   const wav = toWav(factory(sampleRate), sampleRate);
-  const isMusic = relativePath.startsWith("music/");
 
-  // Musik: Vorbis kualitas 5 (~100 kbps mono) sesuai asset-guide 96–128.
+  // Efek suara pendek: Vorbis kualitas 3 (~64 kbps mono).
   const args = [
     "-hide_banner",
     "-loglevel",
@@ -218,7 +136,7 @@ function writeAudio(relativePath, factory, binary) {
     "-c:a",
     "libvorbis",
     "-q:a",
-    isMusic ? "5" : "3",
+    "3",
     "-ac",
     "1",
     target,
@@ -242,7 +160,7 @@ const only = process.argv
   .find((argument) => argument.startsWith("--only="))
   ?.slice("--only=".length);
 
-log("Membuat aset ClassQuest…");
+log("Membuat aset ClassQuest...");
 
 if (only !== "audio") {
   log("Gambar:");
