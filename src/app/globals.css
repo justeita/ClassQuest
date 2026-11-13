@@ -63,6 +63,18 @@
   }
 }
 
+/* Naik-turun sangat pelan untuk jendela game di hero `/`. Jaraknya 6 px supaya
+   terasa hidup tanpa mengalihkan perhatian dari judul dan tombol. */
+@keyframes landing-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
 /*
  * Panel tantangan duduk di atas dialog, bukan menutupi seluruh layar
  * (docs/05-frontend/game-player.md § Challenge). Nilai `--challenge-*` diisi
@@ -559,10 +571,21 @@ body {
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Latar titik halus. */
+/* Latar titik halus. Dipudarkan ke tepi supaya bagian tengah halaman tetap
+   jadi fokus dan tepi layar tidak terlihat seperti kertas kotak-kotak. */
 .landing-dots {
   background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
   background-size: 20px 20px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 75% 65% at 50% 40%,
+    #000 35%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 75% 65% at 50% 40%,
+    #000 35%,
+    transparent 100%
+  );
 }
 
 /* Kartu peran: bingkai tegas + bayangan padat. */
@@ -571,10 +594,63 @@ body {
   box-shadow: 4px 4px 0 #0f172a;
 }
 
+/* Panel besar bertema pixel: jendela "tangkapan layar" game di hero. Bayangan
+   lebih jauh daripada kartu peran supaya terbaca sebagai objek terdepan. */
+.landing-pixel-frame {
+  border: 2px solid #0f172a;
+  box-shadow: 8px 8px 0 #0f172a;
+}
+
+/* Bayangan padat kecil untuk kotak ikon, chip, dan penanda langkah. */
+.landing-pixel-shadow {
+  box-shadow: 2px 2px 0 #0f172a;
+}
+
+/* Garis pindai halus di atas tangkapan layar game: menandai bahwa panel itu
+   gambar permainan, bukan ilustrasi biasa. Sengaja sangat tipis (7% alfa). */
+.landing-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(15 23 42 / 0.07) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+/* Pita dua warna di tepi bawah kepala halaman dan tepi atas kaki halaman:
+   separuh violet (pintu guru), separuh emerald (pintu siswa). Peralihan warnanya
+   keras di tengah, bukan gradasi, supaya tetap terasa pixel dan tidak
+   menghasilkan warna ketiga yang keruh di tengah. */
+.landing-split-bar {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-guru-600) 0 50%,
+    var(--color-siswa-600) 50% 100%
+  );
+}
+
+/* Titik latar untuk kaki halaman gelap. Teksturnya sama dengan latar badan
+   halaman, tapi memudar ke bawah supaya baris hak cipta tetap bersih. */
+.landing-footer-dots {
+  background-image: radial-gradient(
+    rgb(148 163 184 / 0.16) 1px,
+    transparent 1px
+  );
+  background-size: 16px 16px;
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent 80%);
+  mask-image: linear-gradient(to bottom, #000, transparent 80%);
+}
+
 /* Tombol peran: terasa "masuk" saat ditekan. */
 .landing-btn-press {
   border: 2px solid #0f172a;
   box-shadow: 3px 3px 0 #0f172a;
+}
+
+/* Kartu langkah: permukaan putih yang terangkat sedikit saat disentuh kursor. */
+.landing-lift {
+  transition:
+    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -590,6 +666,10 @@ body {
       box-shadow 0.1s ease;
   }
 
+  .landing-bob {
+    animation: landing-bob 6s ease-in-out infinite;
+  }
+
   @media (hover: hover) {
     .landing-pixel-card:hover {
       transform: translateY(-3px);
@@ -599,6 +679,11 @@ body {
     .landing-btn-press:hover {
       transform: translate(-1px, -1px);
       box-shadow: 4px 4px 0 #0f172a;
+    }
+
+    .landing-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px -14px rgb(15 23 42 / 0.55);
     }
   }
 
@@ -610,13 +695,15 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .landing-pixel-card,
-  .landing-btn-press {
+  .landing-btn-press,
+  .landing-lift {
     transition: none;
   }
 
   .landing-pixel-card:hover,
   .landing-btn-press:hover,
-  .landing-btn-press:active {
+  .landing-btn-press:active,
+  .landing-lift:hover {
     transform: none;
   }
 }

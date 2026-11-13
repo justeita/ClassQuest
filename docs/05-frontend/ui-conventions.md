@@ -66,6 +66,62 @@ karena keduanya memakai bahasa visual yang sama; jangan mencampurnya ke form gur
 atau ke game. Kedua palet ini juga menandai asal tombol (violet = guru, emerald =
 siswa).
 
+### Struktur halaman pemilihan peran (`/`)
+
+Halaman `/` adalah kesan pertama juri, jadi isinya berurutan sesuai pertanyaan
+yang muncul: **ini apa** → **bagaimana caranya** → **saya masuk sebagai siapa**.
+
+| Bagian        | Isi                                                                       |
+| ------------- | ------------------------------------------------------------------------- |
+| Hero          | Label kecil, judul, ringkasan, tiga angka batas MVP (bab/tipe soal/menit) |
+| Cuplikan game | `GamePreview`: peta game asli + satu baris dialog, dibingkai gaya pixel   |
+| Alur          | Empat langkah: unggah PDF → AI menyusun → guru menyunting → siswa main    |
+| Pilih peran   | Dua kartu (Portal Guru, Arena Siswa) dengan potret karakter game          |
+
+Aturan bagian ini:
+
+- **Tunjukkan produknya.** Halaman ini tidak boleh hanya berisi teks dan kartu;
+  cuplikan game memakai berkas yang sudah ada di `public/assets/` (peta dan
+  potret). Tidak ada aset baru dan tidak ada `assetId` yang dikarang — memilih
+  aset untuk cerita tetap urusan manifest.
+- **Jangan menjanjikan fitur backlog.** Leaderboard, lencana, dan token kelas
+  belum ada di MVP ([`../00-product/mvp-scope.md`](../00-product/mvp-scope.md)),
+  jadi tidak boleh muncul sebagai fitur di kartu peran.
+- **Kelas khusus halaman ini** ada di bagian "Halaman pemilihan peran" pada
+  `src/app/globals.css`: `landing-pixel-card` (kartu peran), `landing-pixel-frame`
+  (panel besar seperti jendela game), `landing-pixel-shadow` (bayangan padat
+  kecil), `landing-scanlines` (garis pindai tipis di cuplikan game),
+  `landing-btn-press` (tombol), `landing-lift` (kartu langkah), `landing-bob`
+  (naik-turun pelan jendela game), `landing-split-bar` (pita dua warna di bingkai
+  halaman), dan `landing-footer-dots` (titik latar kaki halaman gelap). Jangan
+  menambah keyframes baru per komponen.
+- Semua gerak mengikuti aturan yang sama dengan portal guru: hanya
+  `transform`/`box-shadow`, hover khusus `@media (hover: hover)`, dan tanpa
+  gerak saat `prefers-reduced-motion: reduce`.
+
+### Bingkai halaman (`/` dan 404)
+
+`src/components/brand/AppHeader.tsx` dan `AppFooter.tsx` dipakai `/` dan 404,
+jadi keduanya harus tetap tampil sebagai satu bingkai:
+
+- **Kepala halaman** — logo di kiri, semboyan "Gamified Formal Learning" di kanan
+  (hanya layar `lg` ke atas), dan chip `LOGICODIX 2026` paling kanan. Tepi
+  bawahnya ditutup pita dua warna.
+- **Kaki halaman** — panel gelap `slate-900`, warna yang sama dengan kotak dialog
+  game, berisi ikon brand, nama produk, semboyan, penyelenggara kompetisi, hak
+  cipta, dan tautan "Kembali ke atas". Tautan itu memakai `href="#atas"`, dan
+  `id="atas"` dipasang di `AppHeader` supaya berlaku di kedua halaman.
+
+Aturan:
+
+- Pita `.landing-split-bar` hanya dipakai di dua tempat itu (tepi bawah kepala
+  halaman dan tepi atas kaki halaman). Warna terbagi rata: separuh `guru-600`,
+  separuh `siswa-600`, dengan peralihan keras di tengah — bukan gradasi, supaya
+  tidak muncul warna ketiga yang keruh.
+- Jangan menambah tautan peran di kaki halaman. Kartu peran sudah jadi jalan
+  masuknya, dan tautan kembar membuat halaman 404 punya dua tautan bernama sama
+  sehingga tes `getByRole` jadi ambigu.
+
 ## Tipografi
 
 | Peran               | Font                                                                 | Ukuran                                |
