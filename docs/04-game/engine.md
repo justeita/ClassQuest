@@ -293,14 +293,15 @@ state-nya dilakukan **saat render** (pola _storing information from previous
 renders_), sehingga kelas animasi sudah benar pada render yang sama dengan
 perubahan prop — kotak tidak berkedip memainkan animasi masuk dulu — dan hanya
 callback timer yang menyentuh state, jadi tidak ada render berantai saat pemain
-diam. NPC obrolan singkat tidak punya penanda, jadi kotaknya (`InteractHint.tsx`)
-muncul sendiri di atas papan nama sebagai pop-up (`animate-quest-pop`), bukan
-meluncur ke kanan, dan **dipusatkan** pada titik kaki NPC (`-translate-x-1/2`)
-supaya sejajar dengan papan nama di bawahnya. Bila pemberi quest ada di zona
-tetapi penandanya sedang jadi **beacon tepi layar**, tidak ada `!` di kepala NPC
-sehingga kotak `Space` kembali tampil sendiri. Animasi hanya jalan sekali per
-kemunculan: React memakai ulang kotak yang sama saat koordinatnya berubah tiap
-frame. Zona interaksi
+diam. Kotak yang tampil sendiri — obrolan singkat maupun kotak quest saat
+penandanya jadi **beacon tepi layar** — dirender `InteractHint.tsx` dan
+**selalu dipusatkan** pada titik kaki NPC (`-translate-x-1/2`), jadi lurus
+vertikal dengan papan nama dan karakter di bawahnya. Obrolan singkat muncul
+sebagai pop-up (`animate-quest-pop`), bukan meluncur ke kanan, karena tidak ada
+penanda untuk dituju; kotak quest yang tampil sendiri tetap meluncur keluar dari
+`!` (`animate-quest-slide-in`). Animasi hanya jalan sekali per kemunculan: React
+memakai ulang kotak yang sama saat koordinatnya berubah tiap frame. Zona
+interaksi
 memakai histeresis — masuk di 30 px, keluar di 38 px — supaya kotak tidak
 berkedip saat pemain berdiri di batas zona. Speaker disorot, beat `transition`
 fade otomatis, beat `challenge` dibuka sebagai overlay React.

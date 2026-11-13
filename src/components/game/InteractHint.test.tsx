@@ -15,7 +15,7 @@ describe("InteractHint", () => {
     expect(screen.getByText("Space")).toBeInTheDocument();
   });
 
-  it("menaruh kotak di kanan-bawah koordinat internal", () => {
+  it("memusatkan kotak di atas NPC", () => {
     render(
       <InteractHint hint={{ text: "Space", x: 320, y: 90, menempel: true }} />,
     );
@@ -25,9 +25,9 @@ describe("InteractHint", () => {
     expect(kotak?.style.left).toBe(persenLebar(320));
     expect(kotak?.style.top).toBe(persenTinggi(90));
     // Titik jangkar adalah sudut kiri-bawah: kotak naik ke atas titik itu dan
-    // tidak lagi digeser ke tengah, karena duduk di samping penanda "!".
+    // digeser setengah lebar supaya center, sejajar papan nama di bawahnya.
     expect(kotak?.className).toContain("-translate-y-full");
-    expect(kotak?.className).not.toContain("-translate-x-1/2");
+    expect(kotak?.className).toContain("-translate-x-1/2");
   });
 
   it("tidak menangkap klik supaya canvas tetap menerima input", () => {
@@ -98,8 +98,8 @@ describe("InteractHint", () => {
     );
   });
 
-  it("NPC obrolan singkat: kotak dipusatkan di atas nama", () => {
-    render(
+  it("selalu dipusatkan di atas nama, termasuk saat penanda jadi beacon", () => {
+    const { rerender } = render(
       <InteractHint
         hint={{ text: "Space", x: 320, y: 180, menempel: false }}
       />,
@@ -107,6 +107,15 @@ describe("InteractHint", () => {
 
     // Jangkar di tengah NPC, lalu digeser setengah lebar supaya center —
     // sejajar papan nama di bawahnya.
+    expect(screen.getByText("Space").parentElement?.className).toContain(
+      "-translate-x-1/2",
+    );
+
+    // Kotak quest yang tampil sendiri (penanda sedang jadi beacon tepi) juga
+    // dipusatkan, bukan digeser ke kanan seperti saat menempel pada `!`.
+    rerender(
+      <InteractHint hint={{ text: "Space", x: 320, y: 180, menempel: true }} />,
+    );
     expect(screen.getByText("Space").parentElement?.className).toContain(
       "-translate-x-1/2",
     );

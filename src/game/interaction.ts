@@ -1,4 +1,3 @@
-import { PENANDA } from "./layout";
 import { TINGGI_KARAKTER } from "./world/karakter";
 import type { WorldNpc } from "./world/types";
 
@@ -37,24 +36,12 @@ export const PROMPT_INTERAKSI = "Space";
 /**
  * Jarak dasar kotak prompt dari ubun-ubun sprite karakter, dalam piksel.
  *
- * Sama dengan `MARKER_OFFSET_Y` di `GameScene` (24 px): dasar kotak `Space`
- * jadi sejajar dengan dasar kotak `!`, dan karena tingginya pun sama
- * (`PENANDA.kotak`) kedua kotak terbaca sebagai satu widget. Papan nama NPC
- * yang lebih pendek tetap di bawah keduanya, jadi tidak ada yang tertutup.
+ * Sama dengan `MARKER_OFFSET_Y` di `GameScene` (24 px), jadi kotak `Space`
+ * berdiri sendiri duduk setinggi kotak `!`. Untuk pemberi quest, `NpcMarker`
+ * menempelkan kotak `Space` langsung di kanan `!`; `JARAK_PROMPT` dipakai kotak
+ * yang tampil sendiri di atas NPC (obrolan singkat atau beacon tepi).
  */
 export const JARAK_PROMPT = 24;
-
-/**
- * Geser kotak sampai tepi kirinya menyentuh tepi kanan kotak `!`.
- *
- * Penanda quest digambar di tengah NPC selebar `PENANDA.kotak`, jadi tepi
- * kanannya `PENANDA.kotak / 2` di kanan titik kaki. Dengan geseran itu kotak
- * `Space` duduk **rapat** di samping penanda dan tidak lagi terpisah celah.
- * Pemberi quest: `!` tetap tampil dan kotak meluncur keluar darinya
- * (`animate-quest-slide-in`). NPC obrolan singkat: tidak ada penanda, jadi
- * kotak muncul sendiri sebagai pop-up (`animate-quest-pop`).
- */
-export const GESER_PROMPT = PENANDA.kotak / 2;
 
 export type PromptHint = {
   text: string;
@@ -91,26 +78,25 @@ export function findNpcInZone(
 }
 
 /**
- * Posisi kotak prompt, dalam koordinat internal.
+ * Posisi kotak prompt yang tampil sendiri, dalam koordinat internal.
  * Sprite dijangkar di titik kaki, jadi ubun-ubunnya `TINGGI_KARAKTER` px di
  * atas titik itu.
  *
- * `menempel: true` (pemberi quest) menaruh kotak rapat di kanan penanda `!`.
- * `menempel: false` (obrolan singkat, tanpa penanda) menaruh kotak **di tengah**
- * NPC supaya sejajar dengan papan nama di bawahnya; komponen menambah
- * `-translate-x-1/2` untuk memusatkannya.
+ * `x` selalu di titik kaki NPC supaya kotak **center** di atas papan nama dan
+ * karakter; komponen (`InteractHint.tsx`) menambah `-translate-x-1/2`. Kotak
+ * yang menempel pada penanda `!` tidak memakai posisi ini — `NpcMarker.tsx`
+ * menaruhnya relatif terhadap `!` (`left-full`).
  */
 export function posisiPrompt(
   npcs: Pick<WorldNpc, "id" | "x" | "y">[],
   npcId: string,
-  menempel = true,
 ): PromptHint | null {
   const npc = npcs.find((entry) => entry.id === npcId);
   if (!npc) return null;
 
   return {
     text: PROMPT_INTERAKSI,
-    x: menempel ? npc.x + GESER_PROMPT : npc.x,
+    x: npc.x,
     y: npc.y - TINGGI_KARAKTER - JARAK_PROMPT,
   };
 }

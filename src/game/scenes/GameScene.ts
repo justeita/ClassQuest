@@ -516,10 +516,11 @@ export class GameScene extends Phaser.Scene {
     npcId: string,
     kamera: KameraView,
   ): PromptView | null {
-    // Hanya pemberi quest yang punya penanda `!`; promptnya menempel pada
-    // kotak itu. Obrolan singkat dipusatkan di atas nama NPC.
+    // `menempel` hanya membedakan animasi dan asal prompt. Kotak yang tampil
+    // sendiri (obrolan singkat maupun beacon tepi) selalu dipusatkan di atas
+    // NPC, jadi posisinya tidak bergantung pada status itu.
     const menempel = npcId === this.pemberiQuest;
-    const dunia = posisiPrompt(VILLAGE.npcs, npcId, menempel);
+    const dunia = posisiPrompt(VILLAGE.npcs, npcId);
     if (!dunia) return null;
     const layar = duniaKeLayar(kamera, dunia.x, dunia.y);
     return {
