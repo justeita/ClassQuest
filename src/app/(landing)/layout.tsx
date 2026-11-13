@@ -2,16 +2,17 @@ import { Inter, Pixelify_Sans, Plus_Jakarta_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 
 /**
- * Pembungkus halaman pemilihan peran (`/`).
+ * Pembungkus halaman publik bertema peran (`/` dan empat dokumen legal).
  *
- * Halaman ini punya bahasa visual sendiri (interaksi bergaya pixel, dua palet
- * peran guru/siswa) dan memakai Inter, Plus Jakarta Sans, serta Pixelify Sans.
- * Font sengaja dimuat di sini, bukan di `src/app/layout.tsx`, supaya halaman
- * siswa/game tidak ikut mengunduh tiga keluarga tambahan — pola yang sama
- * dipakai `src/app/guru/layout.tsx`.
+ * Halaman-halaman ini punya bahasa visual sendiri (interaksi bergaya pixel, dua
+ * palet peran guru/siswa) dan memakai Inter, Plus Jakarta Sans, serta Pixelify
+ * Sans. Font sengaja dimuat di sini, bukan di `src/app/layout.tsx`, supaya
+ * halaman siswa/game tidak ikut mengunduh tiga keluarga tambahan — pola yang
+ * sama dipakai `src/app/guru/layout.tsx`.
  *
- * Route group `(landing)` dipakai agar halaman tetap berada di `/` sambil punya
- * layout sendiri; lihat `docs/05-frontend/routes.md`.
+ * Route group `(landing)` dipakai agar halaman tetap berada di `/` (dan
+ * `/privasi`, `/syarat`, `/penafian`, `/cookie`) sambil punya layout sendiri;
+ * lihat `docs/05-frontend/routes.md`.
  */
 const inter = Inter({
   variable: "--font-inter",

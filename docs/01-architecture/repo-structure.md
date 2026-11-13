@@ -67,6 +67,15 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/components/brand/AppFooter.tsx`              | ya   | Kaki halaman bersama `/` dan 404                               |
 | `src/components/landing/GamePreview.tsx`          | ya   | Jendela cuplikan game di hero halaman peran                    |
 | `src/app/(landing)/page.test.tsx`                 | ya   | Test halaman pemilihan peran                                   |
+| `src/app/(landing)/privasi`                       | ya   | Halaman kebijakan privasi                                      |
+| `src/app/(landing)/syarat`                        | ya   | Halaman syarat & ketentuan                                     |
+| `src/app/(landing)/penafian`                      | ya   | Halaman penafian AI dan skor                                   |
+| `src/app/(landing)/cookie`                        | ya   | Halaman cookie dan penyimpanan lokal                           |
+| `src/app/(landing)/legal.test.tsx`                | ya   | Tes empat dokumen legal                                        |
+| `src/components/legal`                            | ya   | Kerangka halaman legal                                         |
+| `src/components/legal/LegalPage.tsx`              | ya   | Kerangka dokumen legal + navigasi                              |
+| `src/components/legal/LegalNav.tsx`               | ya   | Navigasi antar dokumen legal                                   |
+| `src/components/legal/LegalPrintButton.tsx`       | ya   | Tombol cetak dokumen legal                                     |
 | `docs/02-data-model/story.example.json`           | ya   | Cerita contoh (fixture)                                        |
 | `docs/02-data-model/story.schema.json`            | ya   | Kontrak cerita versi mesin                                     |
 | `docs/02-data-model/story-schema.test.ts`         | ya   | Tes schema vs dokumen                                          |

@@ -1,4 +1,21 @@
 import Image from "next/image";
+import Link from "next/link";
+
+/**
+ * Tautan dokumen legal. Ditempatkan di kaki halaman supaya keempat dokumen
+ * terjangkau dari halaman mana pun yang memakai `AppFooter` (`/`, 404, dan
+ * halaman legal sendiri), tanpa menambah menu di kepala halaman.
+ *
+ * Nama tautan sengaja berbeda dari tautan peran: dokumen ini bukan pintu masuk
+ * kedua ke `/guru` atau `/game`, dan namanya unik supaya tes `getByRole` di
+ * halaman 404 tidak ambigu.
+ */
+const TAUTAN_LEGAL = [
+  { href: "/privasi", label: "Kebijakan Privasi" },
+  { href: "/syarat", label: "Syarat & Ketentuan" },
+  { href: "/penafian", label: "Penafian" },
+  { href: "/cookie", label: "Cookie" },
+] as const;
 
 /**
  * Kaki halaman bertema halaman peran (`/`).
@@ -60,25 +77,42 @@ export function AppFooter() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col gap-2 border-t border-slate-800 pt-3 text-[11px] sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-center sm:text-left">
-            © 2026{" "}
-            <b className="font-semibold text-slate-200">Class Quest Engine</b>.
-            Gamified Formal Learning System.
-          </p>
-
-          {/* `#atas` menunjuk `id` pada `AppHeader`, jadi tautan ini bekerja di
-              semua halaman yang memakai kaki halaman ini. */}
-          <a
-            href="#atas"
-            className="inline-flex items-center justify-center gap-1.5 font-semibold text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300 sm:justify-end"
+        <div className="mt-4 flex flex-col gap-3 border-t border-slate-800 pt-3 text-[11px]">
+          <nav
+            aria-label="Tautan legal"
+            className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:justify-start"
           >
-            Kembali ke atas
-            <i
-              className="fa-solid fa-arrow-up text-[10px]"
-              aria-hidden="true"
-            />
-          </a>
+            {TAUTAN_LEGAL.map((tautan) => (
+              <Link
+                key={tautan.href}
+                href={tautan.href}
+                className="text-slate-400 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300"
+              >
+                {tautan.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-center sm:text-left">
+              © 2026{" "}
+              <b className="font-semibold text-slate-200">Class Quest Engine</b>
+              . Gamified Formal Learning System.
+            </p>
+
+            {/* `#atas` menunjuk `id` pada `AppHeader`, jadi tautan ini bekerja di
+                semua halaman yang memakai kaki halaman ini. */}
+            <a
+              href="#atas"
+              className="inline-flex items-center justify-center gap-1.5 font-semibold text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300 sm:justify-end"
+            >
+              Kembali ke atas
+              <i
+                className="fa-solid fa-arrow-up text-[10px]"
+                aria-hidden="true"
+              />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
