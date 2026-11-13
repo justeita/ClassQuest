@@ -20,6 +20,8 @@ type NpcMarkerProps = {
  *
  * Kedua bentuk memakai jangkar kiri-bawah yang sama. Jadi saat NPC melewati
  * batas layar, badge tidak melompat vertikal — hanya panahnya yang muncul.
+ * Mode tepi naik ke `z-30` supaya tidak tertutup HUD/kartu quest di pojok;
+ * elemennya `pointer-events-none`, jadi tombol di bawahnya tetap bisa diklik.
  *
  * Animasi naik-turun 2 px dibuat halus dan mati saat `prefers-reduced-motion`,
  * supaya tidak terasa seperti notifikasi berkedip.
@@ -30,7 +32,9 @@ export function NpcMarker({ marker }: NpcMarkerProps) {
 
   return (
     <div
-      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full font-game"
+      className={`pointer-events-none absolute -translate-x-1/2 -translate-y-full font-game ${
+        tepi ? "z-30" : "z-10"
+      }`}
       style={{ left: persenLebar(marker.x), top: persenTinggi(marker.y) }}
       data-tepi={tepi ? "true" : undefined}
       data-sudut={tepi ? String(sudut) : undefined}

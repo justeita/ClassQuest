@@ -17,6 +17,7 @@ describe("NpcMarker", () => {
 
     const pembungkus = badge().parentElement;
     expect(pembungkus?.className).toContain("-translate-y-full");
+    expect(pembungkus?.className).toContain("z-10");
     expect(pembungkus).not.toHaveAttribute("data-tepi");
     expect(badge().querySelector("svg")).toBeNull();
     expect(pembungkus?.style.left).toBe(persenLebar(200));
@@ -37,6 +38,8 @@ describe("NpcMarker", () => {
     // layar: kiri-bawah, dengan panah sebagai pembeda mode tepi.
     expect(pembungkus?.className).toContain("-translate-x-1/2");
     expect(pembungkus?.className).toContain("-translate-y-full");
+    // Di atas HUD/kartu quest di pojok, tetapi tetap tembus klik.
+    expect(pembungkus?.className).toContain("z-30");
 
     const panah = badge().querySelector("svg");
     expect(panah).not.toBeNull();
