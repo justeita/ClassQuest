@@ -1508,6 +1508,9 @@ const normalizeCharacter = (character: Character): Character => ({
   ...(character.description === undefined
     ? {}
     : { description: tidyText(character.description) }),
+  ...(character.smallTalk === undefined
+    ? {}
+    : { smallTalk: tidyText(character.smallTalk) }),
 });
 
 const normalizeScene = (scene: Scene): Scene => ({

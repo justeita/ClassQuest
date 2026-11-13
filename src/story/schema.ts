@@ -117,6 +117,11 @@ export const characterSchema = z.strictObject({
   role: characterRoleSchema,
   spriteId: nonEmptyId,
   description: boundedText(0, 160, "Deskripsi karakter").optional(),
+  /**
+   * Kalimat pendek yang diucapkan karakter saat diajak bicara **di luar**
+   * perannya di scene aktif. Opsional: karakter tanpa baris ini tetap diam.
+   */
+  smallTalk: boundedText(1, 240, "Obrolan singkat karakter").optional(),
 });
 
 export type Character = z.infer<typeof characterSchema>;

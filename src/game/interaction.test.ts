@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   findNpcInZone,
-  GESER_PROMPT,
   JARAK_PROMPT,
   posisiPrompt,
   ZONA_HISTERESIS,
@@ -38,10 +37,12 @@ describe("findNpcInZone", () => {
 });
 
 describe("posisiPrompt", () => {
-  it("menaruh chip di kanan penanda, di atas ubun-ubun NPC", () => {
+  it("memusatkan kotak di titik kaki NPC, di atas ubun-ubunnya", () => {
+    // Titik kaki dipakai apa adanya supaya kotak yang tampil sendiri center,
+    // sejajar papan nama dan karakter di bawahnya.
     expect(posisiPrompt(npcs, "a")).toEqual({
       text: "Space",
-      x: 100 + GESER_PROMPT,
+      x: 100,
       y: 100 - TINGGI_KARAKTER - JARAK_PROMPT,
     });
   });

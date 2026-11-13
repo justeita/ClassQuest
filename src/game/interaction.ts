@@ -7,19 +7,26 @@ import type { WorldNpc } from "./world/types";
  * Pencarian NPC berbasis jarak dari titik kaki — murni, tanpa fisika tambahan.
  *
  * Prompt "Space" tidak lagi digambar di canvas; modul ini hanya menghitung
- * posisinya. React (`InteractHint.tsx`) yang menggambar chip teksnya supaya
+ * posisinya. React (`InteractHint.tsx`) yang menggambar kotak teksnya supaya
  * tajam — lihat ADR 0007.
  */
 
-/** Jarak zona interaksi: 24 px dari titik kaki pemain ke titik kaki NPC. */
-export const ZONA_RADIUS = 24;
+/**
+ * Jarak zona interaksi: 30 px dari titik kaki pemain ke titik kaki NPC.
+ *
+ * Dinaikkan dari 24 px supaya pemain tidak perlu menempel persis ke sprite
+ * sebelum `Space` mau bekerja. Angkanya tetap di bawah satu lebar ubin
+ * (16 px) dikali dua, jadi dua NPC berdekatan tidak saling rebutan zona —
+ * yang diambil tetap yang terdekat.
+ */
+export const ZONA_RADIUS = 30;
 
 /**
- * Jarak tambahan sebelum chip `Space` hilang lagi.
+ * Jarak tambahan sebelum kotak `Space` hilang lagi.
  *
- * Tanpa histeresis, pemain yang berdiri tepat di batas 24 px membuat chip
- * berkedip: satu frame di dalam zona, frame berikutnya di luar. Chip baru
- * hilang setelah jaraknya melewati 32 px, jadi tampil-hilangnya tenang.
+ * Tanpa histeresis, pemain yang berdiri tepat di batas 30 px membuat kotak
+ * berkedip: satu frame di dalam zona, frame berikutnya di luar. Kotak baru
+ * hilang setelah jaraknya melewati 38 px, jadi tampil-hilangnya tenang.
  */
 export const ZONA_HISTERESIS = 8;
 
@@ -27,26 +34,18 @@ export const ZONA_HISTERESIS = 8;
 export const PROMPT_INTERAKSI = "Space";
 
 /**
- * Jarak chip prompt dari ubun-ubun sprite karakter, dalam piksel.
+ * Jarak dasar kotak prompt dari ubun-ubun sprite karakter, dalam piksel.
  *
- * Papan nama NPC digambar tepat di atas kepala (lihat `JARAK_NAMA` di
- * `GameScene`), jadi chip dinaikkan melewatinya: dengan 22 px chip duduk di
- * samping kotak `!` dan tidak menutupi nama.
+ * Sama dengan `MARKER_OFFSET_Y` di `GameScene` (24 px), jadi kotak `Space`
+ * berdiri sendiri duduk setinggi kotak `!`. Untuk pemberi quest, `NpcMarker`
+ * menempelkan kotak `Space` langsung di kanan `!`; `JARAK_PROMPT` dipakai kotak
+ * yang tampil sendiri di atas NPC (obrolan singkat atau beacon tepi).
  */
-export const JARAK_PROMPT = 22;
-
-/**
- * Geser chip ke kanan penanda `!`.
- *
- * Penanda quest tidak lagi disembunyikan saat pemain mendekat: `!` tetap di
- * atas kepala dan chip `Space` muncul di sampingnya. Dua tanda yang berdiri
- * sendiri-sendiri membuat indikator quest tidak berkedip hilang-muncul.
- */
-export const GESER_PROMPT = 14;
+export const JARAK_PROMPT = 24;
 
 export type PromptHint = {
   text: string;
-  /** Koordinat pusat chip dalam piksel internal 640×360. */
+  /** Koordinat sudut kiri-bawah kotak dalam piksel internal 640×360. */
   x: number;
   y: number;
 };
@@ -79,10 +78,14 @@ export function findNpcInZone(
 }
 
 /**
- * Posisi chip prompt di kanan penanda `!`, dalam koordinat internal.
+ * Posisi kotak prompt yang tampil sendiri, dalam koordinat internal.
  * Sprite dijangkar di titik kaki, jadi ubun-ubunnya `TINGGI_KARAKTER` px di
- * atas titik itu; chip diletakkan sedikit di atasnya dan digeser ke kanan
- * supaya tidak menutupi penanda quest.
+ * atas titik itu.
+ *
+ * `x` selalu di titik kaki NPC supaya kotak **center** di atas papan nama dan
+ * karakter; komponen (`InteractHint.tsx`) menambah `-translate-x-1/2`. Kotak
+ * yang menempel pada penanda `!` tidak memakai posisi ini — `NpcMarker.tsx`
+ * menaruhnya relatif terhadap `!` (`left-full`).
  */
 export function posisiPrompt(
   npcs: Pick<WorldNpc, "id" | "x" | "y">[],
@@ -93,7 +96,7 @@ export function posisiPrompt(
 
   return {
     text: PROMPT_INTERAKSI,
-    x: npc.x + GESER_PROMPT,
+    x: npc.x,
     y: npc.y - TINGGI_KARAKTER - JARAK_PROMPT,
   };
 }

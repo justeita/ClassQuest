@@ -122,6 +122,7 @@ type Character = {
   role: "player" | "mentor" | "npc" | "antagonist";
   spriteId: string; // harus ada di manifest, kind "character"
   description?: string; // 0..160 karakter
+  smallTalk?: string; // 1..240 karakter, obrolan singkat di luar peran
 };
 ```
 
@@ -131,6 +132,10 @@ Aturan:
 - Tepat **satu** `role: "player"`.
 - Minimal satu `mentor` (pemandu yang menyampaikan materi).
 - `id` tidak boleh duplikat.
+- `smallTalk` **opsional**. Kalau diisi, karakter itu bisa diajak bicara singkat
+  saat bukan pemberi quest scene aktif: satu kalimat di textbox, tanpa mengubah
+  urutan cerita. Karakter tanpa `smallTalk` tetap diam. Pipeline AI tidak wajib
+  mengisinya.
 
 ### `chapters`
 

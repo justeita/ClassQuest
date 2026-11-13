@@ -81,7 +81,7 @@ describe("storySchema menerima cerita contoh", () => {
 });
 
 describe("field opsional", () => {
-  it("menerima cerita tanpa points, hints, gaps, override scene, dan deskripsi", () => {
+  it("menerima cerita tanpa points, hints, gaps, override scene, deskripsi, dan obrolan", () => {
     const story = withExample((draft) => {
       for (const challenge of challenges(draft)) delete challenge.points;
       delete source(draft).gaps;
@@ -92,7 +92,10 @@ describe("field opsional", () => {
           delete scene.musicId;
         }
       }
-      for (const character of cast(draft)) delete character.description;
+      for (const character of cast(draft)) {
+        delete character.description;
+        delete character.smallTalk;
+      }
     });
 
     expect(storySchema.safeParse(story).success).toBe(true);

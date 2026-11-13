@@ -82,11 +82,17 @@ mempercepat dengan Space/Enter; jadwal otomatis dibatalkan saat bab dimulai ulan
 atau scene dihancurkan. Bab terakhir selesai juga lewat jalur ini: `advance()`
 dari `chapter_end` mengakhiri cerita dan memunculkan `ResultScreen`.
 
-Hanya NPC pemberi quest scene aktif yang bisa memicu dialog. Pemberi quest
-adalah pembicara `dialogue` pertama di scene yang ada di daftar NPC ruangan;
-bila tidak ada yang cocok, NPC pertama di ruangan dipakai agar alur tidak macet.
-NPC lain tetap berdiri sebagai penghalang, tetapi tidak memunculkan prompt dan
-tidak memulai scene yang sama.
+NPC pemberi quest scene aktif memulai deretan beat scene. Pemberi quest adalah
+pembicara `dialogue` pertama di scene yang ada di daftar NPC ruangan; bila tidak
+ada yang cocok, NPC pertama di ruangan dipakai agar alur tidak macet.
+
+NPC lain tetap bisa diajak bicara **singkat** bila `cast` memberi mereka
+`smallTalk` (ADR 0016): kotak `Space` yang sama bergaya seperti penanda quest,
+tetapi muncul sebagai pop-up di atas papan nama — **dipusatkan** sejajar nama,
+bukan meluncur ke kanan karena tidak ada `!` — lalu satu kalimat tampil di
+textbox tanpa menggeser posisi cerita. Setelah textbox ditutup, pemain kembali
+bebas berjalan. NPC tanpa `smallTalk` tetap berdiri sebagai penghalang dan tidak
+memunculkan prompt.
 
 Scene dan ruangan adalah dua hal berbeda. Scene adalah unit cerita, ruangan
 adalah unit peta (`roomId`). Beberapa scene boleh terjadi di ruangan yang sama;
@@ -100,18 +106,18 @@ tidak menyalin tipenya, hanya perilakunya.
 
 ## Aksi pengguna
 
-| Aksi                        | State       | Efek                                                       |
-| --------------------------- | ----------- | ---------------------------------------------------------- |
-| `W`/`A`/`S`/`D`, panah      | `explore`   | Gerakkan pemain 4 arah dalam ruangan                       |
-| `Space` / `Enter` dekat NPC | `explore`   | Mulai deretan beat scene (interaksi)                       |
-| Klik/tap di mana saja       | `dialog`    | Sedang mengetik → selesaikan teks; sudah → beat berikutnya |
-| `Space` / `Enter`           | `dialog`    | Sama seperti klik                                          |
-| `1`–`5`                     | `challenge` | Pilih opsi (belum submit)                                  |
-| `Enter`                     | `challenge` | Submit jawaban (bila ada pilihan)                          |
-| `Esc`                       | `dialog`    | Buka menu jeda                                             |
-| Klik "Lanjut"               | `dialog`    | Sama seperti klik di mana saja                             |
-| Klik "Ulangi chapter"       | `paused`    | Reset ke awal chapter, simpan progres                      |
-| `Tab` / tombol "Percepat"   | `dialog`    | Tahan: time-lapse beat sampai soal atau explore            |
+| Aksi                        | State       | Efek                                                                |
+| --------------------------- | ----------- | ------------------------------------------------------------------- |
+| `W`/`A`/`S`/`D`, panah      | `explore`   | Gerakkan pemain 4 arah dalam ruangan                                |
+| `Space` / `Enter` dekat NPC | `explore`   | Mulai deretan beat scene; NPC non-peran menampilkan obrolan singkat |
+| Klik/tap di mana saja       | `dialog`    | Sedang mengetik → selesaikan teks; sudah → beat berikutnya          |
+| `Space` / `Enter`           | `dialog`    | Sama seperti klik                                                   |
+| `1`–`5`                     | `challenge` | Pilih opsi (belum submit)                                           |
+| `Enter`                     | `challenge` | Submit jawaban (bila ada pilihan)                                   |
+| `Esc`                       | `dialog`    | Buka menu jeda                                                      |
+| Klik "Lanjut"               | `dialog`    | Sama seperti klik di mana saja                                      |
+| Klik "Ulangi chapter"       | `paused`    | Reset ke awal chapter, simpan progres                               |
+| `Tab` / tombol "Percepat"   | `dialog`    | Tahan: time-lapse beat sampai soal atau explore                     |
 
 Aturan input:
 

@@ -35,6 +35,7 @@ import {
 } from "../branching";
 import { buildChallengeView } from "../challengeView";
 import type { GameBus, NpcMarker, NpcNameplate, PromptView } from "../gameBus";
+import { npcBisaDiajak, petaObrolan } from "../npcTalk";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
 import { assetEntry, resolveSceneLook } from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
@@ -115,6 +116,8 @@ export class GameScene extends Phaser.Scene {
   private lanjutKeys?: Record<"space" | "enter", Phaser.Input.Keyboard.Key>;
   private runner: StoryRunner;
   private castNames: Map<string, string>;
+  /** Baris obrolan singkat per karakter (ADR 0016); kosong bila tidak ada. */
+  private readonly obrolan: Map<string, string>;
   private npcSprites = new Map<string, Phaser.GameObjects.Sprite>();
   /** Semua objek dunia (peta, potongan objek, NPC); dibangun sekali. */
   private duniaObjects: Phaser.GameObjects.GameObject[] = [];
@@ -150,8 +153,10 @@ export class GameScene extends Phaser.Scene {
   private tandaPrompt = "";
   private tandaMarker = "";
   private tandaNama = "";
-  /** Pemain sedang di zona interaksi pemberi quest (dengan histeresis). */
-  private pemberiQuestDekat = false;
+  /** Pemain sedang di zona NPC mana pun (dengan histeresis). */
+  private npcDekat = false;
+  /** NPC yang sedang berbicara singkat di luar perannya; null bila tidak ada. */
+  private obrolanAktif: string | null = null;
   /** Jadwal pembukaan bab berikutnya; dibatalkan saat "Ulangi chapter". */
   private jadwalBab?: Phaser.Time.TimerEvent;
 
@@ -164,6 +169,7 @@ export class GameScene extends Phaser.Scene {
     this.castNames = new Map(
       story.cast.map((member) => [member.id, member.name]),
     );
+    this.obrolan = petaObrolan(story.cast);
     const pemain =
       story.cast.find((member) => member.role === "player") ?? story.cast[0];
     this.playerId = pemain?.id ?? "";
@@ -257,6 +263,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number) {
+    // Obrolan singkat tidak mengubah posisi cerita: runner tetap di fase
+    // `explore`, jadi textbox maju di jalur yang sama seperti dialog biasa.
+    if (this.obrolanAktif) {
+      this.textbox?.tick(delta);
+      this.checkLanjutKeys();
+      return;
+    }
+
     // Time-lapse lewati berjalan selama tombol ditahan; diperiksa lebih dulu
     // supaya langkahnya tetap maju walau fase sempat berganti di antara frame.
     if (this.lewatiDitahan) this.perbaruiLewati(time);
@@ -348,9 +362,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Fase explore: gerak bebas, zona interaksi, dan pemicu dialog. Hanya NPC
-   * pemberi quest yang memunculkan prompt dan bisa memulai dialog; NPC lain
-   * tetap berdiri sebagai penghalang tanpa memicu scene yang sama.
+   * Fase explore: gerak bebas, zona interaksi, dan pemicu dialog.
+   *
+   * Pemberi quest memulai deretan beat scene. NPC lain yang punya
+   * `smallTalk` (ADR 0016) memunculkan prompt yang sama, tetapi interaksinya
+   * hanya satu kalimat singkat dan tidak menggeser posisi cerita. NPC tanpa
+   * keduanya tetap diam sebagai penghalang.
    */
   private updateExplore(delta: number) {
     if (this.player) {
@@ -359,23 +376,69 @@ export class GameScene extends Phaser.Scene {
       this.player.setDepth(this.player.y);
     }
 
-    // Histeresis: masuk zona di 24 px, keluar di 32 px. Tanpa ini pemain yang
-    // berdiri di batas zona membuat chip Space berkedip tiap frame.
-    const radius = this.pemberiQuestDekat
-      ? ZONA_RADIUS + ZONA_HISTERESIS
-      : ZONA_RADIUS;
+    // Histeresis: masuk zona di 30 px, keluar di 38 px. Tanpa ini pemain yang
+    // berdiri di batas zona membuat kotak Space berkedip tiap frame.
+    const radius = this.npcDekat ? ZONA_RADIUS + ZONA_HISTERESIS : ZONA_RADIUS;
     const dekat = this.player
-      ? findNpcInZone(VILLAGE.npcs, this.player.x, this.player.y, radius)
+      ? findNpcInZone(
+          npcBisaDiajak(VILLAGE.npcs, this.pemberiQuest, this.obrolan),
+          this.player.x,
+          this.player.y,
+          radius,
+        )
       : null;
-    this.pemberiQuestDekat = dekat !== null && dekat === this.pemberiQuest;
-    const npcId = this.pemberiQuestDekat ? this.pemberiQuest : null;
+    this.npcDekat = dekat !== null;
 
-    this.perbaruiPetunjuk(npcId);
+    this.perbaruiPetunjuk(dekat);
 
-    if (npcId && this.lanjutKeysBaruDitekan()) {
+    if (!dekat || !this.lanjutKeysBaruDitekan()) return;
+
+    // Debounce yang sama dengan dialog: menahan Space tidak memicu obrolan
+    // berulang tiap frame setelah textbox ditutup.
+    if (this.time.now - this.lastAdvance < DEBOUNCE_MS) return;
+    this.lastAdvance = this.time.now;
+
+    if (dekat === this.pemberiQuest) {
       this.runner.interact();
       this.presentBeat();
+      return;
     }
+
+    const teks = this.obrolan.get(dekat);
+    if (teks) this.mulaiObrolan(dekat, teks);
+  }
+
+  /**
+   * Buka obrolan singkat NPC di luar perannya (ADR 0016).
+   *
+   * Satu kalimat saja, memakai textbox dan portrait yang sama dengan dialog
+   * cerita. Runner tidak disentuh: setelah textbox ditutup, pemain kembali
+   * bebas berjalan di scene yang sama.
+   */
+  private mulaiObrolan(npcId: string, teks: string) {
+    this.obrolanAktif = npcId;
+    this.sembunyikanPetunjuk();
+    this.sorotSpeaker(npcId);
+
+    const nama = this.castNames.get(npcId) ?? npcId;
+    this.textbox?.show({
+      name: nama,
+      text: teks,
+      portraitKey: this.portraitKey(npcId),
+    });
+    this.bus?.emit({
+      type: "log",
+      name: nama,
+      text: teks,
+      sceneJudul: this.runner.getState().sceneJudul,
+    });
+  }
+
+  /** Tutup obrolan singkat; prompt muncul lagi pada frame berikutnya. */
+  private tutupObrolan() {
+    this.obrolanAktif = null;
+    this.textbox?.hide();
+    this.sorotSpeaker(null);
   }
 
   /** Satu langkah gerak: hitung titik kaki baru, lalu gambar sesuai arah. */
@@ -419,8 +482,8 @@ export class GameScene extends Phaser.Scene {
     this.emitPrompt(npcId ? this.posisiPromptLayar(npcId, kamera) : null);
     this.emitNametags(kamera);
 
-    // Penanda "!" tetap tampil walau pemain sudah di zona interaksi. Chip
-    // Space muncul di sampingnya (lihat `posisiPrompt`), jadi indikator quest
+    // Penanda "!" tetap tampil walau pemain sudah di zona interaksi. Kotak
+    // Space menyembul di sampingnya (lihat `posisiPrompt`), jadi indikator quest
     // tidak hilang-muncul ketika pemain mendekat.
     const marker = this.pemberiQuest
       ? this.markerLayar(this.pemberiQuest, kamera)
@@ -429,7 +492,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private emitPrompt(hint: PromptView | null) {
-    const tanda = hint ? `${hint.text}:${hint.x}:${hint.y}` : "";
+    const tanda = hint
+      ? `${hint.text}:${hint.x}:${hint.y}:${hint.menempel ? 1 : 0}`
+      : "";
     if (tanda === this.tandaPrompt) return;
     this.tandaPrompt = tanda;
     this.bus?.emit({ type: "prompt", hint });
@@ -480,6 +545,10 @@ export class GameScene extends Phaser.Scene {
     npcId: string,
     kamera: KameraView,
   ): PromptView | null {
+    // `menempel` hanya membedakan animasi dan asal prompt. Kotak yang tampil
+    // sendiri (obrolan singkat maupun beacon tepi) selalu dipusatkan di atas
+    // NPC, jadi posisinya tidak bergantung pada status itu.
+    const menempel = npcId === this.pemberiQuest;
     const dunia = posisiPrompt(VILLAGE.npcs, npcId);
     if (!dunia) return null;
     const layar = duniaKeLayar(kamera, dunia.x, dunia.y);
@@ -487,6 +556,7 @@ export class GameScene extends Phaser.Scene {
       text: dunia.text,
       x: Math.round(layar.x),
       y: Math.round(layar.y),
+      menempel,
     };
   }
 
@@ -568,6 +638,11 @@ export class GameScene extends Phaser.Scene {
     this.mainkanSfx("sfx_click");
     if (this.textbox?.isTyping()) {
       this.textbox.complete();
+      return;
+    }
+    // Obrolan singkat hanya menutup textbox; kursor cerita tidak bergerak.
+    if (this.obrolanAktif) {
+      this.tutupObrolan();
       return;
     }
     this.lanjutBeat();
@@ -786,6 +861,7 @@ export class GameScene extends Phaser.Scene {
     this.detour = null;
     this.batalkanJadwalBab();
     this.runner.restartChapter();
+    this.obrolanAktif = null;
     this.textbox?.hide();
     this.sembunyikanPetunjuk();
     this.sorotSpeaker(null);
@@ -985,8 +1061,8 @@ export class GameScene extends Phaser.Scene {
         ? (state.chapter?.scenes[state.sceneIndex] ?? null)
         : null;
     this.pemberiQuest = pilihPemberiQuest(scene, VILLAGE.npcs);
-    // Zona histeresis milik pemberi quest sebelumnya; mulai dari batas masuk.
-    this.pemberiQuestDekat = false;
+    // Zona histeresis milik NPC sebelumnya; mulai dari batas masuk.
+    this.npcDekat = false;
   }
 
   /**
