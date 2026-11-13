@@ -26,7 +26,7 @@ import {
   type KameraView,
 } from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
-import { StoryRunner, bolehTerusLewati } from "../StoryRunner";
+import { StoryRunner, akhirBab, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
 import type { GameBus, NpcMarker, NpcNameplate, PromptView } from "../gameBus";
@@ -57,6 +57,16 @@ const DEBOUNCE_MS = 150;
  * time-lapse, cukup lambat agar teks masih sempat terbaca sekilas.
  */
 const INTERVAL_LEWATI_MS = 100;
+
+/**
+ * Jeda sebelum bab berikutnya dibuka **otomatis** dari fase `chapter_end`.
+ *
+ * Bab tidak lagi menunggu tombol: begitu beat terakhir sebuah bab selesai,
+ * GameScene menjadwalkan bab berikutnya sendiri. Jeda pendek menjaga peralihan
+ * tidak terasa seperti lompatan dan memberi ruang bagi kartu judul bab. Pemain
+ * tetap bisa mempercepat dengan Space/Enter bila mau.
+ */
+const JEDA_AKHIR_BAB_MS = 700;
 
 /** Jarak papan nama dari ubun-ubun sprite NPC. */
 const JARAK_NAMA = 6;
@@ -122,6 +132,8 @@ export class GameScene extends Phaser.Scene {
   private tandaNama = "";
   /** Pemain sedang di zona interaksi pemberi quest (dengan histeresis). */
   private pemberiQuestDekat = false;
+  /** Jadwal pembukaan bab berikutnya; dibatalkan saat "Ulangi chapter". */
+  private jadwalBab?: Phaser.Time.TimerEvent;
 
   constructor(story: Story, bus?: GameBus) {
     super("GameScene");
@@ -215,9 +227,12 @@ export class GameScene extends Phaser.Scene {
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
 
-    // Scene dihancurkan (mis. "Main lagi"): mode lewati tidak boleh tertinggal
-    // menunjuk runner yang sudah tidak tampil.
-    this.events.once("shutdown", () => this.hentikanLewati());
+    // Scene dihancurkan (mis. "Main lagi"): mode lewati dan jadwal bab tidak
+    // boleh tertinggal menunjuk scene yang sudah tidak tampil.
+    this.events.once("shutdown", () => {
+      this.hentikanLewati();
+      this.batalkanJadwalBab();
+    });
   }
 
   update(time: number, delta: number) {
@@ -523,8 +538,33 @@ export class GameScene extends Phaser.Scene {
 
   /** Lanjut dari beat yang sedang tampil ke beat/scene berikutnya. */
   private lanjutBeat() {
+    this.batalkanJadwalBab();
     this.runner.advance();
     this.presentBeat();
+  }
+
+  /**
+   * Jadwalkan pembukaan bab berikutnya saat cerita mencapai `chapter_end`.
+   *
+   * Satu jadwal saja: `presentBeat` bisa dipanggil berkali-kali di fase yang
+   * sama (mis. saat menjeda), jadi jadwal ganda dicegah. Pemain tetap boleh
+   * mempercepat dengan Space/Enter — jadwal ini hanya menutup kasus "diam".
+   */
+  private jadwalkanBabBerikutnya() {
+    if (this.jadwalBab) return;
+    this.jadwalBab = this.time.delayedCall(JEDA_AKHIR_BAB_MS, () => {
+      this.jadwalBab = undefined;
+      // Bisa saja pemain sudah menekan Space lebih dulu; hanya lanjut bila
+      // kursor memang masih berhenti di akhir bab.
+      if (!akhirBab(this.runner.getState())) return;
+      this.lanjutBeat();
+    });
+  }
+
+  /** Buang jadwal bab berikutnya (dipakai saat bab dimulai ulang/selesai). */
+  private batalkanJadwalBab() {
+    this.jadwalBab?.remove(false);
+    this.jadwalBab = undefined;
   }
 
   /**
@@ -610,6 +650,8 @@ export class GameScene extends Phaser.Scene {
     if (state.phase === "explore" || state.phase === "chapter_end") {
       this.textbox?.hide();
       this.sorotSpeaker(null);
+      // Akhir bab langsung berlanjut sendiri; tidak perlu menekan tombol.
+      if (akhirBab(state)) this.jadwalkanBabBerikutnya();
       return;
     }
 
@@ -689,6 +731,7 @@ export class GameScene extends Phaser.Scene {
   /** "Ulangi chapter" dari menu jeda: reset kursor, lalu lanjutkan loop scene. */
   private ulangiChapter() {
     this.hentikanLewati();
+    this.batalkanJadwalBab();
     this.runner.restartChapter();
     this.textbox?.hide();
     this.sembunyikanPetunjuk();

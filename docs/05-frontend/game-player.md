@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -133,6 +133,11 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   `Esc`) lewat komponen `Keycap`. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
+- **Pergantian bab berjalan otomatis.** Setelah beat terakhir sebuah bab selesai,
+  GameScene membuka bab berikutnya sendiri (jeda singkat, lalu `ChapterCard`
+  menandai bab baru). Pemain tidak perlu menekan tombol untuk lanjut; menekan
+  Space/Enter hanya mempercepat. Cerita yang sudah bab terakhir langsung masuk
+  ke `ResultScreen` lewat jalur yang sama.
 - **Papan nama** muncul di atas kepala **semua** NPC yang terlihat (dari
   `cast.name`), rapat di atas sprite, supaya siswa mengenali siapa saja di desa.
   NPC pemberi quest ditandai **kotak `!`** bergaya HUD di atas papan namanya; UI

@@ -420,6 +420,12 @@ export function resolveChallenge(state: RunnerState, story: Story): RunnerState;
 Phaser hanya **menampilkan** hasil `currentBeat`. Ini membuat logika cerita bisa
 dites tanpa browser dan tanpa Phaser.
 
+Pergantian bab juga dijalankan `GameScene`, bukan menunggu tombol: begitu
+`akhirBab()` benar (`phase === "chapter_end"`), scene menjadwalkan `advance()`
+sendiri setelah `JEDA_AKHIR_BAB_MS`, jadi bab berikutnya terbuka otomatis di
+fase `explore`. Predikat `akhirBab()` ada di `StoryRunner.ts` supaya aturan
+"ini akhir bab" tidak tersebar sebagai perbandingan string di scene.
+
 ## Konsekuensi performa
 
 - Satu instance `Phaser.Game` per halaman. Jangan membuat game baru tiap render.

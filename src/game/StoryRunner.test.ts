@@ -1,9 +1,9 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { Beat, Story } from "@/story/schema";
 
 import demoStoryJson from "./fixture/demo-story.json";
-import { StoryRunner, bolehTerusLewati } from "./StoryRunner";
+import { StoryRunner, akhirBab, bolehTerusLewati } from "./StoryRunner";
 
 const demoStory = demoStoryJson as unknown as Story;
 
@@ -388,5 +388,56 @@ describe("bolehTerusLewati", () => {
     expect(state.phase).toBe("explore");
     expect(state.sceneIndex).toBe(1);
     expect(state.beatIndex).toBe(-1);
+  });
+});
+
+describe("akhirBab", () => {
+  it("hanya true saat kursor berhenti di akhir bab", () => {
+    const runner = new StoryRunner(demoStory);
+
+    // Explore bukan akhir bab.
+    expect(akhirBab(runner.getState())).toBe(false);
+
+    // Habiskan bab pertama sampai kursor berhenti di akhir bab.
+    runner.interact();
+    let guard = 0;
+    while (!akhirBab(runner.getState()) && guard < 1000) {
+      const phase = runner.getState().phase;
+      if (phase === "challenge") {
+        runner.resolveChallenge();
+      } else if (phase === "explore") {
+        runner.interact();
+      } else {
+        runner.advance();
+      }
+      guard += 1;
+    }
+
+    // Fase inilah yang dibuka GameScene sendiri, tanpa menunggu tombol.
+    expect(akhirBab(runner.getState())).toBe(true);
+
+    // Satu `advance()` sudah cukup membuka bab berikutnya di fase explore.
+    runner.advance();
+    expect(akhirBab(runner.getState())).toBe(false);
+    expect(runner.getState().phase).toBe("explore");
+    expect(runner.getState().chapterNumber).toBe(2);
+  });
+
+  it("false saat cerita selesai", () => {
+    const selesai = new StoryRunner(demoStory);
+    let guard = 0;
+    while (selesai.getState().phase !== "done" && guard < 1000) {
+      const phase = selesai.getState().phase;
+      if (phase === "challenge") {
+        selesai.resolveChallenge();
+      } else if (phase === "explore") {
+        selesai.interact();
+      } else {
+        selesai.advance();
+      }
+      guard += 1;
+    }
+    expect(selesai.getState().phase).toBe("done");
+    expect(akhirBab(selesai.getState())).toBe(false);
   });
 });
