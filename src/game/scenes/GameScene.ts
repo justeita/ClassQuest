@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { CHARACTER_FRAMES } from "@/assets/characterFrames";
+import { DEFAULT_EXPRESSION, type Expression } from "@/story/expression";
 import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { Story } from "@/story/schema";
 
@@ -26,7 +27,12 @@ import {
   terlihatDiLayar,
   type KameraView,
 } from "../layar";
-import { createTextbox, type BeatView, type Textbox } from "../textbox";
+import {
+  createTextbox,
+  type BeatView,
+  type PortraitView,
+  type Textbox,
+} from "../textbox";
 import { StoryRunner, akhirBab, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
@@ -124,6 +130,11 @@ export class GameScene extends Phaser.Scene {
   private pemberiQuest: string | null = null;
   /** Pembicara beat dialog terakhir; dipakai sebagai nama speaker saat tantangan. */
   private pembicaraTerakhir: string | null = null;
+  /**
+   * Pembicara yang menampilkan soal tantangan aktif. Dipakai saat feedback
+   * jawaban mengganti potretnya jadi senang/marah.
+   */
+  private speakerTantangan: string | null = null;
   private readonly playerId: string;
   /** Id sprite pemain; dipakai memilih animasi walk/idle yang tepat. */
   private playerSpriteId = "";
@@ -188,9 +199,9 @@ export class GameScene extends Phaser.Scene {
     >;
     this.input.keyboard?.disableGlobalCapture();
     this.input.keyboard?.clearCaptures();
-    // Teks dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene tetap
-    // pemegang state typewriter dan mengirim potongannya lewat bus.
-    this.textbox = createTextbox(this, (state) => {
+    // Teks dan potret dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene
+    // tetap pemegang state typewriter dan mengirim potongannya lewat bus.
+    this.textbox = createTextbox((state) => {
       this.bus?.emit({ type: "dialogue", view: state });
     });
 
@@ -491,8 +502,8 @@ export class GameScene extends Phaser.Scene {
   /**
    * Buka obrolan singkat NPC di luar perannya (ADR 0016).
    *
-   * Satu kalimat saja, memakai textbox dan portrait yang sama dengan dialog
-   * cerita. Runner tidak disentuh: setelah textbox ditutup, pemain kembali
+   * Satu kalimat saja, memakai dialog dan potret yang sama dengan dialog
+   * cerita. Runner tidak disentuh: setelah dialog ditutup, pemain kembali
    * bebas berjalan di scene yang sama.
    */
   private mulaiObrolan(npcId: string, teks: string) {
@@ -504,7 +515,7 @@ export class GameScene extends Phaser.Scene {
     this.textbox?.show({
       name: nama,
       text: teks,
-      portraitKey: this.portraitKey(npcId),
+      portrait: this.potretUntuk(npcId),
     });
     this.bus?.emit({
       type: "log",
@@ -813,6 +824,14 @@ export class GameScene extends Phaser.Scene {
 
     const hasil = scoreAnswer(challenge, answer);
     this.mainkanSfx(hasil.isCorrect ? "sfx_correct" : "sfx_wrong");
+    // Umpan balik visual: potret pembicara soal berubah senang saat benar dan
+    // marah saat salah (docs/04-game/scene-format.md).
+    this.textbox?.setPortrait(
+      this.potretUntuk(
+        this.speakerTantangan,
+        hasil.isCorrect ? "happy" : "angry",
+      ),
+    );
     this.bus?.emit({
       type: "graded",
       challengeId: hasil.challengeId,
@@ -867,11 +886,17 @@ export class GameScene extends Phaser.Scene {
       view = {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
         text: beat.text,
-        portraitKey: this.portraitKey(beat.speakerId),
+        portrait: this.potretUntuk(beat.speakerId, beat.expression),
       };
     } else {
+      // Narasi tidak menampilkan nama, tetapi boleh memunculkan potret
+      // lewat `speakerId` bila AI ingin menyorot reaksi seseorang.
       this.sorotSpeaker(null);
-      view = { name: null, text: beat.text };
+      view = {
+        name: null,
+        text: beat.text,
+        portrait: this.potretUntuk(beat.speakerId ?? null, beat.expression),
+      };
     }
     this.textbox?.show(view);
     this.bus?.emit({
@@ -931,6 +956,7 @@ export class GameScene extends Phaser.Scene {
     this.sceneAktif = null;
     this.questTerakhir = "";
     this.pembicaraTerakhir = null;
+    this.speakerTantangan = null;
     // Dunia tetap seperti semula; hanya titik kaki pemain yang dikembalikan.
     this.kembalikanPemain();
     this.kirimQuest();
@@ -943,7 +969,7 @@ export class GameScene extends Phaser.Scene {
   /**
    * Soal tantangan tampil di dalam kotak dialog (DialogueBox), dengan pilihan
    * respons melayang di atasnya (docs/05-frontend/game-player.md § Challenge).
-   * Panel textbox Phaser dijamin aktif dan menampilkan teks soal tantangan.
+   * Dialog dijamin aktif dan menampilkan teks soal beserta potret pembicara.
    */
   private bukaTantangan(challengeId: string) {
     this.sembunyikanPetunjuk();
@@ -959,7 +985,8 @@ export class GameScene extends Phaser.Scene {
     const name = speakerId
       ? (this.castNames.get(speakerId) ?? speakerId)
       : null;
-    const portraitKey = speakerId ? this.portraitKey(speakerId) : null;
+    // Simpan pembicara soal supaya feedback jawaban bisa memakai potretnya lagi.
+    this.speakerTantangan = speakerId;
 
     if (speakerId) {
       this.sorotSpeaker(speakerId);
@@ -973,7 +1000,7 @@ export class GameScene extends Phaser.Scene {
     this.textbox?.show({
       name,
       text,
-      portraitKey,
+      portrait: this.potretUntuk(speakerId),
     });
     this.textbox?.complete();
 
@@ -1121,11 +1148,25 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private portraitKey(speakerId: string): string | null {
+  /**
+   * Potret DOM untuk seorang pembicara pada ekspresi tertentu. `null` bila
+   * pembicara tidak dikenal atau sprite-nya tidak punya potret — DialogueBox
+   * lalu sekadar menampilkan panel polos.
+   */
+  private potretUntuk(
+    speakerId: string | null,
+    expression: Expression = DEFAULT_EXPRESSION,
+  ): PortraitView | null {
+    if (!speakerId) return null;
     const karakter = this.story.cast.find((member) => member.id === speakerId);
     if (!karakter) return null;
     const entry = assetEntry(karakter.spriteId);
-    return entry?.portraitPath ? `${entry.id}:portrait` : null;
+    const src = entry?.portraits?.[expression];
+    if (!src) return null;
+    return {
+      src,
+      alt: `Potret ${this.castNames.get(speakerId) ?? speakerId}`,
+    };
   }
 
   private kembalikanPemain() {

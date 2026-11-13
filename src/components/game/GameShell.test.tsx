@@ -532,6 +532,7 @@ describe("GameShell", () => {
         name: "Bu Ratna",
         text: "Air di bumi tidak pernah hilang.",
         waiting: true,
+        portrait: null,
       },
     });
 
@@ -545,13 +546,25 @@ describe("GameShell", () => {
     await mainkan();
     bus.emit({
       type: "dialogue",
-      view: { visible: true, name: null, text: "Hujan turun.", waiting: true },
+      view: {
+        visible: true,
+        name: null,
+        text: "Hujan turun.",
+        waiting: true,
+        portrait: null,
+      },
     });
     await screen.findByText("Hujan turun.");
 
     bus.emit({
       type: "dialogue",
-      view: { visible: false, name: null, text: "", waiting: false },
+      view: {
+        visible: false,
+        name: null,
+        text: "",
+        waiting: false,
+        portrait: null,
+      },
     });
 
     await vi.waitFor(() =>
@@ -578,7 +591,13 @@ describe("GameShell", () => {
     await mainkan();
     bus.emit({
       type: "dialogue",
-      view: { visible: true, name: null, text: "Hujan turun.", waiting: true },
+      view: {
+        visible: true,
+        name: null,
+        text: "Hujan turun.",
+        waiting: true,
+        portrait: null,
+      },
     });
     bus.emit({
       type: "prompt",
@@ -601,6 +620,7 @@ describe("GameShell — tombol percepat", () => {
     name: "Pak Bima",
     text: "Genangan itu tadi pagi masih penuh.",
     waiting: true,
+    portrait: null,
   };
 
   const challenge = {
@@ -644,7 +664,13 @@ describe("GameShell — tombol percepat", () => {
 
     bus.emit({
       type: "dialogue",
-      view: { visible: false, name: null, text: "", waiting: false },
+      view: {
+        visible: false,
+        name: null,
+        text: "",
+        waiting: false,
+        portrait: null,
+      },
     });
 
     await vi.waitFor(() =>
@@ -804,6 +830,7 @@ describe("GameShell — soal di atas dialog", () => {
         name: "Bu Ratna",
         text: "Air di bumi tidak pernah hilang.",
         waiting: true,
+        portrait: null,
       },
     });
     await screen.findByText("Air di bumi tidak pernah hilang.");

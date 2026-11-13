@@ -232,7 +232,7 @@ ditimpa potongan objek dari editor:
 | -------- | ------------------------------------------------------------- | ------------------------------------------- |
 | Peta     | Gambar desa penuh, satu berkas JPEG                           | `world_map_village`                         |
 | Objek    | Rumah, pohon, bunga, bangku, sumur, tiang lampu, pagar, jalan | `world_house_red`, `world_tree_regular_1_1` |
-| Karakter | Sprite 8 arah + portrait untuk `story.cast`                   | `char_mc`, `char_npc_7`                     |
+| Karakter | Sprite 8 arah + potret 6 ekspresi untuk `story.cast`          | `char_mc`, `char_npc_7`                     |
 | Musik    | Satu lagu untuk seluruh permainan                             | `bgm_default`                               |
 
 > Semua entri di atas terdaftar di `src/assets/worldAssets.ts` (dibangkitkan
@@ -252,11 +252,12 @@ Font monospace sistem yang dulu dipakai (`textbox.ts`, `interaction.ts`) tidak
 cocok dengan pixel art dan, lebih penting, teks yang digambar di canvas 640×360
 selalu bergerigi setelah upscale `image-rendering: pixelated`.
 
-Keputusan (ADR 0007): **teks permainan pindah ke DOM**.
+Keputusan (ADR 0007, diperluas ADR 0017): **teks permainan pindah ke DOM**.
 
-- Panel `ui_textbox` dan potret tetap digambar Phaser; nama, isi dialog, dan
-  indikator "lanjut" dirender React (`DialogueBox.tsx`) di atas panel itu.
-  Prompt interaksi `Space` juga DOM (`InteractHint.tsx`).
+- Panel `ui_textbox`, potret, nama, isi dialog, dan indikator "lanjut" dirender
+  React (`DialogueBox.tsx`). Potret anime tidak dibungkus bingkai: ia berdiri di
+  belakang panel dengan dasar sejajar dasar panel, dan berekspresi sesuai field
+  `expression` beat. Prompt interaksi `Space` juga DOM (`InteractHint.tsx`).
 - Font: **Patrick Hand** (SIL Open Font License), disimpan lokal di
   `public/fonts/` (`patrick-hand-latin.woff2`,
   `patrick-hand-latin-ext.woff2`, `OFL.txt`) dan dimuat lewat `next/font/local`

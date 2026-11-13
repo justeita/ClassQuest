@@ -3,9 +3,9 @@ import { GAME_HEIGHT, GAME_WIDTH } from "./constants";
 /**
  * Geometri UI dalam ruang internal 640×360 (ADR 0009).
  *
- * Satu sumber angka untuk dua lapisan: Phaser memakai nilai ini untuk menggambar
- * panel dan portrait, React memakainya untuk menaruh teks di posisi yang sama.
- * Jangan menyalin angka ke komponen — impor dari sini supaya tidak melenceng.
+ * Satu sumber angka untuk lapisan DOM: panel dialog, potret, dan teks
+ * (`DialogueBox.tsx`) memakai nilai ini supaya tidak melenceng satu sama lain.
+ * Jangan menyalin angka ke komponen — impor dari sini.
  */
 
 /** Panel dialog: x=16, y=240, 608×104 (docs/04-game/scene-format.md). */
@@ -39,15 +39,19 @@ export const CHALLENGE = {
   maxHeight: 210,
 } as const;
 
-/** Portrait di atas panel: bingkai 72×72, gambar 64×64 di dalamnya. */
+/**
+ * Potret dialog gaya Persona (ADR 0017): tanpa bingkai, gambar berdiri di
+ * belakang panel dialog dengan kepala menjulang di atas tepi atasnya.
+ *
+ * `height` memakai px ruang internal; lebar mengikuti rasio asli tiap potret.
+ * Sisi bawah potret disejajarkan dengan sisi bawah panel, jadi bagian dadanya
+ * tertutup panel — bukan dipotong oleh kotak potret.
+ */
 export const PORTRAIT = {
-  x: 26,
-  y: 164,
-  /** Y saat portrait diletakkan tepat di atas panel dialog (center). */
-  yAtas: 160,
-  frameSize: 72,
-  imageInset: 4,
-  imageSize: 64,
+  /** Tinggi gambar potret (px internal); cukup besar agar wajah terbaca. */
+  height: 236,
+  /** Geser dari tepi kiri panel supaya tidak menempel persis di sudut. */
+  insetX: 6,
 } as const;
 
 /**

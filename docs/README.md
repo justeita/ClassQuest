@@ -205,6 +205,7 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0014-auth-akun-guru-siswa.md`](./09-decisions/0014-auth-akun-guru-siswa.md)               | draft  | Akun guru/siswa di database, tanpa vendor auth               |
 | [`09-decisions/0015-kelas-dan-siswa.md`](./09-decisions/0015-kelas-dan-siswa.md)                         | draft  | Tabel kelas dan siswa, daftar awal kosong                    |
 | [`09-decisions/0016-obrolan-singkat-npc.md`](./09-decisions/0016-obrolan-singkat-npc.md)                 | stable | Obrolan singkat NPC di luar peran chapter                    |
+| [`09-decisions/0017-potret-ekspresi-persona.md`](./09-decisions/0017-potret-ekspresi-persona.md)         | stable | Potret berekspresi di belakang kotak dialog                  |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                         | draft  | Urutan kerja dan pembagian tugas                             |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                               | draft  | Naskah demo 3 menit + sketsa layar                           |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                     | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal     |

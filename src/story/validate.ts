@@ -786,13 +786,18 @@ const checkReferences = (
       scene.beats.forEach((beat, beatIndex) => {
         const beatPath = `${scenePath}.beats[${beatIndex}]`;
 
-        if (beat.type === "dialogue" && !castIds.has(beat.speakerId)) {
+        const speakerId =
+          beat.type === "dialogue" || beat.type === "narration"
+            ? beat.speakerId
+            : undefined;
+
+        if (speakerId !== undefined && !castIds.has(speakerId)) {
           report(
             errorIssue(
               "E_UNKNOWN_SPEAKER",
               `${beatPath}.speakerId`,
-              `Karakter "${beat.speakerId}" tidak ada di daftar cast.`,
-              `"${beat.speakerId}" tidak ada di cast.`,
+              `Karakter "${speakerId}" tidak ada di daftar cast.`,
+              `"${speakerId}" tidak ada di cast.`,
             ),
           );
         }
@@ -1253,12 +1258,22 @@ const tidyOptional = (value: string | undefined) =>
 const normalizeBeat = (beat: Beat): Beat => {
   switch (beat.type) {
     case "narration":
-      return { type: "narration", text: tidyText(beat.text) };
+      return {
+        type: "narration",
+        text: tidyText(beat.text),
+        ...(beat.speakerId === undefined ? {} : { speakerId: beat.speakerId }),
+        ...(beat.expression === undefined
+          ? {}
+          : { expression: beat.expression }),
+      };
     case "dialogue":
       return {
         type: "dialogue",
         speakerId: beat.speakerId,
         text: tidyText(beat.text),
+        ...(beat.expression === undefined
+          ? {}
+          : { expression: beat.expression }),
       };
     case "challenge":
       return { type: "challenge", challengeId: beat.challengeId };

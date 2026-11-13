@@ -123,12 +123,14 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_1",
-              "text": "Nara! Tepat waktu. Hari ini kita memasak untuk Pesta Panen. Banyak resep harus dibagi rata."
+              "text": "Nara! Tepat waktu. Hari ini kita memasak untuk Pesta Panen. Banyak resep harus dibagi rata.",
+              "expression": "happy"
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Aku siap membantu, Bu. Apa yang harus kuhitung lebih dulu?"
+              "text": "Aku siap membantu, Bu. Apa yang harus kuhitung lebih dulu?",
+              "expression": "happy"
             },
             {
               "type": "dialogue",
@@ -137,7 +139,9 @@
             },
             {
               "type": "narration",
-              "text": "Nara mengangguk sambil mengeluarkan buku catatan kecil dari kantong celemeknya."
+              "speakerId": "char_mc",
+              "text": "Nara mengangguk sambil mengeluarkan buku catatan kecil dari kantong celemeknya.",
+              "expression": "thinking"
             }
           ]
         },
@@ -148,7 +152,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_10",
-              "text": "Sebelum mulai, ayo pastikan takarannya benar. Salah takaran, kue pesta bisa gagal."
+              "text": "Sebelum mulai, ayo pastikan takarannya benar. Salah takaran, kue pesta bisa gagal.",
+              "expression": "thinking"
             },
             {
               "type": "challenge",
@@ -220,7 +225,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Nara, piring tamu masih kosong! Kita harus menyusun potongan kue ini dengan rapi."
+              "text": "Nara, piring tamu masih kosong! Kita harus menyusun potongan kue ini dengan rapi.",
+              "expression": "shocked"
             },
             {
               "type": "dialogue",

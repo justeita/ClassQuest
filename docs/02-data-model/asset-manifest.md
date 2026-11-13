@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -34,7 +34,10 @@ kalau berbeda.
 
 ```ts
 export type AssetKind =
-  "background" | "character" | "tile" | "prop" | "map" | "music" | "sfx" | "ui";
+  "background" | "character" | "world" | "music" | "sfx" | "ui";
+
+/** Satu path per ekspresi; semua ekspresi wajib ada. */
+export type PortraitSet = Readonly<Record<Expression, string>>;
 
 export type AssetEntry = {
   id: string; // mis. "bg_classroom_day"
@@ -44,7 +47,9 @@ export type AssetEntry = {
   tags: string[]; // kata kunci untuk pemilihan oleh AI
   width?: number;
   height?: number;
-  portraitPath?: string; // hanya untuk kind "character"
+  portraits?: PortraitSet; // hanya untuk kind "character"
+  frameWidth?: number; // hanya untuk kind "character"
+  frameHeight?: number; // hanya untuk kind "character"
 };
 
 export const ASSETS: readonly AssetEntry[] = [
@@ -84,7 +89,10 @@ editor, dan game.
 - `id` **tidak boleh berubah** setelah dipakai cerita. Ganti file boleh, ganti id
   tidak (kecuali migrasi cerita).
 - `path` unik dan harus benar-benar ada di `public/`.
-- `portraitPath` hanya boleh ada untuk kind `character`, dan filenya harus ada.
+- `portraits` hanya boleh ada untuk kind `character`: satu path per ekspresi
+  (`neutral`, `happy`, `sad`, `angry`, `shocked`, `thinking`), semuanya harus
+  ada di `public/assets/portrait/<nama>/`. Cerita memilih ekspresi lewat field
+  `expression`, bukan path ([ADR 0017](../09-decisions/0017-potret-ekspresi-persona.md)).
 - `world` adalah aset sisi game — peta desa dan potongan objeknya. Entri ini
   **tidak** bisa dipilih cerita (`STORY_ASSET_KINDS` tidak memuatnya). Peta
   `world_map_*` memakai `width`/`height` kelipatan 16 agar sejajar grid collider

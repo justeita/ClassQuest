@@ -46,6 +46,10 @@
     "assetUsage": { "$ref": "#/$defs/assetUsage" }
   },
   "$defs": {
+    "expression": {
+      "description": "Ekspresi potret dialog; satu nilai per berkas di public/assets/portrait/<nama>/<ekspresi>.png.",
+      "enum": ["neutral", "happy", "sad", "angry", "shocked", "thinking"]
+    },
     "meta": {
       "type": "object",
       "additionalProperties": false,
@@ -155,9 +159,12 @@
           "type": "object",
           "additionalProperties": false,
           "required": ["type", "text"],
+          "dependentRequired": { "expression": ["speakerId"] },
           "properties": {
             "type": { "const": "narration" },
-            "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+            "text": { "type": "string", "minLength": 1, "maxLength": 240 },
+            "speakerId": { "type": "string", "minLength": 1 },
+            "expression": { "$ref": "#/$defs/expression" }
           }
         },
         {
@@ -167,7 +174,8 @@
           "properties": {
             "type": { "const": "dialogue" },
             "speakerId": { "type": "string", "minLength": 1 },
-            "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+            "text": { "type": "string", "minLength": 1, "maxLength": 240 },
+            "expression": { "$ref": "#/$defs/expression" }
           }
         },
         {

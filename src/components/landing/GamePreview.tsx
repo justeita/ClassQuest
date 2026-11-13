@@ -42,28 +42,28 @@ export function GamePreview() {
           Bab 1 · Perbandingan
         </p>
 
-        {/* Dialog meniru kotak dialog game (ADR 0007): panel gelap, potret di
-            kiri, nama pembicara di atas teks. */}
-        <div className="absolute inset-x-3 bottom-3 flex items-start gap-2.5 rounded-lg border-2 border-slate-900 bg-slate-900/92 p-2.5 sm:inset-x-4 sm:bottom-4 sm:gap-3 sm:p-3">
-          <span className="shrink-0 overflow-hidden rounded border-2 border-slate-700 bg-slate-800">
+        {/* Dialog meniru gaya Persona (ADR 0017): potret tanpa bingkai berdiri
+            di belakang panel, dasar gambar sejajar dasar panel, jadi dadanya
+            tertutup dan wajahnya menjulang di atas kotak. */}
+        <div className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
+          <div className="relative">
             <Image
-              src="/assets/portrait/npc_10.png"
-              alt=""
-              width={64}
-              height={64}
-              className="h-10 w-10 sm:h-12 sm:w-12"
-              style={{ imageRendering: "pixelated" }}
+              src="/assets/portrait/npc_10/thinking.png"
+              alt="Potret Pak Wira"
+              width={512}
+              height={512}
+              className="pointer-events-none absolute bottom-0 left-2 h-28 w-auto sm:left-3 sm:h-36"
             />
-          </span>
 
-          <div className="min-w-0">
-            <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-300">
-              Pak Wira
-            </p>
-            <p className="font-game text-[13px] leading-snug text-slate-100 sm:text-sm">
-              Tiga bagian tepung, dua bagian gula. Berapa cangkir gula untuk
-              sembilan cangkir tepung?
-            </p>
+            <div className="relative rounded-lg border-2 border-slate-900 bg-slate-900/92 px-3 pb-2.5 pt-2 sm:px-4">
+              <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-300">
+                Pak Wira
+              </p>
+              <p className="font-game text-[13px] leading-snug text-slate-100 sm:text-sm">
+                Tiga bagian tepung, dua bagian gula. Berapa cangkir gula untuk
+                sembilan cangkir tepung?
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ const bicara: DialogueView = {
   name: "Bu Ratna",
   text: "Air di bumi tidak pernah benar-benar hilang.",
   waiting: true,
+  portrait: null,
 };
 
 describe("DialogueBox", () => {
@@ -64,5 +65,28 @@ describe("DialogueBox", () => {
 
     expect(screen.queryByText("Bu Ratna")).not.toBeInTheDocument();
     expect(screen.getByText(/Air di bumi/)).toBeInTheDocument();
+  });
+
+  it("menampilkan potret pembicara saat view menyertakannya", () => {
+    render(
+      <DialogueBox
+        view={{
+          ...bicara,
+          portrait: {
+            src: "/assets/portrait/mc/happy.png",
+            alt: "Potret Nara",
+          },
+        }}
+        onAdvance={() => {}}
+      />,
+    );
+
+    expect(screen.getByAltText("Potret Nara")).toBeInTheDocument();
+  });
+
+  it("tidak menampilkan potret saat view tanpa portrait", () => {
+    render(<DialogueBox view={bicara} onAdvance={() => {}} />);
+
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 });

@@ -61,10 +61,11 @@ Aturan:
    potongan objek, spritesheet karakter, dan musik default. Dunia tidak bisa
    dirender sebagian, jadi semuanya dimuat sekali di awal.
 2. **Aset cerita** lewat `collectStoryAssets(story)`: background chapter +
-   override scene, musik chapter + override scene, dan `spriteId` setiap `cast`
-   beserta potretnya.
-3. **Aset UI dan SFX runtime** (`ui_textbox`, `ui_portrait_frame`, `ui_default`,
-   `sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`).
+   override scene, musik chapter + override scene, dan `spriteId` setiap `cast`.
+   Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0017).
+3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `sfx_click`,
+   `sfx_page`, `sfx_correct`, `sfx_wrong`). Panel dan potret dialog tidak dimuat
+   Phaser.
 
 Semua key loader memakai `id` manifest, jadi scene tidak menebak path file.
 `manifest.test.ts` menjamin setiap id punya berkasnya, sehingga `PreloadScene`
@@ -115,12 +116,15 @@ bebas bergerak.
 │                     ┌───────┐                        │
 │                     │PEMAIN │  ← di posisi dunianya  │
 │                     └───────┘                        │
-│                                                      │
-│ ┌──────┐ ┌─────────────────────────────────────────┐ │
-│ │PORTRA│ │ TEXTBOX (ui_textbox)                    │ │
-│ │72 px │ │ Nama                                    │ │
-│ └──────┘ │ Teks dialog...                          │ │
-│          └─────────────────────────────────────────┘ │
+│  ┌───────────┐                                       │
+│  │           │                                       │
+│  │  POTRET   │                                       │
+│  │  (tanpa   │                                       │
+│  │  bingkai) │┌────────────────────────────────────┐ │
+│  │           ││ TEXTBOX (ui_textbox)               │ │
+│  └───────────┘│ Nama                               │ │
+│               │ Teks dialog...                     │ │
+│               └────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -129,18 +133,19 @@ bebas bergerak.
 | Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`         |
 | Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                          |
 | Textbox   | 608×104, terpusat horizontal, `y=240`, menempel layar (`setScrollFactor`) |
-| Portrait  | Bingkai 72×72 di atas panel, gambar 64×64 di dalamnya                     |
+| Potret    | Tinggi 236 px internal, dasar sejajar dasar panel, tanpa bingkai (DOM)    |
 | Nama      | Di dalam textbox, baris pertama (DOM)                                     |
 | Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)            |
 | Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                   |
 
-> **Panel di Phaser, teks di DOM (ADR 0007).** Phaser hanya menggambar
-> `ui_textbox`, bingkai portrait, dan portrait-nya. Nama, isi dialog, dan
-> indikator "lanjut" dirender `DialogueBox.tsx` di lapisan DOM dengan posisi
-> persen dari `src/game/layout.ts`, sehingga huruf tajam di layar. Prompt
-> interaksi `Space` juga DOM (`InteractHint.tsx`). Jangan menambah teks game baru
-> di canvas: canvas di-upscale `pixelated`, jadi semua huruf di dalamnya
-> bergerigi.
+> **Semua di DOM (ADR 0007 + ADR 0017).** Phaser hanya memegang state typewriter
+> (`textbox.ts`); panel `ui_textbox`, potret, nama, isi dialog, dan indikator
+> "lanjut" dirender `DialogueBox.tsx`. Potret anime digambar browser pada
+> resolusi layar asli (tajam), sedangkan panel digambar dengan
+> `image-rendering: pixelated` karena memang aset pixel. Posisi memakai persen
+> dari `src/game/layout.ts`. Prompt interaksi `Space` juga DOM
+> (`InteractHint.tsx`). Jangan menambah teks game baru di canvas: canvas
+> di-upscale `pixelated`, jadi semua huruf di dalamnya bergerigi.
 
 Beginilah hasilnya di layar:
 
@@ -194,14 +199,17 @@ terjadi sebelum beat pertama scene.
 
 - Textbox tanpa nama.
 - Sprite speaker sebelumnya diredam (tidak ada yang disorot).
-- Tidak ada portrait.
+- Potret opsional: `speakerId` + `expression` memunculkan potret karakter
+  **tanpa** menampilkan namanya. Tanpa `speakerId`, tidak ada potret.
 
 ### `dialogue`
 
 - Textbox dengan nama karakter (`cast.name`, bukan `id`).
 - Sprite speaker disorot: `setTint(0xffffff)` untuk yang bicara, `setTint(0x9a9a9a)`
   untuk yang tidak. **Ingat:** `setTintFill()` sudah dihapus di Phaser 4.
-- Portrait ditampilkan bila entri manifest karakter punya `portraitPath`.
+- Potret diambil dari `portraits[expression]` milik karakter; `expression`
+  opsional dan default `neutral`. Potret digambar DOM di belakang panel, tanpa
+  bingkai (ADR 0017).
 
 ### `challenge`
 
@@ -211,6 +219,8 @@ terjadi sebelum beat pertama scene.
   menutupi seluruh layar. Tidak ada lapisan gelap penuh.
 - Dialog **dipause**, bukan ditutup: baris terakhir tetap terlihat sebagai
   konteks soal, dan typewriter dibekukan selama fase `challenge`.
+- Soal memakai potret pembicara terakhir. Setelah jawaban dinilai, potretnya
+  berganti: benar → `happy`, salah → `angry`.
 - Isi soal yang panjang digulir di dalam panel; tombol aksi menempel di bawah.
 - Event `challenge` dikirim ke React dengan `challengeId`.
 - Phaser menunggu perintah `resolve_challenge` sebelum lanjut.
@@ -256,13 +266,15 @@ Chapter 1, scene `sc_01_02` ("Tiga Kali Resep"):
     {
       "type": "dialogue",
       "speakerId": "char_npc_10",
-      "text": "Sebelum mulai, ayo pastikan takarannya benar. Salah takaran, kue pesta bisa gagal."
+      "text": "Sebelum mulai, ayo pastikan takarannya benar. Salah takaran, kue pesta bisa gagal.",
+      "expression": "thinking"
     },
     { "type": "challenge", "challengeId": "chl_01_01" },
     {
       "type": "dialogue",
       "speakerId": "char_npc_1",
-      "text": "Benar, sembilan cangkir tepung butuh enam cangkir gula. Kamu sudah paham perbandingan."
+      "text": "Benar, sembilan cangkir tepung butuh enam cangkir gula. Kamu sudah paham perbandingan.",
+      "expression": "happy"
     },
     {
       "type": "narration",
@@ -282,9 +294,10 @@ Yang terjadi:
 1. Musik chapter tetap `bgm_default` (tidak berganti).
 2. Dunia desa tidak berubah; pemain tetap di posisi terakhirnya.
 3. Pemberi quest scene ini adalah Pak Wira (`char_npc_10`); dekati dia → `Space`.
-4. Pak Wira tampil, textbox berisi nama + kalimat.
+4. Pak Wira tampil, textbox berisi nama + kalimat, dengan potret `thinking`.
 5. Klik → beat tantangan → dialog pause, overlay `chl_01_01` muncul.
-6. Siswa menjawab → feedback + penjelasan → overlay tertutup.
+6. Siswa menjawab → potret Pak Wira berganti `happy`/`angry`, lalu feedback +
+   penjelasan → overlay tertutup.
 7. Bu Sri (`char_npc_1`) tampil, dialog.
 8. Narasi tanpa nama.
 9. Scene selesai → `sc_01_03`.

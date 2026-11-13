@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -51,18 +51,21 @@ Jangan memakai sinonim acak (`morning` vs `dawn`, `yard` vs `schoolyard`).
 
 Nama file = `id` tanpa prefix.
 
-| `id`                   | Path file                             |
-| ---------------------- | ------------------------------------- |
-| `bg_classroom_day`     | `public/assets/bg/classroom_day.png`  |
-| `char_nara`            | `public/assets/char/nara.png`         |
-| `char_nara` (portrait) | `public/assets/portrait/nara.png`     |
-| `bgm_school_calm`      | `public/assets/music/school_calm.ogg` |
-| `sfx_correct`          | `public/assets/sfx/correct.ogg`       |
-| `ui_textbox`           | `public/assets/ui/textbox.png`        |
+| `id`                 | Path file                                    |
+| -------------------- | -------------------------------------------- |
+| `bg_classroom_day`   | `public/assets/bg/classroom_day.png`         |
+| `char_nara`          | `public/assets/char/nara.png`                |
+| `char_nara` (potret) | `public/assets/portrait/nara/<ekspresi>.png` |
+| `bgm_school_calm`    | `public/assets/music/school_calm.ogg`        |
+| `sfx_correct`        | `public/assets/sfx/correct.ogg`              |
+| `ui_textbox`         | `public/assets/ui/textbox.png`               |
 
 Aturan:
 
 - Nama file **harus** konsisten dengan `id`; test manifest memeriksa ini.
+- Pengecualian: potret memakai folder `<nama>/<ekspresi>.png` di
+  `public/assets/portrait/`, dengan `<nama>` mengikuti berkas sumber (`mc`,
+  `npc_1`, …) dan `<ekspresi>` salah satu dari enam ekspresi (ADR 0017).
 - Jangan menambahkan suffix versi (`_v2`, `_final`, `_fix`). Ganti isi file, bukan
   namanya.
 - Jangan memakai nama orang nyata untuk karakter. Gunakan nama fiktif.

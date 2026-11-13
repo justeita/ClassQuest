@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -49,7 +49,11 @@ ATURAN KERAS
 5. Setiap chapter minimal memiliki satu beat bertipe "challenge".
 6. Patuhi batas panjang teks: beat maksimal 240 karakter.
 7. Bahasa seluruh cerita mengikuti meta.language.
-8. Keluaran HARUS JSON valid sesuai SCHEMA. Tanpa markdown, tanpa komentar,
+8. Beat "dialogue" dan "narration" boleh memakai field "expression" untuk
+   memilih potret pembicara: neutral, happy, sad, angry, shocked, thinking.
+   Beat "narration" hanya boleh memakai "expression" bila punya "speakerId".
+   Pilih ekspresi yang cocok dengan isi kalimat; default-nya neutral.
+9. Keluaran HARUS JSON valid sesuai SCHEMA. Tanpa markdown, tanpa komentar,
    tanpa penjelasan tambahan.
 
 GAYA
@@ -117,9 +121,14 @@ SCHEMA CHAPTER (ringkas)
 
 BEAT
 - { "type": "narration", "text": "..." }
-- { "type": "dialogue", "speakerId": "char_x", "text": "..." }
+- { "type": "narration", "speakerId": "char_x", "text": "...", "expression": "thinking" }
+- { "type": "dialogue", "speakerId": "char_x", "text": "...", "expression": "happy" }
 - { "type": "challenge", "challengeId": "chl_x" }
 - { "type": "transition", "effect": "fade" }
+
+EXPRESSION (opsional; default "neutral")
+- Nilai: neutral | happy | sad | angry | shocked | thinking.
+- Menentukan potret pembicara. Narration hanya boleh memakainya bersama speakerId.
 
 CHALLENGE
 - multiple_choice: options[2..5], correctOptionId

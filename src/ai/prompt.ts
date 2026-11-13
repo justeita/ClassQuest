@@ -62,7 +62,11 @@ ATURAN KERAS
 5. Setiap chapter minimal memiliki satu beat bertipe "challenge".
 6. Patuhi batas panjang teks: beat maksimal 240 karakter.
 7. Bahasa seluruh cerita mengikuti meta.language.
-8. Keluaran HARUS JSON valid sesuai SCHEMA. Tanpa markdown, tanpa komentar,
+8. Beat "dialogue" dan "narration" boleh memakai field "expression" untuk
+   memilih potret pembicara: neutral, happy, sad, angry, shocked, thinking.
+   Beat "narration" hanya boleh memakai "expression" bila punya "speakerId".
+   Pilih ekspresi yang cocok dengan isi kalimat; default-nya neutral.
+9. Keluaran HARUS JSON valid sesuai SCHEMA. Tanpa markdown, tanpa komentar,
    tanpa penjelasan tambahan.
 
 GAYA
@@ -369,7 +373,13 @@ const SECTION_SCHEMA_CHAPTER = `SCHEMA CHAPTER (ringkas)
         "backgroundId": "bg_...",
         "musicId": "bgm_...",
         "beats": [
-          { "type": "narration", "text": "..." }
+          { "type": "narration", "text": "..." },
+          {
+            "type": "dialogue",
+            "speakerId": "char_...",
+            "text": "...",
+            "expression": "happy"
+          }
         ]
       }
     ]
@@ -397,9 +407,14 @@ const SECTION_SCHEMA_CHAPTER = `SCHEMA CHAPTER (ringkas)
 
 BEAT
 - { "type": "narration", "text": "..." }
-- { "type": "dialogue", "speakerId": "char_...", "text": "..." }
+- { "type": "narration", "speakerId": "char_...", "text": "...", "expression": "thinking" }
+- { "type": "dialogue", "speakerId": "char_...", "text": "...", "expression": "happy" }
 - { "type": "challenge", "challengeId": "chl_..." }
 - { "type": "transition", "effect": "fade" | "cut", "text": "..." }
+
+EXPRESSION (opsional; default "neutral")
+- Nilai: neutral | happy | sad | angry | shocked | thinking.
+- Menentukan potret pembicara. Narration hanya boleh memakainya bersama speakerId.
 
 CHALLENGE
 - multiple_choice: options[2..5], correctOptionId

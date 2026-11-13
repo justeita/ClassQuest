@@ -86,6 +86,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/story/validate-parts.ts`                     | ya   | `validateOutline` dan `validateChapter`                        |
 | `src/story/validate-parts.test.ts`                | ya   | Tes validasi outline dan chapter                               |
 | `src/story/scoring.ts`                            | ya   | Penilaian jawaban, fungsi murni                                |
+| `src/story/expression.ts`                         | ya   | Daftar ekspresi potret (tanpa dependensi)                      |
 | `src/story/fallback.ts`                           | ya   | Cerita cadangan (deterministik, selalu valid)                  |
 | `src/assets/manifest.ts`                          | ya   | Daftar resmi aset + `toAssetManifest()`                        |
 | `src/assets/manifest.test.ts`                     | ya   | Tes id, path, tag, fallback, dan file aset                     |
@@ -122,6 +123,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/demoStory.ts`                           | ya   | Akses cerita demo untuk halaman siswa dan dev                  |
 | `src/game/fixture`                                | ya   | Cerita demo untuk pengembangan frontend game                   |
 | `src/components/game/GameCanvas.tsx`              | ya   | Host Phaser + overlay tantangan di React                       |
+| `src/components/game/DialogueBox.tsx`             | ya   | Panel dialog + potret berekspresi (DOM, ADR 0017)              |
 | `src/components/game/ChallengeOverlay.tsx`        | ya   | Overlay tantangan DOM di atas canvas                           |
 | `src/components/game/GameShell.tsx`               | ya   | Shell halaman game + state layar judul/main/hasil              |
 | `src/components/game/TitleScreen.tsx`             | ya   | Layar judul: ringkasan cerita + menu Mulai                     |
@@ -200,6 +202,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/apple-icon.png`                          | ya   | `apple-touch-icon` 192×192                                     |
 | `scripts/generate-assets.mjs`                     | ya   | Generator aset pixel + audio, tanpa dependensi                 |
 | `scripts/import-world.mjs`                        | ya   | Impor peta desa dari editor + tulis `worldAssets.ts`           |
+| `scripts/import-portraits.mjs`                    | ya   | Susun enam potret dialog per karakter ke `public/`             |
 | `scripts/dev-publish.ts`                          | ya   | Script dev penerbit cerita                                     |
 
 ## Struktur target

@@ -235,12 +235,11 @@ export default function Home() {
                     {/* Potret karakter yang sama dipakai game; ikon Font Awesome
                         generik membuat halaman ini terasa seperti dasbor biasa. */}
                     <Image
-                      src="/assets/portrait/npc_10.png"
+                      src="/assets/portrait/npc_10/neutral.png"
                       alt=""
                       width={64}
                       height={64}
-                      className="h-full w-full"
-                      style={{ imageRendering: "pixelated" }}
+                      className="h-full w-full object-cover object-top"
                     />
                   </span>
                   <div>
@@ -308,12 +307,11 @@ export default function Home() {
                 <div className="mb-3 flex items-center gap-3">
                   <span className="landing-pixel-shadow flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-slate-900 bg-siswa-50 transition group-hover:-rotate-3 motion-reduce:group-hover:rotate-0">
                     <Image
-                      src="/assets/portrait/mc.png"
+                      src="/assets/portrait/mc/neutral.png"
                       alt=""
                       width={64}
                       height={64}
-                      className="h-full w-full"
-                      style={{ imageRendering: "pixelated" }}
+                      className="h-full w-full object-cover object-top"
                     />
                   </span>
                   <div>

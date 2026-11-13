@@ -29,6 +29,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0014 | [Auth akun guru dan siswa](0014-auth-akun-guru-siswa.md)             | **Proposed** | Auth, backend       |
 | 0015 | [Tabel kelas dan siswa](0015-kelas-dan-siswa.md)                     | **Proposed** | Kelas, backend      |
 | 0016 | [Obrolan singkat NPC di luar perannya](0016-obrolan-singkat-npc.md)  | Accepted     | Game, data cerita   |
+| 0017 | [Potret berekspresi ala Persona](0017-potret-ekspresi-persona.md)    | Accepted     | Game, aset, cerita  |
 
 ## Status
 

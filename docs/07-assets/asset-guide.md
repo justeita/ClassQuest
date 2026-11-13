@@ -30,7 +30,11 @@ Aset di `public/assets/` datang dari dua jalur yang tidak saling menimpa:
 3. **Impor karakter beranimasi** — `bun run assets:characters`
    (`scripts/import-characters.mjs`). Menyusun spritesheet 8 arah dari folder
    karakter (idle pemain + NPC, plus walk pemain), lalu membangkitkan
-   `src/assets/characterFrames.ts`. Potret dialog dibiarkan apa adanya.
+   `src/assets/characterFrames.ts`.
+4. **Impor potret berekspresi** — `bun run assets:portraits`
+   (`scripts/import-portraits.mjs`). Menyusun enam potret dialog per karakter ke
+   `public/assets/portrait/<nama>/<ekspresi>.png` dan membersihkan potret
+   tunggal lama.
 
 Angka di bagian berikut adalah spesifikasi yang **berlaku sekarang**, disalin
 dari [`../04-game/world-design.md#satuan-dasar`](../04-game/world-design.md#satuan-dasar).
@@ -81,18 +85,23 @@ Contoh: `char_mc` berframe 38×66 dengan 4 frame idle + 8 frame walk; NPC hanya
 punya 4–8 frame idle. `frameWidth`/`frameHeight` disimpan per karakter di
 manifest (dari `src/assets/characterFrames.ts`), karena ukurannya tidak seragam.
 
-### Portrait
+### Potret
 
-| Properti  | Nilai                                               |
-| --------- | --------------------------------------------------- |
-| Resolusi  | **64×64**                                           |
-| Format    | PNG dengan transparansi                             |
-| Pemakaian | Opsional, muncul di dialog dan layar judul          |
-| Asal      | Frame karakter menghadap bawah, dipusatkan di 64×64 |
+| Properti   | Nilai                                                       |
+| ---------- | ----------------------------------------------------------- |
+| Resolusi   | **512 px tinggi**, lebar 431–502 px mengikuti konten        |
+| Format     | PNG dengan latar transparan, satu berkas per ekspresi       |
+| Ekspresi   | `neutral`, `happy`, `sad`, `angry`, `shocked`, `thinking`   |
+| Lokasi     | `public/assets/portrait/<nama>/<ekspresi>.png`              |
+| Pemakaian  | Dialog, obrolan singkat NPC, layar judul, halaman pemasaran |
+| Asal impor | `bun run assets:portraits` (`scripts/import-portraits.mjs`) |
 
-Bingkai potret `ui_portrait_frame` berukuran 72×72 (4 px di luar gambar 64×64).
-Portrait memakai `portraitPath` di entri manifest karakter; kalau tidak ada, game
-tidak menampilkan portrait.
+Nama folder mengikuti berkas sumber (`mc`, `npc_1`, …), bukan id manifest.
+Manifest karakter memetakan keenamnya lewat `portraits`, dan **semua ekspresi
+wajib ada** untuk setiap karakter. Potret tidak memakai bingkai: `DialogueBox`
+menggambarnya di belakang panel dialog dengan dasar sejajar dasar panel, jadi
+dadanya tertutup dan wajahnya menjulang di atas kotak (ADR 0017). Karena potret
+dirender DOM, berkasnya tidak dimuat `PreloadScene`.
 
 ### Musik
 
@@ -116,12 +125,15 @@ Chapter **tidak** berganti lagu: seluruh cerita memakai satu musik.
 
 ### UI
 
-| Properti       | Nilai                                    |
-| -------------- | ---------------------------------------- |
-| Textbox        | 608×104 px (panel malam, border 3 px)    |
-| Bingkai potret | 72×72 px dengan potret 64×64 di dalamnya |
-| Panel default  | `ui_default`, dipakai portrait cadangan  |
-| Format         | PNG dengan transparansi                  |
+| Properti       | Nilai                                            |
+| -------------- | ------------------------------------------------ |
+| Textbox        | 608×104 px (panel malam, border 3 px)            |
+| Bingkai potret | `ui_portrait_frame` 72×72 px, tidak dipakai lagi |
+| Panel default  | `ui_default`, cadangan bila panel khusus absen   |
+| Format         | PNG dengan transparansi                          |
+
+Sejak ADR 0017 potret tidak memakai bingkai, jadi `ui_portrait_frame` hanya
+tersimpan sebagai aset lama di manifest.
 
 ## Aturan pixel art
 
@@ -242,7 +254,8 @@ dari game komersial.
 - Regenerasi dunia membutuhkan folder paket proyek di luar repo
   (`Asset/assets_classquest`, atau `CLASSQUEST_WORLD_SOURCE`), lalu
   `bun run assets:world`. Spritesheet karakter dibuat terpisah dengan
-  `bun run assets:characters`.
+  `bun run assets:characters`, dan enam potret dialog dengan
+  `bun run assets:portraits`.
 - Kalau nanti memakai aset pihak ketiga, aturannya sama seperti aset lain:
   lisensi jelas, hanya berkas jadi yang di-commit, dan sumber dicatat di
   [`inventory.md`](./inventory.md) serta
@@ -250,7 +263,7 @@ dari game komersial.
 
 Generator **tidak** boleh menimpa aset impor. Karena itu aset impor tidak
 didafarkan di `IMAGES` (`scripts/generate-assets.mjs`) dan hanya dibuat lewat
-`import-world.mjs`.
+`import-world.mjs`, `import-characters.mjs`, dan `import-portraits.mjs`.
 
 ## Cara menambah aset
 

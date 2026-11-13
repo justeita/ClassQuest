@@ -534,12 +534,16 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
 "${tantangan.statement}"`
                             : tantangan.prompt,
                         waiting: false,
+                        // Potret pembicara tantangan datang dari beat soal; saat
+                        // jawaban dinilai, game menggantinya jadi senang/marah.
+                        portrait: dialog?.portrait ?? null,
                       }
                     : (dialog ?? {
                         visible: false,
                         name: null,
                         text: "",
                         waiting: false,
+                        portrait: null,
                       })
                 }
                 onAdvance={lanjutDialog}
