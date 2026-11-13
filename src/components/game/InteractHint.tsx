@@ -6,6 +6,8 @@ import { persenTinggi, persenLebar } from "@/game/layout";
 
 type InteractHintProps = {
   hint: PromptView;
+  /** Kotak sedang beranimasi keluar; `NpcHintLayer` menahannya sampai selesai. */
+  keluar?: boolean;
 };
 
 /**
@@ -31,14 +33,26 @@ type InteractHintProps = {
  * `hint.x`/`hint.y` adalah sudut kiri-bawah kotak dalam piksel internal ruang
  * game (lihat `posisiPrompt` di `interaction.ts`).
  *
- * Animasi hanya berjalan sekali per kemunculan: React memakai ulang elemen
- * yang sama saat koordinat berubah tiap frame, jadi kotak tidak berkedip
+ * Saat pemain keluar zona, `NpcHintLayer` tidak langsung melepas kotak: ia
+ * menahannya sebentar dan mengirim `keluar: true`, jadi kotak memudar/menyusut
+ * dengan mulus (`animate-quest-pop-out`, atau meluncur masuk ke `!` untuk kotak
+ * quest yang tampil sendiri) sebelum hilang.
+ *
+ * Animasi masuk hanya berjalan sekali per kemunculan: React memakai ulang
+ * elemen yang sama saat koordinat berubah tiap frame, jadi kotak tidak berkedip
  * mengulang animasi selama pemain berjalan.
  */
-export function InteractHint({ hint }: InteractHintProps) {
-  const animasi = hint.menempel
-    ? "origin-left animate-quest-slide-in"
-    : "animate-quest-pop";
+export function InteractHint({ hint, keluar = false }: InteractHintProps) {
+  // Kotak quest yang tampil sendiri tetap meluncur masuk/keluar dari `!`;
+  // obrolan singkat memakai pop-up halus karena tidak ada penanda untuk dituju.
+  let animasi: string;
+  if (hint.menempel) {
+    animasi = keluar
+      ? "origin-left animate-quest-slide-out"
+      : "origin-left animate-quest-slide-in";
+  } else {
+    animasi = keluar ? "animate-quest-pop-out" : "animate-quest-pop";
+  }
 
   return (
     <div

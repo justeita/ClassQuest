@@ -299,9 +299,15 @@ penandanya jadi **beacon tepi layar** — dirender `InteractHint.tsx` dan
 vertikal dengan papan nama dan karakter di bawahnya. Obrolan singkat muncul
 sebagai pop-up (`animate-quest-pop`), bukan meluncur ke kanan, karena tidak ada
 penanda untuk dituju; kotak quest yang tampil sendiri tetap meluncur keluar dari
-`!` (`animate-quest-slide-in`). Animasi hanya jalan sekali per kemunculan: React
-memakai ulang kotak yang sama saat koordinatnya berubah tiap frame. Zona
-interaksi
+`!` (`animate-quest-slide-in`). Kotak standalone juga punya animasi **keluar**
+yang halus saat pemain meninggalkan zona: `NpcHintLayer.tsx` menahan kotak
+terakhir di DOM selama `DURASI_KELUAR_MS` lalu mengirim `keluar: true`, jadi
+obrolan singkat memudar & menyusut (`animate-quest-pop-out`) dan kotak quest
+yang tampil sendiri meluncur masuk kembali ke `!` (`animate-quest-slide-out`).
+Karena `hint` sendiri tetap langsung `null`, paket penanda quest tetap memulai
+animasi keluarnya lewat `NpcMarker` tanpa jeda tambahan. Animasi hanya jalan
+sekali per kemunculan: React memakai ulang kotak yang sama saat koordinatnya
+berubah tiap frame. Zona interaksi
 memakai histeresis — masuk di 30 px, keluar di 38 px — supaya kotak tidak
 berkedip saat pemain berdiri di batas zona. Speaker disorot, beat `transition`
 fade otomatis, beat `challenge` dibuka sebagai overlay React.

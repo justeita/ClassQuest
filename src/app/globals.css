@@ -22,6 +22,8 @@
   --animate-quest-slide-out: quest-slide-out 0.2s ease-in both;
   /* Kotak `Space` pop-up halus untuk NPC obrolan singkat (tanpa penanda `!`). */
   --animate-quest-pop: quest-pop 0.2s ease-out both;
+  /* Kebalikannya: kotak obrolan singkat memudar & menyusut saat pemain pergi. */
+  --animate-quest-pop-out: quest-pop-out 0.2s ease-in both;
 
   /* --- Portal guru (desain dari `guru.html`, lihat src/app/guru) --- */
   --color-brand-50: #f0f7ff;
@@ -136,6 +138,20 @@
   }
 }
 
+/* Kebalikan `quest-pop`: kotak obrolan singkat memudar sambil menyusut dan
+   turun sedikit saat pemain keluar zona, jadi tidak hilang mendadak. Komponen
+   menahannya di DOM selama durasi ini (lihat `NpcHintLayer.tsx`). */
+@keyframes quest-pop-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.6);
+  }
+}
+
 /* Naik-turun sangat pelan untuk jendela game di hero `/`. Jaraknya 6 px supaya
    terasa hidup tanpa mengalihkan perhatian dari judul dan tombol. */
 @keyframes landing-bob {
@@ -176,7 +192,8 @@
   .animate-quest-beacon,
   .animate-quest-slide-in,
   .animate-quest-slide-out,
-  .animate-quest-pop {
+  .animate-quest-pop,
+  .animate-quest-pop-out {
     animation: none;
   }
 }

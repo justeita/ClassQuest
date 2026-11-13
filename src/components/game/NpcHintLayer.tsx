@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { DURASI_KELUAR_MS } from "@/components/game/animasiPrompt";
 import { InteractHint } from "@/components/game/InteractHint";
 import { NpcMarker } from "@/components/game/NpcMarker";
 import { NpcNameplate } from "@/components/game/NpcNameplate";
@@ -41,28 +42,71 @@ export function NpcHintLayer({ bus, tersembunyi }: NpcHintLayerProps) {
   const [nama, setNama] = useState<NpcNameplateView[]>([]);
   const [penanda, setPenanda] = useState<NpcMarkerView[]>([]);
   const [hint, setHint] = useState<PromptView | null>(null);
+  /**
+   * Prompt terakhir yang sudah tampil. Dipakai untuk menahan kotak `Space`
+   * **standalone** selama animasi keluarnya. `hint` sendiri tetap langsung
+   * `null` supaya paket penanda quest (`NpcMarker`) memulai animasi keluarnya
+   * sendiri tanpa jeda tambahan.
+   */
+  const [hintTerakhir, setHintTerakhir] = useState<PromptView | null>(null);
+  const [keluar, setKeluar] = useState(false);
 
   useEffect(() => {
     if (!bus) return;
 
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const hentikanTimer = () => {
+      if (timer !== undefined) clearTimeout(timer);
+      timer = undefined;
+    };
+
     const lepas = [
       bus.on("nametags", ({ plates }) => setNama(plates)),
       bus.on("markers", ({ markers }) => setPenanda(markers)),
-      bus.on("prompt", (payload) => setHint(payload.hint)),
+      bus.on("prompt", ({ hint: berikut }) => {
+        setHint(berikut);
+
+        if (berikut !== null) {
+          hentikanTimer();
+          setKeluar(false);
+          setHintTerakhir(berikut);
+          return;
+        }
+
+        // Prompt hilang: tahan kotak terakhir supaya animasi keluarnya sempat
+        // berjalan, lalu baru lepas dari DOM setelah durasinya habis. Bila
+        // pemain masuk lagi sebelum jeda usai, timer dibatalkan di atas.
+        setKeluar(true);
+        hentikanTimer();
+        timer = setTimeout(() => {
+          setHintTerakhir(null);
+          setKeluar(false);
+        }, DURASI_KELUAR_MS);
+      }),
     ];
-    return () => lepas.forEach((off) => off());
+
+    return () => {
+      lepas.forEach((off) => off());
+      hentikanTimer();
+    };
   }, [bus]);
 
   if (tersembunyi) return null;
+
+  const menempelKePaket = (prompt: PromptView) =>
+    prompt.menempel && penanda.some((p) => p.tepi !== true);
 
   // Prompt pemberi quest digabung ke paket penanda `!` di `NpcMarker`, supaya
   // `!` dan `Space` naik-turun bersama sebagai satu widget. Bila penanda sedang
   // menjadi beacon tepi layar, tidak ada `!` di kepala NPC, jadi kotak tetap
   // tampil sendiri lewat `InteractHint`.
   const promptGabung =
-    hint !== null && hint.menempel && penanda.some((p) => p.tepi !== true)
-      ? hint.text
-      : null;
+    hint !== null && menempelKePaket(hint) ? hint.text : null;
+
+  // Kotak standalone: versi hidup bila ada, atau versi terakhir yang ditahan
+  // selama animasi keluar.
+  const hintSendiri = hint ?? hintTerakhir;
+  const tampilSendiri = hintSendiri !== null && !menempelKePaket(hintSendiri);
 
   return (
     <>
@@ -80,7 +124,9 @@ export function NpcHintLayer({ bus, tersembunyi }: NpcHintLayerProps) {
           }
         />
       ))}
-      {hint && promptGabung === null && <InteractHint hint={hint} />}
+      {tampilSendiri && hintSendiri !== null && (
+        <InteractHint hint={hintSendiri} keluar={keluar} />
+      )}
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { DURASI_KELUAR_MS } from "@/components/game/animasiPrompt";
 import { KotakSpace } from "@/components/game/KotakSpace";
 import type { NpcMarker as MarkerView } from "@/game/gameBus";
 import {
@@ -21,15 +22,6 @@ type NpcMarkerProps = {
    */
   prompt?: string;
 };
-
-/**
- * Durasi animasi keluar kotak `Space`, dalam milidetik.
- *
- * Harus sama dengan durasi `animate-quest-slide-out` di `globals.css`: kotak
- * ditahan di DOM selama ini supaya sempat meluncur masuk kembali ke `!` sebelum
- * benar-benar dilepas.
- */
-const DURASI_KELUAR_MS = 200;
 
 /**
  * Kotak `!` yang sama dipakai di dua keadaan, supaya UI penanda quest konsisten:

@@ -120,4 +120,32 @@ describe("InteractHint", () => {
       "-translate-x-1/2",
     );
   });
+
+  it("obrolan singkat: kotak memudar keluar dengan animasi pop-out", () => {
+    render(
+      <InteractHint
+        hint={{ text: "Space", x: 320, y: 180, menempel: false }}
+        keluar
+      />,
+    );
+
+    const kelas = screen.getByText("Space").className.split(/\s+/);
+    expect(kelas).toContain("animate-quest-pop-out");
+    expect(kelas).not.toContain("animate-quest-pop");
+    expect(kelas).not.toContain("animate-quest-slide-out");
+  });
+
+  it("kotak quest yang tampil sendiri meluncur masuk kembali ke `!`", () => {
+    render(
+      <InteractHint
+        hint={{ text: "Space", x: 320, y: 180, menempel: true }}
+        keluar
+      />,
+    );
+
+    const kotak = screen.getByText("Space");
+    expect(kotak.className).toContain("animate-quest-slide-out");
+    expect(kotak.className).toContain("origin-left");
+    expect(kotak.className).not.toContain("animate-quest-slide-in");
+  });
 });

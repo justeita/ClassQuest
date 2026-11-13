@@ -160,7 +160,10 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   penandanya jadi beacon tepi layar — **selalu dipusatkan** (`-translate-x-1/2`)
   di titik kaki NPC, jadi lurus vertikal dengan papan nama dan karakter di
   bawahnya. Obrolan singkat muncul sebagai pop-up (`animate-quest-pop`), bukan
-  meluncur ke kanan. Zona interaksi memakai histeresis (masuk 30 px, keluar 38 px)
+  meluncur ke kanan, dan saat pemain pergi kotak standalone juga beranimasi
+  keluar dengan halus (`animate-quest-pop-out`, atau meluncur kembali ke `!`
+  untuk kotak quest yang tampil sendiri) — ditahan di DOM 200 ms oleh
+  `NpcHintLayer`. Zona interaksi memakai histeresis (masuk 30 px, keluar 38 px)
   supaya kotak tidak berkedip di batas zona. Posisi papan nama, penanda, dan
   kotak `Space` diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda tetap
   menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
