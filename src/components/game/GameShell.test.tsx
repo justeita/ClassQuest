@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GameBus } from "@/game/gameBus";
@@ -60,6 +66,17 @@ afterEach(cleanup);
 
 beforeEach(() => {
   bus = new GameBus();
+  // Semua pembaruan state React di tes ini berasal dari `bus.emit`, yang
+  // dipanggil di luar `act`. React lalu menunda flush efek pasif, sehingga
+  // listener jendela (Tab/Esc) dan efek fokus kadang belum terpasang saat tes
+  // menekan tombol atau memeriksa fokus — tes gagal acak begitu suite berjalan
+  // paralel. Bungkus tiap emit dengan `act` supaya efek ikut tuntas sinkron.
+  const emit = bus.emit.bind(bus);
+  bus.emit = (event) => {
+    act(() => {
+      emit(event);
+    });
+  };
   mocks.createGame.mockReset();
   mocks.createGame.mockImplementation(() => ({ bus, destroy: () => {} }));
 });
