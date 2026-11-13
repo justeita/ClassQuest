@@ -4,8 +4,8 @@
     "title": "Daun yang Bekerja",
     "concept": "Fotosintesis",
     "summary": "Nara memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
-    "backgroundId": "bg_classroom_day",
-    "musicId": "bgm_school_calm",
+    "backgroundId": "bg_default",
+    "musicId": "bgm_default",
     "scenes": [
       {
         "id": "sc_01_01",
@@ -17,7 +17,7 @@
           },
           {
             "type": "dialogue",
-            "speakerId": "char_pak_bima",
+            "speakerId": "char_npc_10",
             "text": "Daun itu tidak makan seperti kita. Ia membuat makanannya sendiri dengan bantuan cahaya matahari."
           },
           {
@@ -36,7 +36,7 @@
           },
           {
             "type": "dialogue",
-            "speakerId": "char_nara",
+            "speakerId": "char_mc",
             "text": "Jadi cahaya matahari dipakai daun untuk memasak? Bagaimana caranya?"
           },
           {
@@ -77,12 +77,12 @@
     "previousChapterSummary": "Nara baru saja mulai mengamati daun di depan kelas.",
     "characterStates": [
       {
-        "id": "char_nara",
+        "id": "char_mc",
         "location": "kelas",
         "knows": ["daun membutuhkan cahaya matahari"]
       },
       {
-        "id": "char_pak_bima",
+        "id": "char_npc_10",
         "location": "kelas",
         "knows": ["fotosintesis membuat makanan dari cahaya"]
       }

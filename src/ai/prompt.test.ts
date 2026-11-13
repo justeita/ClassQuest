@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+﻿import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -57,16 +57,16 @@ const OUTLINE: Outline = {
   concepts: ["Evaporasi", "Kondensasi", "Presipitasi"],
   cast: [
     {
-      id: "char_nara",
+      id: "char_mc",
       name: "Nara",
       role: "player",
-      spriteId: "char_nara",
+      spriteId: "char_mc",
     },
     {
-      id: "char_pak_bima",
-      name: "Pak Bima",
+      id: "char_npc_10",
+      name: "Pak Wira",
       role: "mentor",
-      spriteId: "char_pak_bima",
+      spriteId: "char_npc_10",
     },
   ],
   chapters: [
@@ -104,12 +104,12 @@ const CONTINUITY: ContinuityState = {
   previousChapterSummary: "Nara melihat genangan menyusut.",
   characterStates: [
     {
-      id: "char_nara",
+      id: "char_mc",
       location: "halaman sekolah",
       knows: ["air bisa menguap"],
     },
     {
-      id: "char_pak_bima",
+      id: "char_npc_10",
       location: "halaman sekolah",
       knows: ["siklus air"],
     },
@@ -217,7 +217,7 @@ describe("kontrak tahap dengan MockProvider", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("blok prompt dan urutannya", () => {
-  it("outline memakai urutan SCHEMA → ASSETS → OUTLINE → CONTINUITY → MATERIAL → TASK", () => {
+  it("outline memakai urutan SCHEMA â†’ ASSETS â†’ OUTLINE â†’ CONTINUITY â†’ MATERIAL â†’ TASK", () => {
     const { user } = buildOutlinePrompt(outlineInput());
 
     expectOrder(user, [
@@ -231,7 +231,7 @@ describe("blok prompt dan urutannya", () => {
     expect(user).toContain("\nOUTLINE\n");
   });
 
-  it("chapter memakai urutan SCHEMA CHAPTER → ASSETS → OUTLINE → CONTINUITY → MATERIAL → TASK", () => {
+  it("chapter memakai urutan SCHEMA CHAPTER â†’ ASSETS â†’ OUTLINE â†’ CONTINUITY â†’ MATERIAL â†’ TASK", () => {
     const { user } = buildChapterPrompt(chapterInput());
 
     expectOrder(user, [
@@ -476,19 +476,22 @@ describe("blok aset", () => {
   it("mengambil id, label, dan tag dari manifest asli", () => {
     const { user } = buildOutlinePrompt(outlineInput());
 
-    expect(user).toContain("bg_classroom_day");
-    expect(user).toContain("Kelas, siang");
-    expect(user).toContain("kelas, sekolah");
-    expect(user).toContain("char_nara");
-    expect(user).toContain("bgm_school_calm");
+    expect(user).toContain("bg_default");
+    expect(user).toContain("Latar default");
+    expect(user).toContain("netral, fallback, latar");
+    expect(user).toContain("char_mc");
+    expect(user).toContain("bgm_default");
   });
 
-  it("tidak menawarkan aset fallback, sfx, atau ui sebagai pilihan utama", () => {
+  it("menawarkan aset default hanya bila jenis itu tidak punya pilihan lain", () => {
     const { user } = buildOutlinePrompt(outlineInput());
 
-    expect(user).not.toContain("bg_default");
+    // Background dan musik kini hanya punya aset default, jadi keduanya harus
+    // muncul supaya model tidak kehabisan pilihan.
+    expect(user).toContain("bg_default");
+    expect(user).toContain("bgm_default");
+    // Karakter punya banyak pilihan, jadi siluet cadangan tidak ditawarkan.
     expect(user).not.toContain("char_default");
-    expect(user).not.toContain("bgm_default");
     expect(user).not.toContain("sfx_click");
     expect(user).not.toContain("ui_textbox");
   });
@@ -496,13 +499,13 @@ describe("blok aset", () => {
   it("hanya memakai id yang diberikan lewat AssetManifest", () => {
     const { user } = buildOutlinePrompt(
       outlineInput({
-        assets: [{ id: "bg_classroom_day", kind: "background" }],
+        assets: [{ id: "bg_default", kind: "background" }],
       }),
     );
 
-    expect(user).toContain("bg_classroom_day");
-    expect(user).not.toContain("char_nara");
-    expect(user).not.toContain("bgm_school_calm");
+    expect(user).toContain("bg_default");
+    expect(user).not.toContain("char_mc");
+    expect(user).not.toContain("bgm_default");
   });
 });
 

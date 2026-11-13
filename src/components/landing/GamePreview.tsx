@@ -5,9 +5,9 @@ import Image from "next/image";
  *
  * Halaman `/` adalah kesan pertama juri, dan produk ini game pixel — tapi
  * sebelumnya tidak ada satu pun gambar permainan di halaman itu. Panel ini
- * menampilkan peta yang benar-benar dipakai game (`public/assets/map/`) beserta
- * potret dan satu baris dialog dari contoh cerita
- * (`docs/02-data-model/story.example.json`).
+ * menampilkan peta desa yang benar-benar dipakai game
+ * (`public/assets/world/map_village.jpg`) beserta potret dan satu baris dialog
+ * dari contoh cerita (`docs/02-data-model/story.example.json`).
  *
  * Semua gambar memakai berkas yang sudah ada di `public/assets/` — tidak ada
  * aset baru, dan tidak ada `assetId` karangan: halaman ini tidak memilih aset
@@ -20,8 +20,8 @@ export function GamePreview() {
     <div className="landing-pixel-frame landing-bob relative overflow-hidden rounded-2xl bg-slate-900">
       <div className="relative aspect-16/10">
         <Image
-          src="/assets/map/halaman_sekolah.png"
-          alt="Peta halaman sekolah di dalam game: jalan setapak, pohon, kolam, dan ayunan."
+          src="/assets/world/map_village.jpg"
+          alt="Peta desa di dalam game: rumah-rumah warga, jalan setapak, pohon, dan balai desa."
           fill
           priority
           sizes="(min-width: 1024px) 520px, 100vw"
@@ -39,7 +39,7 @@ export function GamePreview() {
         />
 
         <p className="absolute left-3 top-3 rounded-md border-2 border-slate-900 bg-white/95 px-2 py-0.5 font-pixel text-[10px] font-bold uppercase tracking-[0.14em] text-slate-800">
-          Bab 1 · Evaporasi
+          Bab 1 · Perbandingan
         </p>
 
         {/* Dialog meniru kotak dialog game (ADR 0007): panel gelap, potret di
@@ -47,7 +47,7 @@ export function GamePreview() {
         <div className="absolute inset-x-3 bottom-3 flex items-start gap-2.5 rounded-lg border-2 border-slate-900 bg-slate-900/92 p-2.5 sm:inset-x-4 sm:bottom-4 sm:gap-3 sm:p-3">
           <span className="shrink-0 overflow-hidden rounded border-2 border-slate-700 bg-slate-800">
             <Image
-              src="/assets/portrait/pak_bima.png"
+              src="/assets/portrait/npc_10.png"
               alt=""
               width={64}
               height={64}
@@ -58,10 +58,11 @@ export function GamePreview() {
 
           <div className="min-w-0">
             <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-300">
-              Pak Bima
+              Pak Wira
             </p>
             <p className="font-game text-[13px] leading-snug text-slate-100 sm:text-sm">
-              Genangan itu tadi pagi masih penuh. Ke mana airnya?
+              Tiga bagian tepung, dua bagian gula. Berapa cangkir gula untuk
+              sembilan cangkir tepung?
             </p>
           </div>
         </div>

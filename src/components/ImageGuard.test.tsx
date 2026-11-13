@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+﻿import { cleanup, render, screen } from "@testing-library/react";
 import { createElement } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -26,7 +26,7 @@ describe("ImageGuard", () => {
         <ImageGuard />
         {createElement("img", {
           alt: "peta",
-          src: "/assets/map/halaman_sekolah.png",
+          src: "/assets/world/map_village.jpg",
         })}
       </>,
     );

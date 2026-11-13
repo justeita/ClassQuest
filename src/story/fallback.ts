@@ -79,29 +79,31 @@ export type FallbackStoryInput = {
 /* -------------------------------------------------------------------------- */
 
 /** Latar yang dipakai bergiliran antar chapter. */
-const BACKGROUNDS = [
-  "bg_classroom_day",
-  "bg_schoolyard_day",
-  "bg_library_evening",
-] as const;
+const BACKGROUNDS = ["bg_default"] as const;
 
 /** Musik yang dipakai bergiliran antar chapter. */
-const MUSIC = ["bgm_school_calm", "bgm_adventure", "bgm_ending"] as const;
+const MUSIC = ["bgm_default"] as const;
 
 /** Sprite karakter yang boleh dipakai fallback. */
 const CHARACTER_SPRITES = new Set([
-  "char_nara",
-  "char_pak_bima",
-  "char_tirta",
-  "char_rani",
+  "char_mc",
+  "char_npc_1",
+  "char_npc_3",
+  "char_npc_4",
+  "char_npc_5",
+  "char_npc_6",
+  "char_npc_7",
+  "char_npc_8",
+  "char_npc_9",
+  "char_npc_10",
   "char_default",
 ]);
 
 const SPRITE_BY_ROLE: Record<CharacterRole, string> = {
-  player: "char_nara",
-  mentor: "char_pak_bima",
-  npc: "char_rani",
-  antagonist: "char_tirta",
+  player: "char_mc",
+  mentor: "char_npc_10",
+  npc: "char_npc_1",
+  antagonist: "char_default",
 };
 
 const ROLES: readonly CharacterRole[] = [
@@ -112,17 +114,17 @@ const ROLES: readonly CharacterRole[] = [
 ];
 
 const DEFAULT_PLAYER: Character = {
-  id: "char_nara",
+  id: "char_mc",
   name: "Nara",
   role: "player",
-  spriteId: "char_nara",
+  spriteId: "char_mc",
 };
 
 const DEFAULT_MENTOR: Character = {
-  id: "char_pak_bima",
-  name: "Pak Bima",
+  id: "char_npc_10",
+  name: "Pak Wira",
   role: "mentor",
-  spriteId: "char_pak_bima",
+  spriteId: "char_npc_10",
 };
 
 /* -------------------------------------------------------------------------- */

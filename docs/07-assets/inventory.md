@@ -1,18 +1,19 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
 # Inventory Aset
 
 Ini **satu-satunya** tabel daftar aset di repo. Dokumen lain menyebut bentuk
-manifest dan aturan id, tapi tidak menyalin daftarnya — supaya tidak ada dua tabel
-yang harus disinkronkan tangan.
+manifest dan aturan id, tapi tidak menyalin daftarnya — supaya tidak ada dua
+tabel yang harus disinkronkan tangan.
 
 Urutan kebenaran:
 
-1. `src/assets/manifest.ts` (rencana) — yang dipakai kode.
+1. `src/assets/manifest.ts` dan `src/assets/worldAssets.ts` (kode) — yang
+   dipakai game.
 2. Tabel di halaman ini — yang dibaca manusia.
 3. Kalau keduanya berbeda, manifest yang menang, dan tabel ini **wajib**
    diperbarui di PR yang sama.
@@ -20,111 +21,165 @@ Urutan kebenaran:
 Legenda status:
 
 - `todo` — belum dibuat.
-- `placeholder` — file ada, isinya sementara. Semua aset yang **digambar
-  generator** (`scripts/generate-assets.mjs`) berstatus ini, termasuk tile dan
-  prop map top-down (ADR 0009/0010).
-- `ready` — final, sesuai spesifikasi. Aset pihak ketiga yang sudah diproses
-  masuk ke sini; sumbernya dicatat di bagian
-  [Sumber dan lisensi](#sumber-dan-lisensi).
+- `placeholder` — file ada, isinya sementara.
+- `ready` — final, sesuai spesifikasi. Semua aset yang sekarang dipakai game
+  berstatus ini.
 
-> `ready` di sini adalah status **aset**, bukan status cerita. Status cerita hanya
-> `processing | draft | published | failed | archived`; lihat
+> `ready` di sini adalah status **aset**, bukan status cerita. Status cerita
+> hanya `processing | draft | published | failed | archived`; lihat
 > [`../06-backend/persistence.md`](../06-backend/persistence.md#siklus-status).
 > Dua domain ini tidak saling memengaruhi.
 
-Sebagian besar berkas di tabel ini dibuat generator di repo:
-`bun run assets:generate` (gambar PNG tanpa dependensi, audio OGG lewat ffmpeg).
-Jalankan ulang perintah itu setelah mengubah `scripts/lib/`; hasil gambar
-dijamin identik.
+## Dua sumber berkas
 
-Pengecualian: tujuh prop taman/interior dan satu peta halaman adalah aset pihak
-ketiga yang sudah diproses dan di-commit sebagai file game. Generator **tidak**
-menimpanya karena namanya tidak ada di daftar `IMAGES`. Peta dijahit
-`scripts/compose-map.mjs` (sekali jalan, hasilnya di-commit). Kotak potong dan
-sumbernya dicatat di [Sumber dan lisensi](#sumber-dan-lisensi).
+Aset di `public/assets/` datang dari dua jalur, dan keduanya tidak saling
+menimpa:
 
-> Enam prop taman Craftpix (`prop_tree_large`, `prop_tree_medium`,
-> `prop_tree_flower`, `prop_bush_small`, `prop_bush_flower`, `prop_pond`) tetap
-> terdaftar di manifest dan filenya ada di `public/`, tetapi sejak ADR 0012
-> **tidak lagi dipasang** di `halaman_sekolah` — halaman memakai gambar peta
-> penuh. Keduanya sengaja dipertahankan untuk pemakaian ruangan lain.
+1. **Generator repo** — `bun run assets:generate`. Membuat aset generik: latar
+   default `640×360`, siluet karakter default, panel UI, dan empat efek suara.
+   Gambar digambar tanpa dependensi di `scripts/lib/`; audio disintesis lalu
+   dienkode ke OGG lewat ffmpeg.
+2. **Impor paket desa** — `bun run assets:world` (`scripts/import-world.mjs`).
+   Menyalin peta desa, 80 potongan objek, 10 spritesheet karakter desa +
+   potretnya, dan satu lagu dari folder paket aset proyek di luar repo
+   (`Asset/assets_classquest`), lalu membangkitkan `src/assets/worldAssets.ts`
+   dan `src/game/world/village.json`.
+
+Kind `world` berisi peta dan potongan objek yang dipasang dari data editor
+peta. Entri itu **tidak** bisa dirujuk Story JSON: `STORY_ASSET_KINDS` hanya
+memuat `background`, `character`, `music`, `sfx`, dan `ui`. Lihat
+[`../02-data-model/asset-manifest.md`](../02-data-model/asset-manifest.md).
 
 ## Background
 
-| id                      | Label                  | Path                                | Tags                                               | Status |
-| ----------------------- | ---------------------- | ----------------------------------- | -------------------------------------------------- | ------ |
-| `bg_classroom_day`      | Kelas, siang           | `/assets/bg/classroom_day.png`      | kelas, sekolah, belajar, siang, classroom, indoor  | ready  |
-| `bg_schoolyard_day`     | Halaman sekolah, siang | `/assets/bg/schoolyard_day.png`     | halaman, sekolah, luar, siang, schoolyard, outdoor | ready  |
-| `bg_schoolyard_evening` | Halaman sekolah, sore  | `/assets/bg/schoolyard_evening.png` | halaman, sekolah, sore, senja, sunset, outdoor     | ready  |
-| `bg_cloud_sky`          | Langit di atas awan    | `/assets/bg/cloud_sky.png`          | langit, awan, tinggi, terang, sky, cloud           | ready  |
-| `bg_mountain_night`     | Gunung, malam          | `/assets/bg/mountain_night.png`     | gunung, malam, gelap, dingin, mountain, night      | ready  |
-| `bg_river_day`          | Sungai, siang          | `/assets/bg/river_day.png`          | sungai, air, alam, siang, river, nature            | ready  |
-| `bg_library_evening`    | Perpustakaan, sore     | `/assets/bg/library_evening.png`    | perpustakaan, buku, sore, tenang, library, indoor  | ready  |
-| `bg_default`            | Latar default          | `/assets/bg/default.png`            | default, cadangan, netral, fallback                | ready  |
+Latar `640×360` untuk layar judul dan layar hasil. Di dalam permainan, latar
+yang terlihat adalah peta desa (kind `world`), bukan background.
+
+| id           | Label         | Path                     | Tags                                       | Status |
+| ------------ | ------------- | ------------------------ | ------------------------------------------ | ------ |
+| `bg_default` | Latar default | `/assets/bg/default.png` | default, cadangan, netral, fallback, latar | ready  |
 
 ## Karakter
 
-| id              | Label                 | Sprite                      | Portrait                        | Tags                                              | Status |
-| --------------- | --------------------- | --------------------------- | ------------------------------- | ------------------------------------------------- | ------ |
-| `char_nara`     | Nara (siswa)          | `/assets/char/nara.png`     | `/assets/portrait/nara.png`     | siswa, perempuan, seragam, remaja, student        | ready  |
-| `char_pak_bima` | Pak Bima (guru)       | `/assets/char/pak_bima.png` | `/assets/portrait/pak_bima.png` | guru, dewasa, pria, pengajar, teacher             | ready  |
-| `char_tirta`    | Tirta (roh air)       | `/assets/char/tirta.png`    | `/assets/portrait/tirta.png`    | air, roh, biru, kecil, spirit, water              | ready  |
-| `char_rani`     | Rani (siswa)          | `/assets/char/rani.png`     | `/assets/portrait/rani.png`     | siswa, perempuan, rambut pendek, teman            | ready  |
-| `char_nino`     | Nino (siswa pindahan) | `/assets/char/nino.png`     | `/assets/portrait/nino.png`     | siswa, perempuan, ekor kembar, pita, rok, student | ready  |
-| `char_default`  | Karakter default      | `/assets/char/default.png`  | —                               | default, cadangan, fallback, netral               | ready  |
+Spritesheet horizontal berisi delapan frame arah hadap, urut: bawah,
+bawah-kanan, kanan, atas-kanan, atas, atas-kiri, kiri, bawah-kiri.
+`frameWidth` tiap karakter berbeda (lebar sprite aslinya); tinggi frame selalu
+`64`. Potret `64×64` diambil dari frame bawah dan dipakai layar judul serta
+dialog.
 
-## Tile
+| id             | Label                | Sprite                     | Potret                        | Frame | Tags                                          | Status |
+| -------------- | -------------------- | -------------------------- | ----------------------------- | ----- | --------------------------------------------- | ------ |
+| `char_mc`      | Pemuda syal biru     | `/assets/char/mc.png`      | `/assets/portrait/mc.png`     | 34×64 | pemuda, syal, biru, desa, pemain, karakter    | ready  |
+| `char_npc_1`   | Pelajar bertopi biru | `/assets/char/npc_1.png`   | `/assets/portrait/npc_1.png`  | 38×64 | pelajar, topi, biru, desa, remaja, warga      | ready  |
+| `char_npc_3`   | Pelajar berkacamata  | `/assets/char/npc_3.png`   | `/assets/portrait/npc_3.png`  | 36×64 | pelajar, kacamata, desa, remaja, warga, siswa | ready  |
+| `char_npc_4`   | Gadis berjubah biru  | `/assets/char/npc_4.png`   | `/assets/portrait/npc_4.png`  | 35×64 | gadis, jubah, biru, desa, warga, remaja       | ready  |
+| `char_npc_5`   | Nenek bertongkat     | `/assets/char/npc_5.png`   | `/assets/portrait/npc_5.png`  | 45×64 | nenek, tongkat, tua, desa, warga, bijak       | ready  |
+| `char_npc_6`   | Kakek berjubah hijau | `/assets/char/npc_6.png`   | `/assets/portrait/npc_6.png`  | 40×64 | kakek, jubah, hijau, desa, warga, tua         | ready  |
+| `char_npc_7`   | Nelayan desa         | `/assets/char/npc_7.png`   | `/assets/portrait/npc_7.png`  | 51×64 | nelayan, perahu, ikan, desa, warga, sungai    | ready  |
+| `char_npc_8`   | Penjaga desa         | `/assets/char/npc_8.png`   | `/assets/portrait/npc_8.png`  | 51×64 | penjaga, jaga, desa, warga, aman, pos         | ready  |
+| `char_npc_9`   | Petani desa          | `/assets/char/npc_9.png`   | `/assets/portrait/npc_9.png`  | 46×64 | petani, sawah, tani, desa, warga, panen       | ready  |
+| `char_npc_10`  | Tetua bijak desa     | `/assets/char/npc_10.png`  | `/assets/portrait/npc_10.png` | 40×64 | tetua, bijak, tua, desa, warga, penasihat     | ready  |
+| `char_default` | Karakter default     | `/assets/char/default.png` | —                             | 24×32 | default, cadangan, fallback, netral, siluet   | ready  |
 
-| id                    | Label           | Path                              | Tags                                                   | Status      |
-| --------------------- | --------------- | --------------------------------- | ------------------------------------------------------ | ----------- |
-| `tile_floor_wood`     | Lantai kayu     | `/assets/tile/floor_wood.png`     | lantai, kayu, kelas, indoor, floor, wood               | placeholder |
-| `tile_floor_grass`    | Rumput          | `/assets/tile/floor_grass.png`    | lantai, rumput, halaman, luar, grass, outdoor          | placeholder |
-| `tile_floor_cloud`    | Lantai awan     | `/assets/tile/floor_cloud.png`    | lantai, awan, langit, terang, cloud, sky               | placeholder |
-| `tile_floor_rock`     | Batu            | `/assets/tile/floor_rock.png`     | lantai, batu, gunung, gelap, rock, mountain            | placeholder |
-| `tile_floor_water`    | Air             | `/assets/tile/floor_water.png`    | lantai, air, sungai, dingin, water, river              | placeholder |
-| `tile_floor_corridor` | Lantai koridor  | `/assets/tile/floor_corridor.png` | lantai, koridor, ubin, sekolah, indoor, corridor       | placeholder |
-| `tile_wall_plaster`   | Dinding plester | `/assets/tile/wall_plaster.png`   | dinding, plester, kelas, indoor, wall, interior        | placeholder |
-| `tile_wall_hedge`     | Pagar tanaman   | `/assets/tile/wall_hedge.png`     | dinding, tanaman, halaman, luar, hedge, outdoor        | placeholder |
-| `tile_wall_rock`      | Dinding batu    | `/assets/tile/wall_rock.png`      | dinding, batu, gunung, gelap, rock, outdoor            | placeholder |
-| `tile_canopy`         | Kanopi penutup  | `/assets/tile/canopy.png`         | kanopi, pohon, langit-langit, penutup, canopy, overlay | placeholder |
-| `tile_default`        | Tile default    | `/assets/tile/default.png`        | default, cadangan, netral, fallback                    | placeholder |
+## Dunia desa (kind `world`)
 
-## Prop
+Satu peta desa `2390×1792` dan potongan objek yang dipasang editor peta.
+Kolom Ukuran adalah ukuran berkas asli; skala dan posisi di peta diatur data
+editor (`src/game/world/village.json`), bukan ukuran berkas.
 
-| id                 | Label                  | Path                           | Tags                                                | Status      |
-| ------------------ | ---------------------- | ------------------------------ | --------------------------------------------------- | ----------- |
-| `prop_desk`        | Meja kelas             | `/assets/prop/desk.png`        | meja, kelas, belajar, indoor, desk, school          | placeholder |
-| `prop_blackboard`  | Papan tulis            | `/assets/prop/blackboard.png`  | papan, tulisan, kelas, mengajar, blackboard, school | placeholder |
-| `prop_tree`        | Pohon                  | `/assets/prop/tree.png`        | pohon, halaman, alam, luar, tree, nature            | placeholder |
-| `prop_fence`       | Pagar kayu             | `/assets/prop/fence.png`       | pagar, halaman, luar, kayu, fence, outdoor          | placeholder |
-| `prop_tree_large`  | Pohon rindang besar    | `/assets/prop/tree_large.png`  | pohon, rindang, taman, luar, tree, shade            | ready       |
-| `prop_tree_medium` | Pohon sedang           | `/assets/prop/tree_medium.png` | pohon, sedang, taman, luar, tree, outdoor           | ready       |
-| `prop_tree_flower` | Pohon berbunga         | `/assets/prop/tree_flower.png` | pohon, bunga, taman, luar, flower, tree             | ready       |
-| `prop_bush_small`  | Semak kecil            | `/assets/prop/bush_small.png`  | semak, daun, taman, luar, bush, outdoor             | ready       |
-| `prop_bush_flower` | Semak bunga merah muda | `/assets/prop/bush_flower.png` | semak, bunga, merah muda, taman, bush, flower       | ready       |
-| `prop_shelf`       | Rak buku               | `/assets/prop/shelf.png`       | rak, buku, kelas, indoor, shelf, library            | ready       |
-| `prop_door`        | Pintu kayu             | `/assets/prop/door.png`        | pintu, kayu, koridor, indoor, door, sekolah         | ready       |
-| `prop_pond`        | Kolam taman            | `/assets/prop/pond.png`        | kolam, air, taman, luar, pond, water                | placeholder |
-| `prop_default`     | Prop default           | `/assets/prop/default.png`     | default, cadangan, netral, fallback                 | placeholder |
+Entri di bawah **tidak** boleh dipakai sebagai `backgroundId` cerita.
 
-## Peta
-
-Satu gambar penuh per ruangan (ADR 0012). Ukuran wajib kelipatan 16 dan sama
-dengan `widthTiles`×`heightTiles` ruangannya.
-
-| id                    | Label                | Path                              | Ukuran  | Tags                                              | Status |
-| --------------------- | -------------------- | --------------------------------- | ------- | ------------------------------------------------- | ------ |
-| `map_halaman_sekolah` | Peta halaman sekolah | `/assets/map/halaman_sekolah.png` | 896×544 | peta, halaman, taman, sekolah, luar, map, outdoor | ready  |
+| id                                                  | Label                                      | Path                                                            | Ukuran    | Tags                                                     |
+| --------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------- | --------- | -------------------------------------------------------- |
+| `world_map_village`                                 | Peta desa                                  | `/assets/world/map_village.jpg`                                 | 2390×1792 | peta, desa, dunia, latar, map, village                   |
+| `world_mirrored_pixel_cottage_sprite_set`           | Mirrored Pixel Cottage Sprite Set          | `/assets/world/mirrored_pixel_cottage_sprite_set.png`           | 205×128   | mirrored, pixel, cottage, sprite, set, desa, objek, aset |
+| `world_pixel_art_benches__front_and_top_down_views` | Pixel Art Benches Front And Top Down Views | `/assets/world/pixel_art_benches__front_and_top_down_views.png` | 989×887   | pixel, art, benches, front, and, top, down, views        |
+| `world_bush_03_cream_white_blooms_1`                | Bush 03 Cream White Blooms 1               | `/assets/world/bush_03_cream_white_blooms_1.png`                | 1024×1024 | bush, 03, cream, white, blooms, 1, desa, objek           |
+| `world_bush_03_cream_white_blooms_crop`             | Bush 03 Cream White Blooms Crop            | `/assets/world/bush_03_cream_white_blooms_crop.png`             | 805×1024  | bush, 03, cream, white, blooms, crop, desa, objek        |
+| `world_bush_11_large_pink_blooms_1`                 | Bush 11 Large Pink Blooms 1                | `/assets/world/bush_11_large_pink_blooms_1.png`                 | 1024×1024 | bush, 11, large, pink, blooms, 1, desa, objek            |
+| `world_bush_14_tiny_white_blooms_1`                 | Bush 14 Tiny White Blooms 1                | `/assets/world/bush_14_tiny_white_blooms_1.png`                 | 1024×1024 | bush, 14, tiny, white, blooms, 1, desa, objek            |
+| `world_bush_16_purple_cluster_blooms_1`             | Bush 16 Purple Cluster Blooms 1            | `/assets/world/bush_16_purple_cluster_blooms_1.png`             | 1024×1024 | bush, 16, purple, cluster, blooms, 1, desa, objek        |
+| `world_bush_16_purple_cluster_blooms_crop`          | Bush 16 Purple Cluster Blooms Crop         | `/assets/world/bush_16_purple_cluster_blooms_crop.png`          | 709×1024  | bush, 16, purple, cluster, blooms, crop, desa, objek     |
+| `world_bush_16_purple_cluster_blooms_crop2`         | Bush 16 Purple Cluster Blooms Crop2        | `/assets/world/bush_16_purple_cluster_blooms_crop2.png`         | 551×1024  | bush, 16, purple, cluster, blooms, crop2, desa, objek    |
+| `world_bush_18_ivory_blooms_1`                      | Bush 18 Ivory Blooms 1                     | `/assets/world/bush_18_ivory_blooms_1.png`                      | 1024×1024 | bush, 18, ivory, blooms, 1, desa, objek, aset            |
+| `world_bush_22_lavender_bells_1`                    | Bush 22 Lavender Bells 1                   | `/assets/world/bush_22_lavender_bells_1.png`                    | 1024×1024 | bush, 22, lavender, bells, 1, desa, objek, aset          |
+| `world_bush_23_white_red_mix_1`                     | Bush 23 White Red Mix 1                    | `/assets/world/bush_23_white_red_mix_1.png`                     | 1024×1024 | bush, 23, white, red, mix, 1, desa, objek                |
+| `world_bush_24_yellow_cluster_1`                    | Bush 24 Yellow Cluster 1                   | `/assets/world/bush_24_yellow_cluster_1.png`                    | 1024×1024 | bush, 24, yellow, cluster, 1, desa, objek, aset          |
+| `world_fountain`                                    | Fountain                                   | `/assets/world/fountain.png`                                    | 1263×1246 | fountain, desa, objek, aset                              |
+| `world_house_blue`                                  | House Blue                                 | `/assets/world/house_blue.png`                                  | 184×128   | house, blue, desa, objek, aset                           |
+| `world_house_blue_2`                                | House Blue 2                               | `/assets/world/house_blue_2.png`                                | 256×138   | house, blue, 2, desa, objek, aset                        |
+| `world_house_red`                                   | House Red                                  | `/assets/world/house_red.png`                                   | 185×128   | house, red, desa, objek, aset                            |
+| `world_library`                                     | Library                                    | `/assets/world/library.png`                                     | 148×137   | library, desa, objek, aset                               |
+| `world_long_flower_planter`                         | Long Flower Planter                        | `/assets/world/long_flower_planter.png`                         | 1536×1024 | long, flower, planter, desa, objek, aset                 |
+| `world_old_garden`                                  | Old Garden                                 | `/assets/world/old_garden.png`                                  | 128×128   | old, garden, desa, objek, aset                           |
+| `world_pathway`                                     | Pathway                                    | `/assets/world/pathway.png`                                     | 887×887   | pathway, desa, objek, aset                               |
+| `world_short_flower_planter`                        | Short Flower Planter                       | `/assets/world/short_flower_planter.png`                        | 1536×1024 | short, flower, planter, desa, objek, aset                |
+| `world_stone_well`                                  | Stone Well                                 | `/assets/world/stone_well.png`                                  | 1254×1254 | stone, well, desa, objek, aset                           |
+| `world_streetlamp_casual`                           | Streetlamp Casual                          | `/assets/world/streetlamp_casual.png`                           | 26×128    | streetlamp, casual, desa, objek, aset                    |
+| `world_streetlamp_with_banner`                      | Streetlamp With Banner                     | `/assets/world/streetlamp_with_banner.png`                      | 36×128    | streetlamp, with, banner, desa, objek, aset              |
+| `world_streetlamp_with_banner_copy`                 | Streetlamp With Banner Copy                | `/assets/world/streetlamp_with_banner_copy.png`                 | 36×128    | streetlamp, with, banner, copy, desa, objek, aset        |
+| `world_tree_regular_1_1`                            | Tree Regular 1 1                           | `/assets/world/tree_regular_1_1.png`                            | 102×128   | tree, regular, 1, desa, objek, aset                      |
+| `world_tree_regular_1_crop`                         | Tree Regular 1 Crop                        | `/assets/world/tree_regular_1_crop.png`                         | 55×128    | tree, regular, 1, crop, desa, objek, aset                |
+| `world_tree_regular_1_crop2`                        | Tree Regular 1 Crop2                       | `/assets/world/tree_regular_1_crop2.png`                        | 102×74    | tree, regular, 1, crop2, desa, objek, aset               |
+| `world_tree_regular_2_1`                            | Tree Regular 2 1                           | `/assets/world/tree_regular_2_1.png`                            | 80×128    | tree, regular, 2, 1, desa, objek, aset                   |
+| `world_tree_regular_2_crop`                         | Tree Regular 2 Crop                        | `/assets/world/tree_regular_2_crop.png`                         | 80×97     | tree, regular, 2, crop, desa, objek, aset                |
+| `world_tree_regular_2_crop2`                        | Tree Regular 2 Crop2                       | `/assets/world/tree_regular_2_crop2.png`                        | 48×67     | tree, regular, 2, crop2, desa, objek, aset               |
+| `world_tree_regular_3_1`                            | Tree Regular 3 1                           | `/assets/world/tree_regular_3_1.png`                            | 117×128   | tree, regular, 3, 1, desa, objek, aset                   |
+| `world_tree_regular_3_crop`                         | Tree Regular 3 Crop                        | `/assets/world/tree_regular_3_crop.png`                         | 117×23    | tree, regular, 3, crop, desa, objek, aset                |
+| `world_tree_regular_3_crop2`                        | Tree Regular 3 Crop2                       | `/assets/world/tree_regular_3_crop2.png`                        | 117×43    | tree, regular, 3, crop2, desa, objek, aset               |
+| `world_tree_regular_3_crop3`                        | Tree Regular 3 Crop3                       | `/assets/world/tree_regular_3_crop3.png`                        | 100×128   | tree, regular, 3, crop3, desa, objek, aset               |
+| `world_tree_regular_3_crop4`                        | Tree Regular 3 Crop4                       | `/assets/world/tree_regular_3_crop4.png`                        | 117×87    | tree, regular, 3, crop4, desa, objek, aset               |
+| `world_tree_regular_3_crop5`                        | Tree Regular 3 Crop5                       | `/assets/world/tree_regular_3_crop5.png`                        | 88×128    | tree, regular, 3, crop5, desa, objek, aset               |
+| `world_tree_regular_3_crop6`                        | Tree Regular 3 Crop6                       | `/assets/world/tree_regular_3_crop6.png`                        | 117×117   | tree, regular, 3, crop6, desa, objek, aset               |
+| `world_tree_regular_3_crop7`                        | Tree Regular 3 Crop7                       | `/assets/world/tree_regular_3_crop7.png`                        | 117×76    | tree, regular, 3, crop7, desa, objek, aset               |
+| `world_tree_regular_3_crop8`                        | Tree Regular 3 Crop8                       | `/assets/world/tree_regular_3_crop8.png`                        | 83×128    | tree, regular, 3, crop8, desa, objek, aset               |
+| `world_tree_regular_4_1`                            | Tree Regular 4 1                           | `/assets/world/tree_regular_4_1.png`                            | 105×128   | tree, regular, 4, 1, desa, objek, aset                   |
+| `world_tree_regular_4_crop`                         | Tree Regular 4 Crop                        | `/assets/world/tree_regular_4_crop.png`                         | 105×64    | tree, regular, 4, crop, desa, objek, aset                |
+| `world_tree_regular_4_crop2`                        | Tree Regular 4 Crop2                       | `/assets/world/tree_regular_4_crop2.png`                        | 105×72    | tree, regular, 4, crop2, desa, objek, aset               |
+| `world_tree_regular_5_1`                            | Tree Regular 5 1                           | `/assets/world/tree_regular_5_1.png`                            | 101×128   | tree, regular, 5, 1, desa, objek, aset                   |
+| `world_tree_regular_5_crop`                         | Tree Regular 5 Crop                        | `/assets/world/tree_regular_5_crop.png`                         | 101×89    | tree, regular, 5, crop, desa, objek, aset                |
+| `world_tree_regular_5_crop2`                        | Tree Regular 5 Crop2                       | `/assets/world/tree_regular_5_crop2.png`                        | 101×57    | tree, regular, 5, crop2, desa, objek, aset               |
+| `world_tree_regular_5_crop3`                        | Tree Regular 5 Crop3                       | `/assets/world/tree_regular_5_crop3.png`                        | 101×38    | tree, regular, 5, crop3, desa, objek, aset               |
+| `world_tree_regular_5_crop4`                        | Tree Regular 5 Crop4                       | `/assets/world/tree_regular_5_crop4.png`                        | 101×86    | tree, regular, 5, crop4, desa, objek, aset               |
+| `world_tree_regular_5_crop5`                        | Tree Regular 5 Crop5                       | `/assets/world/tree_regular_5_crop5.png`                        | 89×55     | tree, regular, 5, crop5, desa, objek, aset               |
+| `world_tree_regular_5_crop6`                        | Tree Regular 5 Crop6                       | `/assets/world/tree_regular_5_crop6.png`                        | 101×108   | tree, regular, 5, crop6, desa, objek, aset               |
+| `world_tree_regular_5_crop7`                        | Tree Regular 5 Crop7                       | `/assets/world/tree_regular_5_crop7.png`                        | 101×65    | tree, regular, 5, crop7, desa, objek, aset               |
+| `world_tree_sakura_1`                               | Tree Sakura 1                              | `/assets/world/tree_sakura_1.png`                               | 118×128   | tree, sakura, 1, desa, objek, aset                       |
+| `world_tree_spruce_1`                               | Tree Spruce 1                              | `/assets/world/tree_spruce_1.png`                               | 105×128   | tree, spruce, 1, desa, objek, aset                       |
+| `world_tree_spruce_crop10`                          | Tree Spruce Crop10                         | `/assets/world/tree_spruce_crop10.png`                          | 105×37    | tree, spruce, crop10, desa, objek, aset                  |
+| `world_tree_spruce_crop11`                          | Tree Spruce Crop11                         | `/assets/world/tree_spruce_crop11.png`                          | 105×64    | tree, spruce, crop11, desa, objek, aset                  |
+| `world_tree_spruce_crop12`                          | Tree Spruce Crop12                         | `/assets/world/tree_spruce_crop12.png`                          | 73×104    | tree, spruce, crop12, desa, objek, aset                  |
+| `world_tree_spruce_crop13`                          | Tree Spruce Crop13                         | `/assets/world/tree_spruce_crop13.png`                          | 86×128    | tree, spruce, crop13, desa, objek, aset                  |
+| `world_tree_spruce_crop15`                          | Tree Spruce Crop15                         | `/assets/world/tree_spruce_crop15.png`                          | 69×128    | tree, spruce, crop15, desa, objek, aset                  |
+| `world_tree_spruce_crop16`                          | Tree Spruce Crop16                         | `/assets/world/tree_spruce_crop16.png`                          | 105×30    | tree, spruce, crop16, desa, objek, aset                  |
+| `world_tree_spruce_crop17`                          | Tree Spruce Crop17                         | `/assets/world/tree_spruce_crop17.png`                          | 105×103   | tree, spruce, crop17, desa, objek, aset                  |
+| `world_tree_spruce_crop18`                          | Tree Spruce Crop18                         | `/assets/world/tree_spruce_crop18.png`                          | 105×118   | tree, spruce, crop18, desa, objek, aset                  |
+| `world_tree_spruce_crop19`                          | Tree Spruce Crop19                         | `/assets/world/tree_spruce_crop19.png`                          | 60×128    | tree, spruce, crop19, desa, objek, aset                  |
+| `world_tree_spruce_crop2`                           | Tree Spruce Crop2                          | `/assets/world/tree_spruce_crop2.png`                           | 105×117   | tree, spruce, crop2, desa, objek, aset                   |
+| `world_tree_spruce_crop20`                          | Tree Spruce Crop20                         | `/assets/world/tree_spruce_crop20.png`                          | 105×63    | tree, spruce, crop20, desa, objek, aset                  |
+| `world_tree_spruce_crop21`                          | Tree Spruce Crop21                         | `/assets/world/tree_spruce_crop21.png`                          | 54×128    | tree, spruce, crop21, desa, objek, aset                  |
+| `world_tree_spruce_crop22`                          | Tree Spruce Crop22                         | `/assets/world/tree_spruce_crop22.png`                          | 70×128    | tree, spruce, crop22, desa, objek, aset                  |
+| `world_tree_spruce_crop23`                          | Tree Spruce Crop23                         | `/assets/world/tree_spruce_crop23.png`                          | 99×128    | tree, spruce, crop23, desa, objek, aset                  |
+| `world_tree_spruce_crop3`                           | Tree Spruce Crop3                          | `/assets/world/tree_spruce_crop3.png`                           | 54×128    | tree, spruce, crop3, desa, objek, aset                   |
+| `world_tree_spruce_crop4`                           | Tree Spruce Crop4                          | `/assets/world/tree_spruce_crop4.png`                           | 105×23    | tree, spruce, crop4, desa, objek, aset                   |
+| `world_tree_spruce_crop5`                           | Tree Spruce Crop5                          | `/assets/world/tree_spruce_crop5.png`                           | 73×62     | tree, spruce, crop5, desa, objek, aset                   |
+| `world_tree_spruce_crop6`                           | Tree Spruce Crop6                          | `/assets/world/tree_spruce_crop6.png`                           | 105×32    | tree, spruce, crop6, desa, objek, aset                   |
+| `world_tree_spruce_crop7`                           | Tree Spruce Crop7                          | `/assets/world/tree_spruce_crop7.png`                           | 105×47    | tree, spruce, crop7, desa, objek, aset                   |
+| `world_tree_spruce_crop8`                           | Tree Spruce Crop8                          | `/assets/world/tree_spruce_crop8.png`                           | 105×54    | tree, spruce, crop8, desa, objek, aset                   |
+| `world_tree_spruce_crop9`                           | Tree Spruce Crop9                          | `/assets/world/tree_spruce_crop9.png`                           | 105×52    | tree, spruce, crop9, desa, objek, aset                   |
+| `world_welcome_sign`                                | Welcome Sign                               | `/assets/world/welcome_sign.png`                                | 128×128   | welcome, sign, desa, objek, aset                         |
+| `world_wooden_bench_left_side`                      | Wooden Bench Left Side                     | `/assets/world/wooden_bench_left_side.png`                      | 1024×1536 | wooden, bench, left, side, desa, objek, aset             |
+| `world_wooden_bench_side`                           | Wooden Bench Side                          | `/assets/world/wooden_bench_side.png`                           | 1024×1536 | wooden, bench, side, desa, objek, aset                   |
+| `world_wooden_fence_horizontal`                     | Wooden Fence Horizontal                    | `/assets/world/wooden_fence_horizontal.png`                     | 869×128   | wooden, fence, horizontal, desa, objek, aset             |
+| `world_wooden_fence_vertical`                       | Wooden Fence Vertical                      | `/assets/world/wooden_fence_vertical.png`                       | 16×128    | wooden, fence, vertical, desa, objek, aset               |
 
 ## Musik
 
-| id                | Label          | Path                            | Tags                                   | Status |
-| ----------------- | -------------- | ------------------------------- | -------------------------------------- | ------ |
-| `bgm_school_calm` | Sekolah tenang | `/assets/music/school_calm.ogg` | tenang, sekolah, pagi, hangat, calm    | ready  |
-| `bgm_adventure`   | Petualangan    | `/assets/music/adventure.ogg`   | petualangan, naik, semangat, adventure | ready  |
-| `bgm_mystery`     | Misteri        | `/assets/music/mystery.ogg`     | misteri, gelap, penasaran, mystery     | ready  |
-| `bgm_ending`      | Penutup        | `/assets/music/ending.ogg`      | penutup, hangat, lega, ending          | ready  |
-| `bgm_default`     | Musik default  | `/assets/music/default.ogg`     | default, cadangan, netral, tenang      | ready  |
+Satu lagu untuk seluruh permainan; chapter tidak berganti lagu.
+
+| id            | Label      | Path                        | Tags                                   | Status |
+| ------------- | ---------- | --------------------------- | -------------------------------------- | ------ |
+| `bgm_default` | Musik desa | `/assets/music/default.mp3` | desa, tenang, hangat, pengantar, musik | ready  |
 
 ## SFX
 
@@ -156,71 +211,38 @@ dimuat `next/font/local` dari `public/fonts/` (ADR 0007).
 
 ## Ringkasan
 
-| Kind         | Jumlah |
-| ------------ | ------ |
-| `background` | 8      |
-| `character`  | 6      |
-| `tile`       | 11     |
-| `prop`       | 13     |
-| `map`        | 1      |
-| `music`      | 5      |
-| `sfx`        | 4      |
-| `ui`         | 3      |
-| **Total**    | **51** |
+| Kind         | Jumlah  |
+| ------------ | ------- |
+| `background` | 1       |
+| `character`  | 11      |
+| `world`      | 81      |
+| `music`      | 1       |
+| `sfx`        | 4       |
+| `ui`         | 3       |
+| **Total**    | **101** |
 
-## Prioritas pengerjaan
+## Prioritas bila aset perlu dibuat ulang
 
-Urutan yang disarankan agar game bisa tampil cepat:
+Urutan yang disarankan agar game tetap bisa tampil:
 
-1. `bg_default`, `char_default`, `bgm_default`, `ui_default` — agar fallback jalan.
-2. `bg_classroom_day`, `char_nara`, `char_pak_bima`, `ui_textbox` — cukup untuk
-   chapter 1 contoh.
-3. `bgm_school_calm`, `sfx_click`, `sfx_correct`, `sfx_wrong`.
-4. Sisa background dan karakter.
-5. `bgm_adventure`, `bgm_ending`, `ui_portrait_frame`.
+1. `bun run assets:world` — peta desa, objek, karakter, potret, dan lagu.
+2. `bun run assets:generate` — latar default, siluet default, panel UI, sfx.
+3. Periksa `bun run test` (test manifest memeriksa file dan jumlah per kind).
 
 ## Sumber dan lisensi
 
-| id                                                                           | Sumber                                    | Berkas asal                                  | Lisensi                   |
-| ---------------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------- | ------------------------- |
-| Semua aset lain (background, karakter, tile, prop generator, musik, sfx, ui) | Dibuat generator repo                     | `scripts/lib/*.mjs`                          | Milik proyek              |
-| `prop_tree_large`, `prop_tree_medium`, `prop_tree_flower`                    | Craftpix — Free Top Down Trees Pixel Art  | `Tree1.png`, `Tree2.png`, `Flower_tree1.png` | Craftpix Free License     |
-| `prop_bush_small`, `prop_bush_flower`                                        | Craftpix — Free Top Down Bushes Pixel Art | `Autumn_bush1.png`, `Bush_pink_flowers1.png` | Craftpix Free License     |
-| `prop_shelf`                                                                 | Craftpix — Main Character's Home          | `Interior.png`, potong `x=160 y=80 32×48`    | Craftpix Free License     |
-| `prop_door`                                                                  | Craftpix — Main Character's Home          | `walls_floor.png`, potong `x=112 y=96 32×32` | Craftpix Free License     |
-| `map_halaman_sekolah`                                                        | Ventilatore — The Fan-tasy Tileset (Free) | dijahit `scripts/compose-map.mjs`            | The Fan-tasy Free License |
-| Font Patrick Hand (`public/fonts/`)                                          | Google Fonts                              | `patrick-hand-latin.woff2`                   | SIL OFL 1.1               |
+| Kelompok aset                                                              | Sumber                                                                             | Lisensi                                                       |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `bg_default`, `char_default`, `ui_*`, `sfx_*`                              | Dibuat generator repo (`scripts/lib/*.mjs`)                                        | Milik proyek                                                  |
+| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default` | Paket aset proyek di `Asset/assets_classquest`, disalin `scripts/import-world.mjs` | Milik proyek / campuran paket gratis — lihat catatan di bawah |
+| Font Patrick Hand (`public/fonts/`)                                        | Google Fonts                                                                       | SIL OFL 1.1                                                   |
 
-Ketiga paket Craftpix berasal dari <https://craftpix.net>. Lisensi freebie-nya
-mengizinkan pemakaian di proyek komersial maupun non-komersial dan mengizinkan
-modifikasi; atribusi tidak diwajibkan, tetapi tetap dicatat di
-[`../../README.md`](../../README.md#atribusi-pihak-ketiga). Yang dilarang adalah
-menjual atau mendistribusikan ulang file seni mentah, jadi repo ini hanya memuat
-aset yang sudah dipotong dan dipakai game — bukan isi paket, PSD, atau file
-sumber lain.
-
-`map_halaman_sekolah` dijahit dari **The Fan-tasy Tileset (Free)** oleh
-Ventilatore (<https://ventilatore.itch.io/the-fantasy-tileset>). Edisi gratisnya
-**non-komersial**: boleh dipakai dan diubah untuk proyek non-komersial, tetapi
-tidak boleh dijual atau didistribusikan ulang sebagai aset. Yang di-commit hanya
-satu gambar peta jadi hasil jahitan — bukan tileset mentahnya. Karena proyek ini
-belum menetapkan lisensi komersial (lihat
-[`../../README.md`](../../README.md#lisensi-dan-penggunaan)), bila ClassQuest
-kelak dikomersialkan, peta ini **wajib diganti** dengan aset berlisensi komersial
-atau digambar ulang oleh tim.
-
-`char_nino` **tidak** memakai sprite pack mana pun. Ia digambar generator dengan
-resep sendiri (ekor kembar, pita kupu-kupu, rok lipit, dan kaus kaki) memakai
-palet sembilan warna proyek, termasuk aksen karakter `#D98FA3` untuk rambutnya;
-kemiripan dengan karakter referensi hanya pada siluet dan warna rambut, bukan
-salinan berkas.
-
-Pose dan proporsi animasi delapan arahnya memakai **The adventurer — Female —
-Free** oleh Sscary (<https://sscary.itch.io/the-adventurer-female>) sebagai
-**acuan gaya saja**: lisensinya mengizinkan pemakaian komersial dan modifikasi,
-tetapi melarang pendistribusian ulang berkas mentah, jadi repo ini tidak memuat
-satu pun berkas dari paket tersebut. Kredit dicantumkan di
-[`../../README.md`](../../README.md#atribusi-pihak-ketiga) sebagai penghargaan.
+Tabel rinci per paket (pembuat, tautan, dan batas lisensi) sedang dilengkapi
+di [`asset-guide.md`](asset-guide.md) dan
+[`../../README.md`](../../README.md#atribusi-pihak-ketiga). Selama catatan itu
+belum lengkap, **jangan menambah** aset baru dari paket luar tanpa mencatat
+sumbernya lebih dulu: guidebook LOGICODIX mewajibkan atribusi setiap aset
+pihak ketiga.
 
 Jangan mengisi kolom ini dengan "Google Images" atau nama game komersial.
 
@@ -231,7 +253,8 @@ Test `src/assets/manifest.test.ts` memeriksa:
 - setiap `id` di manifest punya file di path-nya,
 - setiap file di folder aset terdaftar di manifest,
 - jumlah aset per kind sesuai tabel ringkasan ini,
-- semua `id` unik dan berprefix benar.
+- semua `id` unik dan berprefix benar,
+- karakter punya `frameWidth`/`frameHeight` dan potret yang benar-benar ada.
 
-Kalau test gagal karena file belum ada, buat placeholder dulu — jangan menghapus
-entri manifest.
+Kalau test gagal karena file belum ada, buat placeholder dulu — jangan
+menghapus entri manifest.

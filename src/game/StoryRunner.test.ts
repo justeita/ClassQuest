@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 
 import type { Beat, Story } from "@/story/schema";
 
@@ -45,7 +45,7 @@ describe("StoryRunner", () => {
 
     expect(state.phase).toBe("explore");
     expect(state.chapterNumber).toBe(1);
-    expect(state.chapterTotal).toBe(3);
+    expect(state.chapterTotal).toBe(5);
     expect(state.beat).toBeNull();
     expect(state.beatIndex).toBe(-1);
   });
@@ -146,7 +146,7 @@ describe("StoryRunner", () => {
     const runner = new StoryRunner(demoStory);
     let guard = 0;
 
-    // Habiskan seluruh beat bab 1 (termasuk dua challenge).
+    // Habiskan seluruh beat bab 1 (termasuk tantangan di scene kedua).
     while (runner.getState().phase !== "chapter_end" && guard < 1000) {
       const phase = runner.getState().phase;
       if (phase === "challenge") {
@@ -273,7 +273,7 @@ describe("bolehTerusLewati", () => {
         { type: "narration", text: "Bel berbunyi." },
         {
           type: "dialogue",
-          speakerId: "char_pak_bima",
+          speakerId: "char_npc_10",
           text: "Ke mana airnya?",
         },
       ]),
@@ -352,13 +352,13 @@ describe("bolehTerusLewati", () => {
         { type: "narration", text: "Bel berbunyi." },
         {
           type: "dialogue",
-          speakerId: "char_pak_bima",
+          speakerId: "char_npc_10",
           text: "Ke mana airnya?",
         },
         { type: "challenge", challengeId: "chl_01_01" },
         {
           type: "dialogue",
-          speakerId: "char_nara",
+          speakerId: "char_mc",
           text: "Aku tidak tahu, Pak.",
         },
       ]),

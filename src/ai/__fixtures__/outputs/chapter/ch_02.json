@@ -4,8 +4,8 @@
     "title": "Warna Hijau Rahasia",
     "concept": "Klorofil",
     "summary": "Di halaman sekolah, Nara menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
-    "backgroundId": "bg_schoolyard_day",
-    "musicId": "bgm_adventure",
+    "backgroundId": "bg_default",
+    "musicId": "bgm_default",
     "scenes": [
       {
         "id": "sc_02_01",
@@ -17,7 +17,7 @@
           },
           {
             "type": "dialogue",
-            "speakerId": "char_pak_bima",
+            "speakerId": "char_npc_10",
             "text": "Warna hijau itu berasal dari klorofil. Zat itu menangkap cahaya matahari."
           },
           {
@@ -32,12 +32,12 @@
         "beats": [
           {
             "type": "dialogue",
-            "speakerId": "char_tirta",
+            "speakerId": "char_npc_1",
             "text": "Jadi butir hijau itu yang membuat daun bisa memakai cahaya?"
           },
           {
             "type": "dialogue",
-            "speakerId": "char_nara",
+            "speakerId": "char_mc",
             "text": "Iya, klorofil ada di dalam daun dan membantu menangkap cahaya."
           },
           {
@@ -69,7 +69,7 @@
     "previousChapterSummary": "Nara belajar bahwa daun membuat makanan dengan bantuan cahaya matahari.",
     "characterStates": [
       {
-        "id": "char_nara",
+        "id": "char_mc",
         "location": "halaman sekolah",
         "knows": [
           "daun membutuhkan cahaya matahari",
@@ -77,12 +77,12 @@
         ]
       },
       {
-        "id": "char_pak_bima",
+        "id": "char_npc_10",
         "location": "halaman sekolah",
         "knows": ["klorofil ada di dalam daun"]
       },
       {
-        "id": "char_tirta",
+        "id": "char_npc_1",
         "location": "halaman sekolah",
         "knows": ["klorofil membantu daun memakai cahaya"]
       }

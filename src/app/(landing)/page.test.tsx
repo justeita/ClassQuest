@@ -47,7 +47,7 @@ describe("Home", () => {
   it("menampilkan cuplikan game yang punya teks alternatif", () => {
     render(<Home />);
 
-    expect(screen.getByAltText(/peta halaman sekolah/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/peta desa/i)).toBeInTheDocument();
   });
 
   it("membingkai halaman dengan kepala dan kaki yang sama", () => {
