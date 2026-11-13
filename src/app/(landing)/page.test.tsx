@@ -30,4 +30,38 @@ describe("Home", () => {
       screen.getByRole("link", { name: /masuk sebagai siswa/i }),
     ).toHaveAttribute("href", "/game");
   });
+
+  it("menjelaskan alur empat langkah di halaman yang sama", () => {
+    render(<Home />);
+
+    for (const judul of [
+      "Unggah PDF",
+      "AI menyusun cerita",
+      "Guru menyunting",
+      "Siswa bermain",
+    ]) {
+      expect(screen.getByText(judul)).toBeInTheDocument();
+    }
+  });
+
+  it("menampilkan cuplikan game yang punya teks alternatif", () => {
+    render(<Home />);
+
+    expect(screen.getByAltText(/peta halaman sekolah/i)).toBeInTheDocument();
+  });
+
+  it("membingkai halaman dengan kepala dan kaki yang sama", () => {
+    render(<Home />);
+
+    // Logo kepala halaman menautkan pulang.
+    expect(
+      screen.getByRole("link", { name: /class quest — beranda/i }),
+    ).toHaveAttribute("href", "/");
+
+    // Kaki halaman menyebut penyelenggara dan menyediakan jalan kembali ke atas.
+    expect(screen.getByText(/smart & fun education/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /kembali ke atas/i }),
+    ).toHaveAttribute("href", "#atas");
+  });
 });

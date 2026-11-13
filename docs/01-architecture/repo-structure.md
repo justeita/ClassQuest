@@ -65,6 +65,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/not-found.test.tsx`                      | ya   | Tes halaman 404 (judul + tautan keluar)                        |
 | `src/components/brand/AppHeader.tsx`              | ya   | Kepala halaman bersama `/` dan 404                             |
 | `src/components/brand/AppFooter.tsx`              | ya   | Kaki halaman bersama `/` dan 404                               |
+| `src/components/landing/GamePreview.tsx`          | ya   | Jendela cuplikan game di hero halaman peran                    |
 | `src/app/(landing)/page.test.tsx`                 | ya   | Test halaman pemilihan peran                                   |
 | `docs/02-data-model/story.example.json`           | ya   | Cerita contoh (fixture)                                        |
 | `docs/02-data-model/story.schema.json`            | ya   | Kontrak cerita versi mesin                                     |
