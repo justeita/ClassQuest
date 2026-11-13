@@ -347,8 +347,8 @@ export class GameScene extends Phaser.Scene {
       this.player.setDepth(this.player.y);
     }
 
-    // Histeresis: masuk zona di 24 px, keluar di 32 px. Tanpa ini pemain yang
-    // berdiri di batas zona membuat chip Space berkedip tiap frame.
+    // Histeresis: masuk zona di 30 px, keluar di 38 px. Tanpa ini pemain yang
+    // berdiri di batas zona membuat kotak Space berkedip tiap frame.
     const radius = this.npcDekat ? ZONA_RADIUS + ZONA_HISTERESIS : ZONA_RADIUS;
     const dekat = this.player
       ? findNpcInZone(
@@ -453,8 +453,8 @@ export class GameScene extends Phaser.Scene {
     this.emitPrompt(npcId ? this.posisiPromptLayar(npcId, kamera) : null);
     this.emitNametags(kamera);
 
-    // Penanda "!" tetap tampil walau pemain sudah di zona interaksi. Chip
-    // Space muncul di sampingnya (lihat `posisiPrompt`), jadi indikator quest
+    // Penanda "!" tetap tampil walau pemain sudah di zona interaksi. Kotak
+    // Space menyembul di sampingnya (lihat `posisiPrompt`), jadi indikator quest
     // tidak hilang-muncul ketika pemain mendekat.
     const marker = this.pemberiQuest
       ? this.markerLayar(this.pemberiQuest, kamera)

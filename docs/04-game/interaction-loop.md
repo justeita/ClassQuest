@@ -87,10 +87,10 @@ pembicara `dialogue` pertama di scene yang ada di daftar NPC ruangan; bila tidak
 ada yang cocok, NPC pertama di ruangan dipakai agar alur tidak macet.
 
 NPC lain tetap bisa diajak bicara **singkat** bila `cast` memberi mereka
-`smallTalk` (ADR 0016): chip `Space` yang sama muncul, lalu satu kalimat tampil
-di textbox tanpa menggeser posisi cerita. Setelah textbox ditutup, pemain kembali
-bebas berjalan. NPC tanpa `smallTalk` tetap berdiri sebagai penghalang dan tidak
-memunculkan prompt.
+`smallTalk` (ADR 0016): kotak `Space` yang sama menyembul dari penanda quest,
+lalu satu kalimat tampil di textbox tanpa menggeser posisi cerita. Setelah
+textbox ditutup, pemain kembali bebas berjalan. NPC tanpa `smallTalk` tetap
+berdiri sebagai penghalang dan tidak memunculkan prompt.
 
 Scene dan ruangan adalah dua hal berbeda. Scene adalah unit cerita, ruangan
 adalah unit peta (`roomId`). Beberapa scene boleh terjadi di ruangan yang sama;

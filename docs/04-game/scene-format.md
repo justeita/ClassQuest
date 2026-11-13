@@ -88,9 +88,10 @@ dijelajahi:
   memeriksa `buatTabrakan()` dari sel collision editor. Kotak tabrakan hanya di
   kaki (16×9 px). Detailnya di
   [`world-design.md`](./world-design.md#objek-dan-collision).
-- NPC/objek interaksi punya zona 24 px di sekitar titik kaki. Pemain di dalam zona
-  → indikator `Space` muncul → `Space`/`Enter` memutar deretan beat scene itu
-  (fase `dialog`); gerak terkunci sampai deretan beat habis.
+- NPC/objek interaksi punya zona 30 px di sekitar titik kaki. Pemain di dalam zona
+  → kotak `Space` menyembul ke kanan dari penanda `!` → `Space`/`Enter` memutar
+  deretan beat scene itu (fase `dialog`); gerak terkunci sampai deretan beat
+  habis.
 
 Pemberi quest memutar deretan beat scene dan mengunci gerak sampai deretan itu
 habis. NPC non-peran yang punya `smallTalk` (ADR 0016) menampilkan satu kalimat

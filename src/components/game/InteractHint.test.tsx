@@ -44,4 +44,23 @@ describe("InteractHint", () => {
     expect(ukuran).toContain("var(--gw");
     expect(cqw(11)).toContain("var(--gw");
   });
+
+  it("menampilkan Space di dalam kotak bergaya HUD", () => {
+    render(<InteractHint hint={{ text: "Space", x: 320, y: 180 }} />);
+
+    const kotak = screen.getByText("Space");
+    expect(kotak.className).toContain("border-2");
+    expect(kotak.className).toContain("bg-[#0b120e]/90");
+    expect(kotak.className).toContain("text-[#F7F4EC]");
+  });
+
+  it("menyembul ke kanan dari penanda quest lewat animasi slider", () => {
+    render(<InteractHint hint={{ text: "Space", x: 320, y: 180 }} />);
+
+    // Animasi duduk di kotak itu sendiri dan tumbuh dari tepi kiri, jadi
+    // kotak tampak meluncur keluar dari penanda `!` di sebelah kiri.
+    const kotak = screen.getByText("Space");
+    expect(kotak.className).toContain("animate-quest-slide-in");
+    expect(kotak.className).toContain("origin-left");
+  });
 });

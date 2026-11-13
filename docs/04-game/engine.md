@@ -238,7 +238,7 @@ pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). Teks dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx`; React membalas command `advance`. Prompt interaksi
-memakai event `prompt` dan chip DOM `InteractHint.tsx` (ADR 0007). Pemberi quest
+memakai event `prompt` dan kotak DOM `InteractHint.tsx` (ADR 0007). Pemberi quest
 scene aktif memulai dialog; NPC lain yang punya `smallTalk` menampilkan satu
 kalimat singkat lewat textbox yang sama tanpa menggeser cerita (ADR 0016), dan
 NPC tanpa obrolan tetap menjadi penghalang. Penanda `!` hanya untuk pemberi
@@ -275,13 +275,16 @@ karena `pointer-events-none`. Karena posisinya dihitung ulang tiap
 frame, beacon ikut bergeser ketika pemain berjalan mendekat dan berubah mulus
 menjadi kotak `!` begitu NPC masuk layar.
 
-Kotak `!` **tidak** diganti chip `Space` saat pemain mendekat: kedua tanda
-tampil bersamaan agar indikator quest tidak hilang-muncul. Chip `Space` digeser
-ke kanan kotak dan dinaikkan melewati papan nama (`JARAK_PROMPT` 22 px), jadi
-keduanya tidak bertabrakan. Zona interaksi memakai histeresis — masuk di
-24 px, keluar di 32 px — supaya chip tidak berkedip saat pemain berdiri di batas
-zona. Speaker disorot, beat `transition` fade otomatis, beat `challenge` dibuka
-sebagai overlay React.
+Kotak `!` **tidak** diganti kotak `Space` saat pemain mendekat: kedua tanda
+tampil bersamaan agar indikator quest tidak hilang-muncul. Kotak `Space` digeser
+ke kanan kotak dan dinaikkan melewati papan nama (`JARAK_PROMPT` 22 px), lalu
+menyembul ke kanan dari `!` lewat `animate-quest-slide-in` (titik tumbuh di tepi
+kiri) saat pemain masuk zona, jadi keduanya tidak bertabrakan dan prompt terasa
+"lahir" dari indikator quest. Animasi hanya jalan sekali per kemunculan: React
+memakai ulang kotak yang sama saat koordinatnya berubah tiap frame. Zona
+interaksi memakai histeresis — masuk di 30 px, keluar di 38 px — supaya kotak
+tidak berkedip saat pemain berdiri di batas zona. Speaker disorot, beat
+`transition` fade otomatis, beat `challenge` dibuka sebagai overlay React.
 
 Dunia dibangun **sekali** di `create()`: tidak ada `roomId`, tidak ada bangun
 ulang saat pindah chapter. Perpindahan scene hanya menukar musik dan NPC pemberi

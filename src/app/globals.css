@@ -16,6 +16,8 @@
   --animate-quest-bob: quest-bob 2.4s ease-in-out infinite;
   /* Denyut cincin beacon quest saat NPC berada di luar pandangan. */
   --animate-quest-beacon: quest-beacon 1.9s ease-out infinite;
+  /* Kotak `Space` menyembul ke kanan dari penanda `!` saat pemain mendekat. */
+  --animate-quest-slide-in: quest-slide-in 0.22s ease-out both;
 
   /* --- Portal guru (desain dari `guru.html`, lihat src/app/guru) --- */
   --color-brand-50: #f0f7ff;
@@ -80,6 +82,24 @@
   }
 }
 
+/* Kotak `Space` seperti jendela kecil yang dibuka ke kanan: tepi kirinya
+   menempel pada `!` (titik tumbuh diatur `origin-left` di komponen), lalu
+   melebar ke posisi penuhnya sambil muncul dari transparan. Hanya `opacity`
+   dan `transform`, jadi aman dijalankan tepat saat React memasang kotaknya. */
+@keyframes quest-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-18px) scaleX(0.35);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+  }
+}
+
 /* Naik-turun sangat pelan untuk jendela game di hero `/`. Jaraknya 6 px supaya
    terasa hidup tanpa mengalihkan perhatian dari judul dan tombol. */
 @keyframes landing-bob {
@@ -117,7 +137,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .animate-quest-bob,
-  .animate-quest-beacon {
+  .animate-quest-beacon,
+  .animate-quest-slide-in {
     animation: none;
   }
 }

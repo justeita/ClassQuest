@@ -11,15 +11,22 @@ import type { WorldNpc } from "./world/types";
  * tajam — lihat ADR 0007.
  */
 
-/** Jarak zona interaksi: 24 px dari titik kaki pemain ke titik kaki NPC. */
-export const ZONA_RADIUS = 24;
+/**
+ * Jarak zona interaksi: 30 px dari titik kaki pemain ke titik kaki NPC.
+ *
+ * Dinaikkan dari 24 px supaya pemain tidak perlu menempel persis ke sprite
+ * sebelum `Space` mau bekerja. Angkanya tetap di bawah satu lebar ubin
+ * (16 px) dikali dua, jadi dua NPC berdekatan tidak saling rebutan zona —
+ * yang diambil tetap yang terdekat.
+ */
+export const ZONA_RADIUS = 30;
 
 /**
- * Jarak tambahan sebelum chip `Space` hilang lagi.
+ * Jarak tambahan sebelum kotak `Space` hilang lagi.
  *
- * Tanpa histeresis, pemain yang berdiri tepat di batas 24 px membuat chip
- * berkedip: satu frame di dalam zona, frame berikutnya di luar. Chip baru
- * hilang setelah jaraknya melewati 32 px, jadi tampil-hilangnya tenang.
+ * Tanpa histeresis, pemain yang berdiri tepat di batas 30 px membuat kotak
+ * berkedip: satu frame di dalam zona, frame berikutnya di luar. Kotak baru
+ * hilang setelah jaraknya melewati 38 px, jadi tampil-hilangnya tenang.
  */
 export const ZONA_HISTERESIS = 8;
 
@@ -27,20 +34,21 @@ export const ZONA_HISTERESIS = 8;
 export const PROMPT_INTERAKSI = "Space";
 
 /**
- * Jarak chip prompt dari ubun-ubun sprite karakter, dalam piksel.
+ * Jarak kotak prompt dari ubun-ubun sprite karakter, dalam piksel.
  *
  * Papan nama NPC digambar tepat di atas kepala (lihat `JARAK_NAMA` di
- * `GameScene`), jadi chip dinaikkan melewatinya: dengan 22 px chip duduk di
+ * `GameScene`), jadi kotak dinaikkan melewatinya: dengan 22 px kotak duduk di
  * samping kotak `!` dan tidak menutupi nama.
  */
 export const JARAK_PROMPT = 22;
 
 /**
- * Geser chip ke kanan penanda `!`.
+ * Geser kotak ke kanan penanda `!`.
  *
  * Penanda quest tidak lagi disembunyikan saat pemain mendekat: `!` tetap di
- * atas kepala dan chip `Space` muncul di sampingnya. Dua tanda yang berdiri
- * sendiri-sendiri membuat indikator quest tidak berkedip hilang-muncul.
+ * atas kepala dan kotak `Space` menyembul di sampingnya (`animate-quest-slide-in`
+ * di `InteractHint.tsx`). Dua tanda yang berdiri sendiri-sendiri membuat
+ * indikator quest tidak berkedip hilang-muncul.
  */
 export const GESER_PROMPT = 14;
 

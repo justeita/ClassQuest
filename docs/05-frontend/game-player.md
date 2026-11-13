@@ -20,7 +20,7 @@ src/app/play/[storyId]/page.tsx        (Server Component)
         ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
         ├─ <ChallengeOverlay />        (DOM)
         ├─ <QuestTracker />            (DOM)
-        ├─ <NpcHintLayer />            (DOM: penanda `!` + chip `Space`)
+        ├─ <NpcHintLayer />            (DOM: penanda `!` + kotak `Space`)
         ├─ <ChapterCard />             (DOM, transisi)
         ├─ <QuestToast />              (DOM, transisi)
         ├─ <HUD />                     (DOM)
@@ -150,12 +150,14 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   terpotong tepi kanvas. Beacon juga tembus klik, jadi tidak ada tombol HUD yang
   tertutup. Beacon ikut bergeser saat pemain berjalan mendekat, lalu berubah
   kembali menjadi kotak `!` ketika NPC masuk layar. Kotak `!` **tidak** hilang
-  saat pemain mendekat: chip `Space` muncul di kanannya, di atas papan nama,
-  sehingga indikator quest tidak berkedip hilang-muncul. Zona interaksi memakai
-  histeresis (masuk 24 px, keluar 32 px) supaya chip tidak berkedip di batas
-  zona. Posisi papan nama, penanda, dan chip diperbarui tiap frame lewat
-  `NpcHintLayer`, jadi tanda tetap menempel pada NPC saat kamera bergeser, dan
-  disembunyikan selama dialog, tantangan, atau menu jeda.
+  saat pemain mendekat: kotak `Space` menyembul ke kanannya, di atas papan nama,
+  sehingga indikator quest tidak berkedip hilang-muncul. Saat muncul, kotak itu
+  meluncur ke kanan dari `!` (`animate-quest-slide-in`) supaya jelas berasal dari
+  penanda quest. Zona interaksi memakai histeresis (masuk 30 px, keluar 38 px)
+  supaya kotak tidak berkedip di batas zona. Posisi papan nama, penanda, dan
+  kotak `Space` diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda tetap
+  menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
+  tantangan, atau menu jeda.
 - Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
   petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
   ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti
