@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -331,6 +331,11 @@ Aturan yang mengikat:
   `explanation`. Overlay tidak boleh menerima jawaban.
 - Penilaian dijalankan di sisi game (pemegang `Story`) memakai `scoreAnswer()`
   dari `src/story/scoring.ts`; hasilnya dikirim sebagai `graded`.
+- **Jawaban salah yang masih punya percobaan tidak mengirim `graded`.** Game
+  memutar `onWrong.detour` lewat jalur `dialogue`/`log` yang sama dengan beat
+  biasa, lalu membuka ulang tantangan yang sama dengan teks soal ulang. `graded`
+  — termasuk `explanation` — hanya dikirim sekali, untuk hasil final (benar atau
+  percobaan terakhir).
 - Selama fase `challenge`, input dialog diabaikan sampai `resolve_challenge`
   diterima. `skip_start`/`skip_stop` memajukan beat bertahap ala tahan-tombol
   Persona (time-lapse 100 ms per beat selama ditahan) dan berhenti di beat

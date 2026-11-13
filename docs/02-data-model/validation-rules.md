@@ -116,16 +116,34 @@ type ValidationResult = {
 
 Semua field di bawah ini opsional. Aturan hanya berlaku bila field dipakai.
 
-| Kode                | Arti                                         | Hint untuk AI                                                       |
-| ------------------- | -------------------------------------------- | ------------------------------------------------------------------- |
-| `E_RETRY_COUNT`     | `retryQuestions` ≠ `maxAttempts` − 1         | "Isi `retryQuestions` tepat `maxAttempts` − 1 entri."               |
-| `E_FLAG_UNDECLARED` | Flag dipakai tanpa dideklarasikan di `flags` | "Tambahkan flag `{id}` ke `flags` atau ganti dengan flag yang ada." |
-| `E_DETOUR_TOO_LONG` | `onWrong.detour` lebih dari 3 beat           | "Pendekkan detour menjadi maksimal 3 beat narasi/dialog."           |
+| Kode                         | Arti                                                       | Hint untuk AI                                                       |
+| ---------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
+| `E_RETRY_COUNT`              | `retryQuestions` ≠ `maxAttempts` − 1                       | "Isi `retryQuestions` tepat `maxAttempts` − 1 entri."               |
+| `E_FLAG_UNDECLARED`          | Flag dipakai tanpa dideklarasikan di `flags`               | "Tambahkan flag `{id}` ke `flags` atau ganti dengan flag yang ada." |
+| `E_DETOUR_TOO_LONG`          | `onWrong.detour` lebih dari 3 beat                         | "Pendekkan detour menjadi maksimal 3 beat narasi/dialog."           |
+| `E_ONWRONG_WITHOUT_ATTEMPTS` | `onWrong` dipakai tanpa `maxAttempts` 2–3 (khusus chapter) | "Beri `maxAttempts` 2 atau 3, atau hapus `onWrong`."                |
 
 `maxAttempts` default 1, jadi tantangan tanpa `onWrong` tidak butuh
 `retryQuestions`. Retry hanya mengganti teks soal; opsi dan jawaban benar tidak
 berubah. Tantangan di dalam `detour` ditolak lapis struktural (`E_SCHEMA`)
 karena schema hanya mengizinkan beat `narration`/`dialogue` di sana.
+
+### Aturan khusus chapter
+
+Dua kode di bawah hanya muncul dari `validateChapter`
+(`src/story/validate-parts.ts`), yang memeriksa draft satu chapter setelah tiap
+panggilan generate — bukan dari `validateStory`:
+
+- `E_ONWRONG_WITHOUT_ATTEMPTS` (error) — `onWrong` dipakai tanpa `maxAttempts`
+  2 atau 3. Memicu repair di level chapter.
+- `W_TEXT_VARIANT_FLAG_UNSET` (warning) — `textVariants` membaca flag yang belum
+  di-set di beat sebelumnya. Tidak memblokir.
+
+**Batasan yang diketahui:** `validateStory` **tidak** menandai `onWrong` yang
+dipakai tanpa `maxAttempts` 2–3. Cerita hasil sunting tangan yang memakai
+`onWrong` tanpa `maxAttempts` bisa lolos validator penuh; hanya `validateChapter`
+yang menangkapnya lewat `E_ONWRONG_WITHOUT_ATTEMPTS`. Pipeline tidak terpengaruh
+karena chapter sudah divalidasi lebih dulu.
 
 ### Batas teks
 
@@ -152,22 +170,23 @@ dari itu (lihat [`../04-game/scene-format.md`](../04-game/scene-format.md#peta-v
 
 ## Kode warning
 
-| Kode                       | Arti                                          | Tindakan guru               |
-| -------------------------- | --------------------------------------------- | --------------------------- |
-| `W_CONCEPT_NOT_IN_CHAPTER` | Tantangan memakai konsep di luar chapter-nya  | Boleh, untuk review         |
-| `W_NO_CHALLENGE_IN_SCENE`  | Scene tanpa tantangan (maks 3 scene berturut) | Pertimbangkan menambah      |
-| `W_DIFFICULTY_SKEW`        | Semua tantangan level 1 atau semua level 3    | Seimbangkan                 |
-| `W_TRUE_FALSE_BIAS`        | > 70% jawaban benar (atau salah)              | Seimbangkan                 |
-| `W_SHORT_ANSWER_ONLY`      | Chapter hanya punya `short_answer`            | Tambah tipe pilihan         |
-| `W_LONG_DIALOGUE_RUN`      | > 6 beat dialog/narasi tanpa interaksi        | Pecah atau tambah challenge |
-| `W_GAP_RECORDED`           | `source.gaps` tidak kosong                    | Cek materi                  |
+| Kode                        | Arti                                                           | Tindakan guru                  |
+| --------------------------- | -------------------------------------------------------------- | ------------------------------ |
+| `W_CONCEPT_NOT_IN_CHAPTER`  | Tantangan memakai konsep di luar chapter-nya                   | Boleh, untuk review            |
+| `W_NO_CHALLENGE_IN_SCENE`   | Scene tanpa tantangan (maks 3 scene berturut)                  | Pertimbangkan menambah         |
+| `W_DIFFICULTY_SKEW`         | Semua tantangan level 1 atau semua level 3                     | Seimbangkan                    |
+| `W_TRUE_FALSE_BIAS`         | > 70% jawaban benar (atau salah)                               | Seimbangkan                    |
+| `W_SHORT_ANSWER_ONLY`       | Chapter hanya punya `short_answer`                             | Tambah tipe pilihan            |
+| `W_LONG_DIALOGUE_RUN`       | > 6 beat dialog/narasi tanpa interaksi                         | Pecah atau tambah challenge    |
+| `W_GAP_RECORDED`            | `source.gaps` tidak kosong                                     | Cek materi                     |
+| `W_TEXT_VARIANT_FLAG_UNSET` | `textVariants` membaca flag yang belum di-set (khusus chapter) | Pastikan flag diset lebih dulu |
 
 ## Kebijakan repair
 
 ```text
 generate → validate
    ok?  → simpan
-   no?  → repair (maks 2x)
+   no?  → repair (maks 2x per unit)
             → validate
                ok?  → simpan
                no?  → fallback story + tandai "fallback"
@@ -182,7 +201,8 @@ Aturan repair:
 5. Suhu rendah (deterministik) untuk repair.
 6. Jangan pernah "memperbaiki" dengan menambah fakta baru.
 
-Kalau setelah 2 percobaan masih gagal, **jangan tampilkan error mentah ke guru**.
+Kalau setelah 2 percobaan per unit masih gagal, **jangan tampilkan error mentah
+ke guru**.
 Gunakan fallback dan tampilkan banner: "Kami memakai cerita cadangan karena materi
 ini sulit diproses. Kamu tetap bisa mengeditnya."
 

@@ -128,7 +128,10 @@ flowchart TD
   B --> C{"Beat ini<br/>tantangan?"}
   C -- "ya" --> D["Overlay soal muncul<br/>dialog berhenti"]
   D --> E["Siswa menjawab"]
-  E --> F["Umpan balik + penjelasan<br/>selalu muncul"]
+  E --> R{"Salah dan masih<br/>ada percobaan?"}
+  R -- "ya" --> S["Detour singkat<br/>narasi / dialog"]
+  S --> D
+  R -- "tidak" --> F["Umpan balik + penjelasan<br/>benar atau percobaan terakhir"]
   F --> G["Kembali ke cerita"]
   G --> H{"Masih ada beat<br/>di scene ini?"}
   C -- "bukan" --> H
