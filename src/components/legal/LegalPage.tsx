@@ -84,7 +84,7 @@ export function LegalPage({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 font-pixel text-[11px] font-bold uppercase tracking-wide text-slate-600 transition hover:text-guru-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-guru-700"
+            className="inline-flex min-h-11 items-center gap-1.5 font-pixel text-xs font-bold uppercase tracking-wide text-slate-600 transition hover:text-guru-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-guru-700"
           >
             <i className="fa-solid fa-arrow-left" aria-hidden="true" />
             Beranda
@@ -107,7 +107,7 @@ export function LegalPage({
             <p className="mt-1 text-sm leading-relaxed text-slate-500">
               {ringkasan}
             </p>
-            <p className="mt-1 text-[11px] text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
               Terakhir diperbarui {diperbarui}.
             </p>
           </header>
@@ -138,7 +138,7 @@ export function LegalPage({
             ))}
           </div>
 
-          <footer className="mt-6 flex flex-col gap-2 border-t-2 border-slate-100 pt-4 text-[11px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <footer className="mt-6 flex flex-col gap-2 border-t-2 border-slate-100 pt-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
             <span className="flex items-center gap-1.5">
               <i
                 className="fa-solid fa-shield-halved text-guru-600"
@@ -148,7 +148,7 @@ export function LegalPage({
             </span>
             <Link
               href="/"
-              className="font-pixel font-bold text-guru-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-guru-700"
+              className="inline-flex min-h-11 items-center font-pixel font-bold text-guru-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-guru-700"
             >
               KEMBALI KE BERANDA &rarr;
             </Link>

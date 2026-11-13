@@ -54,13 +54,14 @@ export function AppFooter() {
               alt=""
               width={430}
               height={430}
+              sizes="40px"
               className="h-10 w-10 shrink-0"
             />
             <div>
               <p className="font-heading text-sm font-extrabold tracking-tight text-white">
                 Class Quest
               </p>
-              <p className="mt-0.5 text-[11px] leading-relaxed">
+              <p className="mt-0.5 text-xs leading-relaxed">
                 Materi pelajaran jadi game pixel.
               </p>
             </div>
@@ -73,11 +74,11 @@ export function AppFooter() {
             <span aria-hidden="true" className="text-slate-600 sm:hidden">
               /
             </span>
-            <p className="text-[11px]">Smart &amp; Fun Education</p>
+            <p className="text-xs">Smart &amp; Fun Education</p>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 border-t border-slate-800 pt-3 text-[11px]">
+        <div className="mt-4 flex flex-col gap-3 border-t border-slate-800 pt-3 text-xs">
           <nav
             aria-label="Tautan legal"
             className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:justify-start"
@@ -86,7 +87,7 @@ export function AppFooter() {
               <Link
                 key={tautan.href}
                 href={tautan.href}
-                className="text-slate-400 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300"
+                className="inline-flex min-h-11 items-center text-slate-400 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300"
               >
                 {tautan.label}
               </Link>
@@ -104,7 +105,7 @@ export function AppFooter() {
                 semua halaman yang memakai kaki halaman ini. */}
             <a
               href="#atas"
-              className="inline-flex items-center justify-center gap-1.5 font-semibold text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300 sm:justify-end"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 font-semibold text-slate-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300 sm:justify-end"
             >
               Kembali ke atas
               <i

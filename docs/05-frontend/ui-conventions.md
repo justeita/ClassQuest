@@ -367,6 +367,34 @@ Aturan:
 - Ikon yang berdiri sendiri sebagai tombol wajib punya `aria-label`.
 - Jangan mencampur banyak gaya ikon.
 
+## Ukuran teks dan target sentuh (ponsel)
+
+Halaman publik (`/`, halaman legal, 404) dibuka juri dari ponsel, jadi dua
+angka ini diukur, bukan dirasa:
+
+- **Target sentuh minimal 44×44 px** untuk semua tautan dan tombol yang berdiri
+  sendiri. Tautan teks kecil memakai `inline-flex min-h-11 items-center`, bukan
+  `py-*` yang mengandalkan tinggi baris. Pill navigasi dokumen legal juga
+  `min-h-11`.
+- **Teks yang dibaca minimal 12 px** (`text-xs`). Ukuran 10–11 px hanya untuk
+  label dekoratif berhuruf kapital dan berjarak lebar: chip peran
+  (`Game Master`, `Adventurer`), badge dokumen, nomor langkah, dan chip
+  `LOGICODIX 2026`.
+- **Chip `LOGICODIX 2026` di kepala halaman hanya tampil mulai `sm`.** Di bawah
+  itu logo 48 px dan chip tidak muat satu baris (chip terbelah dua baris di
+  320 px); badge yang sama tetap ada di kaki halaman.
+- Kontras teks kecil wajib ≥ 4.5:1. Jangan memakai `text-slate-400` di atas
+  putih (2.56:1); pakai `text-slate-500` (4.76:1) atau lebih gelap. Tombol siswa
+  memakai `bg-siswa-700` (putih di atasnya 5.48:1), bukan `siswa-600` (3.77:1).
+- **Halaman yang tingginya dikunci viewport wajib punya jalur gulir di dalam.**
+  `PortalShell` memakai `md:h-dvh md:overflow-hidden`, jadi halaman tidak bisa
+  digulir sama sekali. Di ponsel mendatar (lebar ≥ 768 px, tinggi ± 375 px)
+  menu sidebar lebih tinggi daripada layar; tanpa `md:overflow-y-auto` pada blok
+  logo + menu (dengan kartu akun `shrink-0` di bawah), "My Games" dan
+  "Analytics" terpotong dan tak bisa dijangkau. `dvh`, bukan `vh`/`h-screen`,
+  supaya tinggi mengikuti area yang benar-benar terlihat saat bilah alamat
+  peramban muncul.
+
 ## Form
 
 - Label selalu di atas input.
@@ -431,6 +459,7 @@ memakai `guru-skeleton`.
 - [ ] Ada status loading/empty/error.
 - [ ] Teks mengikuti sapaan yang benar.
 - [ ] Bisa dipakai dengan keyboard.
+- [ ] Target sentuh ≥ 44×44 px dan teks yang dibaca ≥ 12 px.
 - [ ] Gerak memakai kelas `guru-*`, bukan keyframes baru.
 - [ ] Dengan `prefers-reduced-motion: reduce`, semua konten terlihat (tidak ada
       elemen transparan yang tertinggal).

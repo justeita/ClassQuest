@@ -60,7 +60,7 @@ export function LegalNav({
             key={dokumen.kunci}
             href={dokumen.href}
             aria-current={terpilih ? "page" : undefined}
-            className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 font-pixel text-xs font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-guru-700 ${
+            className={`inline-flex min-h-11 items-center gap-1.5 rounded-xl px-3.5 py-1.5 font-pixel text-xs font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-guru-700 ${
               terpilih
                 ? "landing-pixel-shadow bg-guru-600 text-white"
                 : "text-slate-700 hover:bg-slate-100"

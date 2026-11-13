@@ -82,7 +82,7 @@ export default function CookiePage() {
                         </td>
                         <td className="p-2.5 text-slate-600">{baris.jenis}</td>
                         <td className="p-2.5 text-slate-600">{baris.tujuan}</td>
-                        <td className="p-2.5 font-mono text-[11px] text-slate-600">
+                        <td className="p-2.5 font-mono text-slate-600">
                           {baris.masa}
                         </td>
                       </tr>

@@ -70,12 +70,12 @@ const FITUR_SISWA = [
 
 /**
  * Label kecil di atas judul bagian. Dua garis pendek di kiri-kanan membuatnya
- * terbaca sebagai pemisah bagian, bukan paragraf biasa — ukuran 11 px dengan
+ * terbaca sebagai pemisah bagian, bukan paragraf biasa — ukuran 12 px dengan
  * jarak huruf lebar sendirian terlihat seperti sisa teks.
  */
 function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <p className="flex items-center justify-center gap-2 font-pixel text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+    <p className="flex items-center justify-center gap-2 font-pixel text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
       <span
         aria-hidden="true"
         className="h-0.5 w-5 rounded-full bg-slate-300"
@@ -112,7 +112,7 @@ export default function Home() {
         {/* --- Hero: nilai produk + bukti visual --- */}
         <section className="grid items-center gap-8 lg:grid-cols-[1.05fr_1fr] lg:gap-12">
           <div className="text-center lg:text-left">
-            <p className="landing-pixel-shadow inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-white px-3 py-1 font-pixel text-[11px] font-bold tracking-[0.12em] text-slate-800">
+            <p className="landing-pixel-shadow inline-flex items-center gap-1.5 rounded-full border-2 border-slate-900 bg-white px-3 py-1 font-pixel text-xs font-bold tracking-[0.12em] text-slate-800">
               <i
                 className="fa-solid fa-wand-magic-sparkles text-guru-600"
                 aria-hidden="true"
@@ -148,7 +148,7 @@ export default function Home() {
                     <span className="block font-pixel text-lg font-bold leading-none text-slate-900">
                       {stat.nilai}
                     </span>
-                    <span className="mt-1 block text-[10px] font-medium uppercase tracking-wider text-slate-500">
+                    <span className="mt-1 block text-[11px] font-medium uppercase tracking-wider text-slate-500">
                       {stat.label}
                     </span>
                   </dd>
@@ -194,7 +194,7 @@ export default function Home() {
                 <p className="mt-3 text-xs font-bold text-slate-900">
                   {langkah.judul}
                 </p>
-                <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+                <p className="mt-1 text-xs leading-relaxed text-slate-600">
                   {langkah.teks}
                 </p>
               </li>
@@ -225,7 +225,7 @@ export default function Home() {
                     />{" "}
                     Game Master
                   </span>
-                  <span className="font-pixel text-[10px] font-bold uppercase text-slate-400">
+                  <span className="font-pixel text-[11px] font-bold uppercase text-slate-500">
                     Pendidik
                   </span>
                 </div>
@@ -247,7 +247,7 @@ export default function Home() {
                     <h2 className="text-lg font-heading font-extrabold text-slate-900 transition group-hover:text-guru-700 sm:text-xl">
                       Portal Guru
                     </h2>
-                    <p className="text-[11px] font-medium text-slate-500">
+                    <p className="text-xs font-medium text-slate-500">
                       Studio Modul &amp; AI Engine
                     </p>
                   </div>
@@ -300,7 +300,7 @@ export default function Home() {
                     />{" "}
                     Adventurer
                   </span>
-                  <span className="font-pixel text-[10px] font-bold uppercase text-slate-400">
+                  <span className="font-pixel text-[11px] font-bold uppercase text-slate-500">
                     Peserta Didik
                   </span>
                 </div>
@@ -320,7 +320,7 @@ export default function Home() {
                     <h2 className="text-lg font-heading font-extrabold text-slate-900 transition group-hover:text-siswa-700 sm:text-xl">
                       Arena Siswa
                     </h2>
-                    <p className="text-[11px] font-medium text-slate-500">
+                    <p className="text-xs font-medium text-slate-500">
                       Ruang Cerita &amp; Tantangan
                     </p>
                   </div>
@@ -351,7 +351,7 @@ export default function Home() {
 
               <Link
                 href="/game"
-                className="landing-btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-siswa-600 px-4 py-3 font-pixel text-xs font-bold text-white hover:bg-siswa-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-siswa-700 sm:text-sm"
+                className="landing-btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-siswa-700 px-4 py-3 font-pixel text-xs font-bold text-white hover:bg-siswa-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-siswa-700 sm:text-sm"
               >
                 <span>MASUK SEBAGAI SISWA</span>
                 <i
@@ -362,7 +362,7 @@ export default function Home() {
             </article>
           </div>
 
-          <p className="mx-auto mt-6 max-w-xl text-center text-[11px] leading-relaxed text-slate-500">
+          <p className="mx-auto mt-6 max-w-xl text-center text-xs leading-relaxed text-slate-500">
             Gambar, musik, dan suara disiapkan di awal dan tidak berubah. AI
             hanya menyusun cerita dari aset itu, jadi tampilan tetap konsisten
             dan isinya selalu bisa diperiksa guru.
