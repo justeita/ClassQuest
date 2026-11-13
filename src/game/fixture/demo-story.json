@@ -1,92 +1,145 @@
 {
   "schemaVersion": "1.0",
   "meta": {
-    "id": "st_demo_siklus_air",
-    "title": "Ke Mana Perginya Genangan Itu?",
-    "subject": "IPA",
+    "id": "st_demo_pesta_panen",
+    "title": "Pesta Panen Desa",
+    "subject": "Matematika",
     "gradeLevel": "SMP 7",
     "language": "id",
-    "tone": "hangat dan penasaran",
-    "synopsis": "Nino mengikuti perjalanan setetes air dari genangan di depan kelas, naik menjadi uap, berkumpul di awan, lalu kembali ke bumi sebagai hujan yang meresap ke taman sekolah. Sepanjang jalan, ia belajar tentang evaporasi, kondensasi, dan infiltrasi.",
-    "estimatedMinutes": 8
+    "tone": "hangat, riang, dan gotong royong",
+    "synopsis": "Nara membantu warga Desa Sukamaju menyiapkan Pesta Panen. Dari dapur Bu Sri sampai lumbung Pak Joko, ia memakai perbandingan, pecahan, persentase, rata-rata, dan diagram data agar pesta berjalan adil dan meriah.",
+    "estimatedMinutes": 30
   },
   "source": {
-    "fileName": "siklus-air.pdf",
+    "fileName": "pesta-panen-desa.pdf",
     "pageCount": 6,
-    "concepts": ["Evaporasi", "Kondensasi", "Infiltrasi"],
+    "concepts": [
+      "Perbandingan",
+      "Pecahan",
+      "Persentase",
+      "Rata-rata",
+      "Diagram data"
+    ],
     "gaps": []
   },
   "cast": [
     {
-      "id": "char_nino",
-      "name": "Nino",
+      "id": "char_mc",
+      "name": "Nara",
       "role": "player",
-      "spriteId": "char_nino",
-      "description": "Siswa yang penasaran dan suka mengamati hal kecil di sekitarnya."
+      "spriteId": "char_mc",
+      "description": "Siswa SMP yang senang membantu warga desa dan tidak takut berhitung."
     },
     {
-      "id": "char_pak_bima",
-      "name": "Pak Bima",
+      "id": "char_npc_10",
+      "name": "Pak Wira",
       "role": "mentor",
-      "spriteId": "char_pak_bima",
-      "description": "Guru IPA yang sabar dan suka mengajak muridnya bertanya."
+      "spriteId": "char_npc_10",
+      "description": "Kepala desa yang tenang dan percaya bahwa matematika membuat keputusan lebih adil."
     },
     {
-      "id": "char_tirta",
-      "name": "Tirta",
+      "id": "char_npc_1",
+      "name": "Bu Sri",
       "role": "npc",
-      "spriteId": "char_tirta",
-      "description": "Perwujudan setetes air yang menemani Nino dalam perjalanan."
+      "spriteId": "char_npc_1",
+      "description": "Juru masak pesta yang hafal semua resep kue desa."
     },
     {
-      "id": "char_rani",
-      "name": "Rani",
+      "id": "char_npc_3",
+      "name": "Pak Darto",
       "role": "npc",
-      "spriteId": "char_rani",
-      "description": "Teman sekelas Nino yang rapi dan suka mencatat pengamatan."
+      "spriteId": "char_npc_3",
+      "description": "Petani yang mencatat setiap hasil panen di buku lusuhnya."
+    },
+    {
+      "id": "char_npc_4",
+      "name": "Bu Lastri",
+      "role": "npc",
+      "spriteId": "char_npc_4",
+      "description": "Pembuat kue yang teliti saat membagi porsi untuk tamu."
+    },
+    {
+      "id": "char_npc_5",
+      "name": "Pak Joko",
+      "role": "npc",
+      "spriteId": "char_npc_5",
+      "description": "Penjaga lumbung yang rajin menimbang hasil panen."
+    },
+    {
+      "id": "char_npc_6",
+      "name": "Kak Nia",
+      "role": "npc",
+      "spriteId": "char_npc_6",
+      "description": "Pemuda panitia pesta yang mengurus stan dan harga."
+    },
+    {
+      "id": "char_npc_7",
+      "name": "Mbah Karto",
+      "role": "npc",
+      "spriteId": "char_npc_7",
+      "description": "Sesepuh desa yang hafal cerita setiap musim panen."
+    },
+    {
+      "id": "char_npc_8",
+      "name": "Bu Ratna",
+      "role": "npc",
+      "spriteId": "char_npc_8",
+      "description": "Guru desa yang membantu menulis laporan panen."
+    },
+    {
+      "id": "char_npc_9",
+      "name": "Dewi",
+      "role": "npc",
+      "spriteId": "char_npc_9",
+      "description": "Teman Nara yang senang menata piring dan membuat papan pengumuman."
     }
   ],
   "chapters": [
     {
       "id": "ch_01",
-      "title": "Genangan yang Menyusut",
-      "concept": "Evaporasi",
-      "summary": "Nino dan Rani menemukan genangan di depan kelas yang menyusut tanpa diseka. Pak Bima mengajak mereka menyelidiki ke mana airnya pergi.",
-      "backgroundId": "bg_classroom_day",
-      "musicId": "bgm_school_calm",
+      "title": "Pagi di Dapur Pesta",
+      "concept": "Perbandingan",
+      "summary": "Pagi hari di Desa Sukamaju, Nara membantu Bu Sri menyiapkan kue untuk Pesta Panen. Ia belajar menjaga perbandingan bahan agar rasa kue tetap sama meski resepnya diperbesar.",
+      "backgroundId": "bg_default",
+      "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_01_01",
-          "title": "Genangan di Depan Kelas",
+          "title": "Aroma dari Dapur Bu Sri",
           "beats": [
             {
               "type": "narration",
-              "text": "Bel istirahat berbunyi. Di lorong sekolah, Nino berhenti di depan genangan kecil yang menggenangi ubin."
+              "text": "Matahari baru muncul di balik perbukitan Desa Sukamaju. Asap tipis mengepul dari dapur warga, dan balai desa sudah dihiasi janur kuning."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_rani",
-              "text": "Tadi pagi genangan ini masih lebar. Sekarang tinggal bercak tipis, padahal tidak ada yang mengepelnya."
+              "speakerId": "char_npc_1",
+              "text": "Nara! Tepat waktu. Hari ini kita memasak untuk Pesta Panen. Banyak resep harus dibagi rata."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_nino",
-              "text": "Airnya juga tidak mengalir ke mana-mana. Ke mana perginya, ya?"
+              "speakerId": "char_mc",
+              "text": "Aku siap membantu, Bu. Apa yang harus kuhitung lebih dulu?"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_1",
+              "text": "Resep kue pisang memakai tiga bagian tepung dan dua bagian gula. Kita akan membuat tiga kali resep."
             },
             {
               "type": "narration",
-              "text": "Rani menunjuk pintu kelas A. Pak Bima berdiri di ambang, memperhatikan mereka berdua."
+              "text": "Nara mengangguk sambil mengeluarkan buku catatan kecil dari kantong celemeknya."
             }
           ]
         },
         {
           "id": "sc_01_02",
-          "title": "Uap yang Tak Terlihat",
+          "title": "Tiga Kali Resep",
           "beats": [
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
-              "text": "Air tidak hilang begitu saja. Saat terkena panas, ia berubah menjadi uap yang tidak terlihat mata."
+              "speakerId": "char_npc_10",
+              "text": "Sebelum mulai, ayo pastikan takarannya benar. Salah takaran, kue pesta bisa gagal."
             },
             {
               "type": "challenge",
@@ -94,36 +147,17 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_nino",
-              "text": "Jadi genangan itu naik ke udara sebagai uap, bukan lenyap?"
+              "speakerId": "char_npc_1",
+              "text": "Benar, sembilan cangkir tepung butuh enam cangkir gula. Kamu sudah paham perbandingan."
             },
             {
               "type": "narration",
-              "text": "Pak Bima mengangguk dan mengajak mereka melihat ke luar jendela kelas."
-            }
-          ]
-        },
-        {
-          "id": "sc_01_03",
-          "title": "Bukan Lenyap",
-          "beats": [
-            {
-              "type": "challenge",
-              "challengeId": "chl_01_02"
+              "text": "Nara menuang bahan dengan hati-hati. Aroma kue mulai memenuhi dapur."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_tirta",
-              "text": "Aku setetes air yang baru lepas dari genangan itu. Badanku ringan, sampai aku bisa naik."
-            },
-            {
-              "type": "dialogue",
-              "speakerId": "char_nino",
-              "text": "Berarti air yang menghilang hanya berubah wujud, bukan lenyap."
-            },
-            {
-              "type": "narration",
-              "text": "Angin pagi berembus, membawa uap itu menuju halaman sekolah."
+              "speakerId": "char_mc",
+              "text": "Jadi selama perbandingannya tetap, rasa kue juga tetap enak."
             }
           ]
         }
@@ -131,24 +165,24 @@
     },
     {
       "id": "ch_02",
-      "title": "Kabut di Atas Taman",
-      "concept": "Kondensasi",
-      "summary": "Di halaman sekolah, Tirta berubah menjadi titik-titik air dan berkumpul membentuk awan. Nino belajar bahwa awan bukan kapas.",
-      "backgroundId": "bg_cloud_sky",
-      "musicId": "bgm_adventure",
+      "title": "Kue untuk Semua",
+      "concept": "Pecahan",
+      "summary": "Kue sudah matang dan meja pesta harus segera ditata. Nara bersama Bu Lastri membagi loyang serta memotong kue menjadi bagian-bagian yang mudah dibandingkan.",
+      "backgroundId": "bg_default",
+      "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_02_01",
-          "title": "Tubuh yang Mengeras",
+          "title": "Meja yang Harus Dibagi",
           "beats": [
             {
-              "type": "narration",
-              "text": "Di tengah halaman, udara terasa lebih dingin. Tirta menggigil di atas kolam taman."
+              "type": "dialogue",
+              "speakerId": "char_npc_4",
+              "text": "Kue sudah matang. Sekarang kita harus membaginya untuk meja-meja pesta."
             },
             {
-              "type": "dialogue",
-              "speakerId": "char_tirta",
-              "text": "Di sini dingin. Badanku mulai mengeras dan menempel pada uap-uap yang lain."
+              "type": "narration",
+              "text": "Di meja panjang ada empat loyang kue yang sama besar. Bu Lastri mengambil dua loyang untuk meja tamu."
             },
             {
               "type": "challenge",
@@ -156,52 +190,51 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_nino",
-              "text": "Tadi kamu uap, sekarang kamu titik air. Kenapa bisa berubah seperti itu?"
+              "speakerId": "char_mc",
+              "text": "Dua dari empat loyang sama saja dengan setengah dari seluruh kue."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_4",
+              "text": "Tepat. Sekarang bantu aku memotong bagian yang lebih kecil."
+            },
+            {
+              "type": "narration",
+              "text": "Bu Lastri menunjuk empat potongan kue dengan ukuran berbeda."
             }
           ]
         },
         {
           "id": "sc_02_02",
-          "title": "Bukan Kapas",
+          "title": "Potongan dari Kecil ke Besar",
           "beats": [
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_9",
+              "text": "Nara, piring tamu masih kosong! Kita harus menyusun potongan kue ini dengan rapi."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Potongan ini berbeda-beda. Aku urutkan dulu supaya tamu tidak bingung."
+            },
             {
               "type": "challenge",
               "challengeId": "chl_02_02"
             },
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
-              "text": "Uap yang mendingin berubah menjadi titik air. Itulah sebabnya awan terlihat seperti kapas."
-            },
-            {
-              "type": "dialogue",
-              "speakerId": "char_nino",
-              "text": "Jadi awan itu kumpulan titik air, bukan kapas sungguhan."
+              "speakerId": "char_npc_9",
+              "text": "Bagus! Mulai dari yang paling kecil, lalu ke yang paling besar."
             },
             {
               "type": "narration",
-              "text": "Awan di atas sekolah semakin tebal dan berwarna kelabu."
-            }
-          ]
-        },
-        {
-          "id": "sc_02_03",
-          "title": "Awan yang Berat",
-          "beats": [
-            {
-              "type": "narration",
-              "text": "Titik-titik air berkumpul sampai awan tak lagi sanggup menahannya."
+              "text": "Nara menyusun potongan kue di piring dengan rapi, dari seperempat sampai tiga perempat."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_tirta",
-              "text": "Aku makin berat. Sebentar lagi aku akan jatuh kembali ke bumi."
-            },
-            {
-              "type": "dialogue",
-              "speakerId": "char_rani",
-              "text": "Lihat, langit makin gelap. Sepertinya hujan akan segera turun!"
+              "speakerId": "char_mc",
+              "text": "Sekarang semua piring punya ukuran yang mudah dibandingkan."
             }
           ]
         }
@@ -209,76 +242,234 @@
     },
     {
       "id": "ch_03",
-      "title": "Air Kembali ke Taman",
-      "concept": "Infiltrasi",
-      "summary": "Hujan turun di halaman sekolah. Nino mengikuti air yang meresap ke tanah taman dan menyadari siklus air tidak pernah berhenti.",
-      "backgroundId": "bg_schoolyard_day",
-      "musicId": "bgm_ending",
+      "title": "Keranjang di Pasar Desa",
+      "concept": "Persentase",
+      "summary": "Hasil panen mulai dijual di pasar desa. Nara membantu Pak Joko menghitung bagian untuk balai desa dan Kak Nia memasang harga diskon untuk pengunjung pesta.",
+      "backgroundId": "bg_default",
+      "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_03_01",
-          "title": "Dua Jalan Air",
+          "title": "Jeruk untuk Balai Desa",
           "beats": [
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_5",
+              "text": "Panen hari ini melimpah. Sebagian hasil harus disisihkan untuk balai desa."
+            },
+            {
+              "type": "narration",
+              "text": "Karung jeruk ditimbang satu per satu. Totalnya lima puluh kilogram."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_5",
+              "text": "Sepuluh kilogram kita berikan ke balai desa. Coba hitung, itu berapa persen dari seluruhnya?"
+            },
             {
               "type": "challenge",
               "challengeId": "chl_03_01"
             },
             {
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Dua puluh persen. Cukup besar untuk membantu warga."
+            },
+            {
               "type": "narration",
-              "text": "Hujan turun membasahi halaman. Air menggenang di rumput dan tumpah ke jalan setapak."
-            },
-            {
-              "type": "dialogue",
-              "speakerId": "char_pak_bima",
-              "text": "Air hujan punya dua jalan: mengalir di permukaan, atau meresap ke dalam tanah."
-            },
-            {
-              "type": "dialogue",
-              "speakerId": "char_nino",
-              "text": "Yang meresap ke dalam tanah itu disebut infiltrasi, ya, Pak?"
+              "text": "Pak Joko mencatat angka itu di papan kecil dekat timbangan."
             }
           ]
         },
         {
           "id": "sc_03_02",
-          "title": "Akar yang Minum",
+          "title": "Diskon di Stan Sayur",
           "beats": [
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_6",
+              "text": "Stan sayur sudah dibuka! Tapi papan harganya masih kosong."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_6",
+              "text": "Satu ikat sayur harganya delapan ribu rupiah. Kita beri diskon dua puluh lima persen untuk pesta."
+            },
             {
               "type": "challenge",
               "challengeId": "chl_03_02"
             },
             {
               "type": "dialogue",
-              "speakerId": "char_rani",
-              "text": "Aku catat, ya: sebagian air disimpan akar tanaman, sebagian mengalir pelan kembali ke sungai."
+              "speakerId": "char_mc",
+              "text": "Berarti harganya turun dua ribu, jadi enam ribu rupiah."
             },
             {
               "type": "narration",
-              "text": "Nino melihat tanah taman menyerap air, dan daun-daun pohon terlihat lebih segar."
+              "text": "Kak Nia menulis harga baru di papan dengan kapur warna-warni."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_tirta",
-              "text": "Nanti matahari akan memanggilku lagi. Siklus ini tidak pernah benar-benar berhenti."
+              "speakerId": "char_npc_6",
+              "text": "Pembeli pasti senang. Hitunganmu cepat sekali!"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ch_04",
+      "title": "Timbangan di Lumbung",
+      "concept": "Rata-rata",
+      "summary": "Menjelang sore, hasil panen masuk ke lumbung desa. Nara membantu Mbah Karto dan Bu Ratna menghitung rata-rata panen supaya laporan desa adil dan mudah dibaca.",
+      "backgroundId": "bg_default",
+      "musicId": "bgm_default",
+      "scenes": [
+        {
+          "id": "sc_04_01",
+          "title": "Empat Keranjang Mbah Karto",
+          "beats": [
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_7",
+              "text": "Lumbung desa harus tahu berapa banyak panen yang masuk hari ini."
+            },
+            {
+              "type": "narration",
+              "text": "Mbah Karto meletakkan empat keranjang kecil di atas meja. Beratnya empat, enam, delapan, dan sepuluh kilogram."
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_04_01"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Jumlahnya dua puluh delapan. Dibagi empat, rata-ratanya tujuh kilogram."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_7",
+              "text": "Tepat sekali. Rata-rata membantu kita melihat gambaran besarnya."
+            },
+            {
+              "type": "narration",
+              "text": "Mbah Karto mengangguk pelan sambil menutup buku catatan lumbung."
             }
           ]
         },
         {
-          "id": "sc_03_03",
-          "title": "Lingkaran Kecil",
+          "id": "sc_04_02",
+          "title": "Lima Petak di Lereng",
           "beats": [
             {
+              "type": "dialogue",
+              "speakerId": "char_npc_8",
+              "text": "Nara, boleh bantu aku? Catatan panen lima petak di lereng ini belum dijumlah."
+            },
+            {
               "type": "narration",
-              "text": "Hujan reda. Nino berdiri di depan kolam taman yang kembali penuh oleh air hujan."
+              "text": "Di kertas Bu Ratna tertulis angka dua belas, lima belas, sembilan, empat belas, dan sepuluh kilogram."
             },
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
-              "text": "Sekarang kamu tahu ke mana air genangan di depan kelas itu pergi."
+              "speakerId": "char_npc_8",
+              "text": "Kita perlu rata-ratanya untuk laporan ke kecamatan."
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_04_02"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Totalnya enam puluh kilogram. Dibagi lima petak, rata-ratanya dua belas kilogram."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_8",
+              "text": "Terima kasih! Laporan kita jadi rapi dan jujur."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ch_05",
+      "title": "Papan Data di Panggung",
+      "concept": "Diagram data",
+      "summary": "Malam pesta tiba. Nara dan Pak Darto merapikan papan diagram hasil panen, lalu Pak Wira menutup pesta dengan pesan bahwa data yang jujur membuat keputusan desa lebih baik.",
+      "backgroundId": "bg_default",
+      "musicId": "bgm_default",
+      "scenes": [
+        {
+          "id": "sc_05_01",
+          "title": "Papan Hasil Panen",
+          "beats": [
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_3",
+              "text": "Papan diagram hasil panen masih berantakan. Ayo kita urutkan sebelum panggung dibuka."
             },
             {
               "type": "narration",
-              "text": "Nino tersenyum. Air itu tidak hilang, hanya berjalan dalam lingkaran yang sama."
+              "text": "Empat batang kayu menunjukkan hasil panen: padi empat puluh kilogram, kacang lima belas kilogram, ubi tiga puluh kilogram, dan jagung dua puluh lima kilogram."
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_05_01"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Kalau diurutkan dari yang paling sedikit: kacang, jagung, ubi, lalu padi."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_3",
+              "text": "Sekarang diagramnya mudah dibaca. Warga tidak perlu menebak-nebak."
+            },
+            {
+              "type": "narration",
+              "text": "Mereka memasang papan itu di dekat gerbang pesta."
+            }
+          ]
+        },
+        {
+          "id": "sc_05_02",
+          "title": "Selisih di Ujung Pesta",
+          "beats": [
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_10",
+              "text": "Pesta hampir selesai. Aku ingin memastikan catatan panen kita benar."
+            },
+            {
+              "type": "narration",
+              "text": "Diagram batang terakhir menunjukkan padi empat puluh kilogram, jagung dua puluh lima kilogram, dan kacang lima belas kilogram."
+            },
+            {
+              "type": "challenge",
+              "challengeId": "chl_05_02"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Selisih padi dan kacang dua puluh lima kilogram, Pak."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_10",
+              "text": "Benar. Matematika membuat cerita desa kita bisa dipercaya."
+            },
+            {
+              "type": "narration",
+              "text": "Lampu panggung meredup, tetapi wajah warga masih berseri-seri."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Aku senang bisa membantu. Besok kita hitung lagi, ya!"
             }
           ]
         }
@@ -289,86 +480,144 @@
     {
       "id": "chl_01_01",
       "type": "multiple_choice",
-      "prompt": "Apa yang terjadi pada air genangan saat terkena panas matahari?",
-      "conceptTag": "Evaporasi",
+      "prompt": "Resep kue pisang memakai 3 bagian tepung dan 2 bagian gula. Jika Bu Sri memakai 9 cangkir tepung, berapa cangkir gula yang dibutuhkan?",
+      "conceptTag": "Perbandingan",
       "difficulty": 1,
-      "explanation": "Panas matahari memberi energi pada air sehingga air berubah menjadi uap yang naik ke udara.",
+      "explanation": "Perbandingan tepung dan gula adalah 3 : 2. Karena tepung dikali tiga menjadi 9 cangkir, gula juga dikali tiga menjadi 6 cangkir.",
       "points": 10,
       "options": [
-        { "id": "opt_a", "text": "Menguap menjadi uap air" },
-        { "id": "opt_b", "text": "Membeku menjadi es" },
-        { "id": "opt_c", "text": "Berubah menjadi tanah" }
+        { "id": "opt_a", "text": "6 cangkir" },
+        { "id": "opt_b", "text": "4 cangkir" },
+        { "id": "opt_c", "text": "12 cangkir" }
       ],
       "correctOptionId": "opt_a"
     },
     {
-      "id": "chl_01_02",
+      "id": "chl_02_01",
       "type": "true_false",
       "prompt": "Tentukan benar atau salah pernyataan berikut.",
-      "statement": "Uap air lebih ringan daripada air cair, sehingga uap dapat naik ke atas.",
-      "conceptTag": "Evaporasi",
-      "difficulty": 1,
-      "explanation": "Uap air bercampur dengan udara dan bergerak naik karena lebih ringan daripada air dalam wujud cair.",
+      "statement": "Dua per empat bagian kue sama besar dengan setengah bagian kue.",
+      "conceptTag": "Pecahan",
+      "difficulty": 2,
+      "explanation": "Pecahan 2/4 dapat disederhanakan menjadi 1/2, jadi keduanya menunjukkan bagian yang sama besar.",
       "points": 10,
       "correctAnswer": true
     },
     {
-      "id": "chl_02_01",
+      "id": "chl_02_02",
       "type": "ordering",
-      "prompt": "Urutkan proses terbentuknya awan dari yang pertama terjadi.",
-      "conceptTag": "Kondensasi",
+      "prompt": "Urutkan potongan kue dari yang paling kecil ke yang paling besar.",
+      "conceptTag": "Pecahan",
       "difficulty": 2,
-      "explanation": "Uap air naik, suhu turun, uap berubah menjadi titik air, lalu titik-titik itu berkumpul menjadi awan.",
+      "explanation": "Pada pembilang yang sama, semakin besar penyebut semakin kecil nilainya. Urutan yang benar adalah 1/4, 1/3, 1/2, lalu 3/4.",
       "points": 15,
       "items": [
-        { "id": "itm_naik", "text": "Uap air naik ke atmosfer" },
-        { "id": "itm_dingin", "text": "Suhu udara di atas turun" },
-        { "id": "itm_titik", "text": "Uap berubah menjadi titik air" },
-        { "id": "itm_awan", "text": "Titik air berkumpul membentuk awan" }
+        { "id": "itm_seperempat", "text": "1/4 bagian" },
+        { "id": "itm_sepertiga", "text": "1/3 bagian" },
+        { "id": "itm_setengah", "text": "1/2 bagian" },
+        { "id": "itm_tigaperempat", "text": "3/4 bagian" }
       ],
-      "correctOrder": ["itm_naik", "itm_dingin", "itm_titik", "itm_awan"]
-    },
-    {
-      "id": "chl_02_02",
-      "type": "multiple_choice",
-      "prompt": "Apa yang menyebabkan uap air berubah menjadi titik-titik air?",
-      "conceptTag": "Kondensasi",
-      "difficulty": 2,
-      "explanation": "Saat suhu udara turun, uap air kehilangan energi dan mengembun menjadi titik-titik air.",
-      "points": 10,
-      "options": [
-        { "id": "opt_a", "text": "Suhu udara yang lebih dingin" },
-        { "id": "opt_b", "text": "Tekanan air yang menghilang" },
-        { "id": "opt_c", "text": "Cahaya matahari yang bertambah" }
-      ],
-      "correctOptionId": "opt_a"
+      "correctOrder": [
+        "itm_seperempat",
+        "itm_sepertiga",
+        "itm_setengah",
+        "itm_tigaperempat"
+      ]
     },
     {
       "id": "chl_03_01",
       "type": "short_answer",
-      "prompt": "Proses air hujan meresap ke dalam tanah disebut apa?",
-      "conceptTag": "Infiltrasi",
+      "prompt": "Dari 50 kg jeruk panen, 10 kg diberikan ke balai desa. Berapa persen jeruk yang diberikan?",
+      "conceptTag": "Persentase",
       "difficulty": 2,
-      "explanation": "Infiltrasi adalah pergerakan air dari permukaan tanah masuk ke lapisan tanah di bawahnya.",
+      "explanation": "Persentase dihitung dengan membagi bagian dengan keseluruhan lalu dikali 100. Sepuluh dibagi lima puluh sama dengan 0,2 atau 20%.",
       "points": 15,
-      "acceptedAnswers": ["infiltrasi", "peresapan", "perkolasi"],
+      "acceptedAnswers": ["20", "20%", "dua puluh persen"],
       "caseSensitive": false
     },
     {
       "id": "chl_03_02",
+      "type": "multiple_choice",
+      "prompt": "Satu ikat sayur harganya Rp8.000. Saat pesta, penjual memberi diskon 25%. Berapa harga sayur setelah diskon?",
+      "conceptTag": "Persentase",
+      "difficulty": 3,
+      "explanation": "Diskon 25% dari Rp8.000 adalah Rp2.000. Harga setelah diskon menjadi Rp8.000 dikurangi Rp2.000, yaitu Rp6.000.",
+      "points": 20,
+      "options": [
+        { "id": "opt_a", "text": "Rp6.000" },
+        { "id": "opt_b", "text": "Rp2.000" },
+        { "id": "opt_c", "text": "Rp7.500" }
+      ],
+      "correctOptionId": "opt_a"
+    },
+    {
+      "id": "chl_04_01",
       "type": "true_false",
       "prompt": "Tentukan benar atau salah pernyataan berikut.",
-      "statement": "Air hujan yang jatuh di permukaan tanah selalu langsung kembali ke laut.",
-      "conceptTag": "Infiltrasi",
-      "difficulty": 1,
-      "explanation": "Sebagian air meresap ke tanah, disimpan akar tanaman, atau menguap kembali sebelum mencapai laut.",
+      "statement": "Rata-rata dari 4, 6, 8, dan 10 kilogram adalah 6 kilogram.",
+      "conceptTag": "Rata-rata",
+      "difficulty": 2,
+      "explanation": "Jumlah keempat data adalah 28. Dibagi banyaknya data, yaitu 4, hasilnya 7 kilogram, bukan 6 kilogram.",
       "points": 10,
       "correctAnswer": false
+    },
+    {
+      "id": "chl_04_02",
+      "type": "short_answer",
+      "prompt": "Panen lima petak tercatat 12, 15, 9, 14, dan 10 kg. Berapa rata-rata panen per petak?",
+      "conceptTag": "Rata-rata",
+      "difficulty": 3,
+      "explanation": "Jumlah seluruh panen adalah 60 kg. Dibagi lima petak, rata-ratanya 12 kg per petak.",
+      "points": 20,
+      "acceptedAnswers": ["12", "12 kg", "dua belas"],
+      "caseSensitive": false
+    },
+    {
+      "id": "chl_05_01",
+      "type": "ordering",
+      "prompt": "Urutkan hasil panen pada diagram dari yang paling sedikit ke paling banyak.",
+      "conceptTag": "Diagram data",
+      "difficulty": 3,
+      "explanation": "Diagram dibaca dari batang terpendek ke terpanjang: kacang 15 kg, jagung 25 kg, ubi 30 kg, lalu padi 40 kg.",
+      "points": 20,
+      "items": [
+        { "id": "itm_kacang", "text": "Kacang 15 kg" },
+        { "id": "itm_jagung", "text": "Jagung 25 kg" },
+        { "id": "itm_ubi", "text": "Ubi 30 kg" },
+        { "id": "itm_padi", "text": "Padi 40 kg" }
+      ],
+      "correctOrder": ["itm_kacang", "itm_jagung", "itm_ubi", "itm_padi"]
+    },
+    {
+      "id": "chl_05_02",
+      "type": "multiple_choice",
+      "prompt": "Diagram batang pesta menunjukkan padi 40 kg, jagung 25 kg, dan kacang 15 kg. Berapa selisih hasil padi dan kacang?",
+      "conceptTag": "Diagram data",
+      "difficulty": 3,
+      "explanation": "Selisih dihitung dengan mengurangkan nilai yang lebih kecil dari yang lebih besar: 40 kg dikurangi 15 kg sama dengan 25 kg.",
+      "points": 20,
+      "options": [
+        { "id": "opt_a", "text": "25 kg" },
+        { "id": "opt_b", "text": "15 kg" },
+        { "id": "opt_c", "text": "55 kg" }
+      ],
+      "correctOptionId": "opt_a"
     }
   ],
   "assetUsage": {
-    "backgrounds": ["bg_classroom_day", "bg_cloud_sky", "bg_schoolyard_day"],
-    "music": ["bgm_school_calm", "bgm_adventure", "bgm_ending"],
-    "sprites": ["char_nino", "char_pak_bima", "char_tirta", "char_rani"]
+    "backgrounds": ["bg_default"],
+    "music": ["bgm_default"],
+    "sprites": [
+      "char_mc",
+      "char_npc_1",
+      "char_npc_3",
+      "char_npc_4",
+      "char_npc_5",
+      "char_npc_6",
+      "char_npc_7",
+      "char_npc_8",
+      "char_npc_9",
+      "char_npc_10"
+    ]
   }
 }
