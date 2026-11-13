@@ -7,37 +7,24 @@ type NpcMarkerProps = {
   marker: MarkerView;
 };
 
-/** Lebar batang dan titik tanda seru, dalam piksel internal. */
-const LEBAR_SERU = 7;
+/** Sisi kotak penanda quest, dalam piksel internal. */
+const UKURAN_KOTAK = 26;
 
 /**
- * Penanda quest pemberi quest, dua bentuk dalam satu komponen:
+ * Kotak `!` yang sama dipakai di dua keadaan, supaya UI penanda quest konsisten:
  *
- * - **Dekat**: NPC terlihat, tanda seru tinggi (batang + titik) bergaya pixel
- *   berdiri di atas kepala NPC, dengan papan nama dari `cast.name` di bawahnya.
- * - **Tepi**: NPC di luar pandangan, penanda menjadi beacon kotak bergaya HUD
- *   yang ditempel di tepi layar, dengan penunjuk kecil di atas kotak yang
- *   berputar mengikuti arah NPC.
+ * - **Dekat**: NPC terlihat, kotak duduk di atas papan namanya dan naik-turun.
+ * - **Tepi**: NPC di luar pandangan, kotak yang sama menjadi beacon di tepi
+ *   layar dengan penunjuk arah yang berputar mengikuti `sudut`.
  *
- * Posisi dikirim ulang tiap frame oleh `GameScene`, jadi penanda selalu
- * menempel pada NPC (atau pada titik tepi terdekat) saat kamera bergeser.
  * `z-30` menaruh beacon di depan baris HUD, tetapi `pointer-events-none`
- * menjaga tombol di bawahnya tetap bisa diklik. `INSET_PENANDA` (`layar.ts`)
- * memberi jarak aman agar beacon dan penunjuknya tidak menutupi HUD.
- *
- * Animasi naik-turun tanda seru dan denyut beacon mati saat
- * `prefers-reduced-motion`, supaya tidak terasa seperti notifikasi berkedip.
+ * menjaga tombol di bawahnya tetap bisa diklik.
  */
 export function NpcMarker({ marker }: NpcMarkerProps) {
-  return marker.tepi === true ? (
-    <BeaconTepi marker={marker} />
-  ) : (
-    <PenandaDekat marker={marker} />
-  );
-}
+  if (marker.tepi === true) {
+    return <BeaconTepi marker={marker} />;
+  }
 
-/** Tanda seru + papan nama di atas kepala NPC yang terlihat. */
-function PenandaDekat({ marker }: { marker: MarkerView }) {
   return (
     <div
       data-tanda="dekat"
@@ -45,46 +32,7 @@ function PenandaDekat({ marker }: { marker: MarkerView }) {
       style={{ left: persenLebar(marker.x), top: persenTinggi(marker.y) }}
       aria-hidden="true"
     >
-      <div className="flex flex-col items-center" style={{ gap: cqw(4) }}>
-        <span
-          className="animate-quest-bob flex flex-col items-center"
-          style={{ gap: cqw(3) }}
-        >
-          <span
-            data-bagian="batang"
-            className="border border-[#2A1A12]"
-            style={{
-              width: cqw(LEBAR_SERU),
-              height: cqw(18),
-              background:
-                "linear-gradient(to bottom, #F2906F 0%, #D14B45 55%, #B33A3C 100%)",
-              boxShadow: "1px 1px 0 0 rgba(0,0,0,0.35)",
-            }}
-          />
-          <span
-            data-bagian="titik"
-            className="border border-[#2A1A12]"
-            style={{
-              width: cqw(LEBAR_SERU),
-              height: cqw(LEBAR_SERU),
-              background: "#C43F40",
-              boxShadow: "1px 1px 0 0 rgba(0,0,0,0.35)",
-            }}
-          />
-        </span>
-        <span
-          data-bagian="nama"
-          className="overflow-hidden text-ellipsis whitespace-nowrap border border-[#3D4B41] bg-[#0b120e]/90 font-bold leading-none tracking-wide text-[#F7F4EC]"
-          style={{
-            maxWidth: cqw(120),
-            fontSize: ukuranHuruf(11, 11, 22),
-            paddingInline: cqw(4),
-            paddingBlock: cqw(2),
-          }}
-        >
-          {marker.nama}
-        </span>
-      </div>
+      <KotakSeru className="animate-quest-bob" />
     </div>
   );
 }
@@ -133,16 +81,23 @@ function BeaconTepi({ marker }: { marker: MarkerView }) {
         </span>
       </span>
 
-      <span
-        className="relative flex items-center justify-center border border-[#E8A87C]/80 bg-[#0b120e]/90 font-bold leading-none text-[#E8A87C] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)]"
-        style={{
-          width: cqw(26),
-          height: cqw(26),
-          fontSize: ukuranHuruf(17, 13, 30),
-        }}
-      >
-        !
-      </span>
+      <KotakSeru />
     </div>
+  );
+}
+
+/** Kotak gelap bergaris aksen dengan glyph `!` di tengahnya. */
+function KotakSeru({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`relative flex items-center justify-center border border-[#E8A87C]/80 bg-[#0b120e]/90 font-bold leading-none text-[#E8A87C] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)] ${className}`}
+      style={{
+        width: cqw(UKURAN_KOTAK),
+        height: cqw(UKURAN_KOTAK),
+        fontSize: ukuranHuruf(17, 13, 30),
+      }}
+    >
+      !
+    </span>
   );
 }

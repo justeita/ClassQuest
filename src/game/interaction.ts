@@ -26,8 +26,14 @@ export const ZONA_HISTERESIS = 8;
 /** Teks prompt; tombol yang sama dipakai `GameScene` untuk memicu dialog. */
 export const PROMPT_INTERAKSI = "Space";
 
-/** Jarak chip prompt dari ubun-ubun sprite karakter, dalam piksel. */
-export const JARAK_PROMPT = 6;
+/**
+ * Jarak chip prompt dari ubun-ubun sprite karakter, dalam piksel.
+ *
+ * Papan nama NPC digambar tepat di atas kepala (lihat `JARAK_NAMA` di
+ * `GameScene`), jadi chip dinaikkan melewatinya: dengan 22 px chip duduk di
+ * samping kotak `!` dan tidak menutupi nama.
+ */
+export const JARAK_PROMPT = 22;
 
 /**
  * Geser chip ke kanan penanda `!`.

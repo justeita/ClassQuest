@@ -133,20 +133,22 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   `Esc`) lewat komponen `Keycap`. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
-- Penanda quest hanya ada di atas NPC pemberi quest dan **tidak** hilang saat
-  pemain mendekat; chip `Space` muncul di kanannya. Selama NPC terlihat, tanda
-  seru tinggi bergaya pixel (batang + titik) berdiri di atas kepala NPC dengan
-  **papan nama** dari `cast.name` di bawahnya, jadi siswa tahu siapa yang harus
-  diajak bicara. Begitu NPC di luar pandangan, tanda berganti menjadi **beacon**
-  kotak besar bergaya HUD di tepi layar, lengkap dengan penunjuk kecil di atas
-  kotak yang berputar mengikuti arah NPC. Jarak aman atas lebih lebar supaya
-  penunjuk dan beacon tidak menutupi tombol HUD, dan beacon tetap tembus klik.
-  Beacon ikut bergeser saat pemain berjalan mendekat, lalu berubah kembali
-  menjadi tanda seru + papan nama ketika NPC masuk layar. Zona interaksi memakai
+- **Papan nama** muncul di atas kepala **semua** NPC yang terlihat (dari
+  `cast.name`), rapat di atas sprite, supaya siswa mengenali siapa saja di desa.
+  NPC pemberi quest ditandai **kotak `!`** bergaya HUD di atas papan namanya; UI
+  kotak ini sama persis di dua keadaan supaya konsisten. Saat pemain dekat, kotak
+  hanya naik-turun ringan. Saat NPC di luar pandangan, kotak menjadi **beacon** di
+  tepi layar dengan cincin denyut dan penunjuk kecil di atas kotak yang berputar
+  mengikuti arah NPC. Beacon didekatkan ke tepi bingkai game (ujung penunjuk boleh
+  sedikit terpotong) tetapi tetap tembus klik, jadi tidak ada tombol HUD yang
+  tertutup. Beacon ikut bergeser saat pemain berjalan mendekat, lalu berubah
+  kembali menjadi kotak `!` ketika NPC masuk layar. Kotak `!` **tidak** hilang
+  saat pemain mendekat: chip `Space` muncul di kanannya, di atas papan nama,
+  sehingga indikator quest tidak berkedip hilang-muncul. Zona interaksi memakai
   histeresis (masuk 24 px, keluar 32 px) supaya chip tidak berkedip di batas
-  zona. Posisi keduanya diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda
-  tetap menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
-  tantangan, atau menu jeda.
+  zona. Posisi papan nama, penanda, dan chip diperbarui tiap frame lewat
+  `NpcHintLayer`, jadi tanda tetap menempel pada NPC saat kamera bergeser, dan
+  disembunyikan selama dialog, tantangan, atau menu jeda.
 - Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
   petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
   ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti

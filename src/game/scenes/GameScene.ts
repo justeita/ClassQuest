@@ -19,12 +19,17 @@ import {
   ZONA_HISTERESIS,
   ZONA_RADIUS,
 } from "../interaction";
-import { duniaKeLayar, posisiPenanda, type KameraView } from "../layar";
+import {
+  duniaKeLayar,
+  posisiPenanda,
+  terlihatDiLayar,
+  type KameraView,
+} from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import { StoryRunner, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
-import type { GameBus, NpcMarker, PromptView } from "../gameBus";
+import type { GameBus, NpcMarker, NpcNameplate, PromptView } from "../gameBus";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
 import { assetEntry, resolveSceneLook } from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
@@ -53,9 +58,12 @@ const DEBOUNCE_MS = 150;
  */
 const INTERVAL_LEWATI_MS = 100;
 
+/** Jarak papan nama dari ubun-ubun sprite NPC. */
+const JARAK_NAMA = 6;
+
 /**
- * Jarak papan nama dari ubun-ubun sprite NPC. Cukup tinggi agar chip `Space`
- * (yang duduk dekat kepala) tidak bertabrakan dengan papan nama.
+ * Titik jangkar kotak `!` pemberi quest: di atas papan nama, bukan tepat di
+ * atas kepala. Papan nama setinggi ±16 px + celah 2 px, jadi 6 + 16 + 2 = 24.
  */
 const MARKER_OFFSET_Y = 24;
 
@@ -111,6 +119,7 @@ export class GameScene extends Phaser.Scene {
   /** Sidik posisi prompt/penanda terakhir; mencegah emisi saat tidak berubah. */
   private tandaPrompt = "";
   private tandaMarker = "";
+  private tandaNama = "";
   /** Pemain sedang di zona interaksi pemberi quest (dengan histeresis). */
   private pemberiQuestDekat = false;
 
@@ -352,17 +361,19 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Kirim posisi chip "Space" dan penanda "!" dalam koordinat layar.
+   * Kirim posisi chip "Space", penanda quest, dan papan nama NPC dalam
+   * koordinat layar.
    *
    * Dipanggil setiap frame. Dulu dibatasi 90 ms supaya React tidak bekerja
    * terus, tetapi kamera sekarang menempel pemain: penanda yang tertinggal
    * 90 ms terlihat melompat-lompat ("putus-putus") di atas NPC. Emisi tetap
    * murah karena sidik posisi di bawah hanya mengirim saat piksel bulatnya
-   * berubah, dan `NpcHintLayer` hanya me-render dua elemen kecil.
+   * berubah, dan `NpcHintLayer` hanya me-render beberapa elemen kecil.
    */
   private perbaruiPetunjuk(npcId: string | null) {
     const kamera = this.cameras.main;
     this.emitPrompt(npcId ? this.posisiPromptLayar(npcId, kamera) : null);
+    this.emitNametags(kamera);
 
     // Penanda "!" tetap tampil walau pemain sudah di zona interaksi. Chip
     // Space muncul di sampingnya (lihat `posisiPrompt`), jadi indikator quest
@@ -378,6 +389,35 @@ export class GameScene extends Phaser.Scene {
     if (tanda === this.tandaPrompt) return;
     this.tandaPrompt = tanda;
     this.bus?.emit({ type: "prompt", hint });
+  }
+
+  /** Papan nama semua NPC yang masih terlihat, bukan hanya pemberi quest. */
+  private emitNametags(kamera: Phaser.Cameras.Scene2D.Camera) {
+    const plates: NpcNameplate[] = [];
+
+    for (const npc of VILLAGE.npcs) {
+      const nama = this.castNames.get(npc.id);
+      if (!nama) continue;
+
+      const layar = duniaKeLayar(
+        kamera,
+        npc.x,
+        npc.y - TINGGI_KARAKTER - JARAK_NAMA,
+      );
+      if (!terlihatDiLayar(layar, kamera.width, kamera.height)) continue;
+
+      plates.push({
+        npcId: npc.id,
+        nama,
+        x: Math.round(layar.x),
+        y: Math.round(layar.y),
+      });
+    }
+
+    const tanda = plates.map((p) => `${p.npcId}:${p.x}:${p.y}`).join("|");
+    if (tanda === this.tandaNama) return;
+    this.tandaNama = tanda;
+    this.bus?.emit({ type: "nametags", plates });
   }
 
   private emitMarkers(markers: NpcMarker[]) {
@@ -407,14 +447,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Penanda quest di atas kepala pemberi quest.
+   * Penanda quest pemberi quest.
    *
-   * Selama NPC terlihat, penanda duduk di atas kepalanya: tanda seru tinggi
-   * plus papan nama. Bila NPC keluar pandangan, penanda tidak hilang:
-   * posisinya dijepit ke tepi layar sebagai beacon HUD dengan penunjuk arah.
-   * Karena dihitung ulang tiap frame, beacon ikut bergeser saat pemain berjalan
-   * mendekat, lalu berubah mulus menjadi penanda biasa begitu NPC masuk area
-   * aman.
+   * Selama NPC terlihat, kotak `!` duduk di atas papan namanya (papan nama
+   * sendiri dikirim lewat `emitNametags` untuk semua NPC). Bila NPC keluar
+   * pandangan, penanda tidak hilang: posisinya dijepit ke tepi layar sebagai
+   * beacon HUD dengan penunjuk arah. Karena dihitung ulang tiap frame, beacon
+   * ikut bergeser saat pemain berjalan mendekat, lalu berubah mulus menjadi
+   * kotak `!` begitu NPC masuk area aman.
    */
   private markerLayar(
     npcId: string,
@@ -436,7 +476,6 @@ export class GameScene extends Phaser.Scene {
 
     return {
       npcId,
-      nama: this.castNames.get(npcId) ?? npcId,
       x: Math.round(posisi.x),
       y: Math.round(posisi.y),
       tepi: posisi.tepi,

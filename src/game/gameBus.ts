@@ -35,15 +35,12 @@ export type PromptView = {
 /**
  * Penanda pemberi quest; koordinat layar internal.
  *
- * `nama` adalah nama tampilan dari `story.cast` untuk nama di atas kepala NPC.
  * `tepi: true` berarti NPC di luar pandangan: `x`/`y` sudah dijepit ke area
  * aman di tepi layar dan `sudut` dipakai penunjuk beacon. Di mode dekat,
- * penanda dirender sebagai tanda seru tinggi + papan nama.
+ * penanda dirender sebagai kotak `!` bergaya HUD di atas papan nama.
  */
 export type NpcMarker = {
   npcId: string;
-  /** Nama tampilan NPC (`cast.name`); cadangan ke id bila tidak ada. */
-  nama: string;
   x: number;
   y: number;
   tepi?: boolean;
@@ -51,10 +48,20 @@ export type NpcMarker = {
   sudut?: number;
 };
 
+/** Papan nama NPC di atas kepala; koordinat layar internal. */
+export type NpcNameplate = {
+  npcId: string;
+  /** Nama tampilan dari `story.cast`. */
+  nama: string;
+  x: number;
+  y: number;
+};
+
 export type GameEvent =
   | { type: "dialogue"; view: DialogueView }
   | { type: "prompt"; hint: PromptView | null }
   | { type: "markers"; markers: NpcMarker[] }
+  | { type: "nametags"; plates: NpcNameplate[] }
   | { type: "challenge"; view: ChallengeView }
   | {
       type: "graded";

@@ -161,13 +161,28 @@ describe("GameShell", () => {
 
     bus.emit({
       type: "markers",
-      markers: [{ npcId: "char_npc_10", nama: "Nama Uji", x: 200, y: 120 }],
+      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
     });
-    expect(await screen.findByText("Nama Uji")).toBeInTheDocument();
+    expect(await screen.findByText("!")).toBeInTheDocument();
 
     bus.emit({ type: "markers", markers: [] });
     await vi.waitFor(() =>
-      expect(screen.queryByText("Nama Uji")).not.toBeInTheDocument(),
+      expect(screen.queryByText("!")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("event nametags menampilkan nama NPC dan bisa dikosongkan", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "nametags",
+      plates: [{ npcId: "char_npc_5", nama: "Bu Sari", x: 210, y: 118 }],
+    });
+    expect(await screen.findByText("Bu Sari")).toBeInTheDocument();
+
+    bus.emit({ type: "nametags", plates: [] });
+    await vi.waitFor(() =>
+      expect(screen.queryByText("Bu Sari")).not.toBeInTheDocument(),
     );
   });
 
@@ -176,9 +191,9 @@ describe("GameShell", () => {
 
     bus.emit({
       type: "markers",
-      markers: [{ npcId: "char_npc_10", nama: "Nama Uji", x: 200, y: 120 }],
+      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
     });
-    await screen.findByText("Nama Uji");
+    await screen.findByText("!");
     const awal = document.querySelector<HTMLElement>('[data-tanda="dekat"]');
     expect(awal?.style.left).toBe(persenLebar(200));
 
@@ -186,7 +201,7 @@ describe("GameShell", () => {
     // tanpa menunggu render ulang overlay lain.
     bus.emit({
       type: "markers",
-      markers: [{ npcId: "char_npc_10", nama: "Nama Uji", x: 180, y: 112 }],
+      markers: [{ npcId: "char_npc_10", x: 180, y: 112 }],
     });
     await vi.waitFor(() =>
       expect(
@@ -195,16 +210,21 @@ describe("GameShell", () => {
     );
   });
 
-  it("penanda quest dan chip Space tampil bersamaan", async () => {
+  it("penanda quest, papan nama, dan chip Space tampil bersamaan", async () => {
     await mainkan();
 
     bus.emit({
       type: "markers",
-      markers: [{ npcId: "char_npc_10", nama: "Nama Uji", x: 200, y: 120 }],
+      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
+    });
+    bus.emit({
+      type: "nametags",
+      plates: [{ npcId: "char_npc_10", nama: "Pak Wira", x: 200, y: 126 }],
     });
     bus.emit({ type: "prompt", hint: { text: "Space", x: 214, y: 126 } });
 
-    expect(await screen.findByText("Nama Uji")).toBeInTheDocument();
+    expect(await screen.findByText("!")).toBeInTheDocument();
+    expect(screen.getByText("Pak Wira")).toBeInTheDocument();
     expect(screen.getByText("Space")).toBeInTheDocument();
   });
 

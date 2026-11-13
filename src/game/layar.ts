@@ -29,18 +29,34 @@ export function duniaKeLayar(
 }
 
 /**
+ * Apakah titik jangkar papan nama masih di dalam layar.
+ *
+ * Papan nama digambar ke atas dari titik jangkarnya, jadi titik yang sudah
+ * melewati tepi atas layar berarti namanya ikut keluar. Pemanggil memakai ini
+ * untuk menyembunyikan papan nama NPC yang jauh, tanpa menjepitnya ke tepi.
+ */
+export function terlihatDiLayar(
+  titik: TitikLayar,
+  lebar = GAME_WIDTH,
+  tinggi = GAME_HEIGHT,
+): boolean {
+  return titik.x >= 0 && titik.x <= lebar && titik.y >= 0 && titik.y <= tinggi;
+}
+
+/**
  * Jarak aman penanda dari tepi layar, dalam piksel internal.
  *
- * Beacon tepi punya kotak 26 px plus penunjuk yang menonjol ±22 px ke luar,
- * jadi keempat sisi butuh ruang ekstra. Sisi atas lebih lebar lagi karena baris
- * HUD duduk di sana (tombol Quest di kiri, jeda/musik/catatan di kanan):
- * dengan jarak ini penunjuk tidak menutupi tombol.
+ * Beacon tepi sengaja didekatkan ke tepi: kotaknya berukuran 26 px (setengah
+ * 13 px), jadi 16 px masih menyisakan 3 px di dalam layar. Penunjuk boleh
+ * sedikit menonjol keluar — ujungnya terpotong rapi oleh bingkai game dan
+ * justru memperkuat kesan "menunjuk keluar". Sisi atas 24 px memberi ruang
+ * agar penunjuk tidak habis terpotong.
  */
 export const INSET_PENANDA = {
-  atas: 68,
-  kanan: 26,
-  bawah: 26,
-  kiri: 26,
+  atas: 24,
+  kanan: 16,
+  bawah: 16,
+  kiri: 16,
 } as const;
 
 /** Jarak aman penanda; isi keempat sisi bila perlu nilai khusus. */

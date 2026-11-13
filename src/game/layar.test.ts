@@ -5,6 +5,7 @@ import {
   INSET_PENANDA,
   duniaKeLayar,
   posisiPenanda,
+  terlihatDiLayar,
   type InsetPenanda,
 } from "./layar";
 
@@ -21,6 +22,20 @@ describe("duniaKeLayar", () => {
       x: 56,
       y: 48,
     });
+  });
+});
+
+describe("terlihatDiLayar", () => {
+  it("menganggap titik di dalam bidang layar sebagai terlihat", () => {
+    expect(terlihatDiLayar({ x: 0, y: 0 })).toBe(true);
+    expect(terlihatDiLayar({ x: GAME_WIDTH, y: GAME_HEIGHT })).toBe(true);
+  });
+
+  it("menyembunyikan titik yang sudah melewati tepi layar", () => {
+    expect(terlihatDiLayar({ x: -1, y: 100 })).toBe(false);
+    expect(terlihatDiLayar({ x: GAME_WIDTH + 1, y: 100 })).toBe(false);
+    expect(terlihatDiLayar({ x: 100, y: -1 })).toBe(false);
+    expect(terlihatDiLayar({ x: 100, y: GAME_HEIGHT + 1 })).toBe(false);
   });
 });
 
@@ -54,7 +69,7 @@ describe("posisiPenanda", () => {
     expect(posisi.sudut).toBeLessThan(90);
   });
 
-  it("memberi jarak lebih lebar di atas agar tidak menutupi HUD", () => {
+  it("menjepit ke tepi atas dan menunjuk ke atas", () => {
     const posisi = posisiPenanda({ x: 320, y: -40 });
 
     expect(posisi.x).toBe(320);

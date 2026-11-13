@@ -12,7 +12,7 @@
   --font-mono: var(--font-geist-mono);
   /* Font teks game (handwriting OFL); lihat src/app/layout.tsx. */
   --font-game: var(--font-handwriting);
-  /* Naik-turun halus penanda "!" di atas NPC pemberi quest. */
+  /* Naik-turun penanda quest di atas NPC pemberi quest (magnitudo 4 px). */
   --animate-quest-bob: quest-bob 2.4s ease-in-out infinite;
   /* Denyut cincin beacon quest saat NPC berada di luar pandangan. */
   --animate-quest-beacon: quest-beacon 1.9s ease-out infinite;
@@ -61,7 +61,7 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
   }
 }
 
