@@ -315,7 +315,7 @@ export const storySchema = z.strictObject({
   schemaVersion: schemaVersionSchema,
   meta: storyMetaSchema,
   source: storySourceSchema,
-  cast: z.array(characterSchema).min(2).max(5),
+  cast: z.array(characterSchema).min(2).max(10),
   chapters: z.array(chapterSchema).min(3).max(6),
   challenges: z.array(challengeSchema),
   assetUsage: assetUsageSchema,

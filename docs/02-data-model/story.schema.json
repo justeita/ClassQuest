@@ -23,7 +23,7 @@
     "cast": {
       "type": "array",
       "minItems": 2,
-      "maxItems": 5,
+      "maxItems": 10,
       "items": { "$ref": "#/$defs/character" }
     },
     "chapters": {
