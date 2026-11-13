@@ -61,6 +61,14 @@ function isActive(pathname: string, href: string): boolean {
  * menggulir sendiri. Dipasang oleh `src/app/guru/(portal)/layout.tsx`, jadi
  * halaman masuk (`/guru/masuk`) tidak ikut memakai sidebar.
  *
+ * Tinggi kerangka mengunci viewport (`h-dvh`, bukan `h-screen`: `dvh` mengikuti
+ * tinggi yang benar-benar terlihat saat bilah alamat peramban ponsel muncul).
+ * Konsekuensinya isi sidebar **wajib** punya jalur gulir sendiri: di ponsel
+ * posisi mendatar (lebar ≥ 768 px, tinggi ± 375 px) menu utama lebih tinggi
+ * daripada viewport, dan karena dokumen dikunci `overflow-hidden`, menu yang
+ * terpotong tidak bisa dijangkau dengan menggulir halaman. Karena itu blok logo
+ * + menu memakai `md:overflow-y-auto` dan kartu akun tetap di bawah.
+ *
  * `teacherName` berasal dari sesi nyata (layout memanggil `requireTeacher()`).
  * Level/XP/gold masih hiasan desain karena belum ada tabel progres guru.
  */
@@ -112,9 +120,9 @@ export function PortalShell({
     "Teacher Portal Overview";
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-100 md:h-screen md:flex-row md:overflow-hidden">
-      <aside className="z-30 flex w-full shrink-0 flex-col justify-between border-b border-slate-200 bg-white text-slate-800 shadow-md md:relative md:h-full md:w-64 md:border-b-0 md:border-r">
-        <div>
+    <div className="flex min-h-dvh flex-col bg-slate-100 md:h-dvh md:flex-row md:overflow-hidden">
+      <aside className="z-30 flex w-full shrink-0 flex-col justify-between border-b border-slate-200 bg-white text-slate-800 shadow-md md:relative md:h-full md:min-h-0 md:w-64 md:overflow-hidden md:border-b-0 md:border-r">
+        <div className="guru-scroll md:min-h-0 md:flex-1 md:overflow-y-auto">
           <div className="flex items-center border-b border-slate-200 p-4 md:p-5">
             <div>
               <Image
@@ -176,7 +184,7 @@ export function PortalShell({
           </div>
         </div>
 
-        <div className="border-t border-slate-200 bg-slate-50 p-4">
+        <div className="shrink-0 border-t border-slate-200 bg-slate-50 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 overflow-hidden">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-amber-400 text-xs font-bold text-slate-900 shadow">
