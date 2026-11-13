@@ -71,46 +71,47 @@ editor, dan game.
 
 ## Aturan id
 
-| Kind         | Prefix  | Contoh                |
-| ------------ | ------- | --------------------- |
-| `background` | `bg_`   | `bg_classroom_day`    |
-| `character`  | `char_` | `char_pak_bima`       |
-| `tile`       | `tile_` | `tile_floor_wood`     |
-| `prop`       | `prop_` | `prop_desk`           |
-| `map`        | `map_`  | `map_halaman_sekolah` |
-| `music`      | `bgm_`  | `bgm_school_calm`     |
-| `sfx`        | `sfx_`  | `sfx_correct`         |
-| `ui`         | `ui_`   | `ui_textbox`          |
+| Kind         | Prefix   | Contoh              |
+| ------------ | -------- | ------------------- |
+| `background` | `bg_`    | `bg_default`        |
+| `character`  | `char_`  | `char_mc`           |
+| `world`      | `world_` | `world_map_village` |
+| `music`      | `bgm_`   | `bgm_default`       |
+| `sfx`        | `sfx_`   | `sfx_correct`       |
+| `ui`         | `ui_`    | `ui_textbox`        |
 
 - `id` unik, `snake_case`, hanya `[a-z0-9_]`.
 - `id` **tidak boleh berubah** setelah dipakai cerita. Ganti file boleh, ganti id
   tidak (kecuali migrasi cerita).
 - `path` unik dan harus benar-benar ada di `public/`.
 - `portraitPath` hanya boleh ada untuk kind `character`, dan filenya harus ada.
-- `map` adalah satu gambar ruangan penuh (ADR 0012). Tanpa `width`/`height`
-  kelipatan 16 gambar tidak sejajar grid collider. Sumbernya gabungan aset pihak
-  ketiga, jadi dicatat di [`../07-assets/inventory.md`](../07-assets/inventory.md).
+- `world` adalah aset sisi game — peta desa dan potongan objeknya. Entri ini
+  **tidak** bisa dipilih cerita (`STORY_ASSET_KINDS` tidak memuatnya). Peta
+  `world_map_*` memakai `width`/`height` kelipatan 16 agar sejajar grid collider
+  (ADR 0012). Sumbernya dicatat di
+  [`../07-assets/inventory.md`](../07-assets/inventory.md).
 
 ## Aset fallback
 
-Selalu ada fallback per kind, supaya game tidak pernah crash:
+Nilai dasar yang dipakai runtime saat cerita tidak menyebut id:
 
 | Kind         | Fallback         |
 | ------------ | ---------------- |
 | `background` | `bg_default`     |
-| `character`  | `char_default`   |
-| `tile`       | `tile_default`   |
-| `prop`       | `prop_default`   |
-| `map`        | — (wajib ada)    |
+| `character`  | — (wajib ada)    |
+| `world`      | — (wajib ada)    |
 | `music`      | `bgm_default`    |
 | `sfx`        | — (boleh senyap) |
 | `ui`         | `ui_default`     |
 
-`map` tidak punya fallback: ruangan hanya menggambar peta bila id-nya memang ada,
-kalau tidak ia kembali ke jalur `floorTile`/`wallTile` ADR 0010.
+`character` dan `world` tidak punya fallback: setiap `spriteId` di `cast` harus
+ada di manifest, dan ruangan hanya menggambar peta/objek bila id-nya memang ada.
+`resolveSceneLook` memakai `bg_default`/`bgm_default` bila chapter dan scene sama-
+sama tidak menyebut id; tidak ada penggantian diam-diam untuk id yang salah.
 
-Validator **tidak** membiarkan AI memakai fallback sebagai pilihan utama. Fallback
-hanya dipakai runtime bila file gagal dimuat.
+Validator **tidak** membiarkan AI memakai fallback sebagai pilihan utama. Loader
+belum punya penanganan `loaderror`, jadi aset yang gagal dimuat tampil kosong —
+bukan ditukar dengan sprite cadangan.
 
 ## Cara AI memilih aset
 
@@ -146,10 +147,12 @@ yang paling dekat dan mencatatnya di `source.gaps`, bukan mengarang id.
 2. Semua `id` sesuai pola prefix untuk kind-nya.
 3. Semua `path` menunjuk file yang ada di `public/`.
 4. Semua aset punya minimal 4 tag.
-5. Fallback tiap kind ada.
+5. Fallback wajib (`background`, `music`, `ui`) ada; `character` dan `world`
+   tidak memakai fallback.
 6. `width`/`height` background = 640×360 (lihat
    [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md)).
-7. `width`/`height` `map` kelipatan 16 dan sesuai ukuran ruangannya (ADR 0012).
+7. `width`/`height` peta `world_map_*` kelipatan 16 dan sesuai ukuran ruangannya
+   (ADR 0012).
 
 Test ini yang membuat "aset hilang" ketahuan saat `bun run test`, bukan saat demo.
 

@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -103,7 +103,15 @@ Catatan:
 ## Ukuran teks
 
 Canvas berukuran sesuai resolusi internal (sekarang 640×360, ADR 0009) dan
-diskalakan dengan `Phaser.Scale.FIT`, jadi skalanya mengikuti lebar kontainer.
+diskalakan lewat `ukuranKanvas()` (`Phaser.Scale.NONE` + `zoom`). Skala **bulat**
+dipakai saat sisa ruang kontainer ≤6%; selain itu skala **penuh** supaya kanvas
+mengisi bingkai halaman dan teks tidak mengecil di layar pendek. Skala penuh
+membuat lebar piksel bisa bergantian 1–2 px, tetapi tidak membuat pola bergeser
+karena posisi objek dan `scroll` kamera dikunci ke piksel utuh (lihat
+[`world-design.md`](./world-design.md#kamera)). Kamera dunia sendiri sedikit
+keluar dari 1:1 (`ZOOM_KAMERA`), dan itu memang bisa menggeser gambar ~0,8 px —
+karena itu `CAMERA_LERP` 1 dipakai supaya pergeseran hanya muncul saat pemain
+melangkah, bukan terus-menerus.
 
 Teks dialog, nama speaker, indikator lanjut, prompt interaksi, penanda `!`, dan
 panel quest **tidak** digambar di canvas: semuanya DOM di atas canvas (ADR 0007),

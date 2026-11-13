@@ -94,15 +94,24 @@ Menambah entri `RAMP` berarti menambah baris di tabel ini pada PR yang sama.
 
 - Resolusi internal: **640×360** (16:9), kelipatan tile 16×16 — keputusan di
   [ADR 0009](../09-decisions/0009-resolution-and-scale.md). Sama dengan
-  `GAME_WIDTH`/`GAME_HEIGHT` di `src/game/config.ts`.
-- Ditampilkan dengan `Phaser.Scale.FIT` mengikuti ukuran kontainer; 640×360 naik
-  pas 2× di 720p dan 3× di 1080p, jadi pixel tetap tajam.
+  `GAME_WIDTH`/`GAME_HEIGHT` di `src/game/constants.ts`.
+- Ditampilkan lewat `ukuranKanvas()` (`Phaser.Scale.NONE` + `zoom`, bukan `FIT`):
+  skala **bulat** 2× di 720p dan 3× di 1080p dipakai saat sisa ruangnya tipis
+  (≤6%), jadi pixel paling tajam. Kalau tidak, skala **penuh** (mis. 1,83×)
+  supaya kanvas mengisi bingkai halaman — dulu layar pendek hanya mendapat strip
+  960×360 dengan bar gelap besar.
 - `pixelArt: true` dan `roundPixels: true` **wajib** di konfigurasi Phaser.
-  `pixelArt` yang membuat tekstur memakai nearest-neighbor, sehingga pixel tetap
-  tajam walau skalanya pecahan — bukan integer scaling manual.
-- Konsekuensi yang harus dijaga: pada layar kecil, skala bisa mendekati 1x dan
-  teks jadi terlalu kecil. Batas dan jalan keluarnya ada di
-  [`accessibility.md`](./accessibility.md#ukuran-teks).
+  `pixelArt` membuat tekstur memakai nearest-neighbor; `roundPixels` membulatkan
+  gambar ke piksel utuh. Objek yang diskalakan tetap butuh
+  `setVertexRoundMode("fullAuto")` — lihat
+  [`world-design.md`](./world-design.md#kamera).
+- Halaman game memberi margin 8–24 px dan bingkai membulat, jadi sisa ruang
+  terbaca sebagai bingkai jendela, bukan kanvas yang menempel ke tepi.
+- Konsekuensi yang harus dijaga: pada skala penuh, lebar piksel bisa bergantian
+  1–2 px layar. Itu diterima karena posisi objek, kamera, dan vertex sudah
+  dikunci ke piksel utuh, jadi polanya diam — bukan getaran. Pada layar kecil,
+  skala bisa mendekati 1× dan teks jadi terlalu kecil; batas dan jalan keluarnya
+  ada di [`accessibility.md`](./accessibility.md#ukuran-teks).
 
 ## Suasana dan pacing
 

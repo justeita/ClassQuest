@@ -13,14 +13,25 @@ dalam waktu hackathon.
 - Keputusan: [ADR 0003](../09-decisions/0003-fixed-asset-library.md)
 - Manifest: [`../02-data-model/asset-manifest.md`](../02-data-model/asset-manifest.md)
 - Daftar aset: [`inventory.md`](./inventory.md)
+- Dunia desa dan urutan gambarnya:
+  [`../04-game/world-design.md`](../04-game/world-design.md)
+
+## Dua jalur aset
+
+Aset di `public/assets/` datang dari dua jalur yang tidak saling menimpa:
+
+1. **Generator repo** — `bun run assets:generate`. Membuat aset generik: latar
+   default 640×360, panel UI, dan empat efek suara. Gambar digambar tanpa
+   dependensi di `scripts/lib/`.
+2. **Impor dunia desa** — `bun run assets:world` (`scripts/import-world.mjs`).
+   Menyalin peta, potongan objek, spritesheet karakter, potret, dan lagu dari
+   paket aset proyek di luar repo, lalu membangkitkan `src/assets/worldAssets.ts`
+   dan `src/game/world/village.json`.
+
+Angka di bagian berikut adalah spesifikasi yang **berlaku sekarang**, disalin
+dari [`../04-game/world-design.md#satuan-dasar`](../04-game/world-design.md#satuan-dasar).
 
 ## Spesifikasi
-
-> Angka di bagian ini mengikuti resolusi internal yang berlaku sekarang.
-> Keputusan untuk menaikkan resolusi dan mengecilkan karakter ada di
-> [`../09-decisions/0009-resolution-and-scale.md`](../09-decisions/0009-resolution-and-scale.md);
-> angka finalnya di [`../04-game/world-design.md`](../04-game/world-design.md#satuan-dasar).
-> Selama ADR itu masih `Proposed`, **spesifikasi di bawah yang dipakai**.
 
 ### Background
 
@@ -33,80 +44,60 @@ dalam waktu hackathon.
 | Ukuran file  | ≤ 80 KB per gambar                                      |
 | Area aman    | 90 px bawah untuk textbox (jangan taruh detail penting) |
 
-Background di dalam permainan kelak disusun dari tile lantai, dinding, dan
-objek (lihat [`../04-game/world-design.md`](../04-game/world-design.md#lampiran-aset-latar)),
-bukan satu gambar pemandangan. Latar pemandangan tetap dipakai untuk layar
-judul dan layar hasil.
+Background (`bg_default`) hanya dipakai **layar judul dan layar hasil**. Di dalam
+permainan, latar yang terlihat adalah peta desa (kind `world`), bukan background.
+
+### Dunia desa (kind `world`)
+
+| Properti       | Nilai                                                            |
+| -------------- | ---------------------------------------------------------------- |
+| Peta           | JPEG, 2390×1792 px (`world_map_village`)                         |
+| Potongan objek | PNG transparan, 80 berkas di `public/assets/world/`              |
+| Skala objek    | Ditentukan data editor (`w`/`h` di `village.json`), bukan berkas |
+| Anchor objek   | Kiri-atas                                                        |
+| Urutan gambar  | `depth` dari editor (`round(y + dy*h)`), disalin apa adanya      |
+
+Peta **hanya seni**: collider, spawn, dan posisi NPC berasal dari sel collision
+dan data editor yang sama (`village.json`), bukan dari gambar. Menggeser objek di
+editor lalu impor ulang berarti menggeser gambar dan collider sekaligus.
 
 ### Sprite karakter
 
-| Properti     | Nilai                                           |
-| ------------ | ----------------------------------------------- |
-| Ukuran frame | **24×32**                                       |
-| Format       | PNG spritesheet, horizontal (18 frame = 432×32) |
-| Frame        | 2 idle (bernafas) + 2 jalan untuk 8 arah hadap  |
-| Anchor       | Kaki di tengah bawah                            |
-| Outline      | 1 px gelap, konsisten di semua karakter         |
-| Ukuran file  | ≤ 40 KB                                         |
+| Properti     | Nilai                                                                    |
+| ------------ | ------------------------------------------------------------------------ |
+| Format       | PNG spritesheet horizontal, **8 frame** (satu per arah hadap)            |
+| Urutan arah  | bawah, bawah-kanan, kanan, atas-kanan, atas, atas-kiri, kiri, bawah-kiri |
+| Ukuran frame | tinggi **64 px**; lebar per karakter berbeda (34–51 px)                  |
+| Anchor       | Kaki di tengah bawah                                                     |
+| Skala        | 0,875 saat digambar → tinggi 56 px di peta                               |
+| Animasi      | Tidak ada animasi jalan; frame berganti hanya saat arah berubah          |
+
+Contoh: `char_mc` berframe 34×64, `char_npc_7` berframe 51×64. `frameWidth`
+disimpan per karakter di manifest karena lebarnya tidak seragam.
 
 ### Portrait
 
-| Properti  | Nilai                      |
-| --------- | -------------------------- |
-| Resolusi  | **64×64**                  |
-| Format    | PNG dengan transparansi    |
-| Pemakaian | Opsional, muncul di dialog |
+| Properti  | Nilai                                               |
+| --------- | --------------------------------------------------- |
+| Resolusi  | **64×64**                                           |
+| Format    | PNG dengan transparansi                             |
+| Pemakaian | Opsional, muncul di dialog dan layar judul          |
+| Asal      | Frame karakter menghadap bawah, dipusatkan di 64×64 |
 
-Portrait memakai `portraitPath` di entri manifest karakter. Kalau tidak ada, game
+Bingkai potret `ui_portrait_frame` berukuran 72×72 (4 px di luar gambar 64×64).
+Portrait memakai `portraitPath` di entri manifest karakter; kalau tidak ada, game
 tidak menampilkan portrait.
 
-#### Tile
+### Musik
 
-| Properti    | Nilai                                 |
-| ----------- | ------------------------------------- |
-| Ukuran      | **16×16** (satu tile, ADR 0009)       |
-| Format      | PNG, tidak transparan (full-bleed)    |
-| Isi         | Satu tile berulang, tanpa tepi khusus |
-| Ukuran file | ≤ 4 KB                                |
+| Properti    | Nilai                              |
+| ----------- | ---------------------------------- |
+| Format      | **MP3** (satu lagu: `bgm_default`) |
+| Pemakaian   | Diputar di seluruh permainan, loop |
+| Ukuran file | ≈ 4 MB                             |
+| Lokasi      | `public/assets/music/default.mp3`  |
 
-Tile dipasang berulang oleh game; jadi satu tile **tidak boleh** mengandung
-gradien besar atau tepi yang terlihat saat diulang.
-
-### Prop
-
-| Properti    | Nilai                                                |
-| ----------- | ---------------------------------------------------- |
-| Ukuran      | Kelipatan 16 px                                      |
-| Format      | PNG dengan transparansi                              |
-| Anchor      | Alas di tengah bawah (kaki objek)                    |
-| Bayangan    | Elips gelap 1–2 px di bawah alas, bagian dari gambar |
-| Outline     | 1 px gelap, konsisten dengan karakter                |
-| Ukuran file | ≤ 20 KB                                              |
-
-### Peta
-
-| Properti    | Nilai                                                  |
-| ----------- | ------------------------------------------------------ |
-| Ukuran      | Kelipatan 16 px, sama dengan ukuran ruangan (ADR 0012) |
-| Format      | PNG tanpa transparansi                                 |
-| Isi         | Satu ruangan utuh: lantai, jalan, air, dan objek diam  |
-| Ukuran file | ≤ 300 KB                                               |
-
-Peta dipakai ruangan yang tidak bisa diwakili satu tile lantai (mis. halaman
-botani). Ia **hanya seni**: collider (`zone`), spawn, dan NPC tetap berasal dari
-`RoomData` (ADR 0010/0011/0012), jadi menggeser pohon di gambar berarti
-menggeser zona-nya juga. Yang di-commit hanya PNG jadinya; tileset mentahnya
-tidak masuk repo.
-
-## Musik
-
-| Properti    | Nilai                                |
-| ----------- | ------------------------------------ |
-| Format      | OGG Vorbis (fallback MP3 bila perlu) |
-| Durasi      | 30–60 detik, loop mulus              |
-| Bitrate     | 96–128 kbps                          |
-| Ukuran file | ≤ 800 KB                             |
-| Loudness    | Sekitar -16 LUFS, tanpa lonjakan     |
+Chapter **tidak** berganti lagu: seluruh cerita memakai satu musik.
 
 ### SFX
 
@@ -119,27 +110,25 @@ tidak masuk repo.
 
 ### UI
 
-| Properti | Nilai                           |
-| -------- | ------------------------------- |
-| Textbox  | 456×78, border 3 px, sudut 3 px |
-| Frame    | 9-slice (6 px border)           |
-| Format   | PNG dengan transparansi         |
+| Properti       | Nilai                                    |
+| -------------- | ---------------------------------------- |
+| Textbox        | 608×104 px (panel malam, border 3 px)    |
+| Bingkai potret | 72×72 px dengan potret 64×64 di dalamnya |
+| Panel default  | `ui_default`, dipakai portrait cadangan  |
+| Format         | PNG dengan transparansi                  |
 
 ## Aturan pixel art
 
-1. **Satu grid.** Semua gambar digambar pada grid 1 px dari resolusi 640×360.
-   Jangan mengecilkan gambar besar.
+1. **Satu grid.** Gambar generator digambar pada grid 1 px dari resolusi
+   640×360. Jangan mengecilkan gambar besar.
 2. **Tanpa anti-aliasing.** Tidak ada blur, gradient halus, atau bayangan lembut.
-3. **Palet terbatas.** Maksimal 9 warna per gambar (6 inti + 2 fungsional + 1
-   aksen karakter), diambil dari palet proyek
-   ([`../04-game/game-design.md`](../04-game/game-design.md)). Untuk background
-   yang butuh variasi terang/gelap, pakai tint dari palet itu — jangan menambah
-   warna baru.
-4. **Skala integer saat menggambar.** Semua gambar digambar pada grid 1 px; game
-   yang menampilkan dengan `Scale.FIT`. Pratinjau di 2× (1280×720) atau 3×
-   (1920×1080) untuk memeriksa ketajaman.
-5. **Konsisten.** Karakter yang sama harus punya proporsi dan outline sama di
-   semua pose.
+3. **Palet terbatas untuk aset generator.** Maksimal 9 warna per gambar (6 inti +
+   2 fungsional + 1 aksen karakter), diambil dari palet proyek
+   ([`../04-game/game-design.md`](../04-game/game-design.md)). Aset dunia desa
+   buatan tim dengan alat AI generatif **tidak** terikat batas ini; paletnya
+   milik gambar itu sendiri.
+4. **Konsisten.** Karakter yang sama harus punya proporsi dan outline sama di
+   semua pose. Semua karakter desa tinggi 64 px sebelum skala.
 
 ## Palet
 
@@ -157,25 +146,24 @@ tidak masuk repo.
 | Kuning lembut | `#C9A227` | fungsional: peringatan   |
 | Rosa lembut   | `#D98FA3` | aksen karakter           |
 
-Warna di luar palet harus ditambahkan ke dokumen ini dulu.
+Warna di luar palet harus ditambahkan ke dokumen ini dulu — kecuali untuk aset
+dunia desa yang sudah final.
 
 ## Struktur folder
 
 ```text
 public/assets/
-├── bg/
-├── char/
-├── portrait/
-├── tile/
-├── prop/
-├── map/
+├── bg/          # background layar judul/hasil
+├── char/        # spritesheet karakter desa
+├── portrait/    # potret 64×64
+├── world/       # peta desa + 80 potongan objek
 ├── music/
 ├── sfx/
 └── ui/
 ```
 
-Nama file: `snake_case` tanpa prefix (`classroom_day.png`), karena prefix ada di
-`id` manifest (`bg_classroom_day`). Lihat
+Nama file: `snake_case` tanpa prefix (`default.png`, `house_red.png`), karena
+prefix ada di `id` manifest (`bg_default`, `world_house_red`). Lihat
 [`naming-conventions.md`](./naming-conventions.md).
 
 ### Aset brand (bukan aset game)
@@ -215,7 +203,7 @@ Saat aset belum siap, **tetap buat file placeholder** agar manifest test dan gam
 bisa berjalan:
 
 - Background: kotak warna + label teks kecil ("BG: Kelas, siang").
-- Sprite: siluet 32×48 dengan label inisial.
+- Sprite: siluet dengan label inisial.
 - Musik: file senyap 1 detik (atau nada sederhana).
 - SFX: klik pendek.
 
@@ -228,34 +216,33 @@ Aturan:
 ## Lisensi
 
 - Semua aset harus dibuat sendiri, CC0/public domain, atau pihak ketiga dengan
-  lisensi yang mengizinkan pemakaian di game (lihat bagian berikut).
+  lisensi yang mengizinkan pemakaian di game.
 - Catat sumber di [`inventory.md`](./inventory.md) kolom "Sumber".
 - Jangan memakai aset dari game komersial (termasuk Omori) walau hanya untuk
   referensi gaya.
 - Jangan memakai font berbayar tanpa lisensi web.
 
-### Aset pihak ketiga
+### Aset dunia desa (buatan tim)
 
-Aset pihak ketiga boleh dipakai selama tiga syarat ini terpenuhi:
+Aset dunia desa — peta, 80 potongan objek, spritesheet karakter, potret, dan lagu
+— **dibuat tim sendiri dengan alat AI generatif**, lalu disusun di editor peta
+`pixel-map-placer.html`. Tidak ada berkas dari situs paket aset gratis maupun
+dari game komersial.
 
-1. **Lisensinya jelas dan mengizinkan game.** Freebie Craftpix, CC0, dan lisensi
-   sejenis boleh; aset dari game komersial tidak. Atribusi tidak selalu wajib,
-   tetapi tetap dicatat di [`../../README.md`](../../README.md#atribusi-pihak-ketiga).
-2. **Yang di-commit hanya aset jadi.** Simpan hasil potong yang benar-benar
-   dipakai game, bukan isi paket, PSD, atau file mentah. Ini menjaga repo tetap
-   kecil sekaligus mematuhi larangan redistribusi file seni mentah. Peta jahitan
-   (ADR 0012) dihitung aset jadi: yang masuk repo hanya PNG hasil akhirnya.
-3. **Bisa diulang.** Catat berkas asal dan kotak potongnya di
-   [`inventory.md`](./inventory.md), supaya aset bisa dibuat ulang tanpa
-   menyimpan paket sumbernya.
-
-Aset pihak ketiga yang sudah final tidak perlu mengikuti batas 9 warna di atas —
-paletnya milik seniman aslinya. Jangan mewarnai ulang aset impor secara manual
-tanpa mencatatnya; lebih baik pakai apa adanya.
+- Repo hanya memuat **berkas jadi** yang dipakai game (`map_village.jpg`,
+  `world/*.png`, `char/*.png`, `portrait/*.png`, `music/default.mp3`), bukan
+  berkas mentah atau `project.json` editor.
+- Regenerasi membutuhkan folder paket proyek di luar repo
+  (`Asset/assets_classquest`, atau `CLASSQUEST_WORLD_SOURCE`), lalu
+  `bun run assets:world`.
+- Kalau nanti memakai aset pihak ketiga, aturannya sama seperti aset lain:
+  lisensi jelas, hanya berkas jadi yang di-commit, dan sumber dicatat di
+  [`inventory.md`](./inventory.md) serta
+  [`../../README.md`](../../README.md#atribusi-pihak-ketiga).
 
 Generator **tidak** boleh menimpa aset impor. Karena itu aset impor tidak
-didafarkan di `IMAGES` (`scripts/generate-assets.mjs`) dan hanya dibuat sekali
-lewat proses potong di luar repo.
+didafarkan di `IMAGES` (`scripts/generate-assets.mjs`) dan hanya dibuat lewat
+`import-world.mjs`.
 
 ## Cara menambah aset
 

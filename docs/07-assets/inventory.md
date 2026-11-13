@@ -36,9 +36,9 @@ Aset di `public/assets/` datang dari dua jalur, dan keduanya tidak saling
 menimpa:
 
 1. **Generator repo** — `bun run assets:generate`. Membuat aset generik: latar
-   default `640×360`, siluet karakter default, panel UI, dan empat efek suara.
-   Gambar digambar tanpa dependensi di `scripts/lib/`; audio disintesis lalu
-   dienkode ke OGG lewat ffmpeg.
+   default `640×360`, panel UI, dan empat efek suara. Gambar digambar tanpa
+   dependensi di `scripts/lib/`; audio disintesis lalu dienkode ke OGG lewat
+   ffmpeg.
 2. **Impor paket desa** — `bun run assets:world` (`scripts/import-world.mjs`).
    Menyalin peta desa, 80 potongan objek, 10 spritesheet karakter desa +
    potretnya, dan satu lagu dari folder paket aset proyek di luar repo
@@ -67,19 +67,18 @@ bawah-kanan, kanan, atas-kanan, atas, atas-kiri, kiri, bawah-kiri.
 `64`. Potret `64×64` diambil dari frame bawah dan dipakai layar judul serta
 dialog.
 
-| id             | Label                | Sprite                     | Potret                        | Frame | Tags                                          | Status |
-| -------------- | -------------------- | -------------------------- | ----------------------------- | ----- | --------------------------------------------- | ------ |
-| `char_mc`      | Pemuda syal biru     | `/assets/char/mc.png`      | `/assets/portrait/mc.png`     | 34×64 | pemuda, syal, biru, desa, pemain, karakter    | ready  |
-| `char_npc_1`   | Pelajar bertopi biru | `/assets/char/npc_1.png`   | `/assets/portrait/npc_1.png`  | 38×64 | pelajar, topi, biru, desa, remaja, warga      | ready  |
-| `char_npc_3`   | Pelajar berkacamata  | `/assets/char/npc_3.png`   | `/assets/portrait/npc_3.png`  | 36×64 | pelajar, kacamata, desa, remaja, warga, siswa | ready  |
-| `char_npc_4`   | Gadis berjubah biru  | `/assets/char/npc_4.png`   | `/assets/portrait/npc_4.png`  | 35×64 | gadis, jubah, biru, desa, warga, remaja       | ready  |
-| `char_npc_5`   | Nenek bertongkat     | `/assets/char/npc_5.png`   | `/assets/portrait/npc_5.png`  | 45×64 | nenek, tongkat, tua, desa, warga, bijak       | ready  |
-| `char_npc_6`   | Kakek berjubah hijau | `/assets/char/npc_6.png`   | `/assets/portrait/npc_6.png`  | 40×64 | kakek, jubah, hijau, desa, warga, tua         | ready  |
-| `char_npc_7`   | Nelayan desa         | `/assets/char/npc_7.png`   | `/assets/portrait/npc_7.png`  | 51×64 | nelayan, perahu, ikan, desa, warga, sungai    | ready  |
-| `char_npc_8`   | Penjaga desa         | `/assets/char/npc_8.png`   | `/assets/portrait/npc_8.png`  | 51×64 | penjaga, jaga, desa, warga, aman, pos         | ready  |
-| `char_npc_9`   | Petani desa          | `/assets/char/npc_9.png`   | `/assets/portrait/npc_9.png`  | 46×64 | petani, sawah, tani, desa, warga, panen       | ready  |
-| `char_npc_10`  | Tetua bijak desa     | `/assets/char/npc_10.png`  | `/assets/portrait/npc_10.png` | 40×64 | tetua, bijak, tua, desa, warga, penasihat     | ready  |
-| `char_default` | Karakter default     | `/assets/char/default.png` | —                             | 24×32 | default, cadangan, fallback, netral, siluet   | ready  |
+| id            | Label                | Sprite                    | Potret                        | Frame | Tags                                          | Status |
+| ------------- | -------------------- | ------------------------- | ----------------------------- | ----- | --------------------------------------------- | ------ |
+| `char_mc`     | Pemuda syal biru     | `/assets/char/mc.png`     | `/assets/portrait/mc.png`     | 34×64 | pemuda, syal, biru, desa, pemain, karakter    | ready  |
+| `char_npc_1`  | Pelajar bertopi biru | `/assets/char/npc_1.png`  | `/assets/portrait/npc_1.png`  | 38×64 | pelajar, topi, biru, desa, remaja, warga      | ready  |
+| `char_npc_3`  | Pelajar berkacamata  | `/assets/char/npc_3.png`  | `/assets/portrait/npc_3.png`  | 36×64 | pelajar, kacamata, desa, remaja, warga, siswa | ready  |
+| `char_npc_4`  | Gadis berjubah biru  | `/assets/char/npc_4.png`  | `/assets/portrait/npc_4.png`  | 35×64 | gadis, jubah, biru, desa, warga, remaja       | ready  |
+| `char_npc_5`  | Nenek bertongkat     | `/assets/char/npc_5.png`  | `/assets/portrait/npc_5.png`  | 45×64 | nenek, tongkat, tua, desa, warga, bijak       | ready  |
+| `char_npc_6`  | Kakek berjubah hijau | `/assets/char/npc_6.png`  | `/assets/portrait/npc_6.png`  | 40×64 | kakek, jubah, hijau, desa, warga, tua         | ready  |
+| `char_npc_7`  | Nelayan desa         | `/assets/char/npc_7.png`  | `/assets/portrait/npc_7.png`  | 51×64 | nelayan, perahu, ikan, desa, warga, sungai    | ready  |
+| `char_npc_8`  | Penjaga desa         | `/assets/char/npc_8.png`  | `/assets/portrait/npc_8.png`  | 51×64 | penjaga, jaga, desa, warga, aman, pos         | ready  |
+| `char_npc_9`  | Petani desa          | `/assets/char/npc_9.png`  | `/assets/portrait/npc_9.png`  | 46×64 | petani, sawah, tani, desa, warga, panen       | ready  |
+| `char_npc_10` | Tetua bijak desa     | `/assets/char/npc_10.png` | `/assets/portrait/npc_10.png` | 40×64 | tetua, bijak, tua, desa, warga, penasihat     | ready  |
 
 ## Dunia desa (kind `world`)
 
@@ -214,35 +213,39 @@ dimuat `next/font/local` dari `public/fonts/` (ADR 0007).
 | Kind         | Jumlah  |
 | ------------ | ------- |
 | `background` | 1       |
-| `character`  | 11      |
+| `character`  | 10      |
 | `world`      | 81      |
 | `music`      | 1       |
 | `sfx`        | 4       |
 | `ui`         | 3       |
-| **Total**    | **101** |
+| **Total**    | **100** |
 
 ## Prioritas bila aset perlu dibuat ulang
 
 Urutan yang disarankan agar game tetap bisa tampil:
 
 1. `bun run assets:world` — peta desa, objek, karakter, potret, dan lagu.
-2. `bun run assets:generate` — latar default, siluet default, panel UI, sfx.
+2. `bun run assets:generate` — latar default, panel UI, sfx.
 3. Periksa `bun run test` (test manifest memeriksa file dan jumlah per kind).
 
 ## Sumber dan lisensi
 
-| Kelompok aset                                                              | Sumber                                                                             | Lisensi                                                       |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `bg_default`, `char_default`, `ui_*`, `sfx_*`                              | Dibuat generator repo (`scripts/lib/*.mjs`)                                        | Milik proyek                                                  |
-| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default` | Paket aset proyek di `Asset/assets_classquest`, disalin `scripts/import-world.mjs` | Milik proyek / campuran paket gratis — lihat catatan di bawah |
-| Font Patrick Hand (`public/fonts/`)                                        | Google Fonts                                                                       | SIL OFL 1.1                                                   |
+| Kelompok aset                                                              | Sumber                                                                  | Lisensi      |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------ |
+| `bg_default`, `ui_*`, `sfx_*`                                              | Dibuat generator repo (`scripts/lib/*.mjs`)                             | Milik proyek |
+| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default` | Dibuat tim dengan alat AI generatif, disalin `scripts/import-world.mjs` | Milik proyek |
+| Font Patrick Hand (`public/fonts/`)                                        | Google Fonts                                                            | SIL OFL 1.1  |
 
-Tabel rinci per paket (pembuat, tautan, dan batas lisensi) sedang dilengkapi
-di [`asset-guide.md`](asset-guide.md) dan
-[`../../README.md`](../../README.md#atribusi-pihak-ketiga). Selama catatan itu
-belum lengkap, **jangan menambah** aset baru dari paket luar tanpa mencatat
-sumbernya lebih dulu: guidebook LOGICODIX mewajibkan atribusi setiap aset
-pihak ketiga.
+Aset dunia desa (peta, potongan objek, karakter, potret, dan lagu) **dibuat tim
+sendiri dengan alat AI generatif**, lalu disusun di editor peta
+`pixel-map-placer.html`. Tidak ada aset yang diambil dari situs paket aset gratis
+maupun dari game komersial. Yang di-commit hanya berkas jadi yang dipakai game,
+bukan berkas mentah atau berkas proyek editor.
+
+Kalau nanti menambah aset dari pihak ketiga, catat sumber, pembuat, dan
+lisensinya lebih dulu di [`asset-guide.md`](asset-guide.md) dan
+[`../../README.md`](../../README.md#atribusi-pihak-ketiga): guidebook LOGICODIX
+mewajibkan atribusi setiap aset pihak ketiga.
 
 Jangan mengisi kolom ini dengan "Google Images" atau nama game komersial.
 

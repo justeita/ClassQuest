@@ -215,27 +215,23 @@ model. Detail dan keputusan provider ada di
 
 Aset gambar dan audio game:
 
-| Aset                                                                                   | Sumber                                        | Lisensi                     |
-| -------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------- |
-| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, dan `bgm_default`         | Paket aset proyek (`Asset/assets_classquest`) | Milik proyek + paket gratis |
-| `bg_default`, `char_default`, `ui_textbox`, `ui_portrait_frame`, `ui_default`, `sfx_*` | Dibuat generator repo                         | Milik proyek                |
+| Aset                                                                           | Sumber                                                                   | Lisensi      |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------ |
+| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, dan `bgm_default` | Dibuat tim dengan alat AI generatif, diproses `scripts/import-world.mjs` | Milik proyek |
+| `bg_default`, `ui_textbox`, `ui_portrait_frame`, `ui_default`, `sfx_*`         | Dibuat generator repo                                                    | Milik proyek |
 
 Peta desa, potongan objek, karakter, potret, dan lagu disalin apa adanya dari
 folder paket aset proyek di luar repo oleh `scripts/import-world.mjs`; yang
-di-commit hanya berkas yang benar-benar dipakai game. Paket itu disusun tim dari
-gambar buatan sendiri (termasuk artwork hasil AI) dan beberapa paket gratis:
-**Pixel Crawler — Free Pack (Exterior 0.1)** oleh Anokolisa
-(<https://anokolisa.itch.io>), **The Fan-tasy Tileset (Free)** oleh Ventilatore
-(<https://ventilatore.itch.io/the-fantasy-tileset>), dan **TILESET VILLAGE TOP
-DOWN**. Lisensi paket gratis mengizinkan pemakaian di produk jadi, tetapi
-melarang menjual atau mendistribusikan ulang berkas mentahnya — karena itu repo
-ini hanya memuat berkas yang sudah dipakai game, bukan isi paket. Rincian per
-berkas dan batas tiap lisensi dicatat di
+di-commit hanya berkas yang benar-benar dipakai game. Paket itu **dibuat tim
+sendiri dengan alat AI generatif** (gambar desa, potongan objek, karakter, dan
+potret), lalu disusun di editor peta `pixel-map-placer.html`. Tidak ada aset
+yang diambil dari situs paket aset gratis maupun dari game komersial. Rincian
+per berkas dicatat di
 [docs/07-assets/inventory.md](docs/07-assets/inventory.md#sumber-dan-lisensi).
 
-Spritesheet karakter desa memakai gaya delapan arah dari paket karakter gratis
-di folder aset proyek; potretnya dipotong dari frame menghadap bawah. Musik
-`bgm_default` adalah satu lagu berlatar desa yang ikut dalam paket aset proyek.
+Spritesheet karakter desa memakai gaya delapan arah; potretnya dipotong dari
+frame menghadap bawah. Musik `bgm_default` adalah satu lagu berlatar desa yang
+ikut dalam paket aset proyek.
 
 Font Patrick Hand memakai lisensi SIL OFL 1.1 (`public/fonts/OFL.txt`).
 

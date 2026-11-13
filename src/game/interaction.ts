@@ -14,11 +14,35 @@ import type { WorldNpc } from "./world/types";
 /** Jarak zona interaksi: 24 px dari titik kaki pemain ke titik kaki NPC. */
 export const ZONA_RADIUS = 24;
 
+/**
+ * Jarak tambahan sebelum chip `Space` hilang lagi.
+ *
+ * Tanpa histeresis, pemain yang berdiri tepat di batas 24 px membuat chip
+ * berkedip: satu frame di dalam zona, frame berikutnya di luar. Chip baru
+ * hilang setelah jaraknya melewati 32 px, jadi tampil-hilangnya tenang.
+ */
+export const ZONA_HISTERESIS = 8;
+
 /** Teks prompt; tombol yang sama dipakai `GameScene` untuk memicu dialog. */
 export const PROMPT_INTERAKSI = "Space";
 
-/** Jarak chip prompt dari ubun-ubun sprite karakter, dalam piksel. */
-export const JARAK_PROMPT = 8;
+/**
+ * Jarak chip prompt dari ubun-ubun sprite karakter, dalam piksel.
+ *
+ * Papan nama NPC digambar tepat di atas kepala (lihat `JARAK_NAMA` di
+ * `GameScene`), jadi chip dinaikkan melewatinya: dengan 22 px chip duduk di
+ * samping kotak `!` dan tidak menutupi nama.
+ */
+export const JARAK_PROMPT = 22;
+
+/**
+ * Geser chip ke kanan penanda `!`.
+ *
+ * Penanda quest tidak lagi disembunyikan saat pemain mendekat: `!` tetap di
+ * atas kepala dan chip `Space` muncul di sampingnya. Dua tanda yang berdiri
+ * sendiri-sendiri membuat indikator quest tidak berkedip hilang-muncul.
+ */
+export const GESER_PROMPT = 14;
 
 export type PromptHint = {
   text: string;
@@ -55,9 +79,10 @@ export function findNpcInZone(
 }
 
 /**
- * Posisi chip prompt di atas kepala NPC, dalam koordinat internal.
+ * Posisi chip prompt di kanan penanda `!`, dalam koordinat internal.
  * Sprite dijangkar di titik kaki, jadi ubun-ubunnya `TINGGI_KARAKTER` px di
- * atas titik itu; chip diletakkan sedikit di atasnya.
+ * atas titik itu; chip diletakkan sedikit di atasnya dan digeser ke kanan
+ * supaya tidak menutupi penanda quest.
  */
 export function posisiPrompt(
   npcs: Pick<WorldNpc, "id" | "x" | "y">[],
@@ -68,7 +93,7 @@ export function posisiPrompt(
 
   return {
     text: PROMPT_INTERAKSI,
-    x: npc.x,
+    x: npc.x + GESER_PROMPT,
     y: npc.y - TINGGI_KARAKTER - JARAK_PROMPT,
   };
 }

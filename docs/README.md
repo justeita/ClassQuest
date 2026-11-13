@@ -69,15 +69,15 @@ editor mana pun tanpa file biner.
 
 Jujur dulu, supaya tidak ada yang salah paham:
 
-| Bagian           | Keadaan sekarang                                                                     |
-| ---------------- | ------------------------------------------------------------------------------------ |
-| Aplikasi Next.js | Ada. Next 16.4.5, App Router, Tailwind 4, Bun.                                       |
-| Landing page     | Halaman pilih peran (guru/siswa) di `/` (bukan lagi starter `create-next-app`).      |
-| Halaman siswa    | `/play/[storyId]` sudah jalan; `/game` adalah demo Phaser dan pintu siswa di `/`.    |
-| UI guru          | Portal jalan: dashboard, materi, kelas, login. Editor cerita & preview belum ada.    |
-| Backend          | Upload PDF, job generasi, cerita, auth guru, dan hasil main sudah ada (libSQL).      |
-| Pipeline AI      | Ada: mock provider + Anthropic/OpenAI-compatible, dipilih lewat env.                 |
-| Aset game        | Sudah ada di `public/assets/` (hasil `bun run assets:generate` + aset pihak ketiga). |
+| Bagian           | Keadaan sekarang                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------------------- |
+| Aplikasi Next.js | Ada. Next 16.4.5, App Router, Tailwind 4, Bun.                                                  |
+| Landing page     | Halaman pilih peran (guru/siswa) di `/` (bukan lagi starter `create-next-app`).                 |
+| Halaman siswa    | `/play/[storyId]` sudah jalan; `/game` adalah demo Phaser dan pintu siswa di `/`.               |
+| UI guru          | Portal jalan: dashboard, materi, kelas, login. Editor cerita & preview belum ada.               |
+| Backend          | Upload PDF, job generasi, cerita, auth guru, dan hasil main sudah ada (libSQL).                 |
+| Pipeline AI      | Ada: mock provider + Anthropic/OpenAI-compatible, dipilih lewat env.                            |
+| Aset game        | Sudah ada di `public/assets/` (generator repo + dunia desa buatan tim, `bun run assets:world`). |
 
 Artinya: dokumen bertanda `stable` adalah **keputusan yang sudah disepakati untuk
 dibangun**; dokumen bertanda `draft`/`tbd` bisa jadi sudah sebagian diimplementasi
@@ -142,54 +142,54 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 
 <!-- docs-index:start -->
 
-| Dokumen                                                                                                                  | Status | Isi                                                      |
-| ------------------------------------------------------------------------------------------------------------------------ | ------ | -------------------------------------------------------- |
-| [`README.md`](./README.md)                                                                                               | stable | Halaman ini: peta docs dan aturan dasar                  |
-| [`00-product/vision.md`](./00-product/vision.md)                                                                         | stable | Kenapa proyek ini ada dan mau ke mana                    |
-| [`00-product/personas-and-roles.md`](./00-product/personas-and-roles.md)                                                 | stable | Siapa saja yang memakai ClassQuest                       |
-| [`00-product/user-flows.md`](./00-product/user-flows.md)                                                                 | stable | Alur lengkap dari upload sampai siswa main               |
-| [`00-product/mvp-scope.md`](./00-product/mvp-scope.md)                                                                   | stable | Apa yang dikerjakan dan apa yang sengaja tidak           |
-| [`00-product/glossary.md`](./00-product/glossary.md)                                                                     | stable | Arti istilah: materi, cerita, chapter, scene, beat       |
-| [`01-architecture/overview.md`](./01-architecture/overview.md)                                                           | draft  | Bentuk sistem dan pembagian lapisan                      |
-| [`01-architecture/tech-stack.md`](./01-architecture/tech-stack.md)                                                       | stable | Pilihan teknologi dan alasannya                          |
-| [`01-architecture/repo-structure.md`](./01-architecture/repo-structure.md)                                               | draft  | Isi folder sekarang vs struktur target                   |
-| [`01-architecture/data-flow.md`](./01-architecture/data-flow.md)                                                         | draft  | Data pindah ke mana dan batas kepercayaannya             |
-| [`01-architecture/security-and-privacy.md`](./01-architecture/security-and-privacy.md)                                   | draft  | Rahasia, data siswa, dan batas aman MVP                  |
-| [`02-data-model/story-schema.md`](./02-data-model/story-schema.md)                                                       | stable | **Kontrak utama**: bentuk cerita JSON                    |
-| [`02-data-model/validation-rules.md`](./02-data-model/validation-rules.md)                                               | draft  | Kode error validator dan artinya                         |
-| [`02-data-model/challenge-types.md`](./02-data-model/challenge-types.md)                                                 | draft  | Empat tipe soal dan cara menilainya                      |
-| [`02-data-model/asset-manifest.md`](./02-data-model/asset-manifest.md)                                                   | draft  | Bentuk dan aturan daftar aset                            |
-| [`03-ai-pipeline/pipeline.md`](./03-ai-pipeline/pipeline.md)                                                             | draft  | Perjalanan PDF menjadi cerita                            |
-| [`03-ai-pipeline/prompt-contract.md`](./03-ai-pipeline/prompt-contract.md)                                               | draft  | Isi prompt dan aturan output model                       |
-| [`03-ai-pipeline/generation-rules.md`](./03-ai-pipeline/generation-rules.md)                                             | stable | Aturan menulis cerita yang baik                          |
-| [`03-ai-pipeline/validation-and-repair.md`](./03-ai-pipeline/validation-and-repair.md)                                   | draft  | Cara memperbaiki hasil AI yang rusak                     |
-| [`03-ai-pipeline/provider-setup.md`](./03-ai-pipeline/provider-setup.md)                                                 | tbd    | Pilihan penyedia model AI                                |
-| [`04-game/game-design.md`](./04-game/game-design.md)                                                                     | stable | Arah visual, suasana, dan loop permainan                 |
-| [`04-game/engine.md`](./04-game/engine.md)                                                                               | draft  | Cara Phaser 4 dipasang di Next.js                        |
-| [`04-game/scene-format.md`](./04-game/scene-format.md)                                                                   | draft  | Cara cerita JSON jadi tampilan game                      |
-| [`04-game/world-design.md`](./04-game/world-design.md)                                                                   | draft  | Satuan tile, perspektif, map, kamera, dan font           |
-| [`04-game/interaction-loop.md`](./04-game/interaction-loop.md)                                                           | draft  | Perilaku saat siswa klik, jawab, atau menutup tab        |
-| [`04-game/plan-map-character-demo.md`](./04-game/plan-map-character-demo.md)                                             | draft  | Rencana integrasi 2 map, karakter Nino MC, dan demo      |
-| [`04-game/accessibility.md`](./04-game/accessibility.md)                                                                 | draft  | Keyboard, kontras, dan batas aksesibilitas MVP           |
-| [`05-frontend/routes.md`](./05-frontend/routes.md)                                                                       | draft  | Daftar halaman dan endpoint                              |
-| [`05-frontend/teacher-dashboard.md`](./05-frontend/teacher-dashboard.md)                                                 | draft  | Halaman guru: upload, status, ringkasan                  |
-| [`05-frontend/story-editor.md`](./05-frontend/story-editor.md)                                                           | draft  | Editor cerita untuk guru                                 |
-| [`05-frontend/game-player.md`](./05-frontend/game-player.md)                                                             | draft  | Halaman siswa dan lapisan UI-nya                         |
-| [`05-frontend/ui-conventions.md`](./05-frontend/ui-conventions.md)                                                       | draft  | Aturan tampilan dan komponen bersama                     |
-| [`06-backend/api-contract.md`](./06-backend/api-contract.md)                                                             | draft  | Bentuk request/response dan error                        |
-| [`06-backend/persistence.md`](./06-backend/persistence.md)                                                               | tbd    | Rencana database, storage, dan versi cerita              |
-| [`06-backend/jobs-and-limits.md`](./06-backend/jobs-and-limits.md)                                                       | draft  | Batas ukuran, waktu, dan status pekerjaan                |
-| [`07-assets/asset-guide.md`](./07-assets/asset-guide.md)                                                                 | draft  | Spesifikasi gambar, musik, dan suara                     |
-| [`07-assets/inventory.md`](./07-assets/inventory.md)                                                                     | draft  | Daftar aset yang direncanakan beserta statusnya          |
-| [`07-assets/naming-conventions.md`](./07-assets/naming-conventions.md)                                                   | stable | Aturan penamaan file aset                                |
-| [`08-workflow/setup.md`](./08-workflow/setup.md)                                                                         | stable | Menyiapkan environment lokal                             |
-| [`08-workflow/commands.md`](./08-workflow/commands.md)                                                                   | stable | Perintah Bun yang ada dan kapan dipakai                  |
-| [`08-workflow/testing.md`](./08-workflow/testing.md)                                                                     | draft  | Apa yang dites, apa yang tidak                           |
-| [`08-workflow/git-and-pr.md`](./08-workflow/git-and-pr.md)                                                               | stable | Alur git, commit, dan pull request                       |
-| [`08-workflow/ai-agent-rules.md`](./08-workflow/ai-agent-rules.md)                                                       | stable | **Aturan lengkap untuk AI agent dan manusia**            |
-| [`09-decisions/README.md`](./09-decisions/README.md)                                                                     | stable | Cara memakai dan menulis ADR                             |
-| [`09-decisions/template.md`](./09-decisions/template.md)                                                                 | stable | Kerangka ADR baru                                        |
-| [`09-decisions/0001-nextjs-app-router.md`](./09-decisions/0001-nextjs-app-router.md)                                     | stable | Kenapa Next.js App Router                                |
+| Dokumen                                                                                                                  | Status | Isi                                                          |
+| ------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------------ |
+| [`README.md`](./README.md)                                                                                               | stable | Halaman ini: peta docs dan aturan dasar                      |
+| [`00-product/vision.md`](./00-product/vision.md)                                                                         | stable | Kenapa proyek ini ada dan mau ke mana                        |
+| [`00-product/personas-and-roles.md`](./00-product/personas-and-roles.md)                                                 | stable | Siapa saja yang memakai ClassQuest                           |
+| [`00-product/user-flows.md`](./00-product/user-flows.md)                                                                 | stable | Alur lengkap dari upload sampai siswa main                   |
+| [`00-product/mvp-scope.md`](./00-product/mvp-scope.md)                                                                   | stable | Apa yang dikerjakan dan apa yang sengaja tidak               |
+| [`00-product/glossary.md`](./00-product/glossary.md)                                                                     | stable | Arti istilah: materi, cerita, chapter, scene, beat           |
+| [`01-architecture/overview.md`](./01-architecture/overview.md)                                                           | draft  | Bentuk sistem dan pembagian lapisan                          |
+| [`01-architecture/tech-stack.md`](./01-architecture/tech-stack.md)                                                       | stable | Pilihan teknologi dan alasannya                              |
+| [`01-architecture/repo-structure.md`](./01-architecture/repo-structure.md)                                               | draft  | Isi folder sekarang vs struktur target                       |
+| [`01-architecture/data-flow.md`](./01-architecture/data-flow.md)                                                         | draft  | Data pindah ke mana dan batas kepercayaannya                 |
+| [`01-architecture/security-and-privacy.md`](./01-architecture/security-and-privacy.md)                                   | draft  | Rahasia, data siswa, dan batas aman MVP                      |
+| [`02-data-model/story-schema.md`](./02-data-model/story-schema.md)                                                       | stable | **Kontrak utama**: bentuk cerita JSON                        |
+| [`02-data-model/validation-rules.md`](./02-data-model/validation-rules.md)                                               | draft  | Kode error validator dan artinya                             |
+| [`02-data-model/challenge-types.md`](./02-data-model/challenge-types.md)                                                 | draft  | Empat tipe soal dan cara menilainya                          |
+| [`02-data-model/asset-manifest.md`](./02-data-model/asset-manifest.md)                                                   | draft  | Bentuk dan aturan daftar aset                                |
+| [`03-ai-pipeline/pipeline.md`](./03-ai-pipeline/pipeline.md)                                                             | draft  | Perjalanan PDF menjadi cerita                                |
+| [`03-ai-pipeline/prompt-contract.md`](./03-ai-pipeline/prompt-contract.md)                                               | draft  | Isi prompt dan aturan output model                           |
+| [`03-ai-pipeline/generation-rules.md`](./03-ai-pipeline/generation-rules.md)                                             | stable | Aturan menulis cerita yang baik                              |
+| [`03-ai-pipeline/validation-and-repair.md`](./03-ai-pipeline/validation-and-repair.md)                                   | draft  | Cara memperbaiki hasil AI yang rusak                         |
+| [`03-ai-pipeline/provider-setup.md`](./03-ai-pipeline/provider-setup.md)                                                 | tbd    | Pilihan penyedia model AI                                    |
+| [`04-game/game-design.md`](./04-game/game-design.md)                                                                     | stable | Arah visual, suasana, dan loop permainan                     |
+| [`04-game/engine.md`](./04-game/engine.md)                                                                               | draft  | Cara Phaser 4 dipasang di Next.js                            |
+| [`04-game/scene-format.md`](./04-game/scene-format.md)                                                                   | draft  | Cara cerita JSON jadi tampilan game                          |
+| [`04-game/world-design.md`](./04-game/world-design.md)                                                                   | draft  | Dunia desa, editor peta, collision, kamera, dan font         |
+| [`04-game/interaction-loop.md`](./04-game/interaction-loop.md)                                                           | draft  | Perilaku saat siswa klik, jawab, atau menutup tab            |
+| [`04-game/plan-map-character-demo.md`](./04-game/plan-map-character-demo.md)                                             | draft  | Catatan historis: rencana map dan karakter yang ditinggalkan |
+| [`04-game/accessibility.md`](./04-game/accessibility.md)                                                                 | draft  | Keyboard, kontras, dan batas aksesibilitas MVP               |
+| [`05-frontend/routes.md`](./05-frontend/routes.md)                                                                       | draft  | Daftar halaman dan endpoint                                  |
+| [`05-frontend/teacher-dashboard.md`](./05-frontend/teacher-dashboard.md)                                                 | draft  | Halaman guru: upload, status, ringkasan                      |
+| [`05-frontend/story-editor.md`](./05-frontend/story-editor.md)                                                           | draft  | Editor cerita untuk guru                                     |
+| [`05-frontend/game-player.md`](./05-frontend/game-player.md)                                                             | draft  | Halaman siswa dan lapisan UI-nya                             |
+| [`05-frontend/ui-conventions.md`](./05-frontend/ui-conventions.md)                                                       | draft  | Aturan tampilan dan komponen bersama                         |
+| [`06-backend/api-contract.md`](./06-backend/api-contract.md)                                                             | draft  | Bentuk request/response dan error                            |
+| [`06-backend/persistence.md`](./06-backend/persistence.md)                                                               | tbd    | Rencana database, storage, dan versi cerita                  |
+| [`06-backend/jobs-and-limits.md`](./06-backend/jobs-and-limits.md)                                                       | draft  | Batas ukuran, waktu, dan status pekerjaan                    |
+| [`07-assets/asset-guide.md`](./07-assets/asset-guide.md)                                                                 | draft  | Spesifikasi gambar, musik, dan suara                         |
+| [`07-assets/inventory.md`](./07-assets/inventory.md)                                                                     | draft  | Daftar aset yang direncanakan beserta statusnya              |
+| [`07-assets/naming-conventions.md`](./07-assets/naming-conventions.md)                                                   | stable | Aturan penamaan file aset                                    |
+| [`08-workflow/setup.md`](./08-workflow/setup.md)                                                                         | stable | Menyiapkan environment lokal                                 |
+| [`08-workflow/commands.md`](./08-workflow/commands.md)                                                                   | stable | Perintah Bun yang ada dan kapan dipakai                      |
+| [`08-workflow/testing.md`](./08-workflow/testing.md)                                                                     | draft  | Apa yang dites, apa yang tidak                               |
+| [`08-workflow/git-and-pr.md`](./08-workflow/git-and-pr.md)                                                               | stable | Alur git, commit, dan pull request                           |
+| [`08-workflow/ai-agent-rules.md`](./08-workflow/ai-agent-rules.md)                                                       | stable | **Aturan lengkap untuk AI agent dan manusia**                |
+| [`09-decisions/README.md`](./09-decisions/README.md)                                                                     | stable | Cara memakai dan menulis ADR                                 |
+| [`09-decisions/template.md`](./09-decisions/template.md)                                                                 | stable | Kerangka ADR baru                                            |
+| [`09-decisions/0001-nextjs-app-router.md`](./09-decisions/0001-nextjs-app-router.md)                                     | stable | Kenapa Next.js App Router                                    |
 | [`09-decisions/0002-story-json-as-contract.md`](./09-decisions/0002-story-json-as-contract.md)                           | stable | Kenapa cerita JSON jadi kontrak tunggal                  |
 | [`09-decisions/0003-fixed-asset-library.md`](./09-decisions/0003-fixed-asset-library.md)                                 | stable | Kenapa aset disiapkan di awal                            |
 | [`09-decisions/0004-phaser-4.md`](./09-decisions/0004-phaser-4.md)                                                       | stable | Kenapa Phaser 4, bukan Phaser 3                          |

@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -42,6 +42,13 @@ Jangan campur keduanya di README. Juri menilai keduanya berbeda.
 Aturan internal kita: **tidak ada kode hasil AI yang di-commit tanpa dibaca dan
 dipahami minimal oleh satu anggota.** Kalau tidak ada yang bisa menjelaskan sebuah
 fungsi, fungsi itu belum boleh masuk.
+
+**Aset game juga dibuat dengan alat AI generatif.** Peta desa, 80 potongan objek,
+spritesheet karakter, potret, dan lagu dibuat tim sendiri dengan alat AI, lalu
+disusun di editor peta `pixel-map-placer.html` dan diimpor lewat
+`scripts/import-world.mjs`. Tidak ada aset yang diambil dari situs paket aset
+gratis atau dari game komersial. Detailnya dicatat di
+[`../07-assets/inventory.md`](../07-assets/inventory.md#sumber-dan-lisensi).
 
 ### B. AI sebagai fitur produk
 
@@ -141,8 +148,8 @@ Verifikasi ulang bila ada dependency baru: lisensi ada di `node_modules/<paket>/
 Repo ini **tidak lagi** memuat aset bawaan `create-next-app` (`file.svg`,
 `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`). Kelimanya dihapus saat
 halaman pengenalan di `/` menggantikan halaman starter. Yang tersisa di
-`public/` adalah aset game (sebagian dari generator repo, sebagian pihak ketiga
-yang tercatat di README) dan font.
+`public/` adalah aset game (sebagian dari generator repo, sebagian aset desa
+buatan tim dengan alat AI) dan font.
 
 Kalau nanti menambah aset template lagi, pilih salah satu: **hapus** kalau tidak
 dipakai, **atribusikan** di README, atau **ganti** dengan aset buatan tim lalu
@@ -166,7 +173,7 @@ bertanya asalnya.
 - [ ] README menyebut model/layanan AI dan bagian produk yang memakainya (bila AI jadi fitur).
 - [ ] README punya bagian Atribusi Pihak Ketiga.
 - [ ] Semua library tercantum beserta lisensi.
-- [ ] Semua aset visual/audio punya sumber.
+- [ ] Semua aset visual/audio punya sumber (aset desa: dibuat tim dengan alat AI).
 - [ ] Dataset dan materi contoh punya sumber.
 - [ ] Layanan pihak ketiga (AI, deploy, database) tercantum.
 - [ ] Aset default Next.js dihapus atau diatribusikan.

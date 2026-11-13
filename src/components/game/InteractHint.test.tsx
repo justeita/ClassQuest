@@ -13,16 +13,17 @@ describe("InteractHint", () => {
     expect(screen.getByText("Space")).toBeInTheDocument();
   });
 
-  it("menaruh chip di titik tengah koordinat internal", () => {
+  it("menaruh chip di kanan-bawah koordinat internal", () => {
     render(<InteractHint hint={{ text: "Space", x: 320, y: 90 }} />);
 
     const chip = screen.getByText("Space").parentElement;
     expect(chip).not.toBeNull();
     expect(chip?.style.left).toBe(persenLebar(320));
     expect(chip?.style.top).toBe(persenTinggi(90));
-    // Chip digeser ke atas dan ke tengah supaya menunjuk NPC, bukan menutupinya.
-    expect(chip?.className).toContain("-translate-x-1/2");
+    // Titik jangkar adalah sudut kiri-bawah: chip naik ke atas titik itu dan
+    // tidak lagi digeser ke tengah, karena duduk di samping penanda "!".
     expect(chip?.className).toContain("-translate-y-full");
+    expect(chip?.className).not.toContain("-translate-x-1/2");
   });
 
   it("tidak menangkap klik supaya canvas tetap menerima input", () => {
