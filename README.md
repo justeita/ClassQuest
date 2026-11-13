@@ -215,10 +215,10 @@ model. Detail dan keputusan provider ada di
 
 Aset gambar dan audio game:
 
-| Aset                                                                                   | Sumber                                        | Lisensi                     |
-| -------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------- |
-| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, dan `bgm_default`         | Paket aset proyek (`Asset/assets_classquest`) | Milik proyek + paket gratis |
-| `bg_default`, `char_default`, `ui_textbox`, `ui_portrait_frame`, `ui_default`, `sfx_*` | Dibuat generator repo                         | Milik proyek                |
+| Aset                                                                           | Sumber                                        | Lisensi                     |
+| ------------------------------------------------------------------------------ | --------------------------------------------- | --------------------------- |
+| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, dan `bgm_default` | Paket aset proyek (`Asset/assets_classquest`) | Milik proyek + paket gratis |
+| `bg_default`, `ui_textbox`, `ui_portrait_frame`, `ui_default`, `sfx_*`         | Dibuat generator repo                         | Milik proyek                |
 
 Peta desa, potongan objek, karakter, potret, dan lagu disalin apa adanya dari
 folder paket aset proyek di luar repo oleh `scripts/import-world.mjs`; yang

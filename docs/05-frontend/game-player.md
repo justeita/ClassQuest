@@ -216,9 +216,10 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 | `SCHEMA_UNSUPPORTED` | "Cerita ini dibuat dengan versi yang lebih baru." |
 | `UNKNOWN`            | "Terjadi masalah. Coba muat ulang halaman."       |
 
-Aset yang gagal dimuat **bukan** layar error: game memakai placeholder
-(`bg_default`, `char_default`) dan menampilkan satu toast kecil. Lihat tabel
-penanganan error di [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#penanganan-error-runtime).
+Aset yang gagal dimuat **bukan** layar error: game tetap berjalan dengan latar
+default (`bg_default`) dan panel default (`ui_default`). Sprite karakter tidak
+punya cadangan — sprite yang hilang tidak digambar. Lihat tabel penanganan error
+di [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#penanganan-error-runtime).
 
 ## Responsif
 

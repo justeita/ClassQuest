@@ -153,11 +153,13 @@ Aturan: kalau aset yang dibutuhkan tidak ada, pilih yang paling dekat dan tulis
 kekurangannya di `source.gaps`.
 
 **Aset default hanya ditawarkan bila jenisnya tidak punya pilihan lain.**
-`assetList()` menyembunyikan id berawalan `_default` (mis. `char_default`)
-selama jenis itu masih punya aset lain, supaya model tidak memilih siluet
-cadangan. Kalau seluruh jenis hanya punya aset default — seperti `background`
-dan `music` sekarang — aset itu tetap ditampilkan; tanpa itu model tidak punya
-pilihan sama sekali. Perilaku ini dikunci `src/ai/prompt.test.ts`.
+`assetList()` menyembunyikan id berakhiran `_default` selama jenis itu masih
+punya aset lain, supaya model tidak memilih nilai cadangan. Kalau seluruh jenis
+hanya punya aset default — seperti `background` dan `music` sekarang — aset itu
+tetap ditampilkan; tanpa itu model tidak punya pilihan sama sekali. Hanya
+`background`, `character`, dan `music` yang masuk blok aset; `sfx` dan `ui`
+adalah aset runtime dan tidak pernah ditawarkan. Perilaku ini dikunci
+`src/ai/prompt.test.ts`.
 
 ## Blok kontinuitas
 

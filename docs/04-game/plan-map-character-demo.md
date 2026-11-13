@@ -102,7 +102,7 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 
 ### 2.3. Standar Karakter (MC Nino & NPC)
 
-- **Sumber**: digambar generator repo (`scripts/lib/characters.mjs`). Referensi visual `Nino_Nakano_ver1.webp` hanya dipakai untuk siluet dan warna; tidak ada berkas seni berhak cipta yang disalin. `The adventurer — Female — Free` (Sscary) dipakai **hanya sebagai acuan pose dan proporsi** saat menggambar ulang delapan arah; frame-nya 48×64 px dengan 6 arah sehingga tidak bisa dipaskan langsung ke grid 24×32. Tidak ada berkas paket itu yang disalin atau di-commit.
+- **Sumber**: aset dunia desa dari paket proyek (`Asset/assets_classquest`), disalin `scripts/import-world.mjs`. Sprite karakter dan potret tidak lagi digambar generator repo; generator hanya membuat latar default dan panel UI (`scripts/lib/ui.mjs`).
 - **Karakteristik**:
   - Frame karakter standar: **24×32 px** (proporsi chibi top-down 1.5×2 tile). Tidak ada frame 32×48; ADR 0009 sudah menetapkan 24×32.
   - Outline bersih 1 px gelap yang serasi dengan pohon dan dinding ruangan.
@@ -134,7 +134,7 @@ Untuk menghasilkan visual game yang terlihat **HD, modern, tajam, dan profesiona
 | **Pintu Kayu**          | `main-characters-home.../walls_floor.png`   | `prop_door`                                                  | Potong `x=112 y=96 32×32`, dipasang di dinding koridor.                                                                    |
 | **Kolam Taman**         | generator `tiles.mjs`                       | `prop_pond`                                                  | 96×64 px, kolam dengan bibir batu, riak, dan daun teratai.                                                                 |
 | **Lantai & Dinding**    | generator `tiles.mjs`                       | `tile_floor_corridor`, `tile_floor_wood`, `tile_floor_grass` | 16×16 px seamless; koridor memakai ubin teraso, kelas parket, halaman rumput.                                              |
-| **MC Nino**             | generator `characters.mjs`                  | `char_nino` + portrait                                       | Spritesheet 8 arah 432×32 (18 frame 24×32), portrait 64×64.                                                                |
+| **MC desa**             | aset dunia desa (`import-world.mjs`)        | `char_mc` + potret                                           | Spritesheet 8 arah, frame 34×64; potret 64×64.                                                                             |
 
 > Sejak [ADR 0012](../09-decisions/0012-room-map-image.md), prop taman Craftpix
 > (`prop_tree_large`, `prop_tree_medium`, `prop_tree_flower`, `prop_bush_small`,

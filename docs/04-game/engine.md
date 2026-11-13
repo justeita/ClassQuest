@@ -269,7 +269,8 @@ export function queueStoryAssets(
 Aturan:
 
 - Key di Phaser **sama dengan `assetId`**. Jangan membuat key lain.
-- Kalau `loaderror`, pakai fallback (`bg_default`, `char_default`) dan lanjut.
+- Kalau `loaderror`, game lanjut tanpa crash; aset itu tampil kosong. Belum ada
+  penggantian otomatis ke sprite cadangan.
 - Tampilkan progress yang jujur; jangan freeze tanpa indikator.
 
 ## Bridge Phaser ↔ React

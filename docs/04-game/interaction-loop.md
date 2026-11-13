@@ -211,14 +211,14 @@ musik; log tidak bisa dibuka saat soal aktif; `Esc` atau `B` menutupnya.
 
 ## Penanganan error runtime
 
-| Error                         | Perilaku                                                        |
-| ----------------------------- | --------------------------------------------------------------- |
-| Aset gagal dimuat             | Pakai fallback, tampilkan sekali toast kecil, lanjut            |
-| `challengeId` tidak ditemukan | Lewati beat, catat error, jangan crash                          |
-| `speakerId` tidak dikenal     | Tampilkan sebagai narasi, catat error                           |
-| Audio diblokir browser        | Mulai senyap, tampilkan tombol "Nyalakan suara"                 |
-| `localStorage` penuh/ditolak  | Lanjut tanpa simpan, beri tahu sekali                           |
-| Story `schemaVersion` beda    | Tampilkan layar "cerita tidak didukung", jangan render sebagian |
+| Error                         | Perilaku                                                               |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| Aset gagal dimuat             | Lanjut tanpa crash; aset tampil kosong (belum ada handler `loaderror`) |
+| `challengeId` tidak ditemukan | Lewati beat, catat error, jangan crash                                 |
+| `speakerId` tidak dikenal     | Tampilkan sebagai narasi, catat error                                  |
+| Audio diblokir browser        | Mulai senyap, tampilkan tombol "Nyalakan suara"                        |
+| `localStorage` penuh/ditolak  | Lanjut tanpa simpan, beri tahu sekali                                  |
+| Story `schemaVersion` beda    | Tampilkan layar "cerita tidak didukung", jangan render sebagian        |
 
 Prinsip: **satu error tidak boleh menghentikan seluruh permainan**, kecuali
 schema tidak didukung.

@@ -96,14 +96,13 @@ const CHARACTER_SPRITES = new Set([
   "char_npc_8",
   "char_npc_9",
   "char_npc_10",
-  "char_default",
 ]);
 
 const SPRITE_BY_ROLE: Record<CharacterRole, string> = {
   player: "char_mc",
   mentor: "char_npc_10",
   npc: "char_npc_1",
-  antagonist: "char_default",
+  antagonist: "char_npc_4",
 };
 
 const ROLES: readonly CharacterRole[] = [

@@ -21,11 +21,7 @@ import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
 import type { GameBus, NpcMarker, PromptView } from "../gameBus";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
-import {
-  assetEntry,
-  DEFAULT_CHARACTER_ID,
-  resolveSceneLook,
-} from "../sceneAssets";
+import { assetEntry, resolveSceneLook } from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
 import {
   FRAME_ARAH,
@@ -99,7 +95,6 @@ export class GameScene extends Phaser.Scene {
   /** Pembicara beat dialog terakhir; dipakai sebagai nama speaker saat tantangan. */
   private pembicaraTerakhir: string | null = null;
   private readonly playerId: string;
-  private spritePemainId = "";
   private arahTerakhir: ArahGerak = "down";
   private lastAdvance = 0;
   /** Mode lewati ditahan (ala Persona 3 Reload): beat maju cepat selama ditahan. */
@@ -135,15 +130,11 @@ export class GameScene extends Phaser.Scene {
     const pemain =
       this.story.cast.find((member) => member.role === "player") ??
       this.story.cast[0];
-    this.spritePemainId =
-      pemain && this.textures.exists(pemain.spriteId)
-        ? pemain.spriteId
-        : DEFAULT_CHARACTER_ID;
 
     this.player = this.buatKarakter(
       SPAWN_PEMAIN.x,
       SPAWN_PEMAIN.y,
-      this.spritePemainId,
+      pemain?.spriteId ?? "",
       FRAME_ARAH[this.arahTerakhir],
     );
     this.pasangKamera();
@@ -269,6 +260,9 @@ export class GameScene extends Phaser.Scene {
   /**
    * Sprite karakter berjangkar di titik kaki, ukurannya mengikuti frame
    * spritesheet-nya. Semua karakter desa sama tinggi (`TINGGI_KARAKTER`).
+   *
+   * Tidak ada sprite cadangan: `manifest.test.ts` menjamin setiap sprite di
+   * manifest punya berkasnya, dan `PreloadScene` memuat semua sprite `cast`.
    */
   private buatKarakter(
     x: number,
@@ -276,16 +270,13 @@ export class GameScene extends Phaser.Scene {
     spriteId: string,
     face: number,
   ): Phaser.GameObjects.Sprite {
-    const key = this.textures.exists(spriteId)
-      ? spriteId
-      : DEFAULT_CHARACTER_ID;
-    const info = assetEntry(key);
+    const info = assetEntry(spriteId);
     const ukuran = ukuranKarakter(
       info?.frameWidth ?? 24,
       info?.frameHeight ?? 32,
     );
     return this.add
-      .sprite(x, y, key, face)
+      .sprite(x, y, spriteId, face)
       .setOrigin(0.5, 1)
       .setDisplaySize(ukuran.width, ukuran.height);
   }

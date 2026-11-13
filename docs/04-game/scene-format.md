@@ -54,7 +54,8 @@ mengambil hanya:
 
 - background chapter + override scene + `bg_default`;
 - musik chapter + override scene + `bgm_default`;
-- `spriteId` setiap `cast` (spritesheet 24×32, 10 frame idle+jalan) beserta portrait-nya;
+- `spriteId` setiap `cast` (spritesheet 8 arah, tinggi frame 64 px) beserta
+  portrait-nya;
 - aset UI (`ui_textbox`, `ui_portrait_frame`, `ui_default`) dan SFX
   (`sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`).
 
@@ -71,9 +72,10 @@ dijelajahi (bisa lebih luas dari layar):
   didefinisikan **di sisi game** (`src/game/maps/`, satu `RoomData` per
   `roomId`) dan **tidak mengubah kontrak Story JSON**.
 - Ruangan menyimpan lantai/dinding/spawn/zona; sprite karakter memakai
-  `spriteId` dari `cast` (spritesheet 24×32) dan background dari
-  `backgroundId`. Bila texture tidak ada, runtime jatuh ke `char_default` /
-  `bg_default` tanpa menghentikan permainan.
+  `spriteId` dari `cast` (spritesheet 64 px dengan lebar frame per karakter) dan
+  background dari `backgroundId`. Bila texture karakter tidak ada, sprite itu
+  tidak digambar — tidak ada sprite cadangan. Latar layar judul/hasil jatuh ke
+  `bg_default`.
 - Collision: dinding keliling ruangan + objek padat; arcade physics gravity 0
   (sudah diset di `config.ts`). Collider dibangun dari data objek yang sama
   yang digambar (ADR 0010) — tidak ada collider terpisah dari visual. Prop
@@ -95,7 +97,7 @@ bergerak. Posisi dalam piksel:
 │                                                  │
 │     ┌──────┐                                     │
 │     │SPRITE│  ← karakter aktif, kiri bawah       │
-│     │24×32 │                                     │
+│     │64 px │                                     │
 │     └──────┘                                     │
 │ ┌──────────────────────────────────────────────┐ │
 │ │ TEXTBOX (ui_textbox)                         │ │

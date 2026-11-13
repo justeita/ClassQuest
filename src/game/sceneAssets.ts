@@ -12,13 +12,11 @@ import type { Chapter, Scene, Story } from "@/story/schema";
 
 export const DEFAULT_BACKGROUND_ID = "bg_default";
 export const DEFAULT_MUSIC_ID = "bgm_default";
-export const DEFAULT_CHARACTER_ID = "char_default";
 
 /** Aset UI/SFX yang selalu dibutuhkan runtime game. */
 const RUNTIME_ASSET_IDS = [
   DEFAULT_BACKGROUND_ID,
   DEFAULT_MUSIC_ID,
-  DEFAULT_CHARACTER_ID,
   "ui_textbox",
   "ui_portrait_frame",
   "ui_default",
