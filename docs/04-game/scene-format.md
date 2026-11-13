@@ -81,9 +81,10 @@ dijelajahi:
   **8 arah** (`W`/`A`/`S`/`D` atau panah) dengan collision dari data dunia.
 - Data dunia — peta, penempatan NPC, spawn, sel collision — didefinisikan **di
   sisi game** dan **tidak mengubah kontrak Story JSON**.
-- Sprite karakter memakai `spriteId` dari `cast` (spritesheet 8 frame, tinggi
-  frame 64 px, lebar per karakter). Bila texture karakter tidak ada, sprite itu
-  tidak digambar — tidak ada sprite cadangan.
+- Sprite karakter memakai `spriteId` dari `cast` (spritesheet berpetak: 8 baris
+  arah × kolom idle/walk). Animasi idle berputar terus; pemain menambah animasi
+  walk, dan NPC berbalik menghadap pemain begitu diajak bicara. Bila texture
+  karakter tidak ada, sprite itu tidak digambar — tidak ada sprite cadangan.
 - Gerak **bukan** fisika Phaser: `movement.ts` menghitung langkah per sumbu dan
   memeriksa `buatTabrakan()` dari sel collision editor. Kotak tabrakan hanya di
   kaki (16×9 px). Detailnya di

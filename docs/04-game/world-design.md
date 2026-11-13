@@ -48,21 +48,21 @@ dunia desa **tidak** memakai satuan tile 16×16: editor peta menempel gambar di
 koordinat piksel bebas, dan angka itu disalin apa adanya ke game. Jadi hampir
 semua nilai di bawah dinyatakan dalam piksel.
 
-| Hal                   | Nilai                                                    |
-| --------------------- | -------------------------------------------------------- |
-| Resolusi internal     | 640×360 px                                               |
-| Lebar kanvas          | lebar kontainer ÷ skala, dijepit 640–960 px (tinggi 360) |
-| Skala ke layar        | bulat saat sisa ruang ≤6%, selain itu penuh (mis. 1,83×) |
-| Peta desa             | 2390×1792 px                                             |
-| Sel collision editor  | 7,9667×5,9733 px (peta dibagi rata menjadi grid 300×300) |
-| Frame sprite karakter | 64 px tinggi; lebar per karakter berbeda (34–51 px)      |
-| Tinggi karakter       | 56 px di peta (frame 64 px × skala 0,875)                |
-| Portrait dialog       | 64×64 px                                                 |
-| Kecepatan pemain      | 180 px/detik                                             |
-| Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki              |
-| Zona interaksi NPC    | 30 px masuk / 38 px keluar (histeresis 8 px)             |
-| Dead zone kamera      | 128×96 px di tengah layar                                |
-| Zoom kamera           | 0,8 — bingkai 640×360 menampilkan 800×450 px dunia       |
+| Hal                   | Nilai                                                        |
+| --------------------- | ------------------------------------------------------------ |
+| Resolusi internal     | 640×360 px                                                   |
+| Lebar kanvas          | lebar kontainer ÷ skala, dijepit 640–960 px (tinggi 360)     |
+| Skala ke layar        | bulat saat sisa ruang ≤6%, selain itu penuh (mis. 1,83×)     |
+| Peta desa             | 2390×1792 px                                                 |
+| Sel collision editor  | 7,9667×5,9733 px (peta dibagi rata menjadi grid 300×300)     |
+| Frame sprite karakter | kotak potong per karakter (33–52 px lebar × 61–66 px tinggi) |
+| Tinggi karakter       | 56 px di peta (diskalakan dari tinggi frame)                 |
+| Portrait dialog       | 64×64 px                                                     |
+| Kecepatan pemain      | 180 px/detik                                                 |
+| Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki                  |
+| Zona interaksi NPC    | 30 px masuk / 38 px keluar (histeresis 8 px)                 |
+| Dead zone kamera      | 128×96 px di tengah layar                                    |
+| Zoom kamera           | 0,8 — bingkai 640×360 menampilkan 800×450 px dunia           |
 
 Skala kanvas dihitung `ukuranKanvas()` di `src/game/constants.ts` dengan dua
 mode. Kalau kontainer hampir pas kelipatan tinggi 360 (sisa ≤6%, `SISA_SKALA_MAKS`),
@@ -198,7 +198,8 @@ saat pemain benar-benar melangkah, bukan sepanjang waktu. Nilai ini satu angka d
 `camera.ts`; kalau terasa kurang pas, cukup ubah di situ.
 
 **Objek terskala tetap dibulatkan.** Objek dari editor diskalakan dengan faktor
-pecahan (mis. `house_red` 185×128 digambar 308×212 ≈ 1,66×), dan karakter 0,875×.
+pecahan (mis. `house_red` 185×128 digambar 308×212 ≈ 1,66×), dan karakter
+diskalakan ke tinggi tetap 56 px.
 Phaser hanya membulatkan objek yang "hanya translasi" (`safeAuto`), jadi objek
 terskala diberi `setVertexRoundMode("fullAuto")` di `GameScene`. Tanpa itu objek
 meluncur di sub-piksel sementara peta membulat — sumber getaran yang paling
@@ -206,18 +207,20 @@ terlihat.
 
 ## Sprite karakter
 
-| Hal         | Nilai                                                                    |
-| ----------- | ------------------------------------------------------------------------ |
-| Frame       | 8 frame horizontal, **satu frame per arah** (tanpa animasi jalan)        |
-| Urutan arah | bawah, bawah-kanan, kanan, atas-kanan, atas, atas-kiri, kiri, bawah-kiri |
-| Ukuran      | tinggi selalu 64 px; lebar per karakter 34–51 px                         |
-| Anchor      | Kaki di tengah bawah (`setOrigin(0.5, 1)`)                               |
-| Skala       | 0,875 → tinggi 56 px di peta                                             |
-| Portrait    | 64×64 px, dipotong dari frame menghadap bawah                            |
+| Hal         | Nilai                                                                      |
+| ----------- | -------------------------------------------------------------------------- |
+| Frame       | spritesheet berpetak: 8 baris arah × (idle [+ walk]) kolom                 |
+| Urutan arah | selatan, tenggara, timur, timur laut, utara, barat laut, barat, barat daya |
+| Ukuran      | kotak potong per karakter (33–52 px lebar × 61–66 px tinggi)               |
+| Anchor      | Kaki di tengah bawah (`setOrigin(0.5, 1)`)                                 |
+| Skala       | tinggi diseragamkan ke 56 px di peta                                       |
+| Animasi     | idle selalu berputar; pemain menambah walk saat bergerak                   |
+| Portrait    | 64×64 px, tidak dibuat ulang dari sprite baru                              |
 
-Karena hanya ada satu frame per arah, "animasi" berjalan hanya berganti frame
-saat arah berubah. Saat berhenti, frame terakhir di arah terakhir dipertahankan —
-jangan kembali ke frame menghadap depan untuk arah samping.
+Animasi didaftarkan sekali per karakter di `GameScene` (kunci
+`<id>:<jenis>:<arah>`, `repeat: -1`), dari metadata
+`src/assets/characterFrames.ts`. Arah hadap NPC berubah saat diajak bicara:
+NPC berbalik menghadap titik kaki pemain (`arahKe`).
 
 ## Lampiran aset latar
 
@@ -274,7 +277,6 @@ Keputusan (ADR 0007): **teks permainan pindah ke DOM**.
 
 ## Yang sengaja tidak dikerjakan
 
-- Animasi jalan lebih dari satu frame per arah; karakter desa statis per arah.
 - Parallax lebih dari satu lapisan latar.
 - Beberapa peta yang tersambung (transisi antar-ruangan): seluruh cerita memakai
   satu peta desa.

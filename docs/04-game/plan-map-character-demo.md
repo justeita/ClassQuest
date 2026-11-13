@@ -31,9 +31,8 @@ demo berkisah tentang siklus air: genangan di halaman sekolah yang menyusut.
 - **Tile 16×16 tidak dipakai lagi.** Editor peta (`pixel-map-placer.html`)
   menempel gambar di koordinat piksel bebas, jadi satuan tile di dokumen lama
   tidak lagi menggambarkan kenyataan.
-- **Karakter desa menggantikan `char_nino`.** Spritesheet desa memakai **8 frame
-  arah hadap** (satu frame per arah, frame tinggi 64 px, skala 0,875 → 56 px),
-  bukan 18 frame 24×32.
+- **Karakter desa menggantikan `char_nino`.** Spritesheet desa memakai **8 arah
+  beranimasi** (idle, plus walk untuk pemain), bukan 18 frame 24×32.
 - **Atribusi aset diperbaiki.** Aset dunia desa (peta, objek, karakter, potret,
   lagu) adalah **buatan tim dengan alat AI generatif**, disalin
   `scripts/import-world.mjs` dari paket proyek di luar repo. Sebelumnya dokumen
@@ -55,7 +54,7 @@ demo berkisah tentang siklus air: genangan di halaman sekolah yang menyusut.
 | --------------------------------- | ---------------------------------------------------- |
 | 2 peta sekolah + transisi ruangan | Satu peta desa, kamera follow                        |
 | Tile lantai/dinding + prop        | Satu gambar peta + 80 potongan objek dari editor     |
-| `char_nino` 18 frame 24×32        | `char_mc` + 9 NPC, 8 frame arah, frame 64 px         |
+| `char_nino` 18 frame 24×32        | `char_mc` + 9 NPC, 8 arah beranimasi                 |
 | `RoomData` per `roomId`           | `src/game/world/village.json`                        |
 | Cerita siklus air di sekolah      | Cerita **Pesta Panen Desa** (perbandingan & pecahan) |
 

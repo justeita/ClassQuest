@@ -95,7 +95,7 @@ Catatan Phaser 4:
 - `roundPixels` **default `false`** di v4. Tanpa ini, pixel art akan blur/bergetar.
 - Pembulatan per objek memakai `vertexRoundMode`. Default `safeAuto` hanya
   membulatkan objek yang **tidak** diskalakan atau diputar; objek terskala
-  (prop editor ±1,66×, karakter 0,875×) perlu
+  (prop editor ±1,66×, karakter ke tinggi tetap 56 px) perlu
   `setVertexRoundMode("fullAuto")` supaya tidak meluncur di sub-piksel.
 - `setTintFill()` sudah dihapus. Untuk efek highlight, pakai `setTint()` +
   `setTintMode()`.
@@ -349,7 +349,8 @@ Aturan:
 
 - Key di Phaser **sama dengan `assetId`**. Jangan membuat key lain.
 - Spritesheet karakter memakai `frameWidth`/`frameHeight` dari manifest, karena
-  tiap karakter desa punya lebar frame sendiri.
+  tiap karakter desa punya kotak frame sendiri. `GameScene` mendaftarkan
+  animasi idle/walk dari `characterFrames.ts` dan memutarnya per arah hadap.
 - Tanpa penanganan `loaderror` dan tanpa sprite cadangan: `manifest.test.ts`
   menjamin setiap id manifest punya berkasnya.
 - Tampilkan progress yang jujur; jangan freeze tanpa indikator.

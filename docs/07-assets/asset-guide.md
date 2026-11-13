@@ -24,9 +24,13 @@ Aset di `public/assets/` datang dari dua jalur yang tidak saling menimpa:
    default 640×360, panel UI, dan empat efek suara. Gambar digambar tanpa
    dependensi di `scripts/lib/`.
 2. **Impor dunia desa** — `bun run assets:world` (`scripts/import-world.mjs`).
-   Menyalin peta, potongan objek, spritesheet karakter, potret, dan lagu dari
-   paket aset proyek di luar repo, lalu membangkitkan `src/assets/worldAssets.ts`
-   dan `src/game/world/village.json`.
+   Menyalin peta, potongan objek, dan lagu dari paket aset proyek di luar repo,
+   lalu membangkitkan `src/assets/worldAssets.ts` dan
+   `src/game/world/village.json`.
+3. **Impor karakter beranimasi** — `bun run assets:characters`
+   (`scripts/import-characters.mjs`). Menyusun spritesheet 8 arah dari folder
+   karakter (idle pemain + NPC, plus walk pemain), lalu membangkitkan
+   `src/assets/characterFrames.ts`. Potret dialog dibiarkan apa adanya.
 
 Angka di bagian berikut adalah spesifikasi yang **berlaku sekarang**, disalin
 dari [`../04-game/world-design.md#satuan-dasar`](../04-game/world-design.md#satuan-dasar).
@@ -63,17 +67,19 @@ editor lalu impor ulang berarti menggeser gambar dan collider sekaligus.
 
 ### Sprite karakter
 
-| Properti     | Nilai                                                                    |
-| ------------ | ------------------------------------------------------------------------ |
-| Format       | PNG spritesheet horizontal, **8 frame** (satu per arah hadap)            |
-| Urutan arah  | bawah, bawah-kanan, kanan, atas-kanan, atas, atas-kiri, kiri, bawah-kiri |
-| Ukuran frame | tinggi **64 px**; lebar per karakter berbeda (34–51 px)                  |
-| Anchor       | Kaki di tengah bawah                                                     |
-| Skala        | 0,875 saat digambar → tinggi 56 px di peta                               |
-| Animasi      | Tidak ada animasi jalan; frame berganti hanya saat arah berubah          |
+| Properti     | Nilai                                                                      |
+| ------------ | -------------------------------------------------------------------------- |
+| Format       | PNG spritesheet berpetak: **8 baris** arah × (idle [+ walk]) kolom         |
+| Urutan baris | selatan, tenggara, timur, timur laut, utara, barat laut, barat, barat daya |
+| Urutan kolom | frame idle lebih dulu, lalu frame walk (pemain saja)                       |
+| Ukuran frame | dipotong ke kotak karakter; ±33–52 px lebar × 61–66 px tinggi per karakter |
+| Anchor       | Kaki di tengah bawah                                                       |
+| Skala        | Tinggi diseragamkan ke 56 px di peta (`TINGGI_KARAKTER`)                   |
+| Animasi      | Idle selalu berputar; pemain menambah walk saat bergerak                   |
 
-Contoh: `char_mc` berframe 34×64, `char_npc_7` berframe 51×64. `frameWidth`
-disimpan per karakter di manifest karena lebarnya tidak seragam.
+Contoh: `char_mc` berframe 38×66 dengan 4 frame idle + 8 frame walk; NPC hanya
+punya 4–8 frame idle. `frameWidth`/`frameHeight` disimpan per karakter di
+manifest (dari `src/assets/characterFrames.ts`), karena ukurannya tidak seragam.
 
 ### Portrait
 
@@ -128,7 +134,8 @@ Chapter **tidak** berganti lagu: seluruh cerita memakai satu musik.
    buatan tim dengan alat AI generatif **tidak** terikat batas ini; paletnya
    milik gambar itu sendiri.
 4. **Konsisten.** Karakter yang sama harus punya proporsi dan outline sama di
-   semua pose. Semua karakter desa tinggi 64 px sebelum skala.
+   semua pose. Semua karakter desa tampil setinggi 56 px di peta, apa pun ukuran
+   frame aslinya.
 
 ## Palet
 
@@ -232,9 +239,10 @@ dari game komersial.
 - Repo hanya memuat **berkas jadi** yang dipakai game (`map_village.jpg`,
   `world/*.png`, `char/*.png`, `portrait/*.png`, `music/default.mp3`), bukan
   berkas mentah atau `project.json` editor.
-- Regenerasi membutuhkan folder paket proyek di luar repo
+- Regenerasi dunia membutuhkan folder paket proyek di luar repo
   (`Asset/assets_classquest`, atau `CLASSQUEST_WORLD_SOURCE`), lalu
-  `bun run assets:world`.
+  `bun run assets:world`. Spritesheet karakter dibuat terpisah dengan
+  `bun run assets:characters`.
 - Kalau nanti memakai aset pihak ketiga, aturannya sama seperti aset lain:
   lisensi jelas, hanya berkas jadi yang di-commit, dan sumber dicatat di
   [`inventory.md`](./inventory.md) serta

@@ -1,25 +1,24 @@
 #!/usr/bin/env bun
 /**
- * Impor dunia desa dari editor peta (`pixel-map-placer.html`).
+ * Impor dunia desa dari editor peta (`project.json`).
  *
  *   bun scripts/import-world.mjs
  *
  * Sumbernya ada di luar repo:
  *   D:/Data/LOGICODIX 26/Asset/assets_classquest/
  *     ├── project.json          # S = { map, assets, objs, g, cells, pl }
- *     ├── pixel-map-placer.html # memuat NPCB = 10 karakter × 8 frame
  *     └── bgm/Tune of the Town.mp3
  *
  * Yang dihasilkan (semua deterministik, sekali jalan, lalu di-commit):
  *
  *   public/assets/world/map_village.jpg   gambar desa (2390×1792)
  *   public/assets/world/<slug>.png        80 objek yang dipakai peta
- *   public/assets/char/mc.png             spritesheet MC (8 frame)
- *   public/assets/char/npc_<n>.png        spritesheet NPC desa
- *   public/assets/portrait/<nama>.png     potret 64×64 dari frame 0
  *   public/assets/music/default.mp3       satu-satunya musik game
  *   src/game/world/village.json           data dunia untuk Phaser
  *   src/assets/worldAssets.ts             entri manifest kind `world`
+ *
+ * Spritesheet dan potret karakter **tidak** dibuat di sini: aset animasi
+ * karakter punya skripnya sendiri (`scripts/import-characters.mjs`).
  *
  * Editor memakai koordinat piksel peta apa adanya: objek ysort digambar dengan
  * jangkar kiri-atas, NPC berjangkar di titik kaki (`x + w/2`, `y + h`), dan
@@ -31,9 +30,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-
-import { createCanvas, encodePng } from "./lib/pixel.mjs";
-import { decodePng } from "./lib/png.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE =
@@ -87,6 +83,9 @@ function tagsOf(slug) {
 const round = (value) => Math.round(value);
 const round4 = (value) => Number(value.toFixed(4));
 
+/** Kunci karakter editor → nama di repo: `npc_2` (MC) → `mc`, lain apa adanya. */
+const characterNameOf = (key) => (key === MC_KEY ? "mc" : key);
+
 /* -------------------------------------------------------------------------- */
 /* Sumber                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -98,13 +97,6 @@ if (!S || !S.map || !S.map.src) throw new Error("project.json tanpa S.map.src");
 if (!Array.isArray(S.assets) || !Array.isArray(S.objs)) {
   throw new Error("project.json tanpa S.assets/S.objs");
 }
-
-const html = readFileSync(join(SOURCE, "pixel-map-placer.html"), "utf8");
-const npcStart = html.indexOf("NPCB=[");
-if (npcStart < 0) throw new Error("pixel-map-placer.html tanpa NPCB");
-const npcEnd = html.indexOf("];", npcStart);
-const NPCB = JSON.parse(html.slice(npcStart + "NPCB=".length, npcEnd + 1));
-if (NPCB.length === 0) throw new Error("NPCB kosong");
 
 /** Kunci aset editor → definisi (termasuk `src` data URL). */
 const assetByKey = new Map(S.assets.map((asset) => [asset.key, asset]));
@@ -185,55 +177,7 @@ for (const key of [...usedKeys].sort()) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 3. Karakter: spritesheet 8 frame + potret 64×64                            */
-/* -------------------------------------------------------------------------- */
-
-/** `npc_1` → `npc_1`; `npc_2` (MC) → `mc`. */
-const characterNameOf = (key) => (key === MC_KEY ? "mc" : key);
-
-const characterEntries = [];
-
-for (const npc of NPCB) {
-  const name = characterNameOf(npc.k);
-  const frames = npc.f.map((source) => decodePng(decodeDataUrl(source).buffer));
-
-  const frameWidth = frames[0].width;
-  const frameHeight = frames[0].height;
-  const wrong = frames.find(
-    (frame) => frame.width !== frameWidth || frame.height !== frameHeight,
-  );
-  if (wrong) throw new Error(`frame ${npc.k} tidak seragam`);
-  if (frames.length !== 8) throw new Error(`frame ${npc.k} bukan 8 arah`);
-
-  const sheet = createCanvas(frameWidth * frames.length, frameHeight);
-  frames.forEach((frame, index) => sheet.blit(frame, index * frameWidth, 0));
-
-  const sheetPath = writePublic(
-    `char/${name}.png`,
-    Buffer.from(encodePng(sheet)),
-  );
-
-  // Potret: frame pertama (menghadap depan) di tengah kanvas 64×64.
-  const portrait = createCanvas(64, 64);
-  portrait.blit(frames[0], Math.round((64 - frameWidth) / 2), 0);
-  const portraitPath = writePublic(
-    `portrait/${name}.png`,
-    Buffer.from(encodePng(portrait)),
-  );
-
-  characterEntries.push({
-    id: `char_${name}`,
-    name,
-    label: npc.n,
-    frameWidth,
-    frameHeight,
-    sheetPath,
-    portraitPath,
-  });
-}
-
-/* -------------------------------------------------------------------------- */
-/* 4. village.json                                                            */
+/* 3. village.json                                                            */
 /* -------------------------------------------------------------------------- */
 
 const blocked = Object.keys(S.cells).sort((a, b) => {
@@ -291,7 +235,7 @@ log(
 );
 
 /* -------------------------------------------------------------------------- */
-/* 5. worldAssets.ts                                                          */
+/* 4. worldAssets.ts                                                          */
 /* -------------------------------------------------------------------------- */
 
 const entryLines = worldEntries

@@ -108,14 +108,14 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/typewriter.ts`                          | ya   | Efek ketik murni (30–40 karakter/detik)                        |
 | `src/game/textbox.ts`                             | ya   | Textbox dialog sesuai scene-format.md                          |
 | `src/game/interaction.ts`                         | ya   | Zona interaksi NPC + prompt (ADR 0008)                         |
-| `src/game/world`                                  | ya   | Data dunia desa: tipe, peta, frame arah, tabrakan              |
+| `src/game/world`                                  | ya   | Data dunia desa: tipe, peta, arah & animasi karakter, tabrakan |
 | `src/game/world/village.json`                     | ya   | Peta desa + objek + NPC hasil impor editor peta                |
 | `src/game/world/collision.test.ts`                | ya   | Tes grid tabrakan sel tertutup dan kotak kaki NPC              |
 | `src/game/camera.ts`                              | ya   | Kamera mengikuti pemain dengan dead zone di dunia desa         |
 | `src/game/camera.test.ts`                         | ya   | Tes mode kamera, dead zone, dan lerp                           |
 | `src/game/constants.ts`                           | ya   | Konstanta resolusi tanpa dependensi                            |
-| `src/game/movement.ts`                            | ya   | Gerak pemain 4 arah + tabrakan grid manual (ADR 0008)          |
-| `src/game/movement.test.ts`                       | ya   | Tes arah gerak dan layout frame animasi                        |
+| `src/game/movement.ts`                            | ya   | Gerak pemain 8 arah + tabrakan grid manual (ADR 0008)          |
+| `src/game/movement.test.ts`                       | ya   | Tes arah gerak dan langkah per sumbu                           |
 | `src/game/gameBus.ts`                             | ya   | Bridge bertipe Phaser ↔ React (event + command)                |
 | `src/game/challengeView.ts`                       | ya   | Data tantangan aman untuk overlay (tanpa jawaban)              |
 | `src/game/answerLog.ts`                           | ya   | Catatan jawaban percobaan pertama + ringkasan hasil            |

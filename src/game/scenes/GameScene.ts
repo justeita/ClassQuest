@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 
+import { CHARACTER_FRAMES } from "@/assets/characterFrames";
 import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { Story } from "@/story/schema";
 
@@ -35,10 +36,16 @@ import { buildQuestState, pilihPemberiQuest } from "../questLog";
 import { assetEntry, resolveSceneLook } from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
 import {
-  FRAME_ARAH,
+  ARAH_DARI_BARIS,
+  FPS_IDLE,
+  FPS_WALK,
   TINGGI_KARAKTER,
+  arahKe,
+  indeksFrameAnimasi,
+  kunciAnimasi,
   ukuranKarakter,
   type ArahGerak,
+  type JenisAnimasi,
 } from "../world/karakter";
 import { SPAWN_PEMAIN, VILLAGE } from "../world/village";
 
@@ -118,6 +125,10 @@ export class GameScene extends Phaser.Scene {
   /** Pembicara beat dialog terakhir; dipakai sebagai nama speaker saat tantangan. */
   private pembicaraTerakhir: string | null = null;
   private readonly playerId: string;
+  /** Id sprite pemain; dipakai memilih animasi walk/idle yang tepat. */
+  private playerSpriteId = "";
+  /** Arah hadap tiap NPC yang sedang dipasang; berubah saat diajak bicara. */
+  private readonly npcArah = new Map<string, ArahGerak>();
   private arahTerakhir: ArahGerak = "down";
   private lastAdvance = 0;
   /** Mode lewati ditahan (ala Persona 3 Reload): beat maju cepat selama ditahan. */
@@ -161,11 +172,12 @@ export class GameScene extends Phaser.Scene {
       this.story.cast.find((member) => member.role === "player") ??
       this.story.cast[0];
 
+    this.playerSpriteId = pemain?.spriteId ?? "";
     this.player = this.buatKarakter(
       SPAWN_PEMAIN.x,
       SPAWN_PEMAIN.y,
-      pemain?.spriteId ?? "",
-      FRAME_ARAH[this.arahTerakhir],
+      this.playerSpriteId,
+      this.arahTerakhir,
     );
     this.pasangKamera();
 
@@ -294,7 +306,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     for (const npc of VILLAGE.npcs) {
-      const sprite = this.buatKarakter(npc.x, npc.y, npc.id, npc.face);
+      const arah = ARAH_DARI_BARIS[npc.face] ?? "down";
+      this.npcArah.set(npc.id, arah);
+      const sprite = this.buatKarakter(npc.x, npc.y, npc.id, arah);
       sprite.setDepth(npc.depth);
       this.npcSprites.set(npc.id, sprite);
       this.duniaObjects.push(sprite);
@@ -307,9 +321,12 @@ export class GameScene extends Phaser.Scene {
    * Sprite karakter berjangkar di titik kaki, ukurannya mengikuti frame
    * spritesheet-nya. Semua karakter desa sama tinggi (`TINGGI_KARAKTER`).
    *
-   * Posisi dan gambar dibulatkan ke piksel utuh: skala 0,875 membuat sprite
-   * bukan objek "hanya translasi", jadi tanpa `fullAuto` ia ikut meluncur di
-   * sub-piksel saat kamera bergeser (pixel art bergetar).
+   * Animasi karakter didaftarkan sekali per sprite (idle, plus walk untuk
+   * pemain), lalu arah hadap awal langsung diputar sebagai idle.
+   *
+   * Posisi dan gambar dibulatkan ke piksel utuh: skala bukan bilangan bulat
+   * membuat sprite bukan objek "hanya translasi", jadi tanpa `fullAuto` ia ikut
+   * meluncur di sub-piksel saat kamera bergeser (pixel art bergetar).
    *
    * Tidak ada sprite cadangan: `manifest.test.ts` menjamin setiap sprite di
    * manifest punya berkasnya, dan `PreloadScene` memuat semua sprite `cast`.
@@ -318,18 +335,104 @@ export class GameScene extends Phaser.Scene {
     x: number,
     y: number,
     spriteId: string,
-    face: number,
+    arah: ArahGerak,
   ): Phaser.GameObjects.Sprite {
     const info = assetEntry(spriteId);
     const ukuran = ukuranKarakter(
       info?.frameWidth ?? 24,
       info?.frameHeight ?? 32,
     );
-    return this.add
-      .sprite(Math.round(x), Math.round(y), spriteId, face)
+    this.daftarAnimasiKarakter(spriteId);
+    const sprite = this.add
+      .sprite(Math.round(x), Math.round(y), spriteId, 0)
       .setOrigin(0.5, 1)
       .setDisplaySize(ukuran.width, ukuran.height)
       .setVertexRoundMode("fullAuto");
+    this.mainkanKarakter(sprite, spriteId, "idle", arah);
+    return sprite;
+  }
+
+  /**
+   * Daftarkan animasi idle (+ walk) satu karakter untuk semua arah.
+   *
+   * Key animasi Phaser global, jadi didaftarkan sekali saja: scene yang diulang
+   * tidak boleh membuat key yang sama dua kali. Karakter tanpa metadata frame
+   * (mis. id asing) dilewati; sprite-nya tetap tampil sebagai gambar statis.
+   */
+  private daftarAnimasiKarakter(spriteId: string) {
+    const frames = CHARACTER_FRAMES.find((entry) => entry.id === spriteId);
+    if (!frames) return;
+
+    const daftar: Array<{
+      jenis: JenisAnimasi;
+      jumlah: number;
+      fps: number;
+    }> = [
+      { jenis: "idle", jumlah: frames.idleFrames, fps: FPS_IDLE },
+      { jenis: "walk", jumlah: frames.walkFrames, fps: FPS_WALK },
+    ];
+
+    for (const arah of ARAH_DARI_BARIS) {
+      for (const { jenis, jumlah, fps } of daftar) {
+        if (jumlah <= 0) continue;
+        const key = kunciAnimasi(spriteId, jenis, arah);
+        if (this.anims.exists(key)) continue;
+        const mulai = indeksFrameAnimasi(frames, jenis, arah);
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(spriteId, {
+            start: mulai,
+            end: mulai + jumlah - 1,
+          }),
+          frameRate: fps,
+          repeat: -1,
+        });
+      }
+    }
+  }
+
+  /**
+   * Putar animasi karakter; karakter tanpa walk (NPC) memakai idle sebagai
+   * gantinya. `ignoreIfPlaying` mencegah animasi berulang dari frame pertama
+   * setiap kali dipanggil saat pemain berjalan.
+   */
+  private mainkanKarakter(
+    sprite: Phaser.GameObjects.Sprite,
+    spriteId: string,
+    jenis: JenisAnimasi,
+    arah: ArahGerak,
+  ) {
+    const frames = CHARACTER_FRAMES.find((entry) => entry.id === spriteId);
+    const efektif: JenisAnimasi =
+      jenis === "walk" && (frames?.walkFrames ?? 0) === 0 ? "idle" : jenis;
+    const key = kunciAnimasi(spriteId, efektif, arah);
+    if (this.anims.exists(key)) sprite.play(key, true);
+  }
+
+  /** Balikkan NPC `npcId` agar menghadap posisi pemain saat ini. */
+  private hadapkanKePemain(npcId: string) {
+    const npc = this.npcSprites.get(npcId);
+    const pemain = this.player;
+    if (!npc || !pemain) return;
+    const arah = arahKe(pemain.x - npc.x, pemain.y - npc.y);
+    if (this.npcArah.get(npcId) === arah) return;
+    this.npcArah.set(npcId, arah);
+    this.mainkanKarakter(npc, npcId, "idle", arah);
+  }
+
+  /**
+   * Hentikan animasi jalan pemain. Interaksi membekukan `updateExplore`, jadi
+   * tanpa ini pemain yang menekan Space sambil berjalan akan berjalan di tempat
+   * selama dialog/obrolan.
+   */
+  private hentikanPemain() {
+    if (!this.player) return;
+    this.mainkanKarakter(
+      this.player,
+      this.playerSpriteId,
+      "idle",
+      this.arahTerakhir,
+    );
   }
 
   /**
@@ -370,13 +473,19 @@ export class GameScene extends Phaser.Scene {
     this.lastAdvance = this.time.now;
 
     if (dekat === this.pemberiQuest) {
+      this.hadapkanKePemain(dekat);
+      this.hentikanPemain();
       this.runner.interact();
       this.presentBeat();
       return;
     }
 
     const teks = this.obrolan.get(dekat);
-    if (teks) this.mulaiObrolan(dekat, teks);
+    if (teks) {
+      this.hadapkanKePemain(dekat);
+      this.hentikanPemain();
+      this.mulaiObrolan(dekat, teks);
+    }
   }
 
   /**
@@ -434,7 +543,14 @@ export class GameScene extends Phaser.Scene {
     sprite.setPosition(Math.round(tujuan.x), Math.round(tujuan.y));
     if (arah) {
       this.arahTerakhir = arah;
-      sprite.setFrame(FRAME_ARAH[arah]);
+      this.mainkanKarakter(sprite, this.playerSpriteId, "walk", arah);
+    } else {
+      this.mainkanKarakter(
+        sprite,
+        this.playerSpriteId,
+        "idle",
+        this.arahTerakhir,
+      );
     }
   }
 
@@ -1019,7 +1135,12 @@ export class GameScene extends Phaser.Scene {
       Math.round(SPAWN_PEMAIN.y),
     );
     this.arahTerakhir = "down";
-    this.player.setFrame(FRAME_ARAH[this.arahTerakhir]);
+    this.mainkanKarakter(
+      this.player,
+      this.playerSpriteId,
+      "idle",
+      this.arahTerakhir,
+    );
     this.player.setDepth(this.player.y);
   }
 }

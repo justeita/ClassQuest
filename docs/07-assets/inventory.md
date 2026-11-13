@@ -40,10 +40,13 @@ menimpa:
    dependensi di `scripts/lib/`; audio disintesis lalu dienkode ke OGG lewat
    ffmpeg.
 2. **Impor paket desa** — `bun run assets:world` (`scripts/import-world.mjs`).
-   Menyalin peta desa, 80 potongan objek, 10 spritesheet karakter desa +
-   potretnya, dan satu lagu dari folder paket aset proyek di luar repo
-   (`Asset/assets_classquest`), lalu membangkitkan `src/assets/worldAssets.ts`
-   dan `src/game/world/village.json`.
+   Menyalin peta desa, 80 potongan objek, dan satu lagu dari folder paket aset
+   proyek di luar repo (`Asset/assets_classquest`), lalu membangkitkan
+   `src/assets/worldAssets.ts` dan `src/game/world/village.json`.
+3. **Impor karakter beranimasi** — `bun run assets:characters`
+   (`scripts/import-characters.mjs`). Menyusun 10 spritesheet beranimasi dari
+   folder karakter dan membangkitkan `src/assets/characterFrames.ts`; potret
+   dialog dibiarkan apa adanya.
 
 Kind `world` berisi peta dan potongan objek yang dipasang dari data editor
 peta. Entri itu **tidak** bisa dirujuk Story JSON: `STORY_ASSET_KINDS` hanya
@@ -61,24 +64,24 @@ yang terlihat adalah peta desa (kind `world`), bukan background.
 
 ## Karakter
 
-Spritesheet horizontal berisi delapan frame arah hadap, urut: bawah,
-bawah-kanan, kanan, atas-kanan, atas, atas-kiri, kiri, bawah-kiri.
-`frameWidth` tiap karakter berbeda (lebar sprite aslinya); tinggi frame selalu
-`64`. Potret `64×64` diambil dari frame bawah dan dipakai layar judul serta
-dialog.
+Spritesheet berpetak: delapan baris arah hadap (urut: selatan, tenggara, timur,
+timur laut, utara, barat laut, barat, barat daya) dan kolom animasi — idle lebih
+dulu, lalu walk untuk pemain. `frameWidth`/`frameHeight` tiap karakter berbeda
+(kotak karakter aslinya); tinggi semuanya diseragamkan ke 56 px di peta. Potret
+`64×64` dipakai layar judul serta dialog dan tidak dibuat ulang oleh importer.
 
 | id            | Label                | Sprite                    | Potret                        | Frame | Tags                                          | Status |
 | ------------- | -------------------- | ------------------------- | ----------------------------- | ----- | --------------------------------------------- | ------ |
-| `char_mc`     | Pemuda syal biru     | `/assets/char/mc.png`     | `/assets/portrait/mc.png`     | 34×64 | pemuda, syal, biru, desa, pemain, karakter    | ready  |
-| `char_npc_1`  | Pelajar bertopi biru | `/assets/char/npc_1.png`  | `/assets/portrait/npc_1.png`  | 38×64 | pelajar, topi, biru, desa, remaja, warga      | ready  |
-| `char_npc_3`  | Pelajar berkacamata  | `/assets/char/npc_3.png`  | `/assets/portrait/npc_3.png`  | 36×64 | pelajar, kacamata, desa, remaja, warga, siswa | ready  |
-| `char_npc_4`  | Gadis berjubah biru  | `/assets/char/npc_4.png`  | `/assets/portrait/npc_4.png`  | 35×64 | gadis, jubah, biru, desa, warga, remaja       | ready  |
-| `char_npc_5`  | Nenek bertongkat     | `/assets/char/npc_5.png`  | `/assets/portrait/npc_5.png`  | 45×64 | nenek, tongkat, tua, desa, warga, bijak       | ready  |
-| `char_npc_6`  | Kakek berjubah hijau | `/assets/char/npc_6.png`  | `/assets/portrait/npc_6.png`  | 40×64 | kakek, jubah, hijau, desa, warga, tua         | ready  |
-| `char_npc_7`  | Nelayan desa         | `/assets/char/npc_7.png`  | `/assets/portrait/npc_7.png`  | 51×64 | nelayan, perahu, ikan, desa, warga, sungai    | ready  |
-| `char_npc_8`  | Penjaga desa         | `/assets/char/npc_8.png`  | `/assets/portrait/npc_8.png`  | 51×64 | penjaga, jaga, desa, warga, aman, pos         | ready  |
-| `char_npc_9`  | Petani desa          | `/assets/char/npc_9.png`  | `/assets/portrait/npc_9.png`  | 46×64 | petani, sawah, tani, desa, warga, panen       | ready  |
-| `char_npc_10` | Tetua bijak desa     | `/assets/char/npc_10.png` | `/assets/portrait/npc_10.png` | 40×64 | tetua, bijak, tua, desa, warga, penasihat     | ready  |
+| `char_mc`     | Pemuda syal biru     | `/assets/char/mc.png`     | `/assets/portrait/mc.png`     | 38×66 | pemuda, syal, biru, desa, pemain, karakter    | ready  |
+| `char_npc_1`  | Pelajar bertopi biru | `/assets/char/npc_1.png`  | `/assets/portrait/npc_1.png`  | 33×61 | pelajar, topi, biru, desa, remaja, warga      | ready  |
+| `char_npc_3`  | Pelajar berkacamata  | `/assets/char/npc_3.png`  | `/assets/portrait/npc_3.png`  | 33×62 | pelajar, kacamata, desa, remaja, warga, siswa | ready  |
+| `char_npc_4`  | Gadis berjubah biru  | `/assets/char/npc_4.png`  | `/assets/portrait/npc_4.png`  | 34×62 | gadis, jubah, biru, desa, warga, remaja       | ready  |
+| `char_npc_5`  | Nenek bertongkat     | `/assets/char/npc_5.png`  | `/assets/portrait/npc_5.png`  | 40×62 | nenek, tongkat, tua, desa, warga, bijak       | ready  |
+| `char_npc_6`  | Kakek berjubah hijau | `/assets/char/npc_6.png`  | `/assets/portrait/npc_6.png`  | 36×61 | kakek, jubah, hijau, desa, warga, tua         | ready  |
+| `char_npc_7`  | Nelayan desa         | `/assets/char/npc_7.png`  | `/assets/portrait/npc_7.png`  | 52×63 | nelayan, perahu, ikan, desa, warga, sungai    | ready  |
+| `char_npc_8`  | Penjaga desa         | `/assets/char/npc_8.png`  | `/assets/portrait/npc_8.png`  | 48×62 | penjaga, jaga, desa, warga, aman, pos         | ready  |
+| `char_npc_9`  | Petani desa          | `/assets/char/npc_9.png`  | `/assets/portrait/npc_9.png`  | 44×61 | petani, sawah, tani, desa, warga, panen       | ready  |
+| `char_npc_10` | Tetua bijak desa     | `/assets/char/npc_10.png` | `/assets/portrait/npc_10.png` | 37×63 | tetua, bijak, tua, desa, warga, penasihat     | ready  |
 
 ## Dunia desa (kind `world`)
 
@@ -230,11 +233,11 @@ Urutan yang disarankan agar game tetap bisa tampil:
 
 ## Sumber dan lisensi
 
-| Kelompok aset                                                              | Sumber                                                                  | Lisensi      |
-| -------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------ |
-| `bg_default`, `ui_*`, `sfx_*`                                              | Dibuat generator repo (`scripts/lib/*.mjs`)                             | Milik proyek |
-| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default` | Dibuat tim dengan alat AI generatif, disalin `scripts/import-world.mjs` | Milik proyek |
-| Font Patrick Hand (`public/fonts/`)                                        | Google Fonts                                                            | SIL OFL 1.1  |
+| Kelompok aset                                                              | Sumber                                                                                                      | Lisensi      |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------ |
+| `bg_default`, `ui_*`, `sfx_*`                                              | Dibuat generator repo (`scripts/lib/*.mjs`)                                                                 | Milik proyek |
+| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default` | Dibuat tim dengan alat AI generatif, disalin `scripts/import-world.mjs` dan `scripts/import-characters.mjs` | Milik proyek |
+| Font Patrick Hand (`public/fonts/`)                                        | Google Fonts                                                                                                | SIL OFL 1.1  |
 
 Aset dunia desa (peta, potongan objek, karakter, potret, dan lagu) **dibuat tim
 sendiri dengan alat AI generatif**, lalu disusun di editor peta
