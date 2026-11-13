@@ -153,13 +153,17 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   saat pemain mendekat: kotak `Space` menjadi **satu paket** dengannya — duduk
   rapat di kanan `!` (`left-full`, tinggi sama) dan naik-turun bersama lewat satu
   pembungkus `animate-quest-bob`, jadi keduanya tidak terlihat terpisah. Saat
-  muncul, kotak `Space` meluncur keluar dari `!` (`animate-quest-slide-in`). NPC
-  obrolan singkat tidak punya penanda, jadi kotak `Space`-nya muncul sendiri di
-  atas papan nama sebagai pop-up (`animate-quest-pop`), bukan meluncur ke kanan.
-  Zona interaksi memakai histeresis (masuk 30 px, keluar 38 px) supaya kotak tidak
-  berkedip di batas zona. Posisi papan nama, penanda, dan kotak `Space` diperbarui
-  tiap frame lewat `NpcHintLayer`, jadi tanda tetap menempel pada NPC saat kamera
-  bergeser, dan disembunyikan selama dialog, tantangan, atau menu jeda.
+  muncul, kotak `Space` meluncur keluar dari `!` (`animate-quest-slide-in`);
+  saat pemain keluar zona kotak meluncur masuk kembali ke `!`
+  (`animate-quest-slide-out`) — ditahan di DOM 200 ms agar animasinya sempat
+  jalan. NPC obrolan singkat tidak punya penanda, jadi kotak `Space`-nya muncul
+  sendiri di atas papan nama sebagai pop-up (`animate-quest-pop`), bukan
+  meluncur ke kanan, dan dipusatkan (`-translate-x-1/2`) supaya sejajar papan
+  nama di bawahnya. Zona interaksi memakai histeresis (masuk 30 px, keluar 38 px)
+  supaya kotak tidak berkedip di batas zona. Posisi papan nama, penanda, dan
+  kotak `Space` diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda tetap
+  menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
+  tantangan, atau menu jeda.
 - Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
   petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
   ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti

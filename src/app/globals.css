@@ -18,6 +18,8 @@
   --animate-quest-beacon: quest-beacon 1.9s ease-out infinite;
   /* Kotak `Space` menyembul ke kanan dari penanda `!` saat pemain mendekat. */
   --animate-quest-slide-in: quest-slide-in 0.22s ease-out both;
+  /* Kotak `Space` meluncur masuk kembali ke `!` saat pemain keluar zona. */
+  --animate-quest-slide-out: quest-slide-out 0.2s ease-in both;
   /* Kotak `Space` pop-up halus untuk NPC obrolan singkat (tanpa penanda `!`). */
   --animate-quest-pop: quest-pop 0.2s ease-out both;
 
@@ -102,6 +104,20 @@
   }
 }
 
+/* Kebalikan `quest-slide-in`: kotak `Space` menutup kembali ke arah `!` saat
+   pemain keluar dari zona, jadi ia tidak hilang begitu saja. Komponen menahan
+   kotak di DOM selama durasi ini (lihat `NpcMarker.tsx`). */
+@keyframes quest-slide-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-18px) scaleX(0.35);
+  }
+}
+
 /* Kotak `Space` untuk NPC tanpa penanda quest: muncul halus dari bawah lalu
    membesar sekilas (pop-up), bukan meluncur ke kanan. Tetap hanya `opacity`
    dan `transform` supaya murah saat React memasang kotaknya. */
@@ -159,6 +175,7 @@
   .animate-quest-bob,
   .animate-quest-beacon,
   .animate-quest-slide-in,
+  .animate-quest-slide-out,
   .animate-quest-pop {
     animation: none;
   }

@@ -17,7 +17,8 @@ type InteractHintProps = {
  *
  * - **Obrolan singkat** (`menempel: false`): NPC tidak punya `!`, jadi kotak
  *   muncul halus seperti pop-up (`animate-quest-pop`) — tanpa meluncur ke
- *   kanan, karena tidak ada penanda untuk dituju.
+ *   kanan, karena tidak ada penanda untuk dituju. Kotak dipusatkan di atas
+ *   papan nama NPC (`-translate-x-1/2`).
  * - **Pemberi quest di luar area aman** (`menempel: true`, penanda jadi beacon
  *   tepi layar): kotak tetap meluncur keluar dari `!` (`animate-quest-slide-in`).
  *
@@ -34,11 +35,14 @@ export function InteractHint({ hint }: InteractHintProps) {
   const animasi = hint.menempel
     ? "origin-left animate-quest-slide-in"
     : "animate-quest-pop";
+  // Prompt obrolan singkat dipusatkan pada titik kaki NPC supaya sejajar
+  // dengan papan nama di bawahnya.
+  const jangkar = hint.menempel ? "" : "-translate-x-1/2";
 
   return (
     <div
       data-prompt={hint.menempel ? "quest" : "obrolan"}
-      className="pointer-events-none absolute z-10 -translate-y-full font-game"
+      className={`pointer-events-none absolute z-10 -translate-y-full font-game ${jangkar}`}
       style={{ left: persenLebar(hint.x), top: persenTinggi(hint.y) }}
     >
       <KotakSpace text={hint.text} className={animasi} />

@@ -88,10 +88,11 @@ ada yang cocok, NPC pertama di ruangan dipakai agar alur tidak macet.
 
 NPC lain tetap bisa diajak bicara **singkat** bila `cast` memberi mereka
 `smallTalk` (ADR 0016): kotak `Space` yang sama bergaya seperti penanda quest,
-tetapi muncul sebagai pop-up (bukan meluncur ke kanan, karena tidak ada `!`),
-lalu satu kalimat tampil di textbox tanpa menggeser posisi cerita. Setelah
-textbox ditutup, pemain kembali bebas berjalan. NPC tanpa `smallTalk` tetap
-berdiri sebagai penghalang dan tidak memunculkan prompt.
+tetapi muncul sebagai pop-up di atas papan nama — **dipusatkan** sejajar nama,
+bukan meluncur ke kanan karena tidak ada `!` — lalu satu kalimat tampil di
+textbox tanpa menggeser posisi cerita. Setelah textbox ditutup, pemain kembali
+bebas berjalan. NPC tanpa `smallTalk` tetap berdiri sebagai penghalang dan tidak
+memunculkan prompt.
 
 Scene dan ruangan adalah dua hal berbeda. Scene adalah unit cerita, ruangan
 adalah unit peta (`roomId`). Beberapa scene boleh terjadi di ruangan yang sama;

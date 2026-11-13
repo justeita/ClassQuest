@@ -38,10 +38,19 @@ describe("findNpcInZone", () => {
 });
 
 describe("posisiPrompt", () => {
-  it("menaruh chip di kanan penanda, di atas ubun-ubun NPC", () => {
+  it("menaruh kotak di kanan penanda, di atas ubun-ubun NPC", () => {
     expect(posisiPrompt(npcs, "a")).toEqual({
       text: "Space",
       x: 100 + GESER_PROMPT,
+      y: 100 - TINGGI_KARAKTER - JARAK_PROMPT,
+    });
+  });
+
+  it("memusatkan kotak di titik kaki NPC untuk obrolan singkat", () => {
+    // Tanpa penanda `!`, kotak sejajar dengan papan nama yang juga center.
+    expect(posisiPrompt(npcs, "a", false)).toEqual({
+      text: "Space",
+      x: 100,
       y: 100 - TINGGI_KARAKTER - JARAK_PROMPT,
     });
   });

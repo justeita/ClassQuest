@@ -91,21 +91,26 @@ export function findNpcInZone(
 }
 
 /**
- * Posisi kotak prompt rapat di kanan penanda `!`, dalam koordinat internal.
+ * Posisi kotak prompt, dalam koordinat internal.
  * Sprite dijangkar di titik kaki, jadi ubun-ubunnya `TINGGI_KARAKTER` px di
- * atas titik itu; kotak diletakkan sejajar dengan `!` dan digeser ke kanan
- * sampai tepinya menyentuh penanda quest.
+ * atas titik itu.
+ *
+ * `menempel: true` (pemberi quest) menaruh kotak rapat di kanan penanda `!`.
+ * `menempel: false` (obrolan singkat, tanpa penanda) menaruh kotak **di tengah**
+ * NPC supaya sejajar dengan papan nama di bawahnya; komponen menambah
+ * `-translate-x-1/2` untuk memusatkannya.
  */
 export function posisiPrompt(
   npcs: Pick<WorldNpc, "id" | "x" | "y">[],
   npcId: string,
+  menempel = true,
 ): PromptHint | null {
   const npc = npcs.find((entry) => entry.id === npcId);
   if (!npc) return null;
 
   return {
     text: PROMPT_INTERAKSI,
-    x: npc.x + GESER_PROMPT,
+    x: menempel ? npc.x + GESER_PROMPT : npc.x,
     y: npc.y - TINGGI_KARAKTER - JARAK_PROMPT,
   };
 }

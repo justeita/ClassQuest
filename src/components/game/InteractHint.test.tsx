@@ -97,4 +97,18 @@ describe("InteractHint", () => {
       "obrolan",
     );
   });
+
+  it("NPC obrolan singkat: kotak dipusatkan di atas nama", () => {
+    render(
+      <InteractHint
+        hint={{ text: "Space", x: 320, y: 180, menempel: false }}
+      />,
+    );
+
+    // Jangkar di tengah NPC, lalu digeser setengah lebar supaya center —
+    // sejajar papan nama di bawahnya.
+    expect(screen.getByText("Space").parentElement?.className).toContain(
+      "-translate-x-1/2",
+    );
+  });
 });

@@ -516,16 +516,17 @@ export class GameScene extends Phaser.Scene {
     npcId: string,
     kamera: KameraView,
   ): PromptView | null {
-    const dunia = posisiPrompt(VILLAGE.npcs, npcId);
+    // Hanya pemberi quest yang punya penanda `!`; promptnya menempel pada
+    // kotak itu. Obrolan singkat dipusatkan di atas nama NPC.
+    const menempel = npcId === this.pemberiQuest;
+    const dunia = posisiPrompt(VILLAGE.npcs, npcId, menempel);
     if (!dunia) return null;
     const layar = duniaKeLayar(kamera, dunia.x, dunia.y);
     return {
       text: dunia.text,
       x: Math.round(layar.x),
       y: Math.round(layar.y),
-      // Hanya pemberi quest yang punya penanda `!`; promptnya menempel pada
-      // kotak itu. Obrolan singkat muncul sebagai pop-up terpisah.
-      menempel: npcId === this.pemberiQuest,
+      menempel,
     };
   }
 

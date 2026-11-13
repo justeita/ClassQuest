@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { KotakSpace } from "@/components/game/KotakSpace";
 import type { NpcMarker as MarkerView } from "@/game/gameBus";
 import {
@@ -21,6 +23,15 @@ type NpcMarkerProps = {
 };
 
 /**
+ * Durasi animasi keluar kotak `Space`, dalam milidetik.
+ *
+ * Harus sama dengan durasi `animate-quest-slide-out` di `globals.css`: kotak
+ * ditahan di DOM selama ini supaya sempat meluncur masuk kembali ke `!` sebelum
+ * benar-benar dilepas.
+ */
+const DURASI_KELUAR_MS = 200;
+
+/**
  * Kotak `!` yang sama dipakai di dua keadaan, supaya UI penanda quest konsisten:
  *
  * - **Dekat**: NPC terlihat, kotak duduk di atas papan namanya dan naik-turun.
@@ -37,29 +48,88 @@ export function NpcMarker({ marker, prompt }: NpcMarkerProps) {
     return <BeaconTepi marker={marker} />;
   }
 
+  return <PaketDekat marker={marker} prompt={prompt} />;
+}
+
+/**
+ * Paket penanda dekat: kotak `!` dan (bila pemain di zona) kotak `Space` dalam
+ * satu pembungkus ber-animasi idle, jadi keduanya naik-turun **bersama** dan
+ * tidak terlihat terpisah.
+ *
+ * Kotak `Space` diletakkan absolut di kanan `!` (`left-full`) supaya lebar paket
+ * tetap seukuran `!` — penanda tetap di tengah NPC.
+ */
+function PaketDekat({ marker, prompt }: NpcMarkerProps) {
+  const { teks, keluar } = useTeksKeluar(prompt);
+
   return (
     <div
       data-tanda="dekat"
       className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full font-game"
       style={{ left: persenLebar(marker.x), top: persenTinggi(marker.y) }}
     >
-      {/*
-        Satu paket: kotak `!` dan (bila ada) kotak `Space` dibungkus satu
-        elemen ber-animasi idle, jadi keduanya naik-turun **bersama** dan tidak
-        terlihat terpisah. Kotak `Space` diletakkan absolut di kanan `!` supaya
-        tidak menambah lebar paket — penanda tetap di tengah NPC.
-      */}
       <div className="relative animate-quest-bob">
         <KotakSeru />
-        {prompt ? (
+        {teks !== undefined ? (
           <KotakSpace
-            text={prompt}
-            className="absolute left-full top-0 origin-left animate-quest-slide-in"
+            text={teks}
+            className={`absolute left-full top-0 origin-left ${
+              keluar ? "animate-quest-slide-out" : "animate-quest-slide-in"
+            }`}
           />
         ) : null}
       </div>
     </div>
   );
+}
+
+/**
+ * Tahan teks terakhir saat prompt hilang agar animasi keluar sempat berjalan,
+ * lalu lepas setelah `DURASI_KELUAR_MS`.
+ *
+ * Tanpa penahan ini React melepas kotak `Space` seketika saat pemain keluar zona,
+ * jadi animasi keluarnya tidak pernah terlihat. Saat pemain masuk lagi sebelum
+ * jeda habis, timer dibatalkan dan kotak langsung memainkan animasi masuk.
+ *
+ * Penyesuaian state dilakukan **saat render** (bukan di dalam effect): pola
+ * "menyimpan informasi dari render sebelumnya" dari React, jadi kelas animasi
+ * sudah benar pada render yang sama dengan perubahan prop — kotak tidak
+ * berkedip memainkan animasi masuk dulu. Yang menyentuh state dari effect hanya
+ * callback `setTimeout`, sehingga tidak ada render berantai saat pemain diam
+ * (lihat aturan `react-hooks/set-state-in-effect`).
+ */
+function useTeksKeluar(teks: string | undefined): {
+  teks: string | undefined;
+  keluar: boolean;
+} {
+  const [state, setState] = useState<{ teks?: string; keluar: boolean }>({
+    teks,
+    keluar: false,
+  });
+  const [sebelum, setSebelum] = useState<string | undefined>(teks);
+
+  if (sebelum !== teks) {
+    setSebelum(teks);
+    if (teks !== undefined) {
+      setState({ teks, keluar: false });
+    } else if (state.teks !== undefined) {
+      setState({ teks: state.teks, keluar: true });
+    }
+  }
+
+  useEffect(() => {
+    if (!state.keluar) return;
+
+    const timer = setTimeout(() => {
+      setState((prev) =>
+        prev.keluar ? { teks: undefined, keluar: false } : prev,
+      );
+    }, DURASI_KELUAR_MS);
+
+    return () => clearTimeout(timer);
+  }, [state.keluar]);
+
+  return { teks: state.teks, keluar: state.keluar };
 }
 
 /** Beacon di tepi layar dengan penunjuk arah saat NPC di luar pandangan. */
