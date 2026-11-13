@@ -1,193 +1,200 @@
 ---
 status: draft
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
 # Desain Dunia Top-Down
 
-Dokumen ini menjawab satu pertanyaan: **bagaimana ruangan game digambar dan
+Dokumen ini menjawab satu pertanyaan: **bagaimana dunia game digambar dan
 disusun supaya terasa seperti Omori, Undertale, atau Stardew Valley** — dunia
 yang dilihat dari atas, karakter kecil, dan ruang yang bisa dijelajahi.
 
-Dokumen pedamping:
+Dokumen pendamping:
 
 - Arah visual, palet, dan suasana: [`game-design.md`](./game-design.md)
 - Spesifikasi file gambar: [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md)
 - Keputusan resolusi: [`../09-decisions/0009-resolution-and-scale.md`](../09-decisions/0009-resolution-and-scale.md)
 - Keputusan data map dan kamera: [`../09-decisions/0010-map-data-and-camera.md`](../09-decisions/0010-map-data-and-camera.md)
 - Keputusan sub-collider prop besar: [`../09-decisions/0011-large-prop-subcollider.md`](../09-decisions/0011-large-prop-subcollider.md)
+- Keputusan peta sebagai satu gambar penuh: [`../09-decisions/0012-room-map-image.md`](../09-decisions/0012-room-map-image.md)
 
-> **Status:** draft. Angka di sini mengikuti ADR 0009, 0010, dan 0011 yang sudah
-> **Accepted**; implementasinya berjalan per PR sesuai urutan di bagian
-> [Urutan pengerjaan](#urutan-pengerjaan).
+> **Status:** draft. Angka di dokumen ini disalin dari kode dan data yang berlaku
+> sekarang (`src/game/world/`, `src/game/scenes/GameScene.ts`), bukan dari
+> rencana. Kalau kode berubah, dokumen ini ikut berubah.
 
-## Masalah yang diperbaiki
+## Satu dunia, satu peta
 
-Tampilan hari ini terasa seperti game dari samping, bukan dari atas, karena
-tiga hal:
+Seluruh cerita berjalan di **satu dunia desa**. Tidak ada perpindahan ruangan:
+saat chapter berganti, pemain tetap berdiri di tempatnya — hanya scene cerita
+dan musik yang berganti. `GameScene` membangun peta, objek, dan NPC **sekali**
+di `create()`, lalu tidak pernah membangunnya ulang.
 
-| Gejala                                  | Penyebab sekarang                                              |
-| --------------------------------------- | -------------------------------------------------------------- |
-| Pemain seperti "menempel" di gambar     | Latar bergaya pemandangan dari samping, bukan lantai dari atas |
-| Tabrakan dengan benda yang tak terlihat | Kotak collision di `map.ts` ditulis terpisah dari gambarnya    |
-| Ruangan sempit, karakter besar          | Ruangan = 1 layar, sprite 48×72 di layar setinggi 270 px       |
+| Hal                 | Nilai                                                |
+| ------------------- | ---------------------------------------------------- |
+| Peta                | `world_map_village`, 2390×1792 px                    |
+| Objek terpasang     | 80 potongan unik, total 300 penempatan               |
+| Sel collision padat | 4.925 dari grid 300×300                              |
+| NPC di peta         | 9 karakter dari `story.cast`                         |
+| Titik mulai pemain  | `x=1246,785`, `y=1523,2`, menghadap bawah (`face=0`) |
+
+Isi dunia (nama desa, rumah, balai, sawah, dan lagu latar) mengikuti cerita demo
+**Pesta Panen Desa**; lihat [`../02-data-model/story.example.json`](../02-data-model/story.example.json).
 
 ## Satuan dasar
 
-Semua angka dinyatakan dalam **tile**. Satu tile = **16×16 px** pada resolusi
-internal. Tidak ada ukuran yang ditulis dalam piksel lepas di kode map.
+Resolusi internal tetap **640×360 px** (ADR 0009). Berbeda dari rencana awal,
+dunia desa **tidak** memakai satuan tile 16×16: editor peta menempel gambar di
+koordinat piksel bebas, dan angka itu disalin apa adanya ke game. Jadi hampir
+semua nilai di bawah dinyatakan dalam piksel.
 
-| Hal                   | Nilai                                   |
-| --------------------- | --------------------------------------- |
-| Resolusi internal     | 640×360 px                              |
-| Tile                  | 16×16 px                                |
-| Layar dalam tile      | 40×22.5 tile                            |
-| Frame sprite karakter | 24×32 px (1.5×2 tile)                   |
-| Portrait              | 64×64 px                                |
-| Ruangan minimum       | 40×23 tile (satu layar penuh)           |
-| Ruangan demo          | 48×28 s.d. 60×34 tile (kamera bergerak) |
-| Kecepatan pemain      | 5 tile/detik (80 px/detik)              |
-| Zona interaksi        | 1.5 tile dari kaki NPC                  |
-| Lebar koridor aman    | ≥ 2 tile                                |
+| Hal                   | Nilai                                                        |
+| --------------------- | ------------------------------------------------------------ |
+| Resolusi internal     | 640×360 px                                                   |
+| Lebar kanvas          | mengikuti rasio layar, dikunci 640–960 px (tinggi tetap 360) |
+| Peta desa             | 2390×1792 px                                                 |
+| Sel collision editor  | 7,9667×5,9733 px (peta dibagi rata menjadi grid 300×300)     |
+| Frame sprite karakter | 64 px tinggi; lebar per karakter berbeda (34–51 px)          |
+| Tinggi karakter       | 56 px di peta (frame 64 px × skala 0,875)                    |
+| Portrait dialog       | 64×64 px                                                     |
+| Kecepatan pemain      | 180 px/detik                                                 |
+| Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki                  |
+| Zona interaksi NPC    | 24 px dari titik kaki ke titik kaki                          |
+| Dead zone kamera      | 128×96 px di tengah layar                                    |
+
+Lebar kanvas adaptif ada di `src/game/constants.ts` (`lebarInternal`): layar lebar
+menampilkan **lebih banyak dunia ke samping**, bukan bar hitam atau potongan
+atas-bawah.
 
 ## Perspektif
 
 Aturan supaya dunia terbaca "dari atas":
 
-1. **Lantai mendominasi.** Lantai menutupi ±75% tinggi ruangan. Dinding hanya
-   tampil sebagai pita pendek di tepi atas ruangan yang terlihat.
-2. **Objek berdiri punya alas.** Meja, pohon, lemari digambar dengan sisi atas
-   (wajah) terlihat jelas dan sisi depan lebih pendek, ditambah bayangan 1–2 px
-   di bawah alasnya. Objek tanpa alas terlihat seperti tempelan.
-3. **Wajah karakter hanya di depan.** Sprite menghadap kamera; bagian atas
-   kepala lebih besar dari area kaki. Karakter tidak digambar setengah badan
-   seperti presentasi visual novel.
+1. **Tanah mendominasi.** Peta desa adalah hamparan rumput, jalan, dan air yang
+   mengisi sebagian besar layar; sisi bangunan hanya tampil sebagai pita pendek
+   di bagian atas.
+2. **Objek berdiri punya alas.** Rumah, pohon, sumur, dan bangku digambar dengan
+   sisi atas terlihat dan bayangan 1–2 px di bawah alasnya. Objek tanpa alas
+   terlihat seperti tempelan.
+3. **Wajah karakter hanya di depan.** Sprite menghadap kamera; bagian atas kepala
+   lebih besar dari area kaki. Karakter tidak digambar setengah badan seperti
+   presentasi visual novel.
 4. **Urutan gambar mengikuti kaki.** Objek yang alasnya lebih bawah tampil di
-   depan (`setDepth(y)`). Pemain yang berdiri di belakang meja tertutup sebagian
-   oleh meja.
-5. **Tidak ada horizon.** Kalau sebuah gambar punya garis langit di tengah,
-   itu pemandangan, bukan ruangan. Langit hanya boleh muncul lewat jendela atau
-   di ruang terbuka yang memang punya tepi atas.
+   depan. Rumusnya dari editor (lihat [Objek dan collision](#objek-dan-collision));
+   pemain memakai `setDepth(y)` sehingga bisa berjalan di belakang rumah atau
+   pohon.
+5. **Tidak ada horizon.** Langit hanya muncul di tepi atas peta, bukan garis
+   pemandangan di tengah layar.
 
-## Sketsa ruangan
+## Alur kerja editor peta
 
-Contoh rencana kelas 48×28 tile, dilihat dari atas. Huruf = jenis objek,
-penjelasan di tabel setelahnya.
+Dunia digambar dan ditempatkan di satu alat: **`pixel-map-placer.html`** (editor
+HTML mandiri). Alurnya:
 
-```text
-+-----------------------------------------------------------+
-|  D D D D D D D D D D D D D D D D D D D D D D D D D D D D  |  D = dinding atas
-|  D     W W W       P P P P P P       W W W       . . .   D |  W = jendela
-|  D     W W W       P P P P P P       W W W               D |  P = papan tulis
-|  D                                                       D |
-|  D      . M .        . M .         . M .        . M .     D |  M = meja
-|  D      . . .        . . .         . . .        . . .     D |  . = kursi
-|  D                                                       D |
-|  D      . M .        . M .         . M .        . M .     D |
-|  D      . . .        . . .         . . .        . . .     D |
-|  D                                                       D |
-|  D                              N                        D |  N = NPC guru
-|  D                                                       D |
-|  D                          S                             D |  S = spawn pemain
-|  D D D D D D D D D D D E E D D D D D D D D D D D D D D D   |  E = pintu keluar
-+-----------------------------------------------------------+
+```mermaid
+flowchart LR
+  A["Buka pixel-map-placer.html"] --> B["Pilih objek / NPC dari panel kiri"]
+  B --> C["Tempatkan di peta (geser, resize, atur urutan)"]
+  C --> D["Cat sel collision (tombol C)"]
+  D --> E["Simpan project.json"]
+  E --> F["bun run assets:world"]
+  F --> G["public/assets/world/* + char/* + music/default.mp3"]
+  F --> H["src/game/world/village.json + src/assets/worldAssets.ts"]
 ```
 
-Pintu keluar (`E`) diletakkan di sisi bawah atau samping; ia hanya memicu
-transisi ke scene berikutnya sesuai urutan cerita (ADR 0008), **bukan** pilihan
-bebas.
+Catatan singkat pemakaian editor:
+
+- **Objek** diambil dari panel aset lalu ditempel; `Drag` memindah, `Resize`
+  (Shift = rasio bebas) mengubah ukuran, `Ctrl+D` menduplikat, `L` mengunci,
+  `Del` menghapus. `Ctrl+Z`/`Ctrl+Shift+Z` undo/redo.
+- **Collision** dicat per sel grid dengan tombol `C`; mulai dari sel yang sudah
+  merah berarti menghapus. Hanya sel inilah yang memblok pemain di game.
+- **NPC** ditempatkan dari panel kiri; `Shift+klik` menambah di titik yang sama.
+- Simpan lewat `Save project` → `project.json`; tombol **Download HTML** hanya
+  menghasilkan salinan yang bisa dimainkan, bukan data untuk repo.
+
+`scripts/import-world.mjs` membaca `project.json` dan
+`pixel-map-placer.html` dari folder paket aset di luar repo
+(`Asset/assets_classquest`, bisa diganti lewat env `CLASSQUEST_WORLD_SOURCE`),
+lalu menulis aset ke `public/assets/` dan data ke repo. Skrip ini
+**deterministik**: dijalankan sekali, hasilnya di-commit, dan tidak ada angka
+yang dihitung ulang di runtime.
 
 ## Objek dan collision
 
-Setiap objek di map punya satu definisi yang sekaligus menentukan gambar dan
-collider-nya (ADR 0010). Tidak ada collider yang ditulis terpisah.
+Dua lapis data dunia menentukan tabrakan, dan keduanya berasal dari editor yang
+sama (ADR 0010):
 
-| `kind`  | Solid | Ukuran tipikal (tile) | Catatan                                                |
-| ------- | ----- | --------------------- | ------------------------------------------------------ |
-| `floor` | tidak | seluruh ruangan       | Lantai bertekstur, variasi 2–3 tile supaya tidak datar |
-| `wall`  | ya    | 1 tebal               | Tepi ruangan; ujung atas 3–4 px lebih terang           |
-| `prop`  | ya    | 1×1 s.d. 8×8          | Meja, lemari, pohon, tiang lampu                       |
-| `npc`   | ya    | 1×2                   | Posisi anggota `story.cast`, bukan id baru             |
-| `exit`  | tidak | 2×1                   | Zona pemicu transisi scene                             |
+| Lapis     | Isi                                                                                     | Dipakai untuk                        |
+| --------- | --------------------------------------------------------------------------------------- | ------------------------------------ |
+| `blocked` | Daftar sel grid padat, ditulis `"kolom,baris"`                                          | Tembok, pagar, air, pangkal bangunan |
+| `objects` | 80 potongan gambar dengan `x`, `y`, `w`, `h`, dan `depth` (bagian kaki yang dibulatkan) | Visual berlapis dengan urutan `y`    |
+| `npcs`    | Titik kaki, arah hadap (`face` 0–7), dan `solid`                                        | Karakter desa + penghalang           |
 
 Aturan collision:
 
-- Collider pemain adalah **kotak kaki** 12×8 px, bukan seluruh sprite.
-- Dinding selalu solid sepanjang kotaknya.
-- Prop padat tanpa `collider` memakai kotak penuh objek, dikurangi 2 px di depan
-  supaya pemain bisa berdiri dekat tanpa terlihat melayang.
-- Prop besar (pohon 8×8 tile, rak, kolam) boleh punya **sub-collider** di dalam
-  kotak objeknya — ADR 0011. Contoh: pohon 128×128 px hanya solid di batang
-  1×2 tile, sehingga pemain bisa berjalan di bawah kanopi.
-- Sub-collider ditulis dalam tile relatif terhadap pojok objek dan boleh
-  pecahan; nilainya harus tetap berada di dalam `tileW`×`tileH`.
-- Objek dekoratif (tikar, pot kecil, bayangan) **tidak** punya collider.
-- Kalau gambar dan collider berasal dari entri yang sama, bug "nabrak benda
-  tak terlihat" tidak bisa muncul lagi.
+- Pemain bergerak **tanpa fisika Phaser**. `movement.ts` menghitung titik kaki
+  baru per sumbu, memeriksa `buatTabrakan()` (`src/game/world/collision.ts`), lalu
+  menjepitnya ke batas peta.
+- Kotak pemain adalah **kotak kaki 16×9 px** (`x ± 8`, `y − 9 … y`), bukan
+  seluruh sprite. NPC solid memakai kotak yang sama terhadap titik kakinya.
+- Sumbu X dan Y diperiksa terpisah supaya pemain bisa menyusur dinding. Arah
+  diagonal **tidak** dinormalisasi (tetap 1 di tiap sumbu), persis seperti
+  editor.
+- Kalau gambar dan sel collision berasal dari editor yang sama, bug "nabrak
+  benda tak terlihat" tidak bisa muncul.
 
 ## Kamera
 
-| Aturan               | Nilai                                                                 |
-| -------------------- | --------------------------------------------------------------------- |
-| Mode                 | Mengikuti pemain, kamera berhenti di tepi map (`setBounds`)           |
-| Dead zone            | Kotak 8×6 tile di tengah layar; kamera diam selama pemain di dalamnya |
-| Pergerakan kamera    | `lerp` 0.12 — bergeser halus, tidak menempel kaku                     |
-| Sisi ruangan = layar | Kamera dikunci ke tengah ruangan, tidak bergerak                      |
-| `roundPixels`        | `true` — wajib, mencegah jitter saat lerp di pixel art                |
+| Aturan            | Nilai                                                                  |
+| ----------------- | ---------------------------------------------------------------------- |
+| Mode              | Mengikuti pemain, kamera berhenti di tepi peta (`setBounds`)           |
+| Dead zone         | Kotak 128×96 px di tengah layar; kamera diam selama pemain di dalamnya |
+| Pergerakan kamera | `lerp` 0,12 — bergeser halus, tidak menempel kaku                      |
+| Dunia = layar     | Kamera dikunci ke tengah dunia, tidak bergerak                         |
+| `roundPixels`     | `true` — wajib, mencegah jitter saat lerp di pixel art                 |
 
-Kalau ruangan lebih besar dari layar, pemain boleh mendekati tepi, tetapi
-kamera tidak melewati batas map — supaya tidak muncul area kosong di luar
-dunia.
+Karena peta desa jauh lebih luas dari layar, mode yang berlaku selalu `follow`.
+Mode `lock` tetap ada di `camera.ts` untuk peta kecil yang mungkin dibuat kelak.
 
 ## Sprite karakter
 
-| Hal         | Nilai                                                              |
-| ----------- | ------------------------------------------------------------------ |
-| Frame       | 24×32 px                                                           |
-| Sheet       | Horizontal: idle 2 frame, jalan 2 frame **per arah** (8 arah)      |
-| Total frame | 18 (2 idle + 16 jalan)                                             |
-| Anchor      | Tengah bawah (kaki)                                                |
-| Outline     | 1 px gelap, konsisten dengan latar                                 |
-| Bayangan    | Elips 12×4 px di bawah kaki (gambar terpisah, bukan bagian frame)  |
-| Warna       | Hanya palet + ramp turunan di [`game-design.md`](./game-design.md) |
+| Hal         | Nilai                                                                    |
+| ----------- | ------------------------------------------------------------------------ |
+| Frame       | 8 frame horizontal, **satu frame per arah** (tanpa animasi jalan)        |
+| Urutan arah | bawah, bawah-kanan, kanan, atas-kanan, atas, atas-kiri, kiri, bawah-kiri |
+| Ukuran      | tinggi selalu 64 px; lebar per karakter 34–51 px                         |
+| Anchor      | Kaki di tengah bawah (`setOrigin(0.5, 1)`)                               |
+| Skala       | 0,875 → tinggi 56 px di peta                                             |
+| Portrait    | 64×64 px, dipotong dari frame menghadap bawah                            |
 
-Aturan animasi:
-
-- Animasi jalan 6 frame/detik, idle 2 frame/detik.
-- Idle cukup satu arah (menghadap kamera); jalan butuh **8 arah** (empat utama
-  - empat diagonal).
-- Diagonal digambar sebagai tampak tiga-perempat: badan menyamping dengan wajah
-  sebagian menghadap kamera untuk arah bawah, dan kepala dari belakang untuk
-  arah atas. Sisi kanan adalah cermin sisi kiri.
-- Saat berhenti, frame terakhir di arah terakhir — jangan kembali ke idle
-  menghadap depan untuk arah samping maupun diagonal.
+Karena hanya ada satu frame per arah, "animasi" berjalan hanya berganti frame
+saat arah berubah. Saat berhenti, frame terakhir di arah terakhir dipertahankan —
+jangan kembali ke frame menghadap depan untuk arah samping.
 
 ## Lampiran aset latar
 
-Latar tidak lagi satu gambar pemandangan 1 lapis. Setiap ruangan disusun dari:
+Latar di dalam permainan **bukan** satu gambar pemandangan, dan juga bukan
+susunan tile per ruangan. Ia adalah **satu peta desa penuh** (kind `world`)
+ditimpa potongan objek dari editor:
 
-| Lapisan           | Isi                                                              | Contoh id manifest                                                                               |
-| ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Lantai            | Tile lantai yang diulang                                         | `tile_floor_wood`, `tile_floor_grass`, `tile_floor_cloud`, `tile_floor_rock`, `tile_floor_water` |
-| Dinding           | Pita dinding + tepi atas                                         | `tile_wall_plaster`, `tile_wall_hedge`, `tile_wall_rock`                                         |
-| Objek             | Meja, papan tulis, pohon, pagar                                  | `prop_desk`, `prop_blackboard`, `prop_tree`, `prop_fence`                                        |
-| Atas (opsional)   | Kanopi pohon atau ujung langit-langit yang menutupi pemain       | `tile_canopy`                                                                                    |
-| Peta (alternatif) | Satu gambar ruangan penuh: menggantikan lantai + dinding + objek | `map_halaman_sekolah`                                                                            |
+| Lapisan  | Isi                                                           | Contoh id manifest                          |
+| -------- | ------------------------------------------------------------- | ------------------------------------------- |
+| Peta     | Gambar desa penuh, satu berkas JPEG                           | `world_map_village`                         |
+| Objek    | Rumah, pohon, bunga, bangku, sumur, tiang lampu, pagar, jalan | `world_house_red`, `world_tree_regular_1_1` |
+| Karakter | Sprite 8 arah + portrait untuk `story.cast`                   | `char_mc`, `char_npc_7`                     |
+| Musik    | Satu lagu untuk seluruh permainan                             | `bgm_default`                               |
 
-> Id aset tile dan prop di atas sudah **final** dan terdaftar di
-> `src/assets/manifest.ts` serta [`../07-assets/inventory.md`](../07-assets/inventory.md).
-> Menambah tile atau prop berikutnya berarti menambah entri di kedua tempat itu
-> di PR yang sama.
+> Semua entri di atas terdaftar di `src/assets/worldAssets.ts` (dibangkitkan
+> `import-world.mjs`) dan [`../07-assets/inventory.md`](../07-assets/inventory.md).
+> Entri kind `world` **tidak** boleh dirujuk sebagai `backgroundId` cerita.
 
-Ruangan boleh diganti seluruhnya oleh satu gambar peta penuh lewat
-`RoomData.mapImage` (ADR 0012). Saat itu lapisan lantai, dinding, dan objek
-dilewati; collider-nya tetap ditulis di data ruangan sebagai `zone`.
+Latar `bg_default` (640×360, PNG) tetap dipakai untuk **layar judul dan layar
+hasil**, karena di sana komposisi yang rapi lebih penting daripada navigasi.
+Sebagian besar berkas aset dunia cukup besar (peta ≈ 3,1 MB, musik ≈ 4,0 MB),
+jadi keduanya di-commit sekali dan tidak dihasilkan ulang saat build.
 
-Latar "pemandangan" yang ada sekarang (`bg_classroom_day`, `bg_river_day`, dan
-seterusnya) **dipertahankan sebagai latar layar judul dan layar hasil**, karena
-di sana komposisi yang indah lebih penting daripada navigasi. Di dalam
-permainan, latar diganti susunan lantai + dinding + objek.
+Sumber aset dunia ada di [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md).
 
 ## Teks dan font
 
@@ -197,7 +204,7 @@ selalu bergerigi setelah upscale `image-rendering: pixelated`.
 
 Keputusan (ADR 0007): **teks permainan pindah ke DOM**.
 
-- Panel `ui_textbox` dan portrait tetap digambar Phaser; nama, isi dialog, dan
+- Panel `ui_textbox` dan potret tetap digambar Phaser; nama, isi dialog, dan
   indikator "lanjut" dirender React (`DialogueBox.tsx`) di atas panel itu.
   Prompt interaksi `Space` juga DOM (`InteractHint.tsx`).
 - Font: **Patrick Hand** (SIL Open Font License), disimpan lokal di
@@ -207,7 +214,7 @@ Keputusan (ADR 0007): **teks permainan pindah ke DOM**.
 - Token Tailwind `--font-game` (utility `font-game`) dipakai HUD, dialog, prompt,
   dan layar overlay supaya satu keluarga huruf di seluruh permukaan game.
 - Phaser tetap memakai nama keluarga literal (`fontGame()` di `src/game/font.ts`)
-  untuk label kecil seperti "Memuat…", karena `fontFamily` Phaser tidak membaca
+  untuk label kecil seperti "Memuat...", karena `fontFamily` Phaser tidak membaca
   CSS variable. Label itu tetap dibantu `teksTajam()`.
 - Geometri panel/portrait dan rumus ukuran huruf tinggal di `src/game/layout.ts`
   supaya canvas dan DOM memakai angka yang sama; ukuran huruf memakai
@@ -218,32 +225,20 @@ Keputusan (ADR 0007): **teks permainan pindah ke DOM**.
 > upscale non-integer. `Patrick Hand` dipilih karena handwriting-nya jelas,
 > punya `latin-ext`, dan lisensinya OFL.
 
-## Urutan pengerjaan
-
-Ini bukan janji jadwal, hanya urutan yang aman. Setiap langkah satu PR kecil.
-
-1. **ADR 0009 dan 0010 disepakati** — ubah status ke Accepted.
-2. **Generator aset baru**: tile lantai/dinding, objek, sprite 24×32, portrait
-   64×64. Aset lama tetap ada sampai langkah 3 hijau.
-3. **Data map per scene** + collider dari data objek + tes.
-4. **Kamera dan depth sorting.**
-5. **Animasi jalan 4 arah.**
-6. **Font game (Patrick Hand) + dialog DOM** dan penyelarasan textbox/HUD.
-7. **Layar judul dan hasil** memakai latar pemandangan (tidak berubah).
-
-Langkah 2 dan 3 bisa dikerjakan paralel oleh dua orang karena kontaknya cuma
-nama id tile.
-
 ## Yang sengaja tidak dikerjakan
 
-- World terbuka yang tersambung bebas antar ruangan (ditolak ADR 0008).
-- Tilemap buatan alat eksternal (ditolak ADR 0010).
-- Parallax lebih dari dua lapisan; satu lapisan latar belakang sudah cukup.
-- Animasi diagonal lebih dari 2 frame (jalan diagonal memakai 2 frame cermin).
+- Animasi jalan lebih dari satu frame per arah; karakter desa statis per arah.
+- Parallax lebih dari satu lapisan latar.
+- Beberapa peta yang tersambung (transisi antar-ruangan): seluruh cerita memakai
+  satu peta desa.
+- Kamera zoom atau rotasi.
 
 ## Referensi
 
 - [`../09-decisions/0009-resolution-and-scale.md`](../09-decisions/0009-resolution-and-scale.md)
 - [`../09-decisions/0010-map-data-and-camera.md`](../09-decisions/0010-map-data-and-camera.md)
+- [`../09-decisions/0011-large-prop-subcollider.md`](../09-decisions/0011-large-prop-subcollider.md)
+- [`../09-decisions/0012-room-map-image.md`](../09-decisions/0012-room-map-image.md)
 - [`game-design.md`](./game-design.md) — palet, arah visual, loop permainan
 - [`scene-format.md`](./scene-format.md) — bagaimana scene cerita dipilih
+- [`../../scripts/import-world.mjs`](../../scripts/import-world.mjs) — impor dunia
