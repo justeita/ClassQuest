@@ -18,26 +18,25 @@ type DialogueBoxProps = {
 };
 
 /**
- * Kotak dialog lengkap di lapisan DOM: panel pixel, potret, nama, dan teks
- * (ADR 0007 + ADR 0017). Canvas game hanya 640×360 dan di-upscale dengan
- * `image-rendering: pixelated`, jadi panel digambar di sini (dengan
- * `image-rendering: pixelated` juga) dan potret serta huruf dirender browser
- * pada resolusi layar asli — potret anime tidak ikut bergerigi.
+ * Kotak dialog lengkap di lapisan DOM: panel gelap membulat, potret, nama, dan
+ * teks (ADR 0007 + ADR 0017). Canvas game hanya 640×360 dan di-upscale dengan
+ * `image-rendering: pixelated`, jadi panel digambar React sebagai kotak CSS —
+ * bukan lagi gambar `ui_textbox` — supaya sudut membulat dan warnanya tajam di
+ * resolusi layar asli. Potret anime juga dirender browser, tidak ikut bergerigi.
  *
- * Gaya Persona: potret **tidak** dibungkus bingkai. Ia berdiri di **atas**
- * panel — dasar gambar sejajar tepi atas panel, jadi tidak ada bagian potret
- * yang tertutup kotak. Slot potret berukuran tetap (`PORTRAIT`) dan gambarnya
- * `object-contain`, jadi lebar berbeda antar-karakter tetap terpusat pada
- * `PORTRAIT.centerX`; kepala tidak lagi goyang saat ekspresi berganti. Posisi
- * memakai persen dari `TEXTBOX` dan `PORTRAIT` (sumber angka sama dengan
- * `layout.ts`); ukuran huruf dan padding memakai `cqw` supaya ikut skala canvas.
+ * Bentuk panel mengikuti referensi gaya Persona: kotak navy gelap membulat tanpa
+ * bingkai pixel, nama pembicara teal dengan huruf pixel kapital, isi dialog
+ * putih. Potret berdiri **di atas** panel — dasar gambar sejajar tepi atasnya —
+ * dengan slot tetap (`PORTRAIT`) supaya kepala tidak goyang saat ekspresi
+ * berganti. Posisi memakai persen dari `TEXTBOX`/`PORTRAIT`; ukuran huruf dan
+ * padding memakai `cqw` supaya ikut skala canvas.
  */
 export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
   if (!view.visible) return null;
 
   return (
     <div
-      className="absolute z-10 cursor-pointer select-none font-game text-[#D9E4DA]"
+      className="absolute z-10 cursor-pointer select-none font-game"
       style={{
         // Selalu di tengah ruang game, berapa pun lebar internalnya.
         left: "50%",
@@ -76,13 +75,13 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
         )
       }
 
-      <Image
-        src="/assets/ui/textbox.png"
-        alt=""
-        fill
-        sizes="(min-width: 640px) 608px, 100vw"
-        className="pointer-events-none absolute inset-0 z-10 select-none object-fill"
-        style={{ imageRendering: "pixelated" }}
+      {/* Panel dialog: kotak navy gelap membulat tanpa bingkai pixel (gaya
+            Persona). Digambar CSS, bukan `ui_textbox.png`, supaya sudut dan
+            warnanya tajam di resolusi layar asli. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-10 border border-white/5 bg-[#0f172b]/95"
+        style={{ borderRadius: cqw(14) }}
       />
 
       <div
@@ -95,8 +94,12 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
       >
         {view.name && (
           <p
-            className="text-[#F7F4EC]"
-            style={{ fontSize: ukuranHuruf(18, 14, 26), lineHeight: 1.2 }}
+            className="font-pixel font-bold uppercase text-[#55D0A5]"
+            style={{
+              fontSize: ukuranHuruf(15, 11, 22),
+              letterSpacing: "0.14em",
+              lineHeight: 1.15,
+            }}
           >
             {view.name}
           </p>
@@ -104,9 +107,9 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
 
         <p
           aria-live="polite"
-          className="break-words whitespace-pre-wrap"
+          className="break-words whitespace-pre-wrap text-[#EFF2F7]"
           style={{
-            marginTop: cqw(3),
+            marginTop: cqw(4),
             fontSize: ukuranHuruf(19, 16, 30),
             lineHeight: 1.34,
           }}
@@ -118,7 +121,7 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
         {view.waiting && (
           <span
             aria-hidden="true"
-            className="absolute bottom-2.5 right-4 animate-pulse select-none text-[#E8A87C] motion-reduce:animate-none"
+            className="absolute bottom-2.5 right-4 animate-pulse select-none text-[#55D0A5] motion-reduce:animate-none"
             style={{ fontSize: ukuranHuruf(16, 14, 24) }}
           >
             ▼

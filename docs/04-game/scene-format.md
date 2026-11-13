@@ -124,7 +124,7 @@ bebas bergerak.
 │  │           │                                       │
 │  └───────────┘                                       │
 │ ┌──────────────────────────────────────────────────┐ │
-│ │ TEXTBOX (ui_textbox)                             │ │
+│ │ TEXTBOX (panel gelap)                            │ │
 │ │ Nama                                             │ │
 │ │ Teks dialog...                                   │ │
 │ └──────────────────────────────────────────────────┘ │
@@ -135,18 +135,19 @@ bebas bergerak.
 | --------- | ---------------------------------------------------------------------------- |
 | Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`            |
 | Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                             |
-| Textbox   | 608×104, terpusat horizontal, `y=240`, menempel layar (`setScrollFactor`)    |
+| Textbox   | 608×104, terpusat horizontal, `y=240`; kotak navy gelap membulat (CSS)       |
 | Potret    | Slot 252×220 px internal, dasar sejajar tepi atas panel, tanpa bingkai (DOM) |
 | Nama      | Di dalam textbox, baris pertama (DOM)                                        |
 | Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)               |
 | Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                      |
 
 > **Semua di DOM (ADR 0007 + ADR 0017).** Phaser hanya memegang state typewriter
-> (`textbox.ts`); panel `ui_textbox`, potret, nama, isi dialog, dan indikator
-> "lanjut" dirender `DialogueBox.tsx`. Potret anime digambar browser pada
-> resolusi layar asli (tajam), sedangkan panel digambar dengan
-> `image-rendering: pixelated` karena memang aset pixel. Posisi memakai persen
-> dari `src/game/layout.ts`. Prompt interaksi `Space` juga DOM
+> (`textbox.ts`); panel, potret, nama, isi dialog, dan indikator "lanjut" dirender
+> `DialogueBox.tsx`. Panel **bukan lagi** gambar `ui_textbox`: ia kotak CSS navy
+> gelap membulat (gaya Persona) supaya sudut dan warnanya tajam di resolusi layar
+> asli — nama pembicara huruf pixel teal kapital, isi dialog putih. Potret anime
+> juga digambar browser pada resolusi asli. Posisi memakai persen dari
+> `src/game/layout.ts`. Prompt interaksi `Space` juga DOM
 > (`InteractHint.tsx`). Jangan menambah teks game baru di canvas: canvas
 > di-upscale `pixelated`, jadi semua huruf di dalamnya bergerigi.
 

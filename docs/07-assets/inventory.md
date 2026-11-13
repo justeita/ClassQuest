@@ -209,10 +209,11 @@ Satu lagu untuk seluruh permainan; chapter tidak berganti lagu.
 | `ui_portrait_frame` | Bingkai potret | `/assets/ui/portrait_frame.png` | potret, bingkai, karakter, frame | ready  |
 | `ui_default`        | UI default     | `/assets/ui/default.png`        | default, cadangan, panel, netral | ready  |
 
-Sejak ADR 0017, panel dialog (`ui_textbox`) dipasang DOM sebagai `<img>`, bukan
-dimuat Phaser, dan bingkai potret (`ui_portrait_frame`) tidak dipakai runtime
-karena potret digambar tanpa bingkai. Keduanya tetap ada di manifest supaya
-tidak ada aset yang hilang dari repo; kalau nanti dipastikan tidak dibutuhkan,
+Sejak ADR 0017, panel dialog digambar DOM, dan sejak rework kotak dialog ia
+menjadi kotak CSS navy gelap membulat (bukan `ui_textbox`), dan bingkai potret
+(`ui_portrait_frame`) tidak dipakai runtime karena potret digambar tanpa bingkai.
+Keduanya tetap ada di manifest supaya tidak ada aset yang hilang dari repo;
+kalau nanti dipastikan tidak dibutuhkan,
 hapus lewat ADR baru beserta penyesuaian hitungan kind `ui`.
 
 ## Font game

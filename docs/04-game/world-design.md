@@ -254,11 +254,15 @@ selalu bergerigi setelah upscale `image-rendering: pixelated`.
 
 Keputusan (ADR 0007, diperluas ADR 0017): **teks permainan pindah ke DOM**.
 
-- Panel `ui_textbox`, potret, nama, isi dialog, dan indikator "lanjut" dirender
-  React (`DialogueBox.tsx`). Potret anime tidak dibungkus bingkai: ia berdiri di
-  atas panel dengan dasar sejajar tepi atasnya, dan berekspresi sesuai field
+- Panel, potret, nama, isi dialog, dan indikator "lanjut" dirender React
+  (`DialogueBox.tsx`). Panel bukan lagi gambar `ui_textbox`, melainkan kotak CSS
+  navy gelap membulat. Potret anime tidak dibungkus bingkai: ia berdiri di atas
+  panel dengan dasar sejajar tepi atasnya, dan berekspresi sesuai field
   `expression` beat. Prompt interaksi `Space` juga DOM (`InteractHint.tsx`).
-- Font: **Patrick Hand** (SIL Open Font License), disimpan lokal di
+- Nama pembicara memakai **Pixelify Sans** (utility `font-pixel`, variabel
+  `--font-pixelify` dipasang di `src/app/layout.tsx`): huruf pixel kapital teal
+  untuk hierarki nama, sedangkan isi dialog tetap Patrick Hand.
+- Font isi game: **Patrick Hand** (SIL Open Font License), disimpan lokal di
   `public/fonts/` (`patrick-hand-latin.woff2`,
   `patrick-hand-latin-ext.woff2`, `OFL.txt`) dan dimuat lewat `next/font/local`
   sebagai variabel `--font-handwriting`.
@@ -272,9 +276,11 @@ Keputusan (ADR 0007, diperluas ADR 0017): **teks permainan pindah ke DOM**.
   `clamp()` berbasis `cqw` (lihat
   [`accessibility.md`](./accessibility.md#ukuran-teks)).
 
-> Kandidat font pixel bitmap **dibatalkan**: teks bitmap di canvas tetap terkena
-> upscale non-integer. `Patrick Hand` dipilih karena handwriting-nya jelas,
-> punya `latin-ext`, dan lisensinya OFL.
+> Kandidat font pixel bitmap **di canvas** dibatalkan: teks bitmap di canvas
+> tetap terkena upscale non-integer. `Patrick Hand` dipilih untuk isi dialog
+> karena handwriting-nya jelas, punya `latin-ext`, dan lisensinya OFL. Nama
+> pembicara tetap boleh memakai huruf pixel lewat DOM (`font-pixel`), yang tidak
+> bergerigi karena digambar browser pada resolusi layar asli.
 
 ## Yang sengaja tidak dikerjakan
 

@@ -237,8 +237,9 @@ ditandai `"use client"` dan diimpor dinamis.
 pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()`
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). State dialog dikirim ke React sebagai event `dialogue` dan
-dirender `DialogueBox.tsx` — panel `ui_textbox`, potret ber-`expression`, nama,
-dan teks (ADR 0017); React membalas command `advance`. Prompt interaksi
+dirender `DialogueBox.tsx` — panel kotak navy gelap membulat, potret
+ber-`expression`, nama, dan teks (ADR 0017); React membalas command `advance`.
+Prompt interaksi
 memakai event `prompt`: kotak `Space` pemberi quest dirender `NpcMarker.tsx`
 (menyatu dengan `!`), sedangkan obrolan singkat dirender `InteractHint.tsx`
 (ADR 0007). Pemberi quest

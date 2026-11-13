@@ -56,11 +56,11 @@ export function GamePreview() {
               className="pointer-events-none absolute bottom-full left-12 h-28 w-32 -translate-x-1/2 object-contain object-bottom sm:left-16 sm:h-36 sm:w-40"
             />
 
-            <div className="relative rounded-lg border-2 border-slate-900 bg-slate-900/92 px-3 pb-2.5 pt-2 sm:px-4">
-              <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-300">
+            <div className="relative rounded-xl border border-white/5 bg-slate-900/95 px-3 pb-2.5 pt-2 sm:px-4">
+              <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.14em] text-[#55D0A5]">
                 Pak Wira
               </p>
-              <p className="font-game text-[13px] leading-snug text-slate-100 sm:text-sm">
+              <p className="font-game text-[13px] leading-snug text-[#EFF2F7] sm:text-sm">
                 Tiga bagian tepung, dua bagian gula. Berapa cangkir gula untuk
                 sembilan cangkir tepung?
               </p>

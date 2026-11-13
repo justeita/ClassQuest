@@ -89,7 +89,7 @@ state itu. Lihat [`game-player.md`](./game-player.md).
 begitu tautan kelas tersedia, target siswa tetap `/play/[storyId]`.
 
 Landing `/` memakai route group `src/app/(landing)/` supaya punya layout sendiri
-(font Inter/Plus Jakarta/Pixelify + ikon Font Awesome) tanpa membebani halaman
+(font Inter/Plus Jakarta + ikon Font Awesome) tanpa membebani halaman
 siswa/game. Kartu "Portal Guru" menautkan ke `/guru` — layout `(portal)`
 mengarahkan ke `/guru/masuk` bila sesi belum ada.
 
@@ -219,7 +219,7 @@ route internal.
 | Layout                                | Isi                                                       |
 | ------------------------------------- | --------------------------------------------------------- |
 | `src/app/layout.tsx`                  | `<html>`, font, `globals.css`, metadata global            |
-| `src/app/guru/layout.tsx`             | Font portal guru (Inter/Jakarta/Pixelify) + toast         |
+| `src/app/guru/layout.tsx`             | Font portal guru (Inter/Jakarta) + toast                  |
 | `src/app/guru/(portal)/layout.tsx`    | `PortalShell`: sidebar/nav + header, hanya halaman portal |
 | `src/components/guru/PortalShell.tsx` | Markup sidebar/header portal guru                         |
 

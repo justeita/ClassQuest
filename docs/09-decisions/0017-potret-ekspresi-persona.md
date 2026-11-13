@@ -74,9 +74,10 @@ Aturan bentuknya:
 - Feedback jawaban: benar → `happy`, salah → `angry`, memakai potret pembicara
   soal yang terakhir tampil. Ekspresi dari data cerita menang untuk beat biasa.
 - Panel, potret, nama, dan teks semuanya dirender `DialogueBox.tsx`; Phaser
-  hanya memegang state typewriter (`textbox.ts`). `ui_textbox` tetap dipakai
-  sebagai gambar panel, tetapi tidak lagi dimuat `PreloadScene`, dan
-  `ui_portrait_frame` tidak dipakai lagi.
+  hanya memegang state typewriter (`textbox.ts`). Panel digambar CSS sebagai
+  kotak navy gelap membulat — bukan lagi gambar `ui_textbox` — dan nama pembicara
+  memakai huruf pixel teal; `ui_textbox` dan `ui_portrait_frame` tidak dipakai
+  runtime dan tidak dimuat `PreloadScene`.
 
 Alasan:
 
