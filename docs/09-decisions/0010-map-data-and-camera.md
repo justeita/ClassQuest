@@ -138,6 +138,16 @@ Alasan:
 > 1, `scrollX/scrollY` juga tetap bilangan bulat, dan objek yang diskalakan
 > memakai `setVertexRoundMode("fullAuto")` supaya tidak meluncur di sub-piksel.
 
+> **Catatan lanjutan 2026-11-13 — kamera keluar sedikit.** Pada zoom 1 bingkai
+> 640×360 hanya menampilkan 640 px dunia, jadi karakter desa (56 px, ~15,5%
+> tinggi layar) terasa dekat. `ZOOM_KAMERA` = 0,8 membuat kamera melihat
+> 800×450 px dunia dan karakter turun ke ~12,4%. Ini melengkapi — bukan
+> membatalkan — keputusan di atas: dead zone tetap 128×96 px di layar
+> (`deadzoneDunia()` mengompensasi zoom), dan `lerp` 1 tetap dipakai supaya
+> zoom pecahan tidak berubah jadi getaran tiap frame. Panel dialog Phaser yang
+> menempel layar diskalakan terbalik (`posisiUiTerkunci()`), sedangkan prompt dan
+> penanda DOM ikut rumus `duniaKeLayar()` yang sama.
+
 ## Kapan keputusan ini ditinjau ulang
 
 - Jika data map per scene ternyata menyita lebih dari satu hari kerja: cukup

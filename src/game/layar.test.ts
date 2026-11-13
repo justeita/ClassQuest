@@ -5,6 +5,7 @@ import {
   INSET_PENANDA,
   duniaKeLayar,
   posisiPenanda,
+  posisiUiTerkunci,
   terlihatDiLayar,
   type InsetPenanda,
 } from "./layar";
@@ -22,6 +23,48 @@ describe("duniaKeLayar", () => {
       x: 56,
       y: 48,
     });
+  });
+
+  it("memperhitungkan zoom kamera dari titik tengah layar", () => {
+    // Zoom 0,5: titik tengah dunia tetap di tengah, titik lain mendekat.
+    expect(
+      duniaKeLayar(
+        { scrollX: 0, scrollY: 0, zoom: 0.5, width: 640, height: 360 },
+        320,
+        180,
+      ),
+    ).toEqual({ x: 320, y: 180 });
+    expect(
+      duniaKeLayar(
+        { scrollX: 0, scrollY: 0, zoom: 0.5, width: 640, height: 360 },
+        640,
+        360,
+      ),
+    ).toEqual({ x: 480, y: 270 });
+  });
+
+  it("memakai resolusi internal saat kamera tidak menyebut ukurannya", () => {
+    expect(duniaKeLayar({ scrollX: 0, scrollY: 0, zoom: 0.5 }, 0, 0)).toEqual({
+      x: GAME_WIDTH / 4,
+      y: GAME_HEIGHT / 4,
+    });
+  });
+});
+
+describe("posisiUiTerkunci", () => {
+  it("tidak menggeser apa pun saat zoom 1:1", () => {
+    expect(posisiUiTerkunci(640, 360, 1)).toEqual({ x: 0, y: 0, skala: 1 });
+  });
+
+  it("mengembalikan anak ke koordinat layar asalnya walau kamera di-zoom", () => {
+    const ui = posisiUiTerkunci(640, 360, 0.8);
+    const zoom = 0.8;
+
+    // Anak ber-koordinat lokal `c` harus jatuh kembali di `c` pada layar.
+    for (const c of [0, 16, 320, 624, 640]) {
+      const layar = zoom * (ui.x + ui.skala * c) + 320 * (1 - zoom);
+      expect(layar).toBeCloseTo(c, 6);
+    }
   });
 });
 

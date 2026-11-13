@@ -9,22 +9,72 @@ import { GAME_HEIGHT, GAME_WIDTH } from "./constants";
  * layar — hasilnya chip meleset dari NPC.
  */
 
+/**
+ * Potongan kamera yang dibutuhkan konversi: posisi scroll, zoom, dan ukuran
+ * bidang layar. Kamera Phaser memenuhi bentuk ini apa adanya, jadi pemanggil
+ * boleh mengoper `cameras.main` tanpa menyalin nilai.
+ */
 export type KameraView = {
   scrollX: number;
   scrollY: number;
+  /** Zoom kamera; di luar 1 dunia ikut membesar/mengecil. Default 1. */
+  zoom?: number;
+  /** Ukuran bidang layar internal dalam px. Default resolusi internal. */
+  width?: number;
+  height?: number;
 };
 
 export type TitikLayar = { x: number; y: number };
 
-/** Titik dunia → titik layar. Nilai boleh pecahan; pembulatan di pemanggil. */
+/**
+ * Titik dunia → titik layar. Nilai boleh pecahan; pembulatan di pemanggil.
+ *
+ * Zoom kamera berskala dari **titik tengah** bidang layar
+ * (`origin` 0,5), jadi rumusnya:
+ *
+ * ```text
+ * layar = zoom × (dunia − scroll) + tengah × (1 − zoom)
+ * ```
+ *
+ * Saat zoom 1 suku kedua hilang dan hasilnya sama dengan `dunia − scroll`.
+ */
 export function duniaKeLayar(
   kamera: KameraView,
   x: number,
   y: number,
 ): TitikLayar {
+  const zoom = kamera.zoom ?? 1;
+  const lebar = kamera.width ?? GAME_WIDTH;
+  const tinggi = kamera.height ?? GAME_HEIGHT;
+  const tengahX = lebar / 2;
+  const tengahY = tinggi / 2;
+
   return {
-    x: x - kamera.scrollX,
-    y: y - kamera.scrollY,
+    x: zoom * (x - kamera.scrollX) + tengahX * (1 - zoom),
+    y: zoom * (y - kamera.scrollY) + tengahY * (1 - zoom),
+  };
+}
+
+/**
+ * Posisi dan skala container UI Phaser supaya menempel di koordinat layar
+ * walau kamera di-zoom.
+ *
+ * Objek ber-`scrollFactor(0)` tidak tergeser scroll, tetapi tetap ikut
+ * diperbesar/diperkecil zoom — panel dialog dan portrait akan mengecil dan
+ * menjauh dari tepi. Skala terbalik `1 / zoom` plus geseran setengah bidang
+ * mengembalikannya persis: anak di koordinat lokal `c` jatuh kembali di
+ * `layar = c`.
+ */
+export function posisiUiTerkunci(
+  lebar: number,
+  tinggi: number,
+  zoom: number,
+): { x: number; y: number; skala: number } {
+  const skala = 1 / zoom;
+  return {
+    x: (lebar / 2) * (1 - skala),
+    y: (tinggi / 2) * (1 - skala),
+    skala,
   };
 }
 

@@ -62,6 +62,7 @@ semua nilai di bawah dinyatakan dalam piksel.
 | Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki              |
 | Zona interaksi NPC    | 24 px masuk / 32 px keluar (histeresis 8 px)             |
 | Dead zone kamera      | 128×96 px di tengah layar                                |
+| Zoom kamera           | 0,8 — bingkai 640×360 menampilkan 800×450 px dunia       |
 
 Skala kanvas dihitung `ukuranKanvas()` di `src/game/constants.ts` dengan dua
 mode. Kalau kontainer hampir pas kelipatan tinggi 360 (sisa ≤6%, `SISA_SKALA_MAKS`),
@@ -71,7 +72,9 @@ mis. 1,83×) supaya game mengisi bingkai — dulu jendela 1366×660 hanya mendap
 kanvas 960×360, terlihat seperti strip kecil dengan bar gelap besar. Skala
 pecahan aman karena posisi objek, kamera, dan vertex sudah dikunci ke piksel
 utuh (`roundPixels`, `fullAuto`, `CAMERA_LERP` 1), jadi pola piksel tidak
-bergeser saat pemain berjalan.
+bergeser saat pemain berjalan. Kamera dunia sendiri sedikit keluar dari 1:1
+(`ZOOM_KAMERA`, lihat [Kamera](#kamera)); itu mematikan pembulatan piksel
+kamera, tetapi `lerp` 1 menahan getarannya.
 
 Lebar internal (`lebarKanvas()`) dijepit 640–960 px supaya layar lebar
 menampilkan **lebih banyak dunia ke samping**, bukan potongan atas-bawah. Halaman
@@ -162,19 +165,37 @@ Aturan collision:
 | ----------------- | ---------------------------------------------------------------------- |
 | Mode              | Mengikuti pemain, kamera berhenti di tepi peta (`setBounds`)           |
 | Dead zone         | Kotak 128×96 px di tengah layar; kamera diam selama pemain di dalamnya |
+| Zoom              | 0,8 — kamera melihat 800×450 px dunia, bukan 640×360                   |
 | Pergerakan kamera | `lerp` 1 — menempel pemain, tanpa luncuran                             |
 | Dunia = layar     | Kamera dikunci ke tengah dunia, tidak bergerak                         |
-| `roundPixels`     | `true` — membulatkan gambar ke piksel utuh                             |
+| `roundPixels`     | `true`, tetapi hanya aktif saat zoom bilangan bulat                    |
 | Pembulatan posisi | Titik kaki pemain, NPC, dan objek selalu bilangan bulat                |
 
 Karena peta desa jauh lebih luas dari layar, mode yang berlaku selalu `follow`.
 Mode `lock` tetap ada di `camera.ts` untuk peta kecil yang mungkin dibuat kelak.
+
+**Kamera keluar sedikit dari 1:1 (2026-11-13).** Bingkai 640×360 pada zoom 1
+hanya menampilkan potongan dunia selebar 640 px, sehingga karakter desa setinggi
+56 px menutupi ~15,5% tinggi layar dan terasa dekat. `ZOOM_KAMERA` di
+`camera.ts` menurunkannya ke **0,8**: kamera melihat 800×450 px dunia (25% lebih
+luas) dan karakter turun ke ~12,4%, tanpa mengubah ukuran aset maupun resolusi
+internal. Karena dunia dan UI dibaca dari rumus yang sama
+(`duniaKeLayar()` di `layar.ts`), prompt dan penanda DOM ikut benar; panel dialog
+Phaser yang menempel layar (`scrollFactor(0)`) diskalakan terbalik lewat
+`posisiUiTerkunci()` supaya tetap di tempatnya. Dead zone tetap 128×96 px di
+layar karena `deadzoneDunia()` membaginya dengan zoom.
 
 **Luncuran kamera dibuang (2026-11-13).** Sebelumnya kamera memakai `lerp` 0,12
 supaya gerak terasa sinematik. Di pixel art keputusan itu salah: kamera selalu
 mengejar ketinggalan, jadi seluruh dunia bergeser pelan sepanjang waktu dan mata
 membacanya sebagai getaran yang membuat pusing. Sekarang kamera menempel pemain;
 `lerp` 1 juga menjaga `scrollX/scrollY` tetap bilangan bulat.
+
+Zoom 0,8 adalah pecahan, jadi Phaser mematikan pembulatan piksel kamera
+(`renderRoundPixels`) dan dunia bisa bergeser ~0,8 px tiap langkah. Efeknya
+ditekan `lerp` 1: kamera tidak meluncur tiap frame, jadi getaran hanya muncul
+saat pemain benar-benar melangkah, bukan sepanjang waktu. Nilai ini satu angka di
+`camera.ts`; kalau terasa kurang pas, cukup ubah di situ.
 
 **Objek terskala tetap dibulatkan.** Objek dari editor diskalakan dengan faktor
 pecahan (mis. `house_red` 185×128 digambar 308×212 ≈ 1,66×), dan karakter 0,875×.
@@ -257,7 +278,8 @@ Keputusan (ADR 0007): **teks permainan pindah ke DOM**.
 - Parallax lebih dari satu lapisan latar.
 - Beberapa peta yang tersambung (transisi antar-ruangan): seluruh cerita memakai
   satu peta desa.
-- Kamera zoom atau rotasi.
+- Rotasi kamera. Zoom dunia hanya satu nilai tetap yang sedikit keluar dari 1:1
+  (lihat [Kamera](#kamera)); tidak ada zoom dinamis saat bermain.
 
 ## Referensi
 

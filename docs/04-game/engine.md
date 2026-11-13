@@ -244,8 +244,9 @@ lain tetap menjadi penghalang. Penanda `!` dikirim lewat event `markers` dan
 dirender `NpcMarker.tsx`.
 
 Posisi prompt dan penanda dikonversi dari koordinat dunia ke layar memakai
-`camera.scrollX/scrollY` (`layar.ts`) dan dikirim **setiap frame** supaya tanda
-menempel pada NPC saat kamera bergeser. Dulu pengirimannya dibatasi 90 ms; dengan
+`duniaKeLayar()` (`layar.ts`), yang memperhitungkan `scroll` **dan** `zoom`
+kamera, lalu dikirim **setiap frame** supaya tanda menempel pada NPC saat kamera
+bergeser. Dulu pengirimannya dibatasi 90 ms; dengan
 kamera yang kini menempel pemain, penanda tertinggal lalu terlihat melompat
 ("putus-putus"). Keduanya dirender `NpcHintLayer.tsx` — komponen kecil yang
 berlangganan bus sendiri, jadi pembaruan tiap frame tidak me-render ulang HUD,

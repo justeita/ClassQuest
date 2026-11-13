@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { CAMERA_LERP, DEADZONE_PX, deadzonePx, kameraMode } from "./camera";
+import {
+  CAMERA_LERP,
+  DEADZONE_PX,
+  ZOOM_KAMERA,
+  deadzoneDunia,
+  deadzonePx,
+  kameraMode,
+} from "./camera";
 
 describe("kameraMode", () => {
   it("dunia seukuran layar atau lebih kecil dikunci ke tengah", () => {
@@ -27,5 +34,21 @@ describe("deadzone dan lerp", () => {
 
   it("kamera menempel pemain tanpa luncuran", () => {
     expect(CAMERA_LERP).toBe(1);
+  });
+});
+
+describe("zoom kamera", () => {
+  it("sedikit di bawah 1 supaya dunia terasa lebih luas tanpa ekstrem", () => {
+    expect(ZOOM_KAMERA).toBeGreaterThan(0.6);
+    expect(ZOOM_KAMERA).toBeLessThan(1);
+  });
+
+  it("dead zone dunia dikompensasi supaya tetap 128×96 px di layar", () => {
+    expect(deadzoneDunia(ZOOM_KAMERA)).toEqual({
+      width: DEADZONE_PX.width / ZOOM_KAMERA,
+      height: DEADZONE_PX.height / ZOOM_KAMERA,
+    });
+    // Pada zoom 1 nilainya sama dengan dead zone layar.
+    expect(deadzoneDunia(1)).toEqual({ width: 128, height: 96 });
   });
 });

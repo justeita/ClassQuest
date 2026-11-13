@@ -2,6 +2,7 @@ import Phaser from "phaser";
 
 import { DEPTH_UI } from "./depth";
 import { PORTRAIT, TEXTBOX } from "./layout";
+import { posisiUiTerkunci } from "./layar";
 import { Typewriter } from "./typewriter";
 
 /**
@@ -58,10 +59,20 @@ export function createTextbox(
 ): Textbox {
   // `setScrollFactor(0)` membuat panel menempel di layar. Tanpa ini, panel ikut
   // tergeser kamera (kamera mengikuti pemain) sehingga terpotong.
+  //
+  // Zoom kamera dunia bukan 1:1, dan objek ber-`scrollFactor(0)` tetap ikut
+  // mengecil. `posisiUiTerkunci` memasang skala terbalik plus geseran setengah
+  // bidang supaya panel dan portrait kembali persis di koordinat layarnya.
+  const ui = posisiUiTerkunci(
+    scene.scale.width,
+    scene.scale.height,
+    scene.cameras.main.zoom,
+  );
   const container = scene.add
-    .container(0, 0)
+    .container(ui.x, ui.y)
     .setVisible(false)
     .setDepth(DEPTH_UI)
+    .setScale(ui.skala)
     .setScrollFactor(0);
 
   // Panel dan portrait selalu di tengah layar. Lebar internal mengikuti rasio

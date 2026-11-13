@@ -4,7 +4,7 @@ import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { Story } from "@/story/schema";
 
 import { clampVolume } from "../audioSettings";
-import { CAMERA_LERP, deadzonePx, kameraMode } from "../camera";
+import { CAMERA_LERP, ZOOM_KAMERA, deadzoneDunia, kameraMode } from "../camera";
 import { DEPTH_LATAR } from "../depth";
 import {
   ambilTombolGerak,
@@ -849,16 +849,19 @@ export class GameScene extends Phaser.Scene {
 
   /**
    * Kamera desa (world-design.md § Kamera): batas = ukuran peta, ikuti pemain
-   * dengan dead zone 128×96 px dan lerp 0.12. Peta desa selalu lebih luas dari
-   * layar, tetapi aturan "lock" tetap dipakai supaya peta kecil kelak tenang.
+   * dengan dead zone 128×96 px di layar dan lerp 1. Kamera sedikit keluar dari
+   * 1:1 (`ZOOM_KAMERA`) supaya dunia terasa lebih luas; UI Phaser menutup
+   * sendiri lewat skala terbalik. Peta desa selalu lebih luas dari layar,
+   * tetapi aturan "lock" tetap dipakai supaya peta kecil kelak tenang.
    */
   private pasangKamera() {
     const cam = this.cameras.main;
     cam.setBounds(0, 0, VILLAGE.width, VILLAGE.height);
+    cam.setZoom(ZOOM_KAMERA);
 
     if (kameraMode(VILLAGE) === "follow" && this.player) {
       cam.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
-      const zona = deadzonePx();
+      const zona = deadzoneDunia(ZOOM_KAMERA);
       cam.setDeadzone(zona.width, zona.height);
     } else {
       cam.stopFollow();
