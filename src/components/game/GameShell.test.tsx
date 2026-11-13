@@ -9,15 +9,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GameBus } from "@/game/gameBus";
 import { DEMO_STORY } from "@/game/demoStory";
+import { persenLebar } from "@/game/layout";
 import type { QuestState } from "@/game/questLog";
-import type { PlayResult } from "@/story/scoring";
+import type { Answer, PlayResult } from "@/story/scoring";
 
 // Phaser tidak bisa hidup di jsdom. Yang diuji di sini hanya kontrak
 // layar → bus → React: layar judul, HUD, menu jeda, overlay tantangan,
 // layar hasil, dan "Main lagi".
-const mocks = vi.hoisted(() => ({ createGame: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  createGame: vi.fn(),
+  savePlayResult: vi.fn(),
+}));
 
 vi.mock("@/game/createGame", () => ({ createGame: mocks.createGame }));
+vi.mock("@/app/play/actions", () => ({
+  savePlayResult: mocks.savePlayResult,
+}));
 
 vi.mock("next/link", () => ({
   default: ({
@@ -42,6 +49,10 @@ const hasilPalsu: PlayResult = {
   totalChallenges: 6,
   weakConcepts: ["Kondensasi"],
 };
+
+const jawabanPalsu: Answer[] = [
+  { challengeId: "chl_demo_1", type: "short_answer", text: "penguapan" },
+];
 
 /** Tunggu sampai GameCanvas selesai memasang pendengar bus-nya. */
 async function tungguBusTerpasang() {
@@ -79,6 +90,8 @@ beforeEach(() => {
   };
   mocks.createGame.mockReset();
   mocks.createGame.mockImplementation(() => ({ bus, destroy: () => {} }));
+  mocks.savePlayResult.mockReset();
+  mocks.savePlayResult.mockResolvedValue({ ok: true });
 });
 
 describe("GameShell", () => {
@@ -156,6 +169,63 @@ describe("GameShell", () => {
     await vi.waitFor(() =>
       expect(screen.queryByText("!")).not.toBeInTheDocument(),
     );
+  });
+
+  it("event nametags menampilkan nama NPC dan bisa dikosongkan", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "nametags",
+      plates: [{ npcId: "char_npc_5", nama: "Bu Sari", x: 210, y: 118 }],
+    });
+    expect(await screen.findByText("Bu Sari")).toBeInTheDocument();
+
+    bus.emit({ type: "nametags", plates: [] });
+    await vi.waitFor(() =>
+      expect(screen.queryByText("Bu Sari")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("posisi penanda ikut berubah saat kamera bergeser", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "markers",
+      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
+    });
+    await screen.findByText("!");
+    const awal = document.querySelector<HTMLElement>('[data-tanda="dekat"]');
+    expect(awal?.style.left).toBe(persenLebar(200));
+
+    // Scene mengirim posisi baru tiap frame; penanda harus langsung mengikuti
+    // tanpa menunggu render ulang overlay lain.
+    bus.emit({
+      type: "markers",
+      markers: [{ npcId: "char_npc_10", x: 180, y: 112 }],
+    });
+    await vi.waitFor(() =>
+      expect(
+        document.querySelector<HTMLElement>('[data-tanda="dekat"]')?.style.left,
+      ).toBe(persenLebar(180)),
+    );
+  });
+
+  it("penanda quest, papan nama, dan chip Space tampil bersamaan", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "markers",
+      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
+    });
+    bus.emit({
+      type: "nametags",
+      plates: [{ npcId: "char_npc_10", nama: "Pak Wira", x: 200, y: 126 }],
+    });
+    bus.emit({ type: "prompt", hint: { text: "Space", x: 214, y: 126 } });
+
+    expect(await screen.findByText("!")).toBeInTheDocument();
+    expect(screen.getByText("Pak Wira")).toBeInTheDocument();
+    expect(screen.getByText("Space")).toBeInTheDocument();
   });
 
   it("kartu chapter muncul saat nomor chapter berubah", async () => {
@@ -364,7 +434,7 @@ describe("GameShell", () => {
   it("menampilkan layar hasil saat event finished datang", async () => {
     await mainkan();
 
-    bus.emit({ type: "finished", result: hasilPalsu });
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
 
     expect(
       await screen.findByText(/Perjalanan ini sudah sampai ujung/i),
@@ -374,10 +444,43 @@ describe("GameShell", () => {
     ).toBeInTheDocument();
   });
 
+  it("menyimpan hasil main lewat server action tanpa mengirim skor", async () => {
+    await mainkan();
+
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
+
+    await vi.waitFor(() =>
+      expect(mocks.savePlayResult).toHaveBeenCalledWith({
+        storyId: DEMO_STORY.meta.id,
+        result: { answers: jawabanPalsu },
+      }),
+    );
+    expect(
+      await screen.findByText("Hasil main tersimpan."),
+    ).toBeInTheDocument();
+  });
+
+  it("kegagalan simpan tidak menghalangi layar hasil", async () => {
+    mocks.savePlayResult.mockResolvedValue({
+      ok: false,
+      reason: "rate_limited",
+    });
+    await mainkan();
+
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
+
+    expect(
+      await screen.findByText("Hasil main belum tersimpan."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Perjalanan ini sudah sampai ujung/i),
+    ).toBeInTheDocument();
+  });
+
   it("Main lagi menyembunyikan layar hasil", async () => {
     await mainkan();
 
-    bus.emit({ type: "finished", result: hasilPalsu });
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
     fireEvent.click(await screen.findByRole("button", { name: /main lagi/i }));
 
     expect(
@@ -389,7 +492,7 @@ describe("GameShell", () => {
     await mainkan();
     const panggilanAwal = mocks.createGame.mock.calls.length;
 
-    bus.emit({ type: "finished", result: hasilPalsu });
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
     fireEvent.click(await screen.findByRole("button", { name: /main lagi/i }));
 
     await vi.waitFor(() =>

@@ -32,9 +32,27 @@ export type PromptView = {
   y: number;
 };
 
-/** Penanda "!" di atas NPC pemberi quest; koordinat layar internal. */
+/**
+ * Penanda pemberi quest; koordinat layar internal.
+ *
+ * `tepi: true` berarti NPC di luar pandangan: `x`/`y` sudah dijepit ke area
+ * aman di tepi layar dan `sudut` dipakai penunjuk beacon. Di mode dekat,
+ * penanda dirender sebagai kotak `!` bergaya HUD di atas papan nama.
+ */
 export type NpcMarker = {
   npcId: string;
+  x: number;
+  y: number;
+  tepi?: boolean;
+  /** Arah NPC dalam derajat: 0 = kanan, 90 = bawah. */
+  sudut?: number;
+};
+
+/** Papan nama NPC di atas kepala; koordinat layar internal. */
+export type NpcNameplate = {
+  npcId: string;
+  /** Nama tampilan dari `story.cast`. */
+  nama: string;
   x: number;
   y: number;
 };
@@ -43,6 +61,7 @@ export type GameEvent =
   | { type: "dialogue"; view: DialogueView }
   | { type: "prompt"; hint: PromptView | null }
   | { type: "markers"; markers: NpcMarker[] }
+  | { type: "nametags"; plates: NpcNameplate[] }
   | { type: "challenge"; view: ChallengeView }
   | {
       type: "graded";
@@ -50,8 +69,12 @@ export type GameEvent =
       correct: boolean;
       explanation: string;
     }
-  /** Cerita selesai; `result` dihitung dari percobaan pertama tiap tantangan. */
-  | { type: "finished"; result: PlayResult }
+  /**
+   * Cerita selesai; `result` dihitung dari percobaan pertama tiap tantangan.
+   * `answers` ikut dikirim karena hanya jawaban mentah yang boleh disimpan ke
+   * server — skor selalu dihitung ulang di sana (`savePlayResult`).
+   */
+  | { type: "finished"; result: PlayResult; answers: Answer[] }
   /** Satu beat dialog/narasi tampil penuh; dipakai log dialog (PR D). */
   | {
       type: "log";

@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -22,17 +22,17 @@ salah. Yang benar:
 `StoryRunner` menjawab **"di mana kita di dalam cerita"**. `GameShell` menjawab
 **"layar apa yang sedang terlihat"**. Keduanya dipetakan begini:
 
-| `RunnerState.phase` | `GameShellState.phase` | Yang tampil                       |
-| ------------------- | ---------------------- | --------------------------------- |
-| —                   | `loading`              | progress bar aset                 |
-| —                   | `ready`                | layar judul, tombol Mulai         |
-| `explore`           | `playing`              | ruangan map + pemain + NPC        |
-| `dialog`            | `playing`              | canvas + panel dialog + teks DOM  |
-| `challenge`         | `playing`              | canvas + `ChallengeOverlay` (DOM) |
-| `chapter_end`       | `playing`              | kartu ringkasan chapter           |
-| `done`              | `finished`             | `ResultScreen` (DOM)              |
-| —                   | `paused`               | `PauseMenu` (DOM)                 |
-| —                   | `error`                | layar error                       |
+| `RunnerState.phase` | `GameShellState.phase` | Yang tampil                               |
+| ------------------- | ---------------------- | ----------------------------------------- |
+| —                   | `loading`              | progress bar aset                         |
+| —                   | `ready`                | layar judul, tombol Mulai                 |
+| `explore`           | `playing`              | ruangan map + pemain + NPC                |
+| `dialog`            | `playing`              | canvas + panel dialog + teks DOM          |
+| `challenge`         | `playing`              | canvas + `ChallengeOverlay` (DOM)         |
+| `chapter_end`       | `playing`              | kartu chapter berikutnya terbuka otomatis |
+| `done`              | `finished`             | `ResultScreen` (DOM)                      |
+| —                   | `paused`               | `PauseMenu` (DOM)                         |
+| —                   | `error`                | layar error                               |
 
 `paused` dan `error` **tidak** ada di `StoryRunner`, karena keduanya bukan posisi
 di dalam cerita — cerita berhenti di tempat yang sama, hanya presentasinya yang
@@ -72,6 +72,15 @@ ruangan. Interaksi dengan NPC/objek memutar deretan beat scene itu; ketika deret
 beat habis, kembali ke `explore` (scene berikutnya) atau berhenti di
 `chapter_end`. `explore` hanya pernah dijeda oleh textbox, overlay tantangan,
 atau menu — cerita tetap berhenti di beat yang sama.
+
+Pergantian bab **tidak menunggu tombol**. Begitu `StoryRunner` mencapai
+`chapter_end` (`akhirBab()`), `GameScene` menjadwalkan pembukaan bab berikutnya
+sendiri setelah jeda singkat (`JEDA_AKHIR_BAB_MS`), lalu memanggil `advance()`
+sekali. Bab berikutnya terbuka di fase `explore`, sama seperti perpindahan scene
+biasa, dan kartu judul chapter muncul sebagai penanda. Pemain tetap boleh
+mempercepat dengan Space/Enter; jadwal otomatis dibatalkan saat bab dimulai ulang
+atau scene dihancurkan. Bab terakhir selesai juga lewat jalur ini: `advance()`
+dari `chapter_end` mengakhiri cerita dan memunculkan `ResultScreen`.
 
 Hanya NPC pemberi quest scene aktif yang bisa memicu dialog. Pemberi quest
 adalah pembicara `dialogue` pertama di scene yang ada di daftar NPC ruangan;

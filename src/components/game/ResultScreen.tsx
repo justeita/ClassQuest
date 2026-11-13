@@ -7,15 +7,34 @@ import type { PlayResult } from "@/story/scoring";
 type ResultScreenProps = {
   /** Ringkasan satu kali main dari `scoreStory()`. */
   result: PlayResult;
+  /** Status penyimpanan hasil ke tabel `play_results`. */
+  statusSimpan?: StatusSimpanHasil;
   /** Mulai ulang cerita tanpa memuat ulang halaman. */
   onMainLagi: () => void;
+};
+
+/**
+ * Status penyimpanan hasil main. `menyimpan` tampil selagi Server Action
+ * berjalan; `gagal` jujur mengatakan hasil belum masuk tabel, tanpa memblokir
+ * siswa melihat skornya.
+ */
+export type StatusSimpanHasil = "menyimpan" | "tersimpan" | "gagal";
+
+const TEKS_SIMPAN: Record<StatusSimpanHasil, string> = {
+  menyimpan: "Menyimpan hasil main…",
+  tersimpan: "Hasil main tersimpan.",
+  gagal: "Hasil main belum tersimpan.",
 };
 
 /**
  * Layar hasil (docs/05-frontend/game-player.md → Finished). Tanpa ranking dan
  * tanpa perbandingan dengan siswa lain; nadanya mendorong, bukan menghakimi.
  */
-export function ResultScreen({ result, onMainLagi }: ResultScreenProps) {
+export function ResultScreen({
+  result,
+  statusSimpan = "menyimpan",
+  onMainLagi,
+}: ResultScreenProps) {
   const { earnedPoints, totalPoints, correctCount, totalChallenges } = result;
 
   return (
@@ -74,6 +93,19 @@ export function ResultScreen({ result, onMainLagi }: ResultScreenProps) {
             Semua tantangan kamu jawab tepat. Konsepnya sudah kuat.
           </p>
         )}
+
+        <p
+          aria-live="polite"
+          className={`mb-4 text-[10px] uppercase tracking-widest ${
+            statusSimpan === "tersimpan"
+              ? "text-[#6F9B7A]"
+              : statusSimpan === "gagal"
+                ? "text-[#E8A87C]"
+                : "text-[#8FA396]"
+          }`}
+        >
+          {TEKS_SIMPAN[statusSimpan]}
+        </p>
 
         <div className="flex flex-col gap-2 sm:flex-row">
           <button

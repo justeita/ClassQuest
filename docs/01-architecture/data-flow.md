@@ -210,13 +210,18 @@ mungkin ada dua versi jawaban benar. Jangan menduplikasi logika benar/salah.
 ```text
 Game selesai
    │
-   ├─ hitung PlayResult dari answers (pure function)
-   ├─ simpan ke localStorage
-   ├─ tampilkan ResultScreen (client)
-   └─ (opsional) POST hasil ke server
+   ├─ hitung PlayResult dari answers percobaan pertama (scoreStory)
+   ├─ kirim event finished { result, answers } ke React
+   ├─ tampilkan ResultScreen (client) — tidak menunggu jaringan
+   └─ GameShell memanggil Server Action savePlayResult({ storyId, result: { answers } })
+        ├─ ok        → "Hasil main tersimpan."
+        └─ gagal     → "Hasil main belum tersimpan." (layar hasil tetap tampil)
 ```
 
-Kalau POST gagal, hasil tetap tampil. Jangan blokir siswa karena jaringan.
+Server menghitung ulang skor dari jawaban mentah; klien tidak pernah mengirim
+field skor. Kalau simpan gagal (jaringan, rate limit, cerita sudah tidak
+terbit), hasil tetap tampil dan status simpan ditulis apa adanya. Jangan blokir
+siswa karena jaringan.
 
 ## Cache dan revalidasi
 

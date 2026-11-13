@@ -44,15 +44,16 @@ import { PreloadScene } from "./scenes/PreloadScene";
 
 export { GAME_WIDTH, GAME_HEIGHT } from "./constants";
 
-import { GAME_HEIGHT, lebarInternal } from "./constants";
+import { GAME_HEIGHT, ukuranKanvas } from "./constants";
 
 export function createGameConfig(
   parent: HTMLElement,
   story: Story,
   bus?: GameBus,
 ): Phaser.Types.Core.GameConfig {
-  const lebar = lebarInternal(
-    parent.clientHeight > 0 ? parent.clientWidth / parent.clientHeight : 16 / 9,
+  const { skala, lebar } = ukuranKanvas(
+    parent.clientWidth,
+    parent.clientHeight,
   );
 
   return {
@@ -64,7 +65,8 @@ export function createGameConfig(
     pixelArt: true,
     roundPixels: true,
     scale: {
-      mode: Phaser.Scale.FIT,
+      mode: Phaser.Scale.NONE,
+      zoom: skala,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     scene: [new PreloadScene(story), new GameScene(story, bus)],
@@ -74,9 +76,12 @@ export function createGameConfig(
 
 Yang penting dari konfigurasi ini:
 
-- **Tinggi internal 360**, lebarnya mengikuti rasio layar lewat `lebarInternal()`
-  (dikunci 640–960). Layar lebar menampilkan **lebih banyak dunia ke samping**,
-  bukan bar hitam (FIT) atau potongan atas-bawah (ENVELOP). Angka dan warna ini
+- **Tinggi internal 360**, lebarnya `lebar kontainer ÷ skala`
+  (`ukuranKanvas()` di `constants.ts`, dijepit 640–960). Skala bulat 1×/2×/3×
+  dipakai saat sisa ruangnya ≤6%; kalau tidak, skala **penuh** (mis. 1,83×) supaya
+  kanvas mengisi bingkai dan tidak jadi strip kecil. `Scale.NONE` + `zoom`
+  dipakai (bukan `FIT`) karena lebar internal ikut dihitung di sini.
+  `createGame.ts` menghitung ulang skala pada event `resize`. Angka dan warna ini
   harus sama dengan [`game-design.md`](./game-design.md#resolusi-dan-skala) dan
   [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md).
 - **Tidak ada `physics`.** Gerak dan tabrakan dihitung sendiri oleh
@@ -88,6 +93,10 @@ Yang penting dari konfigurasi ini:
 Catatan Phaser 4:
 
 - `roundPixels` **default `false`** di v4. Tanpa ini, pixel art akan blur/bergetar.
+- Pembulatan per objek memakai `vertexRoundMode`. Default `safeAuto` hanya
+  membulatkan objek yang **tidak** diskalakan atau diputar; objek terskala
+  (prop editor ±1,66×, karakter 0,875×) perlu
+  `setVertexRoundMode("fullAuto")` supaya tidak meluncur di sub-piksel.
 - `setTintFill()` sudah dihapus. Untuk efek highlight, pakai `setTint()` +
   `setTintMode()`.
 - FX dan mask kini satu sistem filter. Jangan menyalin contoh Phaser 3.
@@ -232,10 +241,46 @@ dirender `DialogueBox.tsx`; React membalas command `advance`. Prompt interaksi
 memakai event `prompt` dan chip DOM `InteractHint.tsx` (ADR 0007). Hanya NPC
 pemberi quest scene aktif yang memunculkan prompt dan bisa memulai dialog; NPC
 lain tetap menjadi penghalang. Penanda `!` dikirim lewat event `markers` dan
-dirender `NpcMarker.tsx`. Posisi prompt dan penanda dikonversi dari koordinat
-dunia ke layar memakai `camera.scrollX/scrollY` (`layar.ts`), lalu diperbarui
-maksimal ~11 kali per detik (bukan tiap frame). Speaker disorot, beat `transition`
-fade otomatis, beat `challenge` dibuka sebagai overlay React.
+dirender `NpcMarker.tsx`.
+
+Posisi prompt dan penanda dikonversi dari koordinat dunia ke layar memakai
+`duniaKeLayar()` (`layar.ts`), yang memperhitungkan `scroll` **dan** `zoom`
+kamera, lalu dikirim **setiap frame** supaya tanda menempel pada NPC saat kamera
+bergeser. Dulu pengirimannya dibatasi 90 ms; dengan
+kamera yang kini menempel pemain, penanda tertinggal lalu terlihat melompat
+("putus-putus"). Keduanya dirender `NpcHintLayer.tsx` — komponen kecil yang
+berlangganan bus sendiri, jadi pembaruan tiap frame tidak me-render ulang HUD,
+dialog, atau jurnal. Emisi tetap hanya terjadi saat piksel bulatnya berubah.
+
+Saat NPC terlihat, `NpcHintLayer.tsx` merender **papan nama** untuk **semua**
+NPC — bukan hanya pemberi quest — dari `cast.name`. Chip gelap bergaris
+`#3D4B41`, teks krem tebal, lebar maksimum agar nama panjang dipotong elipsis,
+dan diletakkan rapat di atas kepala (`JARAK_NAMA` 6 px) supaya tidak "melayang"
+tinggi dari sprite. NPC tanpa entri di `cast` dilewati, jadi tidak ada papan
+nama kosong.
+
+Pemberi quest ditandai **kotak `!`** bergaya HUD di atas papan namanya
+(`MARKER_OFFSET_Y` 24 px). Kotak yang sama dipakai di dua keadaan supaya
+indikator konsisten: saat dekat kotak naik-turun ringan (`animate-quest-bob`,
+magnitudo 4 px); saat NPC berada di luar pandangan, `posisiPenanda()` (`layar.ts`)
+menjepit posisinya ke tepi layar dan kotak menjadi **beacon** — ditambah cincin
+denyut dan **penunjuk kecil di atas kotak** yang berputar mengikuti `sudut` arah
+NPC. `INSET_PENANDA` (24 px semua sisi) menahan beacon agar tetap dekat tepi
+bingkai game, tetapi tidak lebih dekat dari jangkauan penunjuknya
+(`JANGKAUAN_PENUNJUK` 22,5 px dari pusat kotak) — dulu sisi kiri/kanan/bawah
+hanya 16 px sehingga penunjuk arah habis terpotong tepi kanvas. Penunjuk dan
+cincin denyut kini utuh di keempat sisi, dan tidak ada tombol HUD yang tertutup
+karena `pointer-events-none`. Karena posisinya dihitung ulang tiap
+frame, beacon ikut bergeser ketika pemain berjalan mendekat dan berubah mulus
+menjadi kotak `!` begitu NPC masuk layar.
+
+Kotak `!` **tidak** diganti chip `Space` saat pemain mendekat: kedua tanda
+tampil bersamaan agar indikator quest tidak hilang-muncul. Chip `Space` digeser
+ke kanan kotak dan dinaikkan melewati papan nama (`JARAK_PROMPT` 22 px), jadi
+keduanya tidak bertabrakan. Zona interaksi memakai histeresis — masuk di
+24 px, keluar di 32 px — supaya chip tidak berkedip saat pemain berdiri di batas
+zona. Speaker disorot, beat `transition` fade otomatis, beat `challenge` dibuka
+sebagai overlay React.
 
 Dunia dibangun **sekali** di `create()`: tidak ada `roomId`, tidak ada bangun
 ulang saat pindah chapter. Perpindahan scene hanya menukar musik dan NPC pemberi
@@ -291,6 +336,7 @@ type GameEvent =
   | { type: "dialogue"; view: DialogueView }
   | { type: "prompt"; hint: PromptView | null }
   | { type: "markers"; markers: NpcMarker[] }
+  | { type: "nametags"; plates: NpcNameplate[] }
   | { type: "challenge"; view: ChallengeView }
   | {
       type: "graded";
@@ -298,7 +344,7 @@ type GameEvent =
       correct: boolean;
       explanation: string;
     }
-  | { type: "finished"; result: PlayResult }
+  | { type: "finished"; result: PlayResult; answers: Answer[] }
   | {
       type: "log";
       name: string | null;
@@ -311,8 +357,14 @@ type GameEvent =
 ```
 
 `DialogueView` = `{ visible, name, text, waiting }`; `PromptView` =
-`{ text, x, y }` dan `NpcMarker` = `{ npcId, x, y }`, keduanya dalam koordinat
-layar internal 640×360 (sudah dikurangi scroll kamera). `QuestState` berisi
+`{ text, x, y }`, `NpcMarker` = `{ npcId, x, y, tepi?, sudut? }`, dan
+`NpcNameplate` = `{ npcId, nama, x, y }`, semuanya dalam koordinat layar internal
+640×360 (sudah dikurangi scroll kamera). `nama` berasal dari `cast.name` dan
+dipakai papan nama di atas kepala NPC; papan nama dikirim untuk **semua** NPC
+yang terlihat, terpisah dari penanda quest. Untuk `NpcMarker`, `tepi: true`
+berarti NPC di luar pandangan sehingga posisinya sudah dijepit ke area aman di
+tepi layar dan `sudut` (derajat, 0 = kanan) memutar penunjuk beacon. `QuestState`
+berisi
 chapter, scene aktif, daftar quest turunan scene, dan `activeQuestId`; status
 `selesai | aktif | terkunci` dihitung dari posisi `StoryRunner`, bukan ditulis di
 Story JSON. Teks dialog dikirim bertahap saat typewriter berjalan, dan React tidak
@@ -372,6 +424,12 @@ export function resolveChallenge(state: RunnerState, story: Story): RunnerState;
 Phaser hanya **menampilkan** hasil `currentBeat`. Ini membuat logika cerita bisa
 dites tanpa browser dan tanpa Phaser.
 
+Pergantian bab juga dijalankan `GameScene`, bukan menunggu tombol: begitu
+`akhirBab()` benar (`phase === "chapter_end"`), scene menjadwalkan `advance()`
+sendiri setelah `JEDA_AKHIR_BAB_MS`, jadi bab berikutnya terbuka otomatis di
+fase `explore`. Predikat `akhirBab()` ada di `StoryRunner.ts` supaya aturan
+"ini akhir bab" tidak tersebar sebagai perbandingan string di scene.
+
 ## Konsekuensi performa
 
 - Satu instance `Phaser.Game` per halaman. Jangan membuat game baru tiap render.
@@ -387,8 +445,11 @@ Yang sudah berlaku di kode hari ini:
 - [x] Phaser diimpor dinamis di dalam `useEffect`.
 - [x] `game.destroy(true)` di cleanup.
 - [x] `pixelArt: true`, `roundPixels: true`.
-- [x] `scale.mode = FIT`, tinggi dasar 360 dengan lebar adaptif (ADR 0009);
-      halaman full-bleed dan kanvas selalu tampil utuh di dalamnya.
+- [x] `scale.mode = NONE` + `zoom` dari `ukuranKanvas()`, tinggi dasar 360 dengan
+      lebar adaptif (ADR 0009): skala bulat untuk pixel paling tajam, skala penuh
+      saat sisa ruangnya terlalu besar.
+- [x] `vertexRoundMode` `fullAuto` untuk objek terskala; posisi pemain dan NPC
+      dibulatkan ke piksel utuh.
 - [x] Key aset = `assetId`.
 - [x] Bridge mengirim `GameEvent` dan menerima `GameCommand`.
 - [x] Tidak ada state penting hanya di dalam Phaser (progres dihitung ulang dari

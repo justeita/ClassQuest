@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -20,7 +20,7 @@ src/app/play/[storyId]/page.tsx        (Server Component)
         ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
         ├─ <ChallengeOverlay />        (DOM)
         ├─ <QuestTracker />            (DOM)
-        ├─ <NpcMarker />               (DOM)
+        ├─ <NpcHintLayer />            (DOM: penanda `!` + chip `Space`)
         ├─ <ChapterCard />             (DOM, transisi)
         ├─ <QuestToast />              (DOM, transisi)
         ├─ <HUD />                     (DOM)
@@ -32,8 +32,9 @@ Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
 > **Yang ada hari ini:** `TitleScreen`, `GameShell`, `GameCanvas`,
-> `ChallengeOverlay`, `QuestTracker`, `NpcMarker`, `ChapterCard`, `QuestToast`,
-> `HUD`, `PauseMenu`, dan `ResultScreen` sudah ada.
+> `ChallengeOverlay`, `QuestTracker`, `NpcHintLayer` (berisi `NpcMarker` dan
+> `InteractHint`), `ChapterCard`, `QuestToast`, `HUD`, `PauseMenu`, dan
+> `ResultScreen` sudah ada.
 >
 > `/play/[storyId]` membaca cerita terbit lewat `getPlayableStory()`
 > (`src/server/stories/playable.ts`). Hanya `status = 'published'` dengan
@@ -120,18 +121,41 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ### Playing
 
-- Kanvas `Scale.FIT` di dalam halaman **full-bleed**: kanvas selalu tampil
-  utuh (tidak pernah ter-crop) dan menempel ke tepi pada sisi yang rasionya
-  cocok; sisa area memakai latar palet gelap, bukan kotak putus di tengah.
+- Kanvas diskalakan lewat `ukuranKanvas()` (`Scale.NONE` + `zoom`): kanvas selalu
+  tampil utuh (tidak pernah ter-crop). Skala **bulat** dipakai saat sisa ruang
+  kontainer ≤6% (pixel paling tajam); selain itu skala **penuh** supaya kanvas
+  mengisi bingkai — di jendela laptop 1366×660 dulu hanya dapat 960×360. Halaman
+  memberi margin 8–24 px dan sudut membulat, jadi sisa ruang terbaca sebagai
+  bingkai jendela, bukan kanvas yang menempel ke tepi.
 - Tombol buku quest di kiri atas (`Q` Quest): membuka jendela buku catatan ala Minecraft journal dengan 2 halaman perkamen yang menampilkan bab, judul scene, daftar tugas dengan status `Aktif`/`Selesai`/`Terkunci`, dan hitungan tantangan. Dapat dibuka/tutup dengan tombol `Q` atau `Esc`.
 - HUD kanan atas: tombol jeda dan tombol suara. Semua tombol HUD dan quest
   menampilkan tombol keyboardnya sebagai keycap konsisten (`Tab`, `B`, `Q`,
   `Esc`) lewat komponen `Keycap`. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
-- Penanda `!` hanya ada di atas NPC pemberi quest. Saat pemain mendekat, chip
-  `Space` menggantikan penanda itu. Keduanya memakai koordinat layar yang ikut
-  kamera dan disembunyikan selama dialog, tantangan, atau menu jeda.
+- **Pergantian bab berjalan otomatis.** Setelah beat terakhir sebuah bab selesai,
+  GameScene membuka bab berikutnya sendiri (jeda singkat, lalu `ChapterCard`
+  menandai bab baru). Pemain tidak perlu menekan tombol untuk lanjut; menekan
+  Space/Enter hanya mempercepat. Cerita yang sudah bab terakhir langsung masuk
+  ke `ResultScreen` lewat jalur yang sama.
+- **Papan nama** muncul di atas kepala **semua** NPC yang terlihat (dari
+  `cast.name`), rapat di atas sprite, supaya siswa mengenali siapa saja di desa.
+  NPC pemberi quest ditandai **kotak `!`** bergaya HUD di atas papan namanya; UI
+  kotak ini sama persis di dua keadaan supaya konsisten. Saat pemain dekat, kotak
+  hanya naik-turun ringan. Saat NPC di luar pandangan, kotak menjadi **beacon** di
+  tepi layar dengan cincin denyut dan penunjuk kecil di atas kotak yang berputar
+  mengikuti arah NPC. Beacon tetap dekat tepi bingkai game, tetapi penunjuk arah
+  dan cincin denyutnya utuh di semua sisi — jarak aman (`INSET_PENANDA` 24 px)
+  selalu lebih besar dari jangkauan penunjuk, jadi tidak ada bagian yang
+  terpotong tepi kanvas. Beacon juga tembus klik, jadi tidak ada tombol HUD yang
+  tertutup. Beacon ikut bergeser saat pemain berjalan mendekat, lalu berubah
+  kembali menjadi kotak `!` ketika NPC masuk layar. Kotak `!` **tidak** hilang
+  saat pemain mendekat: chip `Space` muncul di kanannya, di atas papan nama,
+  sehingga indikator quest tidak berkedip hilang-muncul. Zona interaksi memakai
+  histeresis (masuk 24 px, keluar 32 px) supaya chip tidak berkedip di batas
+  zona. Posisi papan nama, penanda, dan chip diperbarui tiap frame lewat
+  `NpcHintLayer`, jadi tanda tetap menempel pada NPC saat kamera bergeser, dan
+  disembunyikan selama dialog, tantangan, atau menu jeda.
 - Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
   petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
   ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti
@@ -207,6 +231,18 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Daftar `weakConcepts` dengan kalimat: "Coba ulang bagian ini: Kondensasi".
 - Tombol "Main lagi" dan "Kembali ke awal".
 - Tanpa ranking, tanpa perbandingan dengan siswa lain.
+- Hasil disimpan lewat Server Action `savePlayResult` (`src/app/play/actions.ts`):
+  `GameScene` mengirim event `finished` berisi `result` **dan** `answers`
+  percobaan pertama, lalu `GameShell` mengirim `{ storyId, result: { answers } }`.
+  Hanya jawaban yang dikirim — server menghitung ulang skor dari cerita terbit.
+  Layar hasil tampil tanpa menunggu simpan; statusnya ditulis jujur di bawah
+  ringkasan: "Menyimpan hasil main…", "Hasil main tersimpan.", atau
+  "Hasil main belum tersimpan.".
+- Cerita demo (`/game` dan `/play/st_demo_siklus_air`) dibaca tanpa database,
+  jadi tidak punya baris `stories` untuk dirujuk `play_results`. Di sana action
+  menjawab `not_found` dan status berbunyi "belum tersimpan" — bukan bug
+  tampilan. Untuk menguji penyimpanan, mainkan cerita terbit lewat
+  `/play/<storyId>`.
 
 ### Error
 
@@ -223,15 +259,17 @@ di [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#penanganan-
 
 ## Responsif
 
-| Layar             | Perilaku                                                         |
-| ----------------- | ---------------------------------------------------------------- |
-| Desktop ≥ 1024 px | Kanvas penuh viewport; sisi lebar menampilkan lebih banyak dunia |
-| Tablet            | Sama — dunia tetap utuh, hanya lebih sempit                      |
-| HP landscape      | Kanvas memenuhi layar, HUD kecil                                 |
-| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati)     |
+| Layar             | Perilaku                                                     |
+| ----------------- | ------------------------------------------------------------ |
+| Desktop ≥ 1024 px | Kanvas mengisi bingkai (margin 24 px, sudut membulat)        |
+| Tablet            | Sama — margin 16 px, dunia tetap utuh                        |
+| HP landscape      | Kanvas mengisi bingkai, skala ±1×; HUD kecil                 |
+| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati) |
 
-Halaman game full-bleed dengan kanvas `Scale.FIT` yang **selalu tampil
-utuh** — Fullscreen API peramban tidak dipakai dan tidak dipaksa, jadi tidak
+Halaman game memakai seluruh viewport dengan margin 8–24 px dan bingkai bersudut
+membulat. Kanvas **selalu tampil utuh**: skala bulat dipakai bila sisa ruangnya
+≤6%, selain itu kanvas dibesarkan penuh mengikuti bingkai supaya tidak muncul bar
+gelap besar. Fullscreen API peramban tidak dipakai dan tidak dipaksa, jadi tidak
 ada konten yang terpotong di layar apa pun.
 
 ## Berbagi
@@ -293,14 +331,15 @@ Aturan:
 - Simpan setelah setiap beat (throttle 500 ms).
 - Kunci: `classquest:progress:{storyId}`.
 - Saat mount, baca progres; kalau `storyVersion` beda → tawarkan mulai ulang.
-- Saat selesai, simpan `PlayResult` dan tandai selesai.
+- Saat selesai, kirim **jawaban** ke `savePlayResult` (server menghitung ulang
+  skor); jangan mengirim field skor.
 
 ## Checklist implementasi
 
 - [ ] Hanya cerita `published` yang bisa diakses.
 - [ ] `notFound()` untuk id tidak dikenal.
 - [ ] Phaser hanya dimuat di halaman game.
-- [ ] Kanvas `Scale.FIT` tampil utuh di halaman full-bleed.
+- [ ] Kanvas tampil utuh di bingkai halaman (margin 8–24 px, sudut membulat).
 - [ ] Overlay tidak menerima jawaban benar.
 - [ ] Progres bisa dipulihkan.
 - [ ] Error aset tidak menghentikan permainan.

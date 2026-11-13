@@ -97,10 +97,11 @@ dialog; NPC lain tetap berdiri sebagai penghalang.
 
 ## Peta visual
 
-Resolusi internal 640×360 (ADR 0009); lebar kanvas mengikuti rasio layar
-(640–960 px) dan tinggi tetap 360. Layout berikut berlaku saat fase `dialog`
-(textbox terbuka); saat fase `explore`, textbox tersembunyi dan pemain bebas
-bergerak.
+Resolusi internal 640×360 (ADR 0009); lebar kanvas = lebar kontainer ÷ skala
+(dijepit 640–960 px) dan tinggi tetap 360. Skala bulat dipakai saat sisa ruang
+≤6%, selain itu kanvas memenuhi bingkai halaman. Layout berikut berlaku saat fase
+`dialog` (textbox terbuka); saat fase `explore`, textbox tersembunyi dan pemain
+bebas bergerak.
 
 ```text
 ┌──────────────────────────────────────────────────────┐ 640×360
