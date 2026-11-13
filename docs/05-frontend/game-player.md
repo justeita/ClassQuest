@@ -221,6 +221,11 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   Layar hasil tampil tanpa menunggu simpan; statusnya ditulis jujur di bawah
   ringkasan: "Menyimpan hasil main…", "Hasil main tersimpan.", atau
   "Hasil main belum tersimpan.".
+- Cerita demo (`/game` dan `/play/st_demo_siklus_air`) dibaca tanpa database,
+  jadi tidak punya baris `stories` untuk dirujuk `play_results`. Di sana action
+  menjawab `not_found` dan status berbunyi "belum tersimpan" — bukan bug
+  tampilan. Untuk menguji penyimpanan, mainkan cerita terbit lewat
+  `/play/<storyId>`.
 
 ### Error
 
