@@ -2,9 +2,9 @@
  * Konfigurasi server dari environment.
  *
  * **Satu-satunya** modul yang membaca `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`,
- * `AI_BASE_URL`, `AI_TIMEOUT_MS`, `AI_BRANCHING`, `DATABASE_URL`,
- * `DATABASE_AUTH_TOKEN`, `TEACHER_SEED_USERNAME`, `TEACHER_SEED_PASSWORD`, dan
- * `TEACHER_SESSION_SECRET` dari `process.env`
+ * `AI_BASE_URL`, `AI_TIMEOUT_MS`, `AI_BRANCHING`, `AI_DISABLE_THINKING`,
+ * `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `TEACHER_SEED_USERNAME`,
+ * `TEACHER_SEED_PASSWORD`, dan `TEACHER_SESSION_SECRET` dari `process.env`
  * (`docs/03-ai-pipeline/provider-setup.md`, `docs/06-backend/persistence.md`,
  * `docs/08-workflow/setup.md`). Modul lain memakai hasil `loadAiConfig()`,
  * `loadDatabaseConfig()`, `loadTeacherAuthConfig()`, atau `loadSeedConfig()`
@@ -85,6 +85,13 @@ export type AiConfig =
       timeoutMs: number;
       /** `AI_BRANCHING=on`: ajari model membuat konsekuensi jawaban salah. */
       branching: boolean;
+      /**
+       * `AI_DISABLE_THINKING=on`: minta model reasoning tidak memakai token
+       * "thinking" (`thinking: { type: "disabled" }`). Model reasoning
+       * menghabiskan anggaran output untuk thinking sebelum menulis JSON
+       * (ADR 0017), jadi toggle ini wajib untuk provider semacam itu.
+       */
+      disableThinking: boolean;
     };
 
 /** Konfigurasi database. `authToken` hanya dipakai untuk database remote. */
@@ -358,6 +365,7 @@ export function loadAiConfig(env: EnvSource = process.env): AiConfig {
       baseUrl: normalizeBaseUrl(baseUrlValue),
       timeoutMs,
       branching,
+      disableThinking: readToggle(env, "AI_DISABLE_THINKING"),
     };
   }
 

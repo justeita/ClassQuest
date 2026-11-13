@@ -19,8 +19,9 @@
  * - **Selalu memvalidasi.** `validateOutline`, `validateChapter`, dan
  *   `validateStory` adalah satu-satunya pintu masuk cerita.
  * - **`assetUsage` dihitung di kode**, bukan diambil dari model.
- * - **Anggaran keras**: 12 panggilan LLM, 2 repair (per cerita), 60 detik per
- *   panggilan, deadline 120 detik, maksimal 4.000 token keluaran.
+ * - **Anggaran keras**: 18 panggilan LLM, 2 repair per chapter + 2 repair
+ *   cerita, 60 detik per panggilan, deadline 240 detik, maksimal 8.000 token
+ *   keluaran (ADR 0018).
  */
 
 import { buildFallbackStory } from "../story/fallback";
@@ -32,7 +33,7 @@ import type {
   Story,
   StoryFlag,
 } from "../story/schema";
-import type { AssetManifest } from "../story/validate";
+import type { AssetManifest, ValidationIssue } from "../story/validate";
 import { validateStory } from "../story/validate";
 import { validateChapter, validateOutline } from "../story/validate-parts";
 import {
@@ -54,23 +55,52 @@ import {
 /* Batas keras (jobs-and-limits.md, validation-and-repair.md)                  */
 /* -------------------------------------------------------------------------- */
 
-/** Batas atas panggilan LLM per cerita, termasuk retry jaringan dan cadangan. */
-export const MAX_LLM_CALLS_PER_STORY = 12;
+/**
+ * Batas atas panggilan LLM per cerita, termasuk retry jaringan dan cadangan.
+ *
+ * Dinaikkan 12 → 18 oleh ADR 0017: repair dihitung per chapter, jadi cerita
+ * 3–6 chapter yang tiap chapternya butuh satu perbaikan tetap muat.
+ */
+export const MAX_LLM_CALLS_PER_STORY = 18;
 
-/** Repair per **cerita**, bukan per chapter. Repair outline punya jatah sendiri. */
+/**
+ * Repair per **chapter**. Model nyata sering menghasilkan satu error mekanis
+ * per chapter (mis. `E_TRANSITION_LAST`); memberi jatah per unit membuat satu
+ * chapter yang buruk tidak menghabiskan jatah chapter lain (ADR 0017).
+ */
+export const MAX_REPAIRS_PER_CHAPTER = 2;
+
+/** Repair tingkat **cerita** saja (setelah semua chapter digabung). */
 export const MAX_REPAIRS_PER_STORY = 2;
 
 /** Pagar satu panggilan yang menggantung. Bukan target. */
 export const LLM_CALL_TIMEOUT_MS = 60_000;
 
-/** Deadline keseluruhan; lewat ini berhenti memanggil dan memakai fallback. */
-export const TOTAL_BUDGET_MS = 120_000;
+/**
+ * Deadline keseluruhan; lewat ini berhenti memanggil dan memakai fallback.
+ *
+ * Dinaikkan 120 → 240 detik oleh ADR 0017: dengan repair per chapter, satu
+ * cerita 6 chapter bisa memakai belasan panggilan.
+ */
+export const TOTAL_BUDGET_MS = 240_000;
 
 /** Sebelum memulai panggilan baru, sisa waktu harus minimal sebesar ini. */
 export const MIN_REMAINING_BUDGET_MS = 30_000;
 
-/** Maksimal output token per panggilan. */
-export const MAX_OUTPUT_TOKENS = 4_000;
+/**
+ * Maksimal diagnostik validasi yang disimpan saat fallback. Cukup untuk melihat
+ * pola error (mis. id bentrok) tanpa membanjiri `jobs.log`.
+ */
+export const MAX_DIAGNOSTICS = 20;
+
+/**
+ * Maksimal output token per panggilan.
+ *
+ * Dinaikkan 4.000 → 8.000 oleh ADR 0018: saat reasoning dibiarkan hidup, model
+ * bisa memakai 6.000–14.000 karakter `reasoning_content` sebelum menulis JSON,
+ * sehingga plafon 4.000 membuat `finish_reason: "length"` dan `content` kosong.
+ */
+export const MAX_OUTPUT_TOKENS = 8_000;
 
 /** Generate outline: satu percobaan + satu retry (pipeline.md tahap 4). */
 export const OUTLINE_GENERATE_ATTEMPTS = 2;
@@ -163,7 +193,10 @@ export type GenerateStoryInput = {
 
 export type GenerateStoryStats = {
   llmCalls: number;
-  /** Repair chapter + repair cerita; selalu ≤ `MAX_REPAIRS_PER_STORY`. */
+  /**
+   * Repair chapter + repair cerita. Total dibatasi anggaran panggilan
+   * (`MAX_LLM_CALLS_PER_STORY`), bukan angka tetap per cerita.
+   */
   repairs: number;
   durationMs: number;
 };
@@ -188,6 +221,12 @@ export type GenerateStoryResult = {
   stats: GenerateStoryStats;
   /** `source.gaps` cerita final; berguna untuk banner dan telemetri. */
   gaps: string[];
+  /**
+   * Kode + path error validasi terakhir saat fallback, mis.
+   * `"E_DUPLICATE_ID challenges[3].id"`. **Tidak** memuat teks materi atau isi
+   * cerita, jadi aman ditulis ke `jobs.log` dan ditampilkan ke operator.
+   */
+  diagnostics: string[];
 };
 
 /* -------------------------------------------------------------------------- */
@@ -593,7 +632,16 @@ export async function generateStory(
 
   const pageCount = pageCountOf(input.meta.pageCount);
   let outline: Outline | null = null;
-  let repairsLeft = MAX_REPAIRS_PER_STORY;
+  let storyRepairsLeft = MAX_REPAIRS_PER_STORY;
+
+  /**
+   * Error validasi terakhir yang membuat fallback. Hanya kode + path; teks
+   * materi tidak pernah masuk sini.
+   */
+  let lastIssues: readonly ValidationIssue[] = [];
+  const rememberIssues = (issues: readonly ValidationIssue[]): void => {
+    lastIssues = issues;
+  };
 
   /** Satu panggilan + satu retry jaringan untuk error transien. */
   const complete = async (prompt: PromptResult): Promise<LlmResponse> => {
@@ -705,6 +753,7 @@ export async function generateStory(
       if (check.ok) return normalizeSourcePages(candidate as Outline);
     }
 
+    rememberIssues(check.errors);
     throw new PipelineStop("outline-invalid");
   };
 
@@ -749,9 +798,10 @@ export async function generateStory(
 
     let draft = await requestPayload(prompt, "chapter-invalid");
     let check = validateChapter(draft, context);
+    let chapterRepairsLeft = MAX_REPAIRS_PER_CHAPTER;
 
-    while (!check.ok && repairsLeft > 0) {
-      repairsLeft -= 1;
+    while (!check.ok && chapterRepairsLeft > 0) {
+      chapterRepairsLeft -= 1;
       stats.repairs += 1;
       emit("repairing");
 
@@ -759,13 +809,19 @@ export async function generateStory(
         draft,
         errors: check.errors,
         truncatedErrorCount: check.truncatedErrorCount,
+        assets: input.manifest,
+        outline: value,
+        planned,
       });
 
       draft = await requestPayload(repairPrompt, "chapter-invalid");
       check = validateChapter(draft, context);
     }
 
-    if (!check.ok) throw new PipelineStop("chapter-invalid");
+    if (!check.ok) {
+      rememberIssues(check.errors);
+      throw new PipelineStop("chapter-invalid");
+    }
 
     return draft as {
       chapter: Chapter;
@@ -816,6 +872,9 @@ export async function generateStory(
         durationMs: Math.max(0, clock() - startedAt),
       },
       gaps: identified.source.gaps ?? [],
+      diagnostics: lastIssues
+        .slice(0, MAX_DIAGNOSTICS)
+        .map((issue) => `${issue.code} ${issue.path}`),
     };
   };
 
@@ -861,9 +920,9 @@ export async function generateStory(
       pageCount,
     });
 
-    // Repair tingkat cerita memakai jatah yang sama (per cerita).
-    while (!check.ok && repairsLeft > 0) {
-      repairsLeft -= 1;
+    // Repair tingkat cerita punya jatah sendiri, terpisah dari jatah chapter.
+    while (!check.ok && storyRepairsLeft > 0) {
+      storyRepairsLeft -= 1;
       stats.repairs += 1;
       emit("repairing");
 
@@ -871,6 +930,8 @@ export async function generateStory(
         draft: story,
         errors: check.errors,
         truncatedErrorCount: check.truncatedErrorCount,
+        assets: input.manifest,
+        outline,
       });
 
       const repaired = await requestPayload(repairPrompt, "story-invalid");
@@ -887,7 +948,10 @@ export async function generateStory(
       });
     }
 
-    if (!check.ok) throw new PipelineStop("story-invalid");
+    if (!check.ok) {
+      rememberIssues(check.errors);
+      throw new PipelineStop("story-invalid");
+    }
 
     emit("saving");
     emit("done");
@@ -902,6 +966,7 @@ export async function generateStory(
         durationMs: Math.max(0, clock() - startedAt),
       },
       gaps: story.source.gaps ?? [],
+      diagnostics: [],
     };
   } catch (error) {
     return fallback(reasonOf(error));

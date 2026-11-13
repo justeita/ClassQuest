@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -119,6 +119,26 @@ Pak Bima: "Berarti airnya pergi ke suatu tempat. Ke mana?"
 Bedanya: yang kedua memberi **pengamatan**, bukan definisi. Definisi tetap muncul,
 tapi setelah siswa punya pengalaman.
 
+## Suara, sudut pandang, dan nada
+
+Cerita ini dimainkan, jadi tulisannya harus terasa seperti roleplay, bukan buku
+pelajaran.
+
+- **Sudut pandang.** Pilih satu dan pakai konsisten: narasi menyapa pemain dengan
+  "kamu", atau menyebut nama tokoh pemain (mis. "Nara"). Jangan mencampur
+  keduanya dalam satu cerita.
+- **Register.** Pakai bahasa sehari-hari siswa. Hindari "Anda" dan "Saya" yang
+  kaku; bentuk formal hanya untuk tokoh yang memang sengaja formal. Kalau semua
+  tokoh bicara formal, ceritanya terasa jauh dan aneh.
+- **Suara tokoh.** Tiap tokoh punya pilihan kata dan panjang kalimat sendiri.
+  Mentor boleh lebih tenang dan suka bertanya; pemain boleh lebih spontan dan
+  penasaran. Jangan sampai semua tokoh terdengar sama.
+- **Dialog diucapkan, bukan ditulis.** Potongan pendek, ada reaksi dan jeda.
+  Dialog yang berbunyi seperti definisi kamus selalu salah.
+- **Ikuti nada guru.** `meta.tone` dari formulir upload menentukan suasana (mis.
+  "hangat dan penasaran", "lucu", "misterius"). Kata, irama, dan detail harus
+  selaras; ini yang membuat cerita cocok dengan tema yang dipilih guru.
+
 ## Menulis tantangan yang adil
 
 - Jawaban benar harus muncul di beat-beat sebelumnya, atau merupakan penerapan
@@ -190,6 +210,7 @@ Ketegangan hanya boleh berasal dari **rasa ingin tahu**, bukan ancaman.
 | ------------------------------ | ----------------------------------------- | -------------------------------------------- |
 | Chapter terasa terpisah        | Kontinuitas tidak dikirim                 | Kirim `ContinuityState`, larang reset dunia  |
 | Dialog seperti buku teks       | Tidak ada sensory detail                  | Ganti definisi dengan pengamatan             |
+| Dialog terasa formal/jauh      | Register "Anda/Saya" tidak diatur         | Pakai bahasa sehari-hari; ikuti nada guru    |
 | Tantangan tidak nyambung       | Challenge ditulis terpisah                | Tulis tantangan tepat setelah konsep muncul  |
 | Semua chapter sama strukturnya | Model meniru contoh                       | Variasikan hook; jangan kirim contoh panjang |
 | Nama karakter berubah          | Cast tidak ditegaskan                     | Kirim cast lengkap + larangan rename         |

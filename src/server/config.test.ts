@@ -162,6 +162,7 @@ describe("loadAiConfig — openai-compatible", () => {
       baseUrl: "https://router.example.test/v1",
       timeoutMs: 45_000,
       branching: false,
+      disableThinking: false,
     });
   });
 
@@ -179,6 +180,7 @@ describe("loadAiConfig — openai-compatible", () => {
       baseUrl: "http://localhost:20128/v1",
       timeoutMs: DEFAULT_AI_TIMEOUT_MS,
       branching: false,
+      disableThinking: false,
     });
   });
 
@@ -391,6 +393,61 @@ describe("loadAiConfig — AI_BRANCHING", () => {
         AI_BRANCHING: "on",
       }).branching,
     ).toBe(true);
+  });
+});
+
+describe("loadAiConfig — AI_DISABLE_THINKING", () => {
+  const openai = (extra: Record<string, string | undefined>) =>
+    loadAiConfig({
+      AI_PROVIDER: "openai-compatible",
+      AI_MODEL: "model-contoh",
+      AI_BASE_URL: "https://router.example.test/v1",
+      ...extra,
+    });
+
+  it('mati saat tidak diset, kosong, atau bukan "on"', () => {
+    expect(openai({})).toHaveProperty("disableThinking", false);
+    expect(openai({ AI_DISABLE_THINKING: "" })).toHaveProperty(
+      "disableThinking",
+      false,
+    );
+    expect(openai({ AI_DISABLE_THINKING: "off" })).toHaveProperty(
+      "disableThinking",
+      false,
+    );
+    expect(openai({ AI_DISABLE_THINKING: "true" })).toHaveProperty(
+      "disableThinking",
+      false,
+    );
+  });
+
+  it('hidup hanya saat bernilai "on"', () => {
+    expect(openai({ AI_DISABLE_THINKING: "on" })).toHaveProperty(
+      "disableThinking",
+      true,
+    );
+    expect(openai({ AI_DISABLE_THINKING: "ON" })).toHaveProperty(
+      "disableThinking",
+      true,
+    );
+    expect(openai({ AI_DISABLE_THINKING: "  On  " })).toHaveProperty(
+      "disableThinking",
+      true,
+    );
+  });
+
+  it("tidak berlaku untuk provider mock dan anthropic", () => {
+    expect(loadAiConfig({ AI_DISABLE_THINKING: "on" })).not.toHaveProperty(
+      "disableThinking",
+    );
+    expect(
+      loadAiConfig({
+        AI_PROVIDER: "anthropic",
+        AI_API_KEY: FAKE_KEY,
+        AI_MODEL: "model-contoh",
+        AI_DISABLE_THINKING: "on",
+      }),
+    ).not.toHaveProperty("disableThinking");
   });
 });
 

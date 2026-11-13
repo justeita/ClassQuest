@@ -32,6 +32,7 @@ const config: OpenAiCompatibleProviderConfig = {
   baseUrl: BASE_URL,
   timeoutMs: 60_000,
   branching: false,
+  disableThinking: false,
 };
 
 const request: LlmRequest = {
@@ -199,6 +200,29 @@ describe("OpenAiCompatibleProvider — bentuk request", () => {
     await provider.complete({ ...request, temperature: 0 });
 
     expect(bodyOf(calls[0].init)).toHaveProperty("temperature", 0);
+  });
+
+  it("tidak mengirim thinking secara bawaan", async () => {
+    const { provider, calls } = providerFor(() =>
+      jsonResponse({ choices: [{ message: { content: "{}" } }] }),
+    );
+
+    await provider.complete(request);
+
+    expect(bodyOf(calls[0].init)).not.toHaveProperty("thinking");
+  });
+
+  it("mengirim thinking disabled saat AI_DISABLE_THINKING=on", async () => {
+    const { provider, calls } = providerFor(
+      () => jsonResponse({ choices: [{ message: { content: "{}" } }] }),
+      { disableThinking: true },
+    );
+
+    await provider.complete(request);
+
+    expect(bodyOf(calls[0].init)).toHaveProperty("thinking", {
+      type: "disabled",
+    });
   });
 });
 

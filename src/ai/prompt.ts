@@ -27,7 +27,15 @@ import type { AssetManifest } from "../story/validate";
 import type { LlmRequest } from "./provider";
 
 /** Versi prompt. Naikkan setiap kali perilaku prompt berubah. */
-export const PROMPT_VERSION = "story-v2";
+export const PROMPT_VERSION = "story-v4";
+
+/**
+ * Plafon output per panggilan. Reasoning model bisa memakai 6.000–14.000
+ * karakter `reasoning_content` sebelum menulis JSON (terukur); plafon lama
+ * 1.500 (outline) / 4.000 (sisanya) membuat `finish_reason: "length"` dan
+ * `content` kosong saat thinking hidup. Lihat ADR 0018.
+ */
+export const PROMPT_MAX_OUTPUT_TOKENS = 8_000;
 
 /** Batas dari `jobs-and-limits.md`: hanya 15 halaman pertama yang diproses. */
 export const MAX_MATERIAL_PAGES = 15;
@@ -46,8 +54,15 @@ export const MATERIAL_START = "<<<MATERIAL_START>>>";
 export const MATERIAL_END = "<<<MATERIAL_END>>>";
 
 /**
- * System prompt v1, disalin dari `prompt-contract.md` bagian **System prompt
- * (draf v1)**. Instruksi sistem tidak boleh diletakkan setelah data pengguna.
+ * System prompt `story-v3`, disalin dari `prompt-contract.md` bagian **System
+ * prompt (story-v4)**. Instruksi sistem tidak boleh diletakkan setelah data
+ * pengguna.
+ *
+ * Blok **SUARA DAN ROLEPLAY** ditambahkan pada `story-v3`: cerita harus terasa
+ * seperti roleplay yang hidup, memakai bahasa sehari-hari siswa (bukan
+ * "Anda/Saya" yang kaku), dan mengikuti tema/nada yang dipilih guru.
+ * `story-v4` tidak mengubah blok ini; yang berubah adalah batas eksplisit
+ * `SECTION_SCHEMA_OUTLINE` dan plafon output per panggilan.
  */
 export const SYSTEM_PROMPT = `Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
 Tugasmu mengubah MATERI dari guru menjadi cerita yang bisa dimainkan.
@@ -72,6 +87,24 @@ GAYA
 - Suasana: hangat, sedikit misterius, aman untuk anak sekolah.
 - Tidak ada kekerasan, romansa, horor, atau tema depresi. Ketegangan hanya
   sebatas rasa penasaran.
+
+SUARA DAN ROLEPLAY
+- Tulis seperti memandu roleplay yang hidup, bukan buku pelajaran dan bukan
+  pengumuman resmi. Pembaca harus merasa ikut berada di dalam adegan.
+- Pakai bahasa sehari-hari siswa. Hindari "Anda" dan "Saya" yang kaku; pakai
+  "kamu", "aku", nama tokoh, atau sebutan yang wajar. Bentuk "Anda/Saya" hanya
+  untuk tokoh yang memang sengaja formal (mis. pejabat atau situasi resmi).
+- Narasi boleh menyapa pemain dengan "kamu" atau menyebut nama tokoh pemain.
+  Pilih satu sudut pandang dan pakai konsisten sepanjang cerita.
+- Setiap tokoh punya cara bicara sendiri: pilihan kata, panjang kalimat, dan
+  kebiasaan ucapan. Jangan sampai semua tokoh terdengar sama.
+- Dialog harus terasa diucapkan: pendek, ada jeda dan reaksi. Jangan ada
+  dialog yang berbunyi seperti definisi kamus.
+- Ikuti tema dan nada (tone) yang diminta guru pada TASK: pilih kosakata,
+  suasana, dan detail yang selaras. Nada lucu → ringan dan jenaka; nada
+  misterius → pelan dan menebak; nada hangat → akrab dan menenangkan.
+- Sesuaikan bahasa dengan usia kelas: kalimat pendek, istilah dijelaskan lewat
+  pengalaman tokoh, bukan lewat kuliah.
 
 LARANGAN
 - Jangan menyalin kalimat materi mentah-mentah lebih dari 20 kata berturut-turut.
@@ -194,6 +227,16 @@ export type RepairPromptInput = {
   errors: readonly RepairIssue[];
   /** Error yang sudah dipotong validator sebelum sampai ke sini. */
   truncatedErrorCount?: number;
+  /**
+   * Konteks opsional. Repair menerima draft + error saja, jadi model tidak tahu
+   * id aset/karakter/konsep yang sah. Tanpa konteks ini, error seperti
+   * `E_UNKNOWN_ASSET`, `E_UNKNOWN_SPEAKER`, atau `E_UNKNOWN_CONCEPT` tidak bisa
+   * diperbaiki dan loop repair tidak konvergen (lihat ADR 0017).
+   */
+  assets?: AssetManifest;
+  outline?: Outline;
+  /** Chapter yang sedang diperbaiki, bila repair tingkat chapter. */
+  planned?: OutlineChapter;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -357,9 +400,13 @@ const SECTION_SCHEMA_OUTLINE = `SCHEMA
 }
 
 BATAS OUTLINE
-- concepts 1..12, tidak boleh duplikat.
-- cast 2..10, tepat satu "player", minimal satu "mentor"; spriteId dari ASSETS.
-- chapters 3..6; setiap chapters[].concept harus salah satu concepts.
+- concepts 1..12, tidak boleh duplikat; setiap item maksimal 60 karakter dan
+  berupa frasa pendek, bukan kalimat.
+- cast 2..10; role wajib salah satu dari "player", "mentor", "npc", "antagonist";
+  tepat satu "player", minimal satu "mentor"; spriteId dari ASSETS.
+- title 3..80 karakter; synopsis 40..400 karakter.
+- chapters 3..6; title 3..60 karakter; summary 20..240 karakter; setiap
+  chapters[].concept harus salah satu concepts.
 - sourcePages hanya nomor halaman yang benar-benar ada di MATERIAL.
 - Jika materi tidak cukup untuk detail tertentu, catat di gaps; jangan mengarang.`;
 
@@ -543,7 +590,7 @@ const metaContext = (meta: PromptMeta | undefined, language: string) => {
   const parts: string[] = [];
   if (meta?.subject) parts.push(`mata pelajaran ${meta.subject}`);
   if (meta?.gradeLevel) parts.push(`kelas ${meta.gradeLevel}`);
-  if (meta?.tone) parts.push(`nada ${meta.tone}`);
+  if (meta?.tone) parts.push(`nada cerita yang diminta guru: "${meta.tone}"`);
   if (meta?.fileName) parts.push(`file ${meta.fileName}`);
   if (meta?.pageCount !== undefined) parts.push(`${meta.pageCount} halaman`);
 
@@ -601,6 +648,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): PromptResult {
     [
       "TASK",
       `Buat outline cerita dari materi di atas. ${metaContext(input.meta, language)}`,
+      "Judul dan synopsis harus terasa seperti cerita bergaya roleplay yang mengikuti nada di atas, bukan judul buku pelajaran.",
       `Halaman yang tersedia: ${pageList(summary.pages)}.`,
       summary.droppedPages.length > 0
         ? `Materi dipotong pada batas ${MAX_MATERIAL_CHARS} karakter; halaman ${pageList(
@@ -613,7 +661,13 @@ export function buildOutlinePrompt(input: OutlinePromptInput): PromptResult {
       .join("\n"),
   ].join("\n\n");
 
-  return buildRequest(SYSTEM_PROMPT, user, 0.4, 1500, summary);
+  return buildRequest(
+    SYSTEM_PROMPT,
+    user,
+    0.4,
+    PROMPT_MAX_OUTPUT_TOKENS,
+    summary,
+  );
 }
 
 /**
@@ -641,6 +695,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
       "TASK",
       `Tulis chapter "${input.planned.id}" berjudul "${input.planned.title}" untuk konsep "${input.planned.concept}".`,
       metaContext(input.meta, language),
+      'Tulis narasi dan dialog sebagai roleplay yang hidup: bahasa sehari-hari siswa, hindari "Anda/Saya" yang kaku, dan ikuti nada di atas.',
       `Halaman materi untuk chapter ini: ${pageList(summary.pages)}.`,
       summary.droppedPages.length > 0
         ? `Materi dipotong pada batas ${MAX_MATERIAL_CHARS} karakter; halaman ${pageList(
@@ -655,7 +710,13 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
       .join("\n"),
   ].join("\n\n");
 
-  return buildRequest(SYSTEM_PROMPT, user, 0.8, 4000, summary);
+  return buildRequest(
+    SYSTEM_PROMPT,
+    user,
+    0.8,
+    PROMPT_MAX_OUTPUT_TOKENS,
+    summary,
+  );
 }
 
 /**
@@ -693,22 +754,53 @@ export function buildRepairPrompt(input: RepairPromptInput): PromptResult {
       ? input.draft
       : JSON.stringify(input.draft ?? null, null, 2);
 
-  const user = [
+  const context: string[] = [];
+  if (input.assets) context.push(assetSection(input.assets));
+  if (input.outline) {
+    context.push(
+      ["OUTLINE", JSON.stringify(input.outline, null, 2)].join("\n"),
+    );
+  }
+  if (input.planned) {
+    context.push(
+      [
+        "CHAPTER",
+        `id: ${input.planned.id}; concept: ${input.planned.concept}; halaman sumber: ${pageList(input.planned.sourcePages)}.`,
+      ].join("\n"),
+    );
+  }
+
+  const sections: string[] = [
     "Perbaiki JSON berikut. Jangan mengubah bagian yang tidak dilaporkan.",
     "Jangan menambah fakta baru. Kembalikan JSON lengkap yang valid.",
+  ];
+
+  if (context.length > 0) {
+    sections.push(
+      "",
+      "KONTEKS",
+      "Pakai hanya id aset, karakter, dan konsep yang ada di KONTEKS. Jangan mengarang id.",
+      "",
+      ...context,
+    );
+  }
+
+  sections.push(
     "",
     "ERRORS",
     `${errorLines}${truncatedLine}`,
     "",
     "DRAFT",
     draft,
-  ].join("\n");
+  );
+
+  const user = sections.join("\n");
 
   return buildRequest(
     REPAIR_SYSTEM_PROMPT,
     user,
     0.2,
-    4000,
+    PROMPT_MAX_OUTPUT_TOKENS,
     emptyMaterial(),
     droppedErrors,
   );

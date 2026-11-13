@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -26,7 +26,7 @@ flowchart LR
   D2 -- "tetap gagal" --> Y["Cerita cadangan"]
   D2 -- "ya" --> E["5. Generate per chapter<br/>(AI)"]
   E --> F["6. Validasi"]
-  F -- "ada error" --> G["7. Repair<br/>maks 2x"]
+  F -- "ada error" --> G["7. Repair<br/>maks 2x per chapter"]
   G --> F
   F -- "bersih" --> H["8. Simpan versi draft"]
   F -- "masih gagal" --> Y
@@ -43,7 +43,7 @@ Tabel berikut adalah rincian tiap kotak di gambar.
 | 4   | Outline    | teks materi               | `Outline`              | Ya     | retry 1x → perbaiki 1x → fallback |
 | 5   | Generate   | outline + potongan materi | chapter + tantangan    | Ya     | retry 1x → repair → fallback      |
 | 6   | Validasi   | satu chapter / cerita     | `ValidationResult`     | Tidak  | repair                            |
-| 7   | Repair     | draft + errors            | draft baru             | Ya     | jatah 2 per cerita → fallback     |
+| 7   | Repair     | draft + errors            | draft baru             | Ya     | jatah 2 per chapter → fallback    |
 | 8   | Simpan     | `Story` valid             | versi cerita           | Tidak  | `failed`                          |
 
 ## 1–3. Ekstraksi dan pra-proses
@@ -155,7 +155,7 @@ Bentuk yang dipakai:
   `Story`) dan `continuity` (di luar `Story`).
 - Kalau provider tidak mendukung output berlapis, jalankan panggilan kecil
   terpisah: "ringkas chapter ini dalam 2 kalimat + status karakter", dengan
-  output `ContinuityState`. Itu dihitung dalam anggaran 12 panggilan.
+  output `ContinuityState`. Itu dihitung dalam anggaran 18 panggilan.
 - Pipeline menyimpan `continuity` di memori selama job berjalan, dan boleh
   menyimpannya di kolom job untuk debugging. Ia tidak pernah masuk ke JSON cerita.
 
@@ -179,29 +179,35 @@ Fallback wajib:
 - lolos validator,
 - memakai aset yang ada,
 - tetap menyebut konsep dari materi (bukan cerita generik kosong),
-- ditandai `usedFallback: true` di record (bukan di dalam `Story`).
+- ditandai `usedFallback: true` di record (bukan di dalam `Story`),
+- menyertakan `reason` dan `diagnostics` (kode + path error validasi terakhir,
+  maksimal 20) supaya operator tahu tahap mana yang gagal. `runJob()` menulis
+  keduanya ke `jobs.log` sebagai JSON; tidak ada teks materi di dalamnya.
 
 ## Anggaran dan timeout
 
 Nilai awal (lihat [`../06-backend/jobs-and-limits.md`](../06-backend/jobs-and-limits.md)):
 
-| Parameter                   | Nilai awal                     |
-| --------------------------- | ------------------------------ |
-| Maks halaman PDF            | 40 (hanya 15 pertama diproses) |
-| Maks karakter teks materi   | 30.000                         |
-| Timeout ekstraksi           | 20 detik                       |
-| Timeout per panggilan LLM   | 60 detik (pagar, bukan target) |
-| Percobaan ulang jaringan    | 1                              |
-| Percobaan repair per cerita | 2                              |
-| Panggilan LLM per cerita    | 12 (batas atas)                |
-| Maks output token/chapter   | 4.000                          |
-| Anggaran waktu total        | 120 detik (deadline)           |
+| Parameter                    | Nilai awal                                 |
+| ---------------------------- | ------------------------------------------ |
+| Maks halaman PDF             | 40 (hanya 15 pertama diproses)             |
+| Maks karakter teks materi    | 30.000                                     |
+| Timeout ekstraksi            | 20 detik                                   |
+| Timeout per panggilan LLM    | 60 detik (pagar, bukan target)             |
+| Percobaan ulang jaringan     | 1                                          |
+| Percobaan repair per chapter | 2                                          |
+| Percobaan repair per cerita  | 2 (setelah semua chapter digabung)         |
+| Panggilan LLM per cerita     | 18 (batas atas)                            |
+| Maks output token/panggilan  | 8.000 (agar reasoning tidak memotong JSON) |
+| Anggaran waktu total         | 240 detik (deadline)                       |
 
 Dua angka terakhir sering dijumlahkan dengan salah. **60 detik × 6 chapter bukan
 anggarannya.** 60 detik adalah pagar untuk satu panggilan yang menggantung;
-anggaran sebenarnya adalah deadline 120 detik. Sebelum memulai panggilan baru,
+anggaran sebenarnya adalah deadline 240 detik. Sebelum memulai panggilan baru,
 pipeline mengecek sisa waktu, dan kalau sisa < 30 detik ia langsung memakai
-fallback.
+fallback. Alasan angka-angka ini dinaikkan dari 12/2/120 ada di
+[ADR 0017](../09-decisions/0017-anggaran-pipeline-per-unit.md): error mekanis
+terjadi per chapter, jadi jatah repair harus per chapter.
 
 ## Pseudocode
 
@@ -232,7 +238,7 @@ export async function generateStory(input: {
   let continuity: ContinuityState = initialState(outline);
   const chapters: Chapter[] = [];
   const challenges: Challenge[] = [];
-  let repairsLeft = 2; // per CERITA, bukan per chapter
+  let storyRepairsLeft = 2; // repair tingkat cerita saja
 
   for (const planned of outline.chapters) {
     const excerpt = pickPages(text, planned.sourcePages);
@@ -254,9 +260,10 @@ export async function generateStory(input: {
     // Cerita belum lengkap di titik ini: chapter lain belum ada, jadi
     // validateStory() akan SELALU gagal E_CHAPTER_COUNT dan memaksa fallback.
     let check = validateChapter(result, { outline, planned });
+    let chapterRepairsLeft = 2; // per CHAPTER, bukan per cerita
 
-    while (!check.ok && repairsLeft > 0) {
-      repairsLeft -= 1;
+    while (!check.ok && chapterRepairsLeft > 0) {
+      chapterRepairsLeft -= 1;
       result = await repairChapter({
         outline,
         planned,
@@ -277,8 +284,16 @@ export async function generateStory(input: {
   }
 
   // --- Validasi penuh, sekali, setelah semua chapter ada ---
-  const story = assemble(outline, { chapters, challenges });
-  const finalCheck = validateStory(story);
+  let story = assemble(outline, { chapters, challenges });
+  let finalCheck = validateStory(story);
+
+  // Repair tingkat cerita punya jatah sendiri (cerita belum lengkap sebelumnya,
+  // jadi ini satu-satunya tempat ia bisa diperiksa).
+  while (!finalCheck.ok && storyRepairsLeft > 0) {
+    storyRepairsLeft -= 1;
+    story = await repairStory(story, finalCheck.errors, signal);
+    finalCheck = validateStory(story);
+  }
 
   return finalCheck.ok
     ? { ok: true, story, usedFallback: false }
@@ -293,7 +308,10 @@ Tiga hal yang sengaja dibuat eksplisit di kode itu:
    `speakerId` ∈ `cast`, `challengeId` ∈ tantangan chapter itu, dan batas teks.
    Aturan tingkat cerita (3–6 chapter, `assetUsage` lengkap) baru diperiksa di
    akhir. Tanpa pemisahan ini, chapter pertama tidak akan pernah lolos.
-2. **`repairsLeft` di luar loop chapter.** Jatah repair dihitung per cerita.
+2. **`chapterRepairsLeft` di dalam loop chapter, `storyRepairsLeft` di luar.**
+   Jatah repair dipisah per tingkat: satu chapter rusak tidak menghabiskan jatah
+   chapter lain, dan repair tingkat cerita punya jatah sendiri. Lihat
+   [ADR 0017](../09-decisions/0017-anggaran-pipeline-per-unit.md).
 3. **`challenges` global.** Di `Story`, tantangan hidup di array tingkat atas,
    bukan di dalam chapter; `assemble` yang menggabungkannya. Tidak ada variabel
    `allChallenges` yang tidak pernah didefinisikan.

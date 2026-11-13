@@ -11,8 +11,10 @@ import {
   assemble,
   generateStory,
   MAX_LLM_CALLS_PER_STORY,
+  MAX_REPAIRS_PER_CHAPTER,
   MAX_REPAIRS_PER_STORY,
   STAGE_PROGRESS,
+  TOTAL_BUDGET_MS,
   type GenerateStoryResult,
   type PipelineMeta,
   type ProgressEvent,
@@ -159,6 +161,7 @@ describe("jalur bahagia", () => {
     expect(result.reason).toBeNull();
     expect(result.stats).toEqual({ llmCalls: 4, repairs: 0, durationMs: 0 });
     expect(result.gaps).toEqual([]);
+    expect(result.diagnostics).toEqual([]);
     expect(result.story.chapters.map((chapter) => chapter.id)).toEqual([
       "ch_01",
       "ch_02",
@@ -283,7 +286,7 @@ describe("repair", () => {
     expectValid(result);
   });
 
-  it("berhenti setelah 2 repair lalu memakai fallback", async () => {
+  it("berhenti setelah 2 repair chapter lalu memakai fallback", async () => {
     const result = await run(
       mock(
         { fixture: "outline/valid.json" },
@@ -295,9 +298,32 @@ describe("repair", () => {
 
     expect(result.usedFallback).toBe(true);
     expect(result.reason).toBe("chapter-invalid");
-    expect(result.stats.repairs).toBe(MAX_REPAIRS_PER_STORY);
+    expect(result.stats.repairs).toBe(MAX_REPAIRS_PER_CHAPTER);
     expect(result.stats.llmCalls).toBe(4);
     expect(result.story).not.toHaveProperty("usedFallback");
+    expectValid(result);
+  });
+
+  it("memakai jatah repair tiap chapter, bukan satu jatah untuk semua", async () => {
+    // Chapter pertama butuh 2 repair, chapter kedua butuh 1 repair. Dengan
+    // jatah per cerita (2) chapter kedua akan gagal; dengan jatah per chapter
+    // (ADR 0017) seluruh cerita tetap valid.
+    const result = await run(
+      mock(
+        { fixture: "outline/valid.json" },
+        { fixture: "chapter/unknown-asset.json" },
+        { fixture: "chapter/unknown-asset.json" },
+        { fixture: "repair/valid.json" },
+        { fixture: "chapter/unknown-asset.json" },
+        { fixture: "chapter/ch_02.json" },
+        { fixture: "chapter/ch_03.json" },
+      ),
+    );
+
+    expect(result.usedFallback).toBe(false);
+    expect(result.reason).toBeNull();
+    expect(result.stats.repairs).toBe(3);
+    expect(result.story.chapters).toHaveLength(3);
     expectValid(result);
   });
 
@@ -327,6 +353,44 @@ describe("repair", () => {
     expect(result.usedFallback).toBe(false);
     expect(result.stats.repairs).toBe(1);
     expect(result.story.meta.id).toBe(META.id);
+    expectValid(result);
+  });
+
+  it("berhenti setelah 2 repair cerita lalu memakai fallback", async () => {
+    const chapter = json<{
+      chapter: { scenes: { id: string }[] };
+      challenges: unknown[];
+      continuity: unknown;
+    }>("chapter/ch_03.json");
+    chapter.chapter.scenes[0].id = "sc_01_01";
+    chapter.chapter.scenes[1].id = "sc_01_02";
+
+    // Payload repair tetap tidak valid, jadi kedua percobaan gagal.
+    const invalidStory = json<{ chapters: { scenes: { id: string }[] }[] }>(
+      "story/valid.json",
+    );
+    invalidStory.chapters[1].scenes[0].id =
+      invalidStory.chapters[0].scenes[0].id;
+    const invalidRepair = JSON.stringify(invalidStory);
+
+    const responses = [
+      fixture("outline/valid.json"),
+      fixture("chapter/valid.json"),
+      fixture("chapter/ch_02.json"),
+      JSON.stringify(chapter),
+      invalidRepair,
+      invalidRepair,
+    ];
+
+    const provider = scripted((call) => responses[call - 1] ?? invalidRepair);
+    const result = await run(provider);
+
+    expect(result.usedFallback).toBe(true);
+    expect(result.reason).toBe("story-invalid");
+    expect(result.stats.repairs).toBe(MAX_REPAIRS_PER_STORY);
+    expect(result.diagnostics.some((d) => d.startsWith("E_DUPLICATE_ID"))).toBe(
+      true,
+    );
     expectValid(result);
   });
 });
@@ -413,7 +477,7 @@ describe("anggaran", () => {
     const provider: LlmProvider = {
       async complete(request, signal) {
         const response = await inner.complete(request, signal);
-        now = 100_000;
+        now = TOTAL_BUDGET_MS - 20_000;
         return response;
       },
     };
@@ -423,27 +487,57 @@ describe("anggaran", () => {
     expect(result.usedFallback).toBe(true);
     expect(result.reason).toBe("budget-exhausted");
     expect(result.stats.llmCalls).toBe(1);
-    expect(result.stats.durationMs).toBe(100_000);
+    expect(result.stats.durationMs).toBe(TOTAL_BUDGET_MS - 20_000);
     expectValid(result);
   });
 
-  it("menegakkan batas 12 panggilan LLM dengan tepat", async () => {
-    const outline = json<{ chapters: unknown[] }>("outline/valid.json");
-    const template = outline.chapters[0] as Record<string, unknown>;
+  it("menegakkan batas 18 panggilan LLM dengan tepat", async () => {
+    const outline = json<{ chapters: Record<string, unknown>[] }>(
+      "outline/valid.json",
+    );
+    const template = outline.chapters[0];
     outline.chapters = [1, 2, 3, 4, 5, 6].map((number) => ({
       ...template,
       id: `ch_0${number}`,
     }));
 
     const outlineText = JSON.stringify(outline);
-    const chapterText = fixture("chapter/valid.json");
+    const unknownAsset = fixture("chapter/unknown-asset.json");
+    const baseChapter = json<{ chapter: { id: string } }>("chapter/valid.json");
 
-    // Tiap chapter butuh generate + generate ulang (JSON rusak), sehingga
-    // chapter keenam meminta panggilan ke-13 dan harus ditolak.
-    const provider = scripted((call) => {
-      if (call === 1) return outlineText;
-      return (call - 2) % 2 === 0 ? "{ rusak" : chapterText;
-    });
+    let calls = 0;
+    let plannedId = baseChapter.chapter.id;
+
+    // Tiap chapter: 1 generate JSON rusak + 1 generate chapter rusak + 1 repair
+    // valid. Chapter keenam meminta panggilan ke-19 dan harus ditolak.
+    const provider: CountingProvider = {
+      get calls() {
+        return calls;
+      },
+      async complete(request) {
+        calls += 1;
+        const text = (value: string): LlmResponse => ({
+          text: value,
+          usage: { input: 0, output: 0 },
+          model: "mock",
+        });
+
+        if (calls === 1) return text(outlineText);
+
+        const fromPrompt = /Tulis chapter "([^"]+)"/.exec(request.user)?.[1];
+        if (fromPrompt !== undefined) plannedId = fromPrompt;
+
+        const phase = (calls - 2) % 3;
+        if (phase === 0) return text("{ rusak");
+        if (phase === 1) return text(unknownAsset);
+
+        const repaired = {
+          ...baseChapter,
+          chapter: { ...baseChapter.chapter, id: plannedId },
+        };
+        return text(JSON.stringify(repaired));
+      },
+    };
 
     const result = await generateStory({
       provider,
