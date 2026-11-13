@@ -44,7 +44,7 @@ lain, produk rusak.
 flowchart TD
   S["Story"] --> M["meta<br/>judul, mapel, kelas, bahasa"]
   S --> SR["source<br/>file asal + daftar konsep"]
-  S --> C["cast<br/>2–5 karakter"]
+  S --> C["cast<br/>2–10 karakter"]
   S --> CH["chapters<br/>3–6 bab"]
   S --> CL["challenges<br/>daftar soal"]
   S --> AU["assetUsage<br/>yang dipakai (untuk preload)"]
@@ -123,7 +123,7 @@ type Character = {
 
 Aturan:
 
-- 2–5 karakter.
+- 2–10 karakter.
 - Tepat **satu** `role: "player"`.
 - Minimal satu `mentor` (pemandu yang menyampaikan materi).
 - `id` tidak boleh duplikat.

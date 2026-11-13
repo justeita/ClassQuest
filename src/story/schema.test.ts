@@ -316,12 +316,15 @@ const invalidCases: InvalidCase[] = [
     }),
   },
   {
-    name: "cast lebih dari 5",
+    name: "cast lebih dari 10",
     story: withExample((draft) => {
       const characters = cast(draft);
-      characters.push({ ...characters[0], id: "char_keempat" });
-      characters.push({ ...characters[0], id: "char_kelima" });
-      characters.push({ ...characters[0], id: "char_keenam" });
+      while (characters.length <= 10) {
+        characters.push({
+          ...characters[0],
+          id: `char_tambahan_${characters.length}`,
+        });
+      }
     }),
   },
   {
