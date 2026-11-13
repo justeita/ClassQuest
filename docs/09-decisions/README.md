@@ -28,9 +28,10 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0013 | [Hosting Vercel dan database Turso](0013-hosting-vercel-turso.md)                                    | Accepted     | Deploy, backend       |
 | 0014 | [Auth akun guru dan siswa](0014-auth-akun-guru-siswa.md)                                             | **Proposed** | Auth, backend         |
 | 0015 | [Tabel kelas dan siswa](0015-kelas-dan-siswa.md)                                                     | **Proposed** | Kelas, backend        |
-| 0016 | [Percabangan konsekuensi jawaban salah](0016-branching-konsekuensi-jawaban-salah.md)                 | Accepted     | AI, validator, cerita |
+| 0016 | [Obrolan singkat NPC di luar perannya](0016-obrolan-singkat-npc.md)                                  | Accepted     | Game, cerita          |
 | 0017 | [Anggaran pipeline per unit dan reasoning dimatikan](0017-anggaran-pipeline-per-unit.md)             | Accepted     | AI, pipeline          |
 | 0018 | [Plafon output, batas eksplisit outline, dan reasoning default mati](0018-plafon-output-thinking.md) | Accepted     | AI, pipeline          |
+| 0019 | [Percabangan konsekuensi jawaban salah](0019-branching-konsekuensi-jawaban-salah.md)                 | Accepted     | AI, validator, cerita |
 
 ## Status
 

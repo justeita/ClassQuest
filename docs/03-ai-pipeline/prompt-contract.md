@@ -226,7 +226,7 @@ Isinya mengajari model menulis konsekuensi jawaban salah, bukan pilihan dialog:
 
 Blok ini tidak mengubah blok `SCHEMA CHAPTER`: draft chapter tetap
 `{ chapter, challenges, continuity }`, dan deklarasi `flags` tingkat cerita
-tetap diturunkan `assemble()` (lihat [ADR 0016](../09-decisions/0016-branching-konsekuensi-jawaban-salah.md)).
+tetap diturunkan `assemble()` (lihat [ADR 0019](../09-decisions/0019-branching-konsekuensi-jawaban-salah.md)).
 
 ## Perilaku output yang diharapkan
 

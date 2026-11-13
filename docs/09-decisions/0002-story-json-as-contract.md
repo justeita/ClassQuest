@@ -54,7 +54,7 @@ Alasan:
 - Fleksibilitas cerita terbatas pada bentuk yang didukung. Percabangan sejauh
   ini hanya berupa konsekuensi jawaban salah (soal ulang + detour singkat),
   bukan pilihan dialog pemain; lihat
-  [ADR 0016](0016-branching-konsekuensi-jawaban-salah.md).
+  [ADR 0019](0019-branching-konsekuensi-jawaban-salah.md).
 - Setiap fitur naratif baru butuh perubahan schema + ADR.
 - Perlu disiplin: jangan menyimpan metadata internal (status, versi, pemilik) di
   dalam JSON.
