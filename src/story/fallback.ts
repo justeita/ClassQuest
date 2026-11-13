@@ -129,7 +129,7 @@ const DEFAULT_MENTOR: Character = {
 /* Batas schema (docs/02-data-model/story.schema.json)                        */
 /* -------------------------------------------------------------------------- */
 
-const MAX_CAST = 5;
+const MAX_CAST = 10;
 const MIN_CHAPTERS = 3;
 const MAX_CHAPTERS = 6;
 const MAX_CONCEPTS = 12;
@@ -242,7 +242,7 @@ const spriteFor = (id: string, role: CharacterRole): string =>
   CHARACTER_SPRITES.has(id) ? id : SPRITE_BY_ROLE[role];
 
 /**
- * Ubah `castSeed` menjadi cast yang sah: 2–5 karakter, tepat satu `player`,
+ * Ubah `castSeed` menjadi cast yang sah: 2–10 karakter, tepat satu `player`,
  * minimal satu `mentor`, id unik, dan sprite dari inventory.
  *
  * Seed berasal dari outline yang bisa saja gagal, jadi semua cacat diperbaiki

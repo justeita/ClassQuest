@@ -103,7 +103,7 @@ type ValidationResult = {
 
 | Kode                        | Arti                                           | Hint untuk AI                                          |
 | --------------------------- | ---------------------------------------------- | ------------------------------------------------------ |
-| `E_CAST_COUNT`              | Cast di luar 2–5                               | "Gunakan 2–5 karakter."                                |
+| `E_CAST_COUNT`              | Cast di luar 2–10                              | "Gunakan 2–10 karakter."                               |
 | `E_PLAYER_COUNT`            | Bukan tepat satu `role: "player"`              | "Tandai tepat satu karakter sebagai `player`."         |
 | `E_NO_MENTOR`               | Tidak ada mentor                               | "Tambahkan satu karakter `mentor`."                    |
 | `E_OPTION_COUNT`            | Opsi di luar 2–5                               | "Tantangan `{id}` harus punya 2–5 opsi."               |

@@ -352,7 +352,7 @@ describe("input aneh tidak membuat fallback melempar", () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(story.cast.filter((c) => c.role === "player")).toHaveLength(1);
     expect(story.cast.some((c) => c.role === "mentor")).toBe(true);
-    expect(story.cast.length).toBeLessThanOrEqual(5);
+    expect(story.cast.length).toBeLessThanOrEqual(10);
   });
 });
 

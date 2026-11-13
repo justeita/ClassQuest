@@ -272,7 +272,7 @@ const countMessage = (
 
   switch (code) {
     case "E_CAST_COUNT":
-      return "Cerita harus punya 2–5 karakter.";
+      return "Cerita harus punya 2–10 karakter.";
     case "E_CHAPTER_COUNT":
       return "Cerita harus punya 3–6 chapter.";
     case "E_SCENE_COUNT":

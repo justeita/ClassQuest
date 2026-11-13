@@ -348,7 +348,7 @@ const SECTION_SCHEMA_OUTLINE = `SCHEMA
 
 BATAS OUTLINE
 - concepts 1..12, tidak boleh duplikat.
-- cast 2..5, tepat satu "player", minimal satu "mentor"; spriteId dari ASSETS.
+- cast 2..10, tepat satu "player", minimal satu "mentor"; spriteId dari ASSETS.
 - chapters 3..6; setiap chapters[].concept harus salah satu concepts.
 - sourcePages hanya nomor halaman yang benar-benar ada di MATERIAL.
 - Jika materi tidak cukup untuk detail tertentu, catat di gaps; jangan mengarang.`;

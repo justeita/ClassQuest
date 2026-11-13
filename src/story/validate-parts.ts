@@ -156,7 +156,7 @@ const outlineSchema = {
     cast: {
       type: "array",
       minItems: 2,
-      maxItems: 5,
+      maxItems: 10,
       items: schemaRef("$defs/character"),
     },
     chapters: {
