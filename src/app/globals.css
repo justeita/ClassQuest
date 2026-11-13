@@ -29,6 +29,12 @@
   --font-heading: var(--font-plus-jakarta);
   --font-pixel: var(--font-pixelify);
 
+  /* Warna dari logo brand (`public/brand/classquest_logo.png`): kertas krem dan
+     garis navy. Dipakai kotak ikon halaman masuk guru dan bingkai logo.
+     Keduanya warna aksen, bukan warna permukaan halaman. */
+  --color-krem: #fef4e4;
+  --color-navy: #233654;
+
   /* --- Halaman pemilihan peran di `/` (lihat src/app/(landing)) ---
      Dua palet peran: violet untuk guru, emerald untuk siswa. */
   --color-guru-50: #f5f3ff;

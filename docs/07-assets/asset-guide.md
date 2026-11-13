@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -177,6 +177,37 @@ public/assets/
 Nama file: `snake_case` tanpa prefix (`classroom_day.png`), karena prefix ada di
 `id` manifest (`bg_classroom_day`). Lihat
 [`naming-conventions.md`](./naming-conventions.md).
+
+### Aset brand (bukan aset game)
+
+Logo, ikon aplikasi, dan favicon **tidak** masuk manifest dan tidak punya `id`:
+mereka tidak pernah dipilih AI atau dirujuk cerita. Tempatnya:
+
+| Berkas                             | Dipakai di                                     |
+| ---------------------------------- | ---------------------------------------------- |
+| `public/brand/classquest_logo.png` | Header `/`, halaman 404, sidebar portal guru   |
+| `public/brand/classquest_icon.png` | Kotak ikon halaman masuk guru (buku + bintang) |
+| `src/app/favicon.ico`              | Tab browser (16/32/48 px, hasil konversi)      |
+| `src/app/icon.png`                 | Ikon PWA/tab modern, 192×192                   |
+| `src/app/apple-icon.png`           | `apple-touch-icon` 192×192                     |
+
+Aturan:
+
+- Logo penuh dipasang dengan tinggi **48 px** (ponsel) dan **56 px** (≥ `sm`).
+  Di bawah 48 px huruf pixel di dalam logo mulai pecah; jangan mengecilkannya
+  untuk menghemat ruang header.
+- **Jangan** meniru logo dengan ikon Font Awesome + teks `font-pixel`. Versi lama
+  (gamepad kuning + tulisan "Class Quest") sudah diganti karena tulisan di dalam
+  logo adalah bagian dari identitas brand.
+- **Saturasi: pakai berkas asli apa adanya** (keputusan 2026-11-13). Menaikkan
+  saturasi ±15–30% membuat "Quest" jadi oranye menyala dan bertabrakan dengan
+  palet pastel game; menurunkannya membuat teks biru kehilangan kontras di atas
+  putih. Kalau logo perlu kontras di latar gelap, tambahkan bidang terang di
+  belakangnya, bukan mengubah warnanya.
+- Warna yang dipakai ulang dari logo ada di `@theme inline` `src/app/globals.css`:
+  `--color-krem` (`#FEF4E4`, kertas) dan `--color-navy` (`#233654`, garis luar).
+- Mengganti berkas logo berarti mengganti isi file, bukan namanya — sama seperti
+  aturan aset lain.
 
 ## Placeholder
 
