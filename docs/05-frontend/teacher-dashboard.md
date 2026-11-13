@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -19,6 +19,11 @@ Satu-satunya halaman guru yang bisa dibuka tanpa sesi. Isinya: field
 tidak terdaftar atau sandinya salah (keduanya dijawab `401` dengan pesan yang
 sama). Setelah berhasil, server menyetel cookie sesi lalu halaman redirect ke
 `/guru`; sidebar dan sapaan dashboard memakai `displayName` dari sesi.
+
+Panel kiri memakai bahasa visual portal dan landing: logo brand penuh, chip
+`LOGICODIX 2026`, dan empat langkah alur. **Tidak ada statistik hiasan** (level,
+XP, jumlah siswa) — hanya yang benar-benar ada di produk. Detailnya di
+[`ui-conventions.md`](./ui-conventions.md#halaman-masuk-guru-gurumasuk).
 
 Belum ada pendaftaran mandiri atau reset sandi. Akun dibuat/diganti lewat
 `bun run db:seed` (lihat [`../08-workflow/setup.md`](../08-workflow/setup.md)).

@@ -153,6 +153,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/guru/actions.test.ts`                    | ya   | Tes Server Actions guru                                        |
 | `src/app/guru/layout.tsx`                         | ya   | Font portal guru, toast, ikon Font Awesome                     |
 | `src/app/guru/masuk/page.tsx`                     | ya   | Halaman masuk guru (`POST /api/auth/login`)                    |
+| `src/app/guru/masuk/page.test.tsx`                | ya   | Tes panel brand halaman masuk (langkah + larangan janji fitur) |
 | `src/app/guru/(portal)/layout.tsx`                | ya   | Pembungkus `PortalShell` + gerbang `requireTeacher()`          |
 | `src/app/guru/(portal)/template.tsx`              | ya   | Animasi masuk halaman portal (diputar ulang tiap navigasi)     |
 | `src/app/guru/(portal)/loading.tsx`               | ya   | Kerangka navigasi `/guru` (segmen lain punya file serupa)      |
