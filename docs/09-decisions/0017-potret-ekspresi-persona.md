@@ -83,6 +83,15 @@ Aturan bentuknya:
   meredup, begitu pula sebaliknya. Selama soal belum dijawab, kedua potret
   disembunyikan supaya tidak menutupi pilihan jawaban; setelah dinilai keduanya
   tampil lagi untuk umpan balik senang/marah.
+- Potret MC hanya menemani dialog di scene yang memang memberi giliran bicara
+  kepada MC (`beats.some(speakerId === id pemain)`, lihat `src/game/potret.ts`)
+  atau saat obrolan singkat (ADR 0016). Dialog antar-NPC tampil tanpa potret MC
+  karena pemain tidak sedang menanggapi apa pun.
+- Panel dialog dan potret punya animasi buka/tutup sendiri: panel menyala seperti
+  TV tabung dari garis tipis di tengah, potret terbit dari balik panel; saat
+  dialog selesai panel memipih kembali ke tengah dan potret tenggelam.
+  `DialogueBox` menahan view terakhir ±360 ms supaya animasi tutup sempat
+  berjalan, dan semuanya dimatikan pada `prefers-reduced-motion`.
 
 Alasan:
 
@@ -93,12 +102,18 @@ Alasan:
    berpangkal di pojok kiri atas panel dan MC — yang dicerminkan agar menghadap
    ke tengah — di pojok kanan; lebarnya setengah panel, jadi keduanya menjulur
    sampai tengah tepi atas. Importer menormalkan tinggi kepala (bukan tinggi
-   gambar) dan menggeser potret sampai mentok tepi kanvas, jadi wajah semua
-   karakter sama besar, karakternya sejajar sisi kotak, dan pergantian ekspresi
-   tidak menggeser wajah. Itu siluet dialog Persona yang dituju.
-3. `expression` opsional membuat cerita lama, fixture, dan hasil generator tetap
+   gambar) dan menggeser semua potret satu karakter dengan **satu nilai tetap**,
+   lalu memotong sedikit sisi luarnya; jadi wajah semua karakter sama besar,
+   karakternya mentok sejajar sisi kotak, dan potret tidak melompat saat ekspresi
+   berganti. Itu siluet dialog Persona yang dituju.
+3. Potret disusun ke kanvas 456×360 (rasio sama dengan slot) dan disimpan dengan
+   filter PNG adaptif: 60 berkas turun dari ±21 MB ke ±8 MB, jadi potret pertama
+   muncul jauh lebih cepat. `DialogueBox` juga memanaskan keenam ekspresi
+   karakter begitu dia muncul, sehingga pergantian ekspresi berikutnya langsung
+   dari cache.
+4. `expression` opsional membuat cerita lama, fixture, dan hasil generator tetap
    valid tanpa migrasi.
-4. Satu daftar ekspresi mencegah zod, JSON Schema, manifest, dan prompt
+5. Satu daftar ekspresi mencegah zod, JSON Schema, manifest, dan prompt
    menyimpang.
 
 ## Konsekuensi
@@ -115,9 +130,9 @@ Alasan:
 
 - Panel dialog sekarang milik DOM, jadi `layout.ts` harus tetap jadi satu
   sumber angka untuk `TEXTBOX` dan `PORTRAIT`.
-- 60 berkas potret (±22 MB) ikut di repo. Ukuran itu diterima karena aset game
-  lain juga besar; kalau nanti terasa berat, kompresi atau `next/image` perlu
-  ditinjau.
+- 60 berkas potret (±8 MB) ikut di repo. Ukuran itu sudah ditekan lewat kanvas
+  456×360 dan filter PNG adaptif; kalau masih terasa berat, kurangi jumlah
+  ekspresi atau pindahkan ke CDN — jangan kembali ke canvas.
 - `ui_portrait_frame` masih ada di manifest dan `inventory.md` sebagai aset
   siap pakai, walau tidak dipakai runtime. Menghapusnya berarti mengubah
   hitungan aset UI, jadi ditunda.
@@ -136,15 +151,21 @@ Alasan:
   ekspresi.
 - `src/game/textbox.ts`, `src/game/layout.ts`, dan
   `src/components/game/DialogueBox.tsx` — state dialog murni + render DOM.
-- `src/game/scenes/GameScene.ts` — potret per beat dan feedback jawaban.
+- `src/game/potret.ts` — aturan scene yang melibatkan pemain (potret MC).
+- `src/app/globals.css` — keyframe buka/tutup panel dan potret.
+- `src/game/scenes/GameScene.ts` — potret per beat, potret pendamping, dan
+  feedback jawaban.
 - [`../04-game/scene-format.md`](../04-game/scene-format.md),
   [`../04-game/engine.md`](../04-game/engine.md), dan
   [`../07-assets/inventory.md`](../07-assets/inventory.md).
 
 ## Kapan keputusan ini ditinjau ulang
 
-- Jika potret 512 px terasa berat di jaringan lambat: tambahkan varian ukuran
-  atau andalkan optimasi gambar, jangan kembali ke canvas.
+- Jika potret 456×360 terasa terlalu kecil di layar besar: naikkan resolusi
+  kanvas importer (bukan mengubah tata letak), lalu ukur ulang berat berkas.
+- Jika animasi buka/tutup terasa mengganggu pada perangkat lambat: kurangi
+  durasinya atau matikan lewat `prefers-reduced-motion`; jangan menghapus
+  penahanan view terakhir tanpa mengganti mekanismenya.
 - Jika butuh ekspresi tambahan: tambah ke `expression.ts`, manifest, dan berkas
   aset sekaligus — jangan menambah nilai yang tidak punya gambar.
 - Jika `ui_portrait_frame` benar-benar tidak akan dipakai: hapus lewat ADR baru

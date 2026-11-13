@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DialogueBox } from "./DialogueBox";
@@ -104,10 +110,12 @@ describe("DialogueBox", () => {
       />,
     );
 
-    const slot = screen.getByAltText("Potret Bu Ratna").parentElement;
-    expect(slot?.style.left).toBe("0px");
-    expect(slot?.style.right).toBe("");
-    expect(slot?.style.transform).toBe("");
+    const slot = screen
+      .getByAltText("Potret Bu Ratna")
+      .closest('[data-slot="potret"]') as HTMLElement;
+    expect(slot.style.left).toBe("0px");
+    expect(slot.style.right).toBe("");
+    expect(slot.style.transform).toBe("");
   });
 
   it("menaruh potret MC di pojok kanan dan mencerminkannya", () => {
@@ -124,10 +132,12 @@ describe("DialogueBox", () => {
       />,
     );
 
-    const slot = screen.getByAltText("Potret Nara").parentElement;
-    expect(slot?.style.right).toBe("0px");
-    expect(slot?.style.left).toBe("");
-    expect(slot?.style.transform).toBe("scaleX(-1)");
+    const slot = screen
+      .getByAltText("Potret Nara")
+      .closest('[data-slot="potret"]') as HTMLElement;
+    expect(slot.style.right).toBe("0px");
+    expect(slot.style.left).toBe("");
+    expect(slot.style.transform).toBe("scaleX(-1)");
   });
 
   it("tetap menyorot potret pembicara walau teks sudah selesai diketik", () => {
@@ -198,5 +208,51 @@ describe("DialogueBox", () => {
     const mc = screen.getByAltText("Potret Nara");
     expect(mc.className).not.toContain("animate-portrait-bicara");
     expect(mc.className).toContain("brightness-50");
+  });
+
+  it("menahan kotak dialog selama animasi tutup, lalu menghapusnya", () => {
+    vi.useFakeTimers();
+    try {
+      const { rerender } = render(
+        <DialogueBox view={bicara} onAdvance={() => {}} />,
+      );
+      expect(document.querySelector(".animate-crt-masuk")).not.toBeNull();
+
+      rerender(
+        <DialogueBox
+          view={{ ...bicara, visible: false }}
+          onAdvance={() => {}}
+        />,
+      );
+
+      // Masih tampil supaya panel dan potret sempat beranimasi keluar.
+      expect(screen.getByText("Bu Ratna")).toBeInTheDocument();
+      expect(document.querySelector(".animate-crt-keluar")).not.toBeNull();
+
+      act(() => {
+        vi.advanceTimersByTime(400);
+      });
+      expect(screen.queryByText("Bu Ratna")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("menganimasikan potret masuk dari balik panel", () => {
+    render(
+      <DialogueBox
+        view={{
+          ...bicara,
+          portrait: {
+            src: "/assets/portrait/npc_1/neutral.png",
+            alt: "Potret Bu Ratna",
+          },
+        }}
+        onAdvance={() => {}}
+      />,
+    );
+
+    const gambar = screen.getByAltText("Potret Bu Ratna");
+    expect(gambar.parentElement?.className).toContain("animate-potret-masuk");
   });
 });

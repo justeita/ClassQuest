@@ -52,9 +52,10 @@ export const CHALLENGE = {
  * `scripts/import-portraits.mjs` menyeragamkan **tinggi kepala** (bukan tinggi
  * gambar), menaruh semua potret di kanvas berukuran sama, dan menggesernya
  * sampai mentok tepi kiri kanvas — jadi wajah semua karakter tampil sebesar
- * yang sama, karakternya sejajar sisi kotak, dan pergantian ekspresi tidak
- * menggeser wajah. Rasio kanvas importer (648:512) sengaja sama dengan slot di
- * sini; MC yang dicerminkan membuat rata kiri kanvas jadi rata kanan slot.
+ * yang sama, karakternya sejajar sisi kotak, dan potret tidak melompat saat
+ * ekspresi berganti. Rasio kanvas importer (456:360) sengaja sama persis dengan
+ * slot di sini; MC yang dicerminkan membuat rata kiri kanvas jadi rata kanan
+ * slot. Berkas aslinya lebih kecil dari kanvas lama supaya cepat dimuat.
  */
 export const PORTRAIT = {
   /** Lebar slot potret (px internal) = setengah lebar panel dialog. */
@@ -65,6 +66,17 @@ export const PORTRAIT = {
    * (panel mulai di `y=240`).
    */
   height: 240,
+} as const;
+
+/**
+ * Ukuran intrinsik berkas potret (`456×360`). Dipakai `next/image` sebagai
+ * `width`/`height` supaya rasio kotaknya benar sebelum gambar selesai dimuat;
+ * angkanya harus sama dengan `LEBAR_KANVAS`/`TINGGI_KANVAS` di
+ * `scripts/import-portraits.mjs`.
+ */
+export const PORTRAIT_SOURCE = {
+  width: 456,
+  height: 360,
 } as const;
 
 /**

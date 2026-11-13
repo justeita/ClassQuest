@@ -89,7 +89,7 @@ manifest (dari `src/assets/characterFrames.ts`), karena ukurannya tidak seragam.
 
 | Properti   | Nilai                                                       |
 | ---------- | ----------------------------------------------------------- |
-| Resolusi   | **648×512 px**, kanvas dan rasio sama untuk semua karakter  |
+| Resolusi   | **456×360 px**, kanvas dan rasio sama untuk semua karakter  |
 | Format     | PNG dengan latar transparan, satu berkas per ekspresi       |
 | Ekspresi   | `neutral`, `happy`, `sad`, `angry`, `shocked`, `thinking`   |
 | Lokasi     | `public/assets/portrait/<nama>/<ekspresi>.png`              |
@@ -102,12 +102,13 @@ wajib ada** untuk setiap karakter. Potret tidak memakai bingkai: `DialogueBox`
 menggambarnya di atas panel dialog dengan dasar menempel tepi atas panel, jadi
 tidak ada bagian potret yang tertutup kotak (ADR 0017). Importer menormalkan
 **tinggi kepala**, bukan tinggi gambar, lalu menyusun semua potret ke kanvas
-648×512 yang identik — wajah tiap karakter tampil sebesar yang sama, rasionya
-sama, dan potret digeser sampai mentok tepi kiri kanvas supaya karakternya
-sejajar sisi kotak dialog. Kepala semua ekspresi ditaruh di x yang sama, jadi
-potret tidak bergoyang saat ekspresi berganti. MC dicerminkan di DOM sehingga
-rata kiri kanvas menjadi rata kanan slotnya. Karena potret dirender DOM,
-berkasnya tidak dimuat `PreloadScene`.
+456×360 yang identik — wajah tiap karakter tampil sebesar yang sama dan
+rasionya sama. Seluruh potret satu karakter digeser dengan **satu nilai tetap**
+lalu dipotong sedikit di sisi luarnya, jadi karakternya mentok sejajar sisi
+kotak dialog dan tidak melompat sama sekali saat ekspresi berganti. MC
+dicerminkan di DOM sehingga rata kiri kanvas menjadi rata kanan slotnya. Berkas
+disimpan dengan filter PNG adaptif (±8 MB untuk 60 berkas) supaya cepat dimuat.
+Karena potret dirender DOM, berkasnya tidak dimuat `PreloadScene`.
 
 ### Musik
 

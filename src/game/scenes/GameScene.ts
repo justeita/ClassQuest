@@ -38,6 +38,7 @@ import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
 import type { GameBus, NpcMarker, NpcNameplate, PromptView } from "../gameBus";
 import { npcBisaDiajak, petaObrolan } from "../npcTalk";
+import { sceneMelibatkanPemain } from "../potret";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
 import { assetEntry, resolveSceneLook } from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
@@ -135,6 +136,12 @@ export class GameScene extends Phaser.Scene {
    * MC yang mengambil giliran, supaya lawan bicara tetap terlihat di layar.
    */
   private lawanBicaraTerakhir: string | null = null;
+  /**
+   * Scene aktif memuat giliran MC. Potret MC hanya ditampilkan di scene seperti
+   * ini (dan saat obrolan singkat) — di dialog yang tidak melibatkan pemain,
+   * potretnya cuma menambah sesak.
+   */
+  private sceneAdaPemain = false;
   /**
    * Pembicara yang menampilkan soal tantangan aktif. Dipakai saat feedback
    * jawaban mengganti potretnya jadi senang/marah.
@@ -1080,7 +1087,7 @@ export class GameScene extends Phaser.Scene {
     this.putarMusik(look.musicId);
   }
 
-  /** Pemberi quest scene aktif: pembicara dialog pertama yang ada di peta. */
+  /** Pemberi quest + keterlibatan pemain untuk scene aktif. */
   private perbaruiPemberiQuest() {
     const state = this.runner.getState();
     const scene =
@@ -1088,6 +1095,10 @@ export class GameScene extends Phaser.Scene {
         ? (state.chapter?.scenes[state.sceneIndex] ?? null)
         : null;
     this.pemberiQuest = pilihPemberiQuest(scene, VILLAGE.npcs);
+    // Scene dianggap melibatkan pemain bila ada beat yang diucapkan MC. Hanya
+    // di scene seperti itu potret MC menemani NPC; dialog yang murni antar-NPC
+    // tampil tanpa potret MC.
+    this.sceneAdaPemain = sceneMelibatkanPemain(scene, this.playerId);
     // Zona histeresis milik NPC sebelumnya; mulai dari batas masuk.
     this.npcDekat = false;
   }
@@ -1199,12 +1210,16 @@ export class GameScene extends Phaser.Scene {
    * Potret lawan bicara untuk menemani pembicara: MC saat NPC yang bicara,
    * atau NPC terakhir saat MC yang mengambil giliran. Potret ini tetap tampil
    * tetapi diredupkan `DialogueBox`; `null` bila tidak ada pasangan.
+   *
+   * MC hanya menemani kalau scene memang punya giliran MC, atau saat obrolan
+   * singkat — dialog antar-NPC tidak perlu potret pemain yang tidak ikut bicara.
    */
   private potretLawan(speakerId: string | null): PortraitView | null {
     if (!speakerId) return null;
     if (speakerId === this.playerId) {
       return this.potretUntuk(this.lawanBicaraTerakhir);
     }
+    if (!this.sceneAdaPemain && !this.obrolanAktif) return null;
     return this.potretUntuk(this.playerId);
   }
 

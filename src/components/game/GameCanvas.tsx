@@ -517,7 +517,10 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
             {!jeda && !tantangan && <QuestToast title={toastQuest} />}
             {!jeda && dialogTerlihat && <SkipHint berjalan={sedangLewati} />}
             {!jeda && dialogTerlihat && <SpeedLines aktif={sedangLewati} />}
-            {!jeda && (dialog?.visible || tantangan) && (
+            {/* DialogueBox tetap ter-render selama masih ada dialog/tantangan
+                terakhir: setelah `visible` jadi false ia masih perlu sekali
+                waktu untuk animasi tutup (lihat DialogueBox.tsx). */}
+            {!jeda && (dialog || tantangan) && (
               <DialogueBox
                 view={
                   tantangan
@@ -547,6 +550,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
                         text: "",
                         waiting: false,
                         portrait: null,
+                        pendamping: null,
                       })
                 }
                 onAdvance={lanjutDialog}

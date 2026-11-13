@@ -51,15 +51,15 @@ export function GamePreview() {
             <Image
               src="/assets/portrait/mc/neutral.png"
               alt="Potret Nara"
-              width={648}
-              height={512}
+              width={456}
+              height={360}
               className="pointer-events-none absolute bottom-full right-0 h-24 w-[50%] -scale-x-100 object-contain object-bottom brightness-50 sm:h-32"
             />
             <Image
               src="/assets/portrait/npc_10/thinking.png"
               alt="Potret Pak Wira"
-              width={648}
-              height={512}
+              width={456}
+              height={360}
               className="pointer-events-none absolute bottom-full left-0 h-24 w-[50%] object-contain object-bottom sm:h-32"
             />
 

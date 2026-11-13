@@ -74,8 +74,9 @@ dulu, lalu walk untuk pemain. `frameWidth`/`frameHeight` tiap karakter berbeda
 
 Setiap karakter punya enam potret dialog di
 `public/assets/portrait/<nama>/<ekspresi>.png` untuk `neutral`, `happy`, `sad`,
-`angry`, `shocked`, dan `thinking` (tinggi 512 px, lebar kanvas diseragamkan per
-karakter agar kepala tidak bergeser saat ekspresi berganti, latar transparan).
+`angry`, `shocked`, dan `thinking` (kanvas 456×360 diseragamkan untuk semua
+karakter, tinggi kepala dinormalkan dan digeser satu nilai tetap agar potret
+tidak bergeser saat ekspresi berganti, latar transparan).
 Potret dirender DOM dan bukan bagian `PreloadScene` (ADR 0017). Kolom Potret di
 bawah menunjuk foldernya; nama folder mengikuti berkas sumber, bukan id manifest.
 

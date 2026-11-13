@@ -40,12 +40,15 @@
  * atas.
  *
  * Penyekalaan memakai rata-rata kotak berbobot alpha (premultiplied), jadi tepi
- * rambut tidak berhalo gelap. Kepala semua ekspresi ditaruh di x kanvas yang
- * sama, lalu patokan itu digeser ke kiri sampai potret mentok tepi kiri kanvas;
- * sisa yang melewati tepi terpotong di sisi luar. Dengan begitu potret benar
- * menempel di tepi kotak dialog, wajah tidak bergoyang saat ekspresi berganti,
- * dan tidak ada pose yang terpotong di sisi wajah. MC dicerminkan
- * `DialogueBox`, sehingga rata kiri di kanvas menjadi rata kanan di slotnya.
+ * rambut tidak berhalo gelap. Seluruh potret karakter digeser dengan **satu
+ * nilai tetap**: sisi kiri kanvas menjadi patokan bersama, jadi potret tidak
+ * bergeser sama sekali saat ekspresi berganti (hanya pose wajahnya yang
+ * berubah). `GESER_TEPI` negatif memotong sedikit sisi luar supaya karakternya
+ * benar-benar mentok tepi kotak dialog. MC dicerminkan `DialogueBox`, sehingga
+ * rata kiri di kanvas menjadi rata kanan di slotnya.
+ *
+ * Berkas disimpan dengan filter PNG adaptif supaya gradasi halusnya ringkas —
+ * potret jadi lebih cepat diunduh tanpa menurunkan mutu.
  */
 
 import {
@@ -101,26 +104,36 @@ const KATA_KUNCI = [
 ];
 
 /** Tinggi kanvas potret hasil; cukup tajam untuk kanvas yang di-upscale. */
-const TINGGI_KANVAS = 512;
+const TINGGI_KANVAS = 360;
 
 /**
  * Lebar kanvas potret hasil. Semua karakter memakai kanvas berukuran sama
  * supaya rasio dan resolusinya identik. Angkanya menjaga rasio `lebar:tinggi`
- * sama dengan `PORTRAIT` di `src/game/layout.ts` (304:240) supaya
- * `object-contain` mengisi slot persis tanpa sisa.
+ * sama persis dengan `PORTRAIT` di `src/game/layout.ts` (304:240) supaya
+ * `object-contain` mengisi slot tanpa sisa; berkasnya juga lebih kecil dari
+ * kanvas lama (648×512) supaya potret lebih cepat dimuat.
  */
-const LEBAR_KANVAS = 648;
+const LEBAR_KANVAS = 456;
 
 /** Jarak tepi atas kepala dari tepi atas kanvas (px). */
-const MARGIN_ATAS = 40;
+const MARGIN_ATAS = 28;
 
 /**
- * Tinggi kepala target (px). Setara `(TINGGI_KANVAS - MARGIN_ATAS) / 1,6`:
- * bingkai memuat kepala plus 0,6 tinggi kepala badan di bawahnya. Karena rasio
- * bbox:tinggi-kepala semua karakter ≥ 1,67, badan selalu mencapai tepi bawah
- * kanvas — tidak ada celah transparan yang membuat potret "melayang".
+ * Tinggi kepala target (px). Sekitar 0,52 dari tinggi kanvas: bingkai memuat
+ * kepala plus badan di bawahnya, cukup besar untuk terbaca tetapi tidak
+ * menutupi dialog. Karena rasio bbox:tinggi-kepala semua karakter ≥ 1,67, badan
+ * selalu mencapai tepi bawah kanvas — tidak ada celah transparan yang membuat
+ * potret "melayang".
  */
-const TINGGI_KEPALA = 295;
+const TINGGI_KEPALA = 188;
+
+/**
+ * Geser horizontal tetap semua potret (px kanvas). Nilai ≤ 0 menempelkan sisi
+ * kiri potret ke tepi kiri kanvas; negatif memotongnya sedikit supaya karakter
+ * benar-benar mentok tepi kotak dialog. Dipakai sama rata untuk semua ekspresi
+ * supaya potret tidak melompat saat ekspresi berganti.
+ */
+const GESER_TEPI = -16;
 
 /** Ambang alpha untuk menghitung kotak isi (buang bercak hampir transparan). */
 const AMBANG_ALPHA = 16;
@@ -275,23 +288,6 @@ function tinggiKepala(image, box) {
   return Math.max(1, iLeher);
 }
 
-/** Pusat horizontal kepala (relatif tepi kiri bbox) berbobot alpha. */
-function pusatKepala(image, box, tinggiKepalaSumber) {
-  const y0 = box.minY;
-  const y1 = Math.min(box.maxY + 1, box.minY + Math.max(1, tinggiKepalaSumber));
-  let jumlah = 0;
-  let bobot = 0;
-  for (let y = y0; y < y1; y += 1) {
-    for (let x = box.minX; x <= box.maxX; x += 1) {
-      const a = image.data[(y * image.width + x) * 4 + 3];
-      if (a < AMBANG_ALPHA) continue;
-      jumlah += x * a;
-      bobot += a;
-    }
-  }
-  return bobot > 0 ? jumlah / bobot - box.minX : (box.maxX - box.minX + 1) / 2;
-}
-
 /** Nilai tengah; dipakai supaya satu ekspresi janggal tidak menggeser skala. */
 function median(nilai) {
   const urut = [...nilai].sort((a, b) => a - b);
@@ -303,11 +299,11 @@ function median(nilai) {
 
 /**
  * Susun satu ekspresi ke kanvas tetap: kepala ditinggikan `skala` kali,
- * puncaknya di `MARGIN_ATAS`, dan gambar digeser `geserKiri` px. `geserKiri`
- * bernilai ≤ 0, jadi isi potret selalu mencapai (atau melewati) tepi kiri
- * kanvas; bagian yang melewati terpotong. Karena semua karakter rata kiri,
- * MC yang dicerminkan di DOM otomatis rata kanan di slotnya. Badan yang lebih
- * panjang dari bingkai juga terpotong di tepi bawah.
+ * puncaknya di `MARGIN_ATAS`, dan gambar digeser `geserKiri` px. Karena
+ * penyusunan selalu relatif ke tepi kiri bbox ekspresi itu, `geserKiri` yang
+ * sama menaruh sisi kiri semua ekspresi di titik yang sama — potret tidak
+ * melompat saat wajahnya berganti. Badan yang lebih panjang dari bingkai
+ * terpotong di tepi bawah.
  */
 function susunPotret(image, box, skala, geserKiri) {
   const data = new Uint8Array(LEBAR_KANVAS * TINGGI_KANVAS * 4);
@@ -355,25 +351,12 @@ for (const { folder, nama, pemain } of PETA) {
   // berubah saat ekspresi berganti.
   const skala = TINGGI_KEPALA / median(ukur.map((entri) => entri.kepala));
 
-  // Patokan horizontal: kepala semua ekspresi ditaruh di x yang sama
-  // (`pusatX`) supaya wajah tidak bergoyang; nilainya diambil dari ekspresi
-  // dengan kepala paling kiri, sehingga potret selalu mentok (atau melewati)
-  // tepi kiri kanvas. Sisa yang melewati tepi terpotong di sisi luar — persis
-  // gaya potret dialog yang menempel di tepi kotak.
-  const pusatX = Math.min(
-    ...ukur.map(
-      (entri) => pusatKepala(entri.image, entri.box, entri.kepala) * skala,
-    ),
-  );
-
-  for (const { ekspresi, image, box, kepala } of ukur) {
-    const potret = susunPotret(
-      image,
-      box,
-      skala,
-      pusatX - pusatKepala(image, box, kepala) * skala,
+  for (const { ekspresi, image, box } of ukur) {
+    const potret = susunPotret(image, box, skala, GESER_TEPI);
+    writeFileSync(
+      join(dir, `${ekspresi}.png`),
+      Buffer.from(encodePng(potret, { filter: "adaptive" })),
     );
-    writeFileSync(join(dir, `${ekspresi}.png`), Buffer.from(encodePng(potret)));
     jumlah += 1;
   }
   log(
