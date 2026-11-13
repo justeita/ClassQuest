@@ -87,7 +87,8 @@ pembicara `dialogue` pertama di scene yang ada di daftar NPC ruangan; bila tidak
 ada yang cocok, NPC pertama di ruangan dipakai agar alur tidak macet.
 
 NPC lain tetap bisa diajak bicara **singkat** bila `cast` memberi mereka
-`smallTalk` (ADR 0016): kotak `Space` yang sama menyembul dari penanda quest,
+`smallTalk` (ADR 0016): kotak `Space` yang sama bergaya seperti penanda quest,
+tetapi muncul sebagai pop-up (bukan meluncur ke kanan, karena tidak ada `!`),
 lalu satu kalimat tampil di textbox tanpa menggeser posisi cerita. Setelah
 textbox ditutup, pemain kembali bebas berjalan. NPC tanpa `smallTalk` tetap
 berdiri sebagai penghalang dan tidak memunculkan prompt.

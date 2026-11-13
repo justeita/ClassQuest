@@ -53,8 +53,10 @@ Aturan bentuknya:
 - `smallTalk?: string`, 1–240 karakter, satu kalimat pendek. Opsional: karakter
   tanpa field ini tetap diam dan **tidak** memunculkan prompt.
 - Di fase `explore`, NPC dengan `smallTalk` yang bukan pemberi quest scene aktif
-  memunculkan chip `Space` yang sama. Menekannya menampilkan satu baris itu di
-  textbox (nama + portrait karakter), lalu textbox ditutup dengan Space/klik.
+  memunculkan kotak `Space` yang gayanya sama dengan pemberi quest, tetapi
+  muncul sebagai pop-up (`animate-quest-pop`) karena tidak ada penanda `!` untuk
+  ditempeli. Menekannya menampilkan satu baris itu di textbox (nama + portrait
+  karakter), lalu textbox ditutup dengan Space/klik.
 - Obrolan **tidak menyentuh `StoryRunner`**: fase tetap `explore`, posisi cerita
   tidak bergeser, dan baris itu tetap masuk log dialog.
 - Pemberi quest tetap memprioritaskan deretan beat scene-nya. `smallTalk` hanya

@@ -186,9 +186,11 @@ bukan dunia terbuka:
   chapter"), lalu bergerak 4 arah dengan collision sederhana (arcade physics,
   gravity 0).
 - NPC/objek interaksi punya zona 30 px; saat pemain berada di dalamnya, kotak
-  `Space` menyembul ke kanan dari penanda `!` dan memicu deretan beat
-  dialog/tantangan pada NPC pemberi quest. NPC non-peran bisa menyapa singkat
-  lewat `smallTalk` tanpa memicu beat.
+  `Space` bergaya seperti penanda `!` muncul dan memicu deretan beat
+  dialog/tantangan pada NPC pemberi quest. Pada pemberi quest kotak itu menempel
+  di kanan `!` dan meluncur keluar darinya; pada NPC non-peran yang menyapa
+  singkat lewat `smallTalk`, kotak yang sama muncul sebagai pop-up tanpa memicu
+  beat.
 - Penanda `!` hanya ada di atas pemberi quest scene aktif, mengikuti kamera.
   Penanda dan kotak `Space` disembunyikan selama dialog, tantangan, atau menu.
 - Untuk MVP, data map, spawn, penempatan NPC, dan collision didefinisikan **di

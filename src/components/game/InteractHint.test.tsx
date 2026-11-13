@@ -2,32 +2,38 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { InteractHint } from "./InteractHint";
-import { cqw, persenTinggi, persenLebar } from "@/game/layout";
+import { PENANDA, cqw, persenTinggi, persenLebar } from "@/game/layout";
 
 afterEach(cleanup);
 
 describe("InteractHint", () => {
   it("menampilkan teks tombol interaksi", () => {
-    render(<InteractHint hint={{ text: "Space", x: 320, y: 180 }} />);
+    render(
+      <InteractHint hint={{ text: "Space", x: 320, y: 180, menempel: true }} />,
+    );
 
     expect(screen.getByText("Space")).toBeInTheDocument();
   });
 
-  it("menaruh chip di kanan-bawah koordinat internal", () => {
-    render(<InteractHint hint={{ text: "Space", x: 320, y: 90 }} />);
+  it("menaruh kotak di kanan-bawah koordinat internal", () => {
+    render(
+      <InteractHint hint={{ text: "Space", x: 320, y: 90, menempel: true }} />,
+    );
 
-    const chip = screen.getByText("Space").parentElement;
-    expect(chip).not.toBeNull();
-    expect(chip?.style.left).toBe(persenLebar(320));
-    expect(chip?.style.top).toBe(persenTinggi(90));
-    // Titik jangkar adalah sudut kiri-bawah: chip naik ke atas titik itu dan
+    const kotak = screen.getByText("Space").parentElement;
+    expect(kotak).not.toBeNull();
+    expect(kotak?.style.left).toBe(persenLebar(320));
+    expect(kotak?.style.top).toBe(persenTinggi(90));
+    // Titik jangkar adalah sudut kiri-bawah: kotak naik ke atas titik itu dan
     // tidak lagi digeser ke tengah, karena duduk di samping penanda "!".
-    expect(chip?.className).toContain("-translate-y-full");
-    expect(chip?.className).not.toContain("-translate-x-1/2");
+    expect(kotak?.className).toContain("-translate-y-full");
+    expect(kotak?.className).not.toContain("-translate-x-1/2");
   });
 
   it("tidak menangkap klik supaya canvas tetap menerima input", () => {
-    render(<InteractHint hint={{ text: "Space", x: 320, y: 180 }} />);
+    render(
+      <InteractHint hint={{ text: "Space", x: 320, y: 180, menempel: true }} />,
+    );
 
     expect(screen.getByText("Space").parentElement?.className).toContain(
       "pointer-events-none",
@@ -35,7 +41,9 @@ describe("InteractHint", () => {
   });
 
   it("ukuran huruf mengikuti skala canvas", () => {
-    render(<InteractHint hint={{ text: "Space", x: 320, y: 180 }} />);
+    render(
+      <InteractHint hint={{ text: "Space", x: 320, y: 180, menempel: true }} />,
+    );
 
     // Ukuran memakai satuan internal; nilainya diturunkan dari lebar dunia
     // aktual (`--gw`), jadi yang diuji cukup bahwa rumusnya dipakai.
@@ -45,22 +53,48 @@ describe("InteractHint", () => {
     expect(cqw(11)).toContain("var(--gw");
   });
 
-  it("menampilkan Space di dalam kotak bergaya HUD", () => {
-    render(<InteractHint hint={{ text: "Space", x: 320, y: 180 }} />);
+  it("menyamakan kotak dengan penanda quest `!`", () => {
+    render(
+      <InteractHint hint={{ text: "Space", x: 320, y: 180, menempel: true }} />,
+    );
 
     const kotak = screen.getByText("Space");
-    expect(kotak.className).toContain("border-2");
+    expect(kotak.className).toContain("border-[#E8A87C]/80");
     expect(kotak.className).toContain("bg-[#0b120e]/90");
-    expect(kotak.className).toContain("text-[#F7F4EC]");
+    expect(kotak.className).toContain("text-[#E8A87C]");
+    // Tinggi disamakan dengan kotak `!` supaya dasar keduanya sejajar.
+    expect(kotak.style.height).toBe(cqw(PENANDA.kotak));
   });
 
-  it("menyembul ke kanan dari penanda quest lewat animasi slider", () => {
-    render(<InteractHint hint={{ text: "Space", x: 320, y: 180 }} />);
+  it("pemberi quest: kotak meluncur keluar dari penanda `!`", () => {
+    render(
+      <InteractHint hint={{ text: "Space", x: 320, y: 180, menempel: true }} />,
+    );
 
-    // Animasi duduk di kotak itu sendiri dan tumbuh dari tepi kiri, jadi
-    // kotak tampak meluncur keluar dari penanda `!` di sebelah kiri.
     const kotak = screen.getByText("Space");
     expect(kotak.className).toContain("animate-quest-slide-in");
     expect(kotak.className).toContain("origin-left");
+    expect(kotak.className).not.toContain("animate-quest-pop");
+    expect(screen.getByText("Space").parentElement).toHaveAttribute(
+      "data-prompt",
+      "quest",
+    );
+  });
+
+  it("NPC obrolan singkat: kotak muncul sebagai pop-up, bukan meluncur", () => {
+    render(
+      <InteractHint
+        hint={{ text: "Space", x: 320, y: 180, menempel: false }}
+      />,
+    );
+
+    const kotak = screen.getByText("Space");
+    expect(kotak.className).toContain("animate-quest-pop");
+    expect(kotak.className).not.toContain("animate-quest-slide-in");
+    expect(kotak.className).not.toContain("origin-left");
+    expect(screen.getByText("Space").parentElement).toHaveAttribute(
+      "data-prompt",
+      "obrolan",
+    );
   });
 });

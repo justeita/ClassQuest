@@ -463,7 +463,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private emitPrompt(hint: PromptView | null) {
-    const tanda = hint ? `${hint.text}:${hint.x}:${hint.y}` : "";
+    const tanda = hint
+      ? `${hint.text}:${hint.x}:${hint.y}:${hint.menempel ? 1 : 0}`
+      : "";
     if (tanda === this.tandaPrompt) return;
     this.tandaPrompt = tanda;
     this.bus?.emit({ type: "prompt", hint });
@@ -521,6 +523,9 @@ export class GameScene extends Phaser.Scene {
       text: dunia.text,
       x: Math.round(layar.x),
       y: Math.round(layar.y),
+      // Hanya pemberi quest yang punya penanda `!`; promptnya menempel pada
+      // kotak itu. Obrolan singkat muncul sebagai pop-up terpisah.
+      menempel: npcId === this.pemberiQuest,
     };
   }
 

@@ -221,7 +221,10 @@ describe("GameShell", () => {
       type: "nametags",
       plates: [{ npcId: "char_npc_10", nama: "Pak Wira", x: 200, y: 126 }],
     });
-    bus.emit({ type: "prompt", hint: { text: "Space", x: 214, y: 126 } });
+    bus.emit({
+      type: "prompt",
+      hint: { text: "Space", x: 214, y: 126, menempel: true },
+    });
 
     expect(await screen.findByText("!")).toBeInTheDocument();
     expect(screen.getByText("Pak Wira")).toBeInTheDocument();
@@ -559,7 +562,10 @@ describe("GameShell", () => {
   it("event prompt menampilkan chip Space dan null menyembunyikannya", async () => {
     await mainkan();
 
-    bus.emit({ type: "prompt", hint: { text: "Space", x: 320, y: 180 } });
+    bus.emit({
+      type: "prompt",
+      hint: { text: "Space", x: 320, y: 180, menempel: true },
+    });
     expect(await screen.findByText("Space")).toBeInTheDocument();
 
     bus.emit({ type: "prompt", hint: null });
@@ -574,7 +580,10 @@ describe("GameShell", () => {
       type: "dialogue",
       view: { visible: true, name: null, text: "Hujan turun.", waiting: true },
     });
-    bus.emit({ type: "prompt", hint: { text: "Space", x: 320, y: 180 } });
+    bus.emit({
+      type: "prompt",
+      hint: { text: "Space", x: 320, y: 180, menempel: true },
+    });
     await screen.findByText("Hujan turun.");
 
     bukaJeda();

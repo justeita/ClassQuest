@@ -275,16 +275,20 @@ karena `pointer-events-none`. Karena posisinya dihitung ulang tiap
 frame, beacon ikut bergeser ketika pemain berjalan mendekat dan berubah mulus
 menjadi kotak `!` begitu NPC masuk layar.
 
-Kotak `!` **tidak** diganti kotak `Space` saat pemain mendekat: kedua tanda
-tampil bersamaan agar indikator quest tidak hilang-muncul. Kotak `Space` digeser
-ke kanan kotak dan dinaikkan melewati papan nama (`JARAK_PROMPT` 22 px), lalu
-menyembul ke kanan dari `!` lewat `animate-quest-slide-in` (titik tumbuh di tepi
-kiri) saat pemain masuk zona, jadi keduanya tidak bertabrakan dan prompt terasa
-"lahir" dari indikator quest. Animasi hanya jalan sekali per kemunculan: React
-memakai ulang kotak yang sama saat koordinatnya berubah tiap frame. Zona
-interaksi memakai histeresis — masuk di 30 px, keluar di 38 px — supaya kotak
-tidak berkedip saat pemain berdiri di batas zona. Speaker disorot, beat
-`transition` fade otomatis, beat `challenge` dibuka sebagai overlay React.
+Kotak `!` **tidak** diganti kotak `Space` saat pemain mendekat: pemberi quest
+menampilkan keduanya bersamaan agar indikator quest tidak hilang-muncul. Kotak
+`Space` memakai gaya yang sama dengan `!` (latar, garis, dan teks aksen, tinggi
+`PENANDA.kotak`) dan digeser rapat ke kanan penanda (`GESER_PROMPT` setengah
+lebar `!`), jadi `[!][Space]` terbaca sebagai satu widget; dasar keduanya
+sejajar (`JARAK_PROMPT` 24 px). Saat pemain masuk zona, pemberi quest memakai
+`animate-quest-slide-in` (titik tumbuh di tepi kiri) sehingga kotak meluncur
+keluar dari `!`. NPC obrolan singkat tidak punya penanda, jadi kotaknya muncul
+halus lewat `animate-quest-pop` (pop-up), bukan meluncur ke kanan. Animasi hanya
+jalan sekali per kemunculan: React memakai ulang kotak yang sama saat
+koordinatnya berubah tiap frame. Zona interaksi memakai histeresis — masuk di
+30 px, keluar di 38 px — supaya kotak tidak berkedip saat pemain berdiri di
+batas zona. Speaker disorot, beat `transition` fade otomatis, beat `challenge`
+dibuka sebagai overlay React.
 
 Dunia dibangun **sekali** di `create()`: tidak ada `roomId`, tidak ada bangun
 ulang saat pindah chapter. Perpindahan scene hanya menukar musik dan NPC pemberi

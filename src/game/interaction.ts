@@ -1,3 +1,4 @@
+import { PENANDA } from "./layout";
 import { TINGGI_KARAKTER } from "./world/karakter";
 import type { WorldNpc } from "./world/types";
 
@@ -7,7 +8,7 @@ import type { WorldNpc } from "./world/types";
  * Pencarian NPC berbasis jarak dari titik kaki — murni, tanpa fisika tambahan.
  *
  * Prompt "Space" tidak lagi digambar di canvas; modul ini hanya menghitung
- * posisinya. React (`InteractHint.tsx`) yang menggambar chip teksnya supaya
+ * posisinya. React (`InteractHint.tsx`) yang menggambar kotak teksnya supaya
  * tajam — lihat ADR 0007.
  */
 
@@ -34,27 +35,30 @@ export const ZONA_HISTERESIS = 8;
 export const PROMPT_INTERAKSI = "Space";
 
 /**
- * Jarak kotak prompt dari ubun-ubun sprite karakter, dalam piksel.
+ * Jarak dasar kotak prompt dari ubun-ubun sprite karakter, dalam piksel.
  *
- * Papan nama NPC digambar tepat di atas kepala (lihat `JARAK_NAMA` di
- * `GameScene`), jadi kotak dinaikkan melewatinya: dengan 22 px kotak duduk di
- * samping kotak `!` dan tidak menutupi nama.
+ * Sama dengan `MARKER_OFFSET_Y` di `GameScene` (24 px): dasar kotak `Space`
+ * jadi sejajar dengan dasar kotak `!`, dan karena tingginya pun sama
+ * (`PENANDA.kotak`) kedua kotak terbaca sebagai satu widget. Papan nama NPC
+ * yang lebih pendek tetap di bawah keduanya, jadi tidak ada yang tertutup.
  */
-export const JARAK_PROMPT = 22;
+export const JARAK_PROMPT = 24;
 
 /**
- * Geser kotak ke kanan penanda `!`.
+ * Geser kotak sampai tepi kirinya menyentuh tepi kanan kotak `!`.
  *
- * Penanda quest tidak lagi disembunyikan saat pemain mendekat: `!` tetap di
- * atas kepala dan kotak `Space` menyembul di sampingnya (`animate-quest-slide-in`
- * di `InteractHint.tsx`). Dua tanda yang berdiri sendiri-sendiri membuat
- * indikator quest tidak berkedip hilang-muncul.
+ * Penanda quest digambar di tengah NPC selebar `PENANDA.kotak`, jadi tepi
+ * kanannya `PENANDA.kotak / 2` di kanan titik kaki. Dengan geseran itu kotak
+ * `Space` duduk **rapat** di samping penanda dan tidak lagi terpisah celah.
+ * Pemberi quest: `!` tetap tampil dan kotak meluncur keluar darinya
+ * (`animate-quest-slide-in`). NPC obrolan singkat: tidak ada penanda, jadi
+ * kotak muncul sendiri sebagai pop-up (`animate-quest-pop`).
  */
-export const GESER_PROMPT = 14;
+export const GESER_PROMPT = PENANDA.kotak / 2;
 
 export type PromptHint = {
   text: string;
-  /** Koordinat pusat chip dalam piksel internal 640×360. */
+  /** Koordinat sudut kiri-bawah kotak dalam piksel internal 640×360. */
   x: number;
   y: number;
 };
@@ -87,10 +91,10 @@ export function findNpcInZone(
 }
 
 /**
- * Posisi chip prompt di kanan penanda `!`, dalam koordinat internal.
+ * Posisi kotak prompt rapat di kanan penanda `!`, dalam koordinat internal.
  * Sprite dijangkar di titik kaki, jadi ubun-ubunnya `TINGGI_KARAKTER` px di
- * atas titik itu; chip diletakkan sedikit di atasnya dan digeser ke kanan
- * supaya tidak menutupi penanda quest.
+ * atas titik itu; kotak diletakkan sejajar dengan `!` dan digeser ke kanan
+ * sampai tepinya menyentuh penanda quest.
  */
 export function posisiPrompt(
   npcs: Pick<WorldNpc, "id" | "x" | "y">[],

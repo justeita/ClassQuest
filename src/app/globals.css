@@ -18,6 +18,8 @@
   --animate-quest-beacon: quest-beacon 1.9s ease-out infinite;
   /* Kotak `Space` menyembul ke kanan dari penanda `!` saat pemain mendekat. */
   --animate-quest-slide-in: quest-slide-in 0.22s ease-out both;
+  /* Kotak `Space` pop-up halus untuk NPC obrolan singkat (tanpa penanda `!`). */
+  --animate-quest-pop: quest-pop 0.2s ease-out both;
 
   /* --- Portal guru (desain dari `guru.html`, lihat src/app/guru) --- */
   --color-brand-50: #f0f7ff;
@@ -100,6 +102,24 @@
   }
 }
 
+/* Kotak `Space` untuk NPC tanpa penanda quest: muncul halus dari bawah lalu
+   membesar sekilas (pop-up), bukan meluncur ke kanan. Tetap hanya `opacity`
+   dan `transform` supaya murah saat React memasang kotaknya. */
+@keyframes quest-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.55);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Naik-turun sangat pelan untuk jendela game di hero `/`. Jaraknya 6 px supaya
    terasa hidup tanpa mengalihkan perhatian dari judul dan tombol. */
 @keyframes landing-bob {
@@ -138,7 +158,8 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-quest-bob,
   .animate-quest-beacon,
-  .animate-quest-slide-in {
+  .animate-quest-slide-in,
+  .animate-quest-pop {
     animation: none;
   }
 }
