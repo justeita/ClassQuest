@@ -153,16 +153,17 @@ export function AiStudio({ maxBytes }: { maxBytes: number }) {
 
         if (typeof storyId === "string" && storyId !== "") {
           // Jangan reset `pending`: tombol tetap nonaktif selama navigasi.
+          // Tanpa `refresh()`: `push` sudah mengambil RSC halaman tujuan,
+          // menyegarkan setelahnya hanya menggandakan permintaan.
           router.push(`/guru/materi/${storyId}`);
-          router.refresh();
           return;
         }
 
         showToast(GENERIC_ERROR, "error");
       } else if (response.status === 401) {
         showToast("Sesi Anda sudah berakhir. Silakan masuk lagi.", "error");
+        // Tanpa `refresh()`: `replace` sudah mengambil RSC halaman masuk.
         router.replace("/guru/masuk");
-        router.refresh();
         return;
       } else {
         // Bentuk error kontrak: `{ error: { code, message } }`. Pesannya sudah

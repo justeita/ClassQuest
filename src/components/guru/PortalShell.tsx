@@ -96,8 +96,10 @@ export function PortalShell({
     }
 
     showToast("Sesi kerja Anda telah diakhiri.", "info");
+    // Cukup `replace`: navigasi sudah mengambil RSC halaman masuk. `refresh()`
+    // setelah navigasi hanya menggandakan permintaan dan bisa menahan transisi
+    // sampai keduanya selesai (gejala halaman terlihat beku).
     router.replace("/guru/masuk");
-    router.refresh();
   }
 
   // Halaman paling spesifik menang: `/guru/materi/baru` bukan `/guru/materi`.

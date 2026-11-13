@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { hardNavigate } from "./navigation";
 import { useToast } from "./toast";
 
 /**
@@ -10,7 +10,9 @@ import { useToast } from "./toast";
  *
  * Tersambung ke `POST /api/auth/login` (`docs/06-backend/api-contract.md`):
  * username + password akun guru, bukan kode akses bersama. Cookie sesi dipasang
- * oleh route handler, lalu guru diarahkan ke `/guru`.
+ * oleh route handler, lalu guru diarahkan ke `/guru` dengan **muat ulang
+ * penuh** (`hardNavigate`), bukan navigasi client — lihat catatan di `kirim()`
+ * soal kenapa.
  *
  * Aturan pesan:
  *
@@ -21,7 +23,6 @@ import { useToast } from "./toast";
  * - Masalah jaringan/pemasangan env tidak pernah menampilkan teks internal.
  */
 export function LoginForm() {
-  const router = useRouter();
   const showToast = useToast();
 
   const [username, setUsername] = useState("");
@@ -54,10 +55,15 @@ export function LoginForm() {
           "Otentikasi berhasil. Selamat datang di Class Quest Teacher Portal.",
           "success",
         );
-        // `pending` sengaja tidak direset: tombol tetap nonaktif selama
-        // navigasi supaya tidak ada dua permintaan login.
-        router.replace("/guru");
-        router.refresh();
+        // Muat ulang penuh, bukan `router.replace()` + `router.refresh()`.
+        // Keduanya berjalan dalam satu transisi React, jadi layar login baru
+        // berganti setelah KEDUA permintaan RSC selesai. Bila salah satunya
+        // lambat/menggantung (instance dingin, database jauh), halaman terlihat
+        // beku dan guru harus memuat ulang manual. Muat ulang penuh memakai
+        // cookie sesi yang baru dan menampilkan progres dari browser.
+        // `pending` sengaja tidak direset: tombol tetap nonaktif sampai
+        // dokumen baru dimuat.
+        hardNavigate("/guru");
         return;
       }
 
