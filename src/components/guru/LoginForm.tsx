@@ -89,8 +89,13 @@ export function LoginForm() {
   }
 
   return (
-    <div className="relative z-10 flex w-full items-center justify-center bg-white p-6 sm:p-10 lg:w-5/12 lg:bg-slate-50 lg:p-14">
-      <div className="guru-enter w-full max-w-md space-y-6">
+    <div className="relative z-10 flex w-full items-center justify-center bg-slate-50 p-6 sm:p-10 lg:min-h-0 lg:w-5/12 lg:items-start lg:overflow-y-auto lg:p-[var(--masuk-formpad)]">
+      {/* Kartu bergaya pixel yang sama dengan kartu portal: bingkai tegas +
+          bayangan padat, bukan blur. Lihat `guru-pixel-card` di globals.css.
+          `lg:my-auto` menengahkan kartu secara vertikal sekaligus tetap bisa
+          di-scroll bila viewport sangat pendek (`align-items: center`
+          memotong bagian atas saat isi meluber). */}
+      <div className="guru-enter w-full max-w-md space-y-6 rounded-2xl border-2 border-slate-200 bg-white p-6 shadow-[4px_4px_0px_#cbd5e1] sm:p-8 lg:my-auto lg:space-y-[var(--masuk-formstack)] lg:p-[var(--masuk-formkartupad)]">
         <div className="space-y-2 text-left">
           <div className="mb-1 inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1 shadow-sm">
             <span className="font-pixel text-xs uppercase tracking-wide text-brand-700">
@@ -98,16 +103,21 @@ export function LoginForm() {
             </span>
           </div>
 
-          <h1 className="font-heading text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+          <h2 className="font-heading text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
             Masuk Portal{" "}
-            <span className="font-pixel text-brand-600">Class Quest</span>
-          </h1>
+            <span className="whitespace-nowrap font-pixel text-brand-600">
+              Class Quest
+            </span>
+          </h2>
           <p className="text-xs font-medium text-slate-600">
             Masuk dengan akun guru untuk mengelola materi dan misi pembelajaran.
           </p>
         </div>
 
-        <form onSubmit={kirim} className="space-y-4 pt-2">
+        <form
+          onSubmit={kirim}
+          className="space-y-4 pt-2 lg:space-y-[var(--masuk-formgap)]"
+        >
           <div>
             <label
               htmlFor="loginUsername"
@@ -117,7 +127,7 @@ export function LoginForm() {
             </label>
             <div className="relative">
               <i
-                className="fa-solid fa-user absolute left-4 top-3.5 text-xs text-slate-400"
+                className="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-xs text-slate-400"
                 aria-hidden
               />
               <input
@@ -132,7 +142,7 @@ export function LoginForm() {
                 placeholder="username guru"
                 aria-describedby="loginUsernameHint"
                 disabled={pending}
-                className="w-full rounded-xl border-2 border-slate-300 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100"
+                className="w-full rounded-xl border-2 border-slate-300 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100 lg:py-[var(--masuk-inputpad)]"
               />
             </div>
             <p
@@ -153,7 +163,7 @@ export function LoginForm() {
             </label>
             <div className="relative">
               <i
-                className="fa-solid fa-lock absolute left-4 top-3.5 text-xs text-slate-400"
+                className="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-xs text-slate-400"
                 aria-hidden
               />
               <input
@@ -166,7 +176,7 @@ export function LoginForm() {
                 placeholder="••••••••"
                 aria-describedby="loginPasswordHint"
                 disabled={pending}
-                className="w-full rounded-xl border-2 border-slate-300 bg-white py-3 pl-11 pr-11 text-sm text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100"
+                className="w-full rounded-xl border-2 border-slate-300 bg-white py-3 pl-11 pr-11 text-sm text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100 lg:py-[var(--masuk-inputpad)]"
               />
               <button
                 type="button"
@@ -174,7 +184,7 @@ export function LoginForm() {
                 aria-label={
                   lihatSandi ? "Sembunyikan sandi" : "Tampilkan sandi"
                 }
-                className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
               >
                 <i
                   className={`fa-solid ${lihatSandi ? "fa-eye-slash" : "fa-eye"} text-sm`}

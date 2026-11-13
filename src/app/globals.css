@@ -205,14 +205,72 @@ img {
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Lengkungan pemisah panel kiri halaman masuk. */
-.guru-wave-clip {
-  clip-path: url(#guruWaveDesktop);
+/* Lengkungan pemisah panel kiri halaman masuk. Dipasang pada lapisan latar
+   (bukan elemen berisi konten) supaya tidak memotong isi panel. Hanya dipakai di
+   layar lebar (bersama `lg:flex-row`): di layar sempit kedua panel menumpuk
+   vertikal, jadi tepi lurus lebih hemat ruang. */
+@media (min-width: 1024px) {
+  .guru-wave-clip {
+    clip-path: url(#guruWaveDesktop);
+  }
 }
 
-@media (max-width: 1024px) {
-  .guru-wave-clip {
-    clip-path: url(#guruWaveMobile);
+/* Halaman masuk guru — ritme lentur agar tetap proporsional saat di-zoom.
+ *
+ * Di layar lebar halaman dikunci setinggi viewport (`lg:h-[100dvh]` di
+ * `page.tsx`), jadi tanpa scroll. Masalahnya, memperbesar halaman (zoom
+ * peramban) mengecilkan viewport CSS: dengan ukuran tetap, isi panel akhirnya
+ * bertumpuk. Karena itu jarak dan ukuran kunci di bawah dihitung dari tinggi
+ * viewport dengan `clamp()`:
+ *
+ *   - batas atas  = ukuran desain di layar tinggi (kembali lega mulai 900 px),
+ *   - batas bawah = ukuran minimum yang masih terbaca,
+ *   - di antaranya menyusut proporsional mengikuti tinggi viewport.
+ *
+ * Kalibrasi: pada 768 px tinggi (laptop 1366×768) nilainya sama dengan tata
+ * letak sebelum ini, dan pada 900 px menyamai ukuran `xl`. Baris `vh` ditulis
+ * lebih dulu sebagai cadangan bila `dvh` belum didukung peramban. */
+@media (min-width: 1024px) {
+  .guru-masuk {
+    /* padding panel brand: 36 px @768 → 48 px @900 */
+    --masuk-pad: clamp(1.25rem, calc(9.09vh - 2.11rem), 3rem);
+    --masuk-pad: clamp(1.25rem, calc(9.09dvh - 2.11rem), 3rem);
+    /* jarak antar blok panel brand: 20 px @768 → 32 px @900 */
+    --masuk-gap: clamp(0.75rem, calc(9.09vh - 3.11rem), 2rem);
+    --masuk-gap: clamp(0.75rem, calc(9.09dvh - 3.11rem), 2rem);
+    /* ritme vertikal blok tengah: 20 px @768 → 24 px @900 */
+    --masuk-stack: clamp(0.75rem, calc(3.03vh - 0.2rem), 1.5rem);
+    --masuk-stack: clamp(0.75rem, calc(3.03dvh - 0.2rem), 1.5rem);
+    /* ukuran judul: 30 px @768 → 36 px @900 */
+    --masuk-judul: clamp(1.25rem, calc(4.55vh - 0.31rem), 2.25rem);
+    --masuk-judul: clamp(1.25rem, calc(4.55dvh - 0.31rem), 2.25rem);
+    /* tinggi logo: 40 px @768 → 48 px @900 */
+    --masuk-logo: clamp(1.75rem, calc(6.06vh - 0.41rem), 3rem);
+    --masuk-logo: clamp(1.75rem, calc(6.06dvh - 0.41rem), 3rem);
+    /* padding kartu langkah: 14 px @768 → 16 px @900 */
+    --masuk-kartupad: clamp(0.625rem, calc(1.52vh + 0.15rem), 1rem);
+    --masuk-kartupad: clamp(0.625rem, calc(1.52dvh + 0.15rem), 1rem);
+    /* ikon langkah: 32 px @768 → 36 px @900 */
+    --masuk-ikon: clamp(1.5rem, calc(3.03vh + 0.55rem), 2.25rem);
+    --masuk-ikon: clamp(1.5rem, calc(3.03dvh + 0.55rem), 2.25rem);
+    /* garis kaki panel: 12 px @768 → 16 px @900 */
+    --masuk-kakipad: clamp(0.5rem, calc(3.03vh - 0.7rem), 1rem);
+    --masuk-kakipad: clamp(0.5rem, calc(3.03dvh - 0.7rem), 1rem);
+    /* padding kolom form: 36 px @768 → 56 px @900 */
+    --masuk-formpad: clamp(1.25rem, calc(15.15vh - 5.02rem), 3.5rem);
+    --masuk-formpad: clamp(1.25rem, calc(15.15dvh - 5.02rem), 3.5rem);
+    /* padding kartu form: 32 px @768 → 32 px @900 (menyusut di bawah itu) */
+    --masuk-formkartupad: clamp(1.25rem, calc(6.06vh - 0.41rem), 2rem);
+    --masuk-formkartupad: clamp(1.25rem, calc(6.06dvh - 0.41rem), 2rem);
+    /* ritme vertikal dalam kartu form: 24 px @768 (menyusut di bawah itu) */
+    --masuk-formstack: clamp(0.75rem, calc(3.85vh - 0.35rem), 1.5rem);
+    --masuk-formstack: clamp(0.75rem, calc(3.85dvh - 0.35rem), 1.5rem);
+    /* jarak antar field form: 16 px @768 (menyusut di bawah itu) */
+    --masuk-formgap: clamp(0.5rem, calc(2.88vh - 0.38rem), 1rem);
+    --masuk-formgap: clamp(0.5rem, calc(2.88dvh - 0.38rem), 1rem);
+    /* padding vertikal input: 12 px @768 (menyusut di bawah itu) */
+    --masuk-inputpad: clamp(0.375rem, calc(1.92vh - 0.17rem), 0.75rem);
+    --masuk-inputpad: clamp(0.375rem, calc(1.92dvh - 0.17rem), 0.75rem);
   }
 }
 
