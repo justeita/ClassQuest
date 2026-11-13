@@ -31,6 +31,7 @@ const config: OpenAiCompatibleProviderConfig = {
   model: "model-contoh",
   baseUrl: BASE_URL,
   timeoutMs: 60_000,
+  branching: false,
 };
 
 const request: LlmRequest = {

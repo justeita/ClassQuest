@@ -48,6 +48,7 @@ describe("loadAiConfig — default", () => {
       model: null,
       baseUrl: null,
       timeoutMs: DEFAULT_AI_TIMEOUT_MS,
+      branching: false,
     });
   });
 
@@ -83,6 +84,7 @@ describe("loadAiConfig — anthropic", () => {
       model: "model-contoh",
       baseUrl: "https://gateway.example.test",
       timeoutMs: 45_000,
+      branching: false,
     });
   });
 
@@ -159,6 +161,7 @@ describe("loadAiConfig — openai-compatible", () => {
       model: "model-contoh",
       baseUrl: "https://router.example.test/v1",
       timeoutMs: 45_000,
+      branching: false,
     });
   });
 
@@ -175,6 +178,7 @@ describe("loadAiConfig — openai-compatible", () => {
       model: "model-contoh",
       baseUrl: "http://localhost:20128/v1",
       timeoutMs: DEFAULT_AI_TIMEOUT_MS,
+      branching: false,
     });
   });
 
@@ -351,6 +355,42 @@ describe("loadAiConfig — AI_TIMEOUT_MS", () => {
       expect(error).toBeInstanceOf(AiConfigError);
       expect((error as AiConfigError).variables).toEqual(["AI_TIMEOUT_MS"]);
     }
+  });
+});
+
+describe("loadAiConfig — AI_BRANCHING", () => {
+  it('mati saat tidak diset, kosong, atau bukan "on"', () => {
+    expect(loadAiConfig({}).branching).toBe(false);
+    expect(loadAiConfig({ AI_BRANCHING: "" }).branching).toBe(false);
+    expect(loadAiConfig({ AI_BRANCHING: "   " }).branching).toBe(false);
+    expect(loadAiConfig({ AI_BRANCHING: "off" }).branching).toBe(false);
+    expect(loadAiConfig({ AI_BRANCHING: "true" }).branching).toBe(false);
+    expect(loadAiConfig({ AI_BRANCHING: "1" }).branching).toBe(false);
+  });
+
+  it('hidup hanya saat bernilai "on" (tanpa peduli huruf besar)', () => {
+    expect(loadAiConfig({ AI_BRANCHING: "on" }).branching).toBe(true);
+    expect(loadAiConfig({ AI_BRANCHING: "ON" }).branching).toBe(true);
+    expect(loadAiConfig({ AI_BRANCHING: "  On  " }).branching).toBe(true);
+  });
+
+  it("berlaku untuk semua provider", () => {
+    expect(
+      loadAiConfig({
+        AI_PROVIDER: "anthropic",
+        AI_API_KEY: FAKE_KEY,
+        AI_MODEL: "model-contoh",
+        AI_BRANCHING: "on",
+      }).branching,
+    ).toBe(true);
+    expect(
+      loadAiConfig({
+        AI_PROVIDER: "openai-compatible",
+        AI_MODEL: "model-contoh",
+        AI_BASE_URL: "https://router.example.test/v1",
+        AI_BRANCHING: "on",
+      }).branching,
+    ).toBe(true);
   });
 });
 

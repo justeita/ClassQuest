@@ -64,6 +64,10 @@ export const ERROR_CODES = [
   "E_RETRY_COUNT",
   "E_FLAG_UNDECLARED",
   "E_DETOUR_TOO_LONG",
+  // Hanya muncul dari `validateChapter` (validate-parts.ts): `onWrong` wajib
+  // bersama `maxAttempts` 2 atau 3. Validator cerita penuh tidak memeriksanya
+  // lagi karena pipeline sudah menolak chapter ini lebih dulu.
+  "E_ONWRONG_WITHOUT_ATTEMPTS",
   // Tidak ada di tabel dokumen (lihat laporan tugas): dibutuhkan oleh opsi
   // `pageCount`, jadi sengaja diekspor supaya konsumen bisa membedakannya.
   "E_PAGE_COUNT_MISMATCH",
@@ -79,6 +83,9 @@ export const WARNING_CODES = [
   "W_SHORT_ANSWER_ONLY",
   "W_LONG_DIALOGUE_RUN",
   "W_GAP_RECORDED",
+  // Hanya muncul dari `validateChapter` (validate-parts.ts): flag `textVariants`
+  // yang belum pernah di-set. Tidak diproduksi validator cerita penuh.
+  "W_TEXT_VARIANT_FLAG_UNSET",
 ] as const;
 
 export type WarningCode = (typeof WARNING_CODES)[number];

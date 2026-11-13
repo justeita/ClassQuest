@@ -268,6 +268,70 @@ describe("blok prompt dan urutannya", () => {
 });
 
 /* -------------------------------------------------------------------------- */
+/* 2b. Blok percabangan (AI_BRANCHING)                                        */
+/* -------------------------------------------------------------------------- */
+
+describe("blok percabangan (AI_BRANCHING)", () => {
+  it("tanpa toggle, prompt chapter persis seperti semula", () => {
+    const implicit = buildChapterPrompt(chapterInput());
+    const off = buildChapterPrompt(chapterInput({ branching: false }));
+
+    expect(off).toEqual(implicit);
+    expect(off.user).not.toContain("BRANCHING");
+    expect(off.user).not.toContain("onWrong");
+    expect(off.user).not.toContain("retryQuestions");
+    expect(off.user).not.toContain("detour");
+  });
+
+  it("dengan toggle, menambah blok BRANCHING ke user tanpa mengubah system", () => {
+    const off = buildChapterPrompt(chapterInput());
+    const on = buildChapterPrompt(chapterInput({ branching: true }));
+
+    expect(on.system).toBe(off.system);
+    expect(on.user).toContain("\nBRANCHING\n");
+    expect(on.user).toContain("maxAttempts 2 atau 3");
+    expect(on.user).toContain("retryQuestions");
+    expect(on.user).toContain("detour");
+    expect(on.user).toContain("textVariants");
+    expect(on.user).toContain("Belum ada flag yang dipakai");
+  });
+
+  it("blok percabangan tidak lebih dari 25 baris", () => {
+    const { user } = buildChapterPrompt(chapterInput({ branching: true }));
+    const start = user.indexOf("BRANCHING");
+    const end = user.indexOf("\nASSETS");
+    const block = user.slice(start, end);
+
+    expect(block.length).toBeGreaterThan(0);
+    expect(block.split("\n").length).toBeLessThanOrEqual(25);
+  });
+
+  it("menyebut flag yang sudah dipakai chapter sebelumnya", () => {
+    const { user } = buildChapterPrompt(
+      chapterInput({ branching: true, usedFlags: ["flg_salah_daun"] }),
+    );
+
+    expect(user).toContain("flg_salah_daun");
+  });
+
+  it("system prompt tetap melarang pilihan dialog pemain", () => {
+    const { system } = buildChapterPrompt(chapterInput({ branching: true }));
+
+    expect(system).toContain("Jangan membuat pilihan dialog bercabang.");
+  });
+
+  it("MockProvider tetap mengenali tahap chapter saat blok aktif", async () => {
+    const provider = new MockProvider({ stages: { chapter: "valid" } });
+
+    const response = await provider.complete(
+      buildChapterPrompt(chapterInput({ branching: true })),
+    );
+
+    expect(response.text).toBe(readFixture("chapter/valid.json"));
+  });
+});
+
+/* -------------------------------------------------------------------------- */
 /* 3. Batas dan pemotongan                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -439,8 +503,8 @@ describe("repair", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("parameter generasi", () => {
-  it("memakai PROMPT_VERSION story-v1", () => {
-    expect(PROMPT_VERSION).toBe("story-v1");
+  it("memakai PROMPT_VERSION story-v2", () => {
+    expect(PROMPT_VERSION).toBe("story-v2");
   });
 
   it("outline memakai 0.4 / 1.500 token / JSON", () => {

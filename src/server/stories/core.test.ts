@@ -232,7 +232,7 @@ describe("saveStoryVersion", () => {
     expect(versions.rows).toHaveLength(2);
     expect(Number(versions.rows[1]?.version)).toBe(2);
     expect(String(versions.rows[1]?.created_by)).toBe(TEACHER_A);
-    expect(String(versions.rows[1]?.prompt_version)).toBe("story-v1");
+    expect(String(versions.rows[1]?.prompt_version)).toBe("story-v2");
     expect(Number(versions.rows[1]?.used_fallback)).toBe(0);
 
     const after = await db.execute({

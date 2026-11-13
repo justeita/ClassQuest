@@ -95,6 +95,30 @@ const run = (
     ...overrides,
   });
 
+/** Provider yang merekam `user` tiap panggilan, untuk memeriksa isi prompt. */
+const capturing = (): LlmProvider & { readonly prompts: string[] } => {
+  const prompts: string[] = [];
+  const responses = [
+    fixture("outline/valid.json"),
+    fixture("chapter/valid.json"),
+    fixture("chapter/ch_02.json"),
+    fixture("chapter/ch_03.json"),
+  ];
+  let call = 0;
+
+  return {
+    get prompts() {
+      return prompts;
+    },
+    async complete(request): Promise<LlmResponse> {
+      prompts.push(request.user);
+      const text = responses[call] ?? responses[responses.length - 1];
+      call += 1;
+      return { text, usage: { input: 0, output: 0 }, model: "mock" };
+    },
+  };
+};
+
 const expectValid = (result: GenerateStoryResult) => {
   const check = validateStory(result.story, {
     manifest: MANIFEST,
@@ -200,6 +224,40 @@ describe("jalur bahagia", () => {
     const second = await run(happy());
 
     expect(first).toEqual(second);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* Percabangan (AI_BRANCHING)                                                 */
+/* -------------------------------------------------------------------------- */
+
+describe("percabangan", () => {
+  it("tidak menambah blok BRANCHING saat toggle mati", async () => {
+    const provider = capturing();
+    const result = await run(provider, { branching: false });
+
+    expect(result.usedFallback).toBe(false);
+    expect(
+      provider.prompts.some((prompt) => prompt.includes("BRANCHING")),
+    ).toBe(false);
+  });
+
+  it("mengirim blok BRANCHING dan mewariskan flag antar chapter", async () => {
+    const provider = capturing();
+    const result = await run(provider, { branching: true });
+
+    expect(result.usedFallback).toBe(false);
+    expectValid(result);
+
+    const chapterPrompts = provider.prompts.filter((prompt) =>
+      prompt.includes("SCHEMA CHAPTER"),
+    );
+    expect(chapterPrompts).toHaveLength(3);
+    expect(chapterPrompts[0]).toContain("BRANCHING");
+    // `chapter/valid.json` men-set flg_salah_daun; chapter berikutnya harus
+    // diberi tahu id itu supaya konsisten lintas chapter.
+    expect(chapterPrompts[1]).toContain("flg_salah_daun");
+    expect(chapterPrompts[2]).toContain("flg_salah_daun");
   });
 });
 

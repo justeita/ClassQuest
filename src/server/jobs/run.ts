@@ -236,7 +236,8 @@ export async function runJob(
     });
 
     // c. Pipeline. Provider dari factory berdasarkan config (mock bila kosong).
-    const provider = deps.provider ?? createLlmProvider(loadAiConfig());
+    const aiConfig = loadAiConfig();
+    const provider = deps.provider ?? createLlmProvider(aiConfig);
     const meta: PipelineMeta = {
       id: story.id,
       fileName: story.source_file_name || input.pdf.filename,
@@ -259,6 +260,7 @@ export async function runJob(
       pages: extraction.pages.map((page) => page.text),
       manifest: toAssetManifest(),
       meta,
+      branching: aiConfig.branching,
       onProgress,
     });
 

@@ -149,6 +149,11 @@ export type GenerateStoryInput = {
   pages: readonly string[];
   manifest: AssetManifest;
   meta: PipelineMeta;
+  /**
+   * Bila `true`, prompt chapter mengajari model aturan percabangan `onWrong`
+   * (`AI_BRANCHING=on`). Default mati supaya perilaku lama tidak berubah.
+   */
+  branching?: boolean;
   /** Jam yang bisa di-inject untuk tes anggaran. Bawaan `Date.now`. */
   clock?: () => number;
   signal?: AbortSignal;
@@ -721,6 +726,7 @@ export async function generateStory(
     value: Outline,
     planned: Outline["chapters"][number],
     continuity: ContinuityState,
+    usedFlags: readonly string[],
   ) => {
     const prompt = buildChapterPrompt({
       pages: input.pages,
@@ -729,6 +735,8 @@ export async function generateStory(
       planned,
       continuity,
       meta: input.meta,
+      branching: input.branching === true,
+      usedFlags,
     });
     collectPromptGaps(prompt, `chapter ${planned.id}`);
 
@@ -736,6 +744,7 @@ export async function generateStory(
       outline: { concepts: value.concepts, cast: value.cast },
       planned: { id: planned.id, concept: planned.concept },
       manifest: input.manifest,
+      priorFlags: usedFlags,
     };
 
     let draft = await requestPayload(prompt, "chapter-invalid");
@@ -832,7 +841,8 @@ export async function generateStory(
 
     for (const planned of outline.chapters) {
       emit("generating");
-      const result = await chapterPass(outline, planned, continuity);
+      const usedFlags = (collectFlags(chapters) ?? []).map((flag) => flag.id);
+      const result = await chapterPass(outline, planned, continuity, usedFlags);
 
       chapters.push(result.chapter);
       challenges.push(...result.challenges);

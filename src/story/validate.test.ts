@@ -601,6 +601,10 @@ describe("setiap kode E_* punya fixture", () => {
     // E_PAGE_COUNT_MISMATCH tidak bisa jadi cacat fixture: ia hanya muncul
     // ketika opsi `pageCount` diberikan. Test-nya ada di bagian manifest/pageCount.
     covered.add("E_PAGE_COUNT_MISMATCH");
+    // E_ONWRONG_WITHOUT_ATTEMPTS hanya muncul dari `validateChapter`
+    // (validate-parts.test.ts): `onWrong` tanpa `maxAttempts` 2/3. Cerita penuh
+    // tidak memeriksanya lagi karena chapter sudah disaring lebih dulu.
+    covered.add("E_ONWRONG_WITHOUT_ATTEMPTS");
 
     expect(ERROR_CODES.filter((code) => !covered.has(code))).toEqual([]);
   });
@@ -711,7 +715,15 @@ describe("warning", () => {
       codes(validateStory(readFixture("warnings"), options).warnings),
     );
 
-    expect(WARNING_CODES.filter((code) => !fromFixture.has(code))).toEqual([]);
+    // W_TEXT_VARIANT_FLAG_UNSET hanya muncul dari `validateChapter`
+    // (validate-parts.test.ts), bukan dari validator cerita penuh.
+    const chapterOnly = new Set(["W_TEXT_VARIANT_FLAG_UNSET"]);
+
+    expect(
+      WARNING_CODES.filter(
+        (code) => !fromFixture.has(code) && !chapterOnly.has(code),
+      ),
+    ).toEqual([]);
   });
 });
 

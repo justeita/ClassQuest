@@ -316,6 +316,33 @@ describe("validateChapter — kode error", () => {
         };
       },
     ],
+    [
+      "E_ONWRONG_WITHOUT_ATTEMPTS",
+      "chapter.scenes[0].beats[2].maxAttempts",
+      (draft) => {
+        delete draft.chapter.scenes[0].beats[2].maxAttempts;
+        delete draft.chapter.scenes[0].beats[2].onWrong.retryQuestions;
+      },
+    ],
+    [
+      "E_RETRY_COUNT",
+      "chapter.scenes[0].beats[2].onWrong.retryQuestions",
+      (draft) => {
+        draft.chapter.scenes[0].beats[2].onWrong.retryQuestions.push(
+          "Coba sekali lagi: apa yang membantu daun memasak makanan?",
+        );
+      },
+    ],
+    [
+      "E_DETOUR_TOO_LONG",
+      "chapter.scenes[0].beats[2].onWrong.detour",
+      (draft) => {
+        draft.chapter.scenes[0].beats[2].onWrong.detour.push(
+          { type: "narration", text: "Nara membaca ulang catatannya." },
+          { type: "narration", text: "Pak Bima menunggu dengan sabar." },
+        );
+      },
+    ],
   ];
 
   it.each(cases)("melaporkan %s pada %s", (code, path, mutate) => {
@@ -329,6 +356,19 @@ describe("validateChapter — kode error", () => {
 
     expectIssue(result, "E_JSON_PARSE", "");
     expect(result.errors).toHaveLength(1);
+  });
+
+  it("menolak format id flag yang salah sebagai E_SCHEMA", () => {
+    // Pola id flag dijaga schema, bukan diulang di lapis semantik. Kesalahan
+    // bentuk tetap error yang memicu repair di level chapter.
+    const draft = brokenChapter((value) => {
+      value.chapter.scenes[0].beats[2].onWrong.setFlags = { flg_Salah: true };
+    });
+
+    const result = validateChapter(draft, chapterContext());
+
+    expect(result.ok).toBe(false);
+    expect(codes(result.errors)).toContain("E_SCHEMA");
   });
 });
 
@@ -498,6 +538,13 @@ describe("warning", () => {
         }
       },
     ],
+    [
+      "W_TEXT_VARIANT_FLAG_UNSET",
+      (draft) => {
+        draft.chapter.scenes[1].beats[1].textVariants[0].when.flag =
+          "flg_belum_diset";
+      },
+    ],
   ];
 
   it.each(warningCases)("melaporkan %s", (code, mutate) => {
@@ -505,6 +552,37 @@ describe("warning", () => {
 
     expect(result.ok).toBe(true);
     expect(codes(result.warnings)).toContain(code);
+  });
+
+  it("menerima flag textVariants yang sudah di-set chapter sebelumnya", () => {
+    const draft = brokenChapter((value) => {
+      value.chapter.scenes[1].beats[1].textVariants[0].when.flag =
+        "flg_dari_chapter_lalu";
+    });
+
+    const result = validateChapter(
+      draft,
+      chapterContext({ priorFlags: ["flg_dari_chapter_lalu"] }),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(codes(result.warnings)).not.toContain("W_TEXT_VARIANT_FLAG_UNSET");
+  });
+
+  it("memperingatkan flag textVariants di dalam detour yang belum di-set", () => {
+    const draft = brokenChapter((value) => {
+      value.chapter.scenes[0].beats[2].onWrong.detour[1].textVariants = [
+        {
+          when: { flag: "flg_belum_diset", is: true },
+          text: "Pak Bima memberi petunjuk singkat tanpa menyebut jawaban.",
+        },
+      ];
+    });
+
+    const result = validateChapter(draft, chapterContext());
+
+    expect(result.ok).toBe(true);
+    expect(codes(result.warnings)).toContain("W_TEXT_VARIANT_FLAG_UNSET");
   });
 
   it("tidak mengumpulkan warning saat ada error", () => {

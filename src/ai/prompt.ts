@@ -27,7 +27,7 @@ import type { AssetManifest } from "../story/validate";
 import type { LlmRequest } from "./provider";
 
 /** Versi prompt. Naikkan setiap kali perilaku prompt berubah. */
-export const PROMPT_VERSION = "story-v1";
+export const PROMPT_VERSION = "story-v2";
 
 /** Batas dari `jobs-and-limits.md`: hanya 15 halaman pertama yang diproses. */
 export const MAX_MATERIAL_PAGES = 15;
@@ -176,6 +176,16 @@ export type ChapterPromptInput = {
   planned: OutlineChapter;
   continuity: ContinuityState;
   meta?: PromptMeta;
+  /**
+   * Bila `true`, sertakan blok aturan percabangan `onWrong`. Default mati
+   * (`AI_BRANCHING` kosong), sehingga prompt identik dengan sebelum fitur ini.
+   */
+  branching?: boolean;
+  /**
+   * Id flag yang sudah dipakai chapter sebelumnya. Dipakai blok percabangan
+   * supaya model memakai ulang id yang sama, bukan mengarang id baru.
+   */
+  usedFlags?: readonly string[];
 };
 
 export type RepairPromptInput = {
@@ -416,6 +426,45 @@ BATAS CHAPTER
 - transition tidak boleh menjadi beat terakhir sebuah scene.
 - Jangan menambahkan field di luar SCHEMA.`;
 
+/**
+ * Blok aturan percabangan untuk panggilan chapter. Hanya dikirim saat
+ * `AI_BRANCHING=on` (lihat `ChapterPromptInput.branching`), supaya prompt
+ * default tetap persis seperti sebelum fitur ini ada.
+ *
+ * Isinya sengaja pendek dan hanya soal konsekuensi jawaban salah: siswa hanya
+ * melihat soal ulang dan detour; tidak ada pilihan dialog pemain.
+ */
+const SECTION_BRANCHING_RULES = `BRANCHING
+- Tidak semua challenge perlu onWrong; cukup 1-2 challenge per chapter.
+- onWrong selalu bersama maxAttempts 2 atau 3 (tidak boleh 1).
+- retryQuestions berisi maxAttempts - 1 teks dan menanyakan hal yang SAMA:
+  konsep, jawaban benar, dan opsi tidak berubah; hanya kata-katanya berbeda.
+- detour berisi 1-2 beat (maksimal 3) narasi atau dialog; hanya speaker dari
+  cast; tanpa beat challenge.
+- Petunjuk di detour tidak menyebut jawaban, hanya mengarahkan.
+- Flag id berpola flg_[a-z0-9_]+; maksimal 2 flag per cerita.
+- Pakai ulang id flag yang sudah ada; jangan mengarang id baru.
+- textVariants hanya merujuk flag yang sudah di-set di beat sebelumnya.
+- Field onWrong dan turunannya hanya muncul bila dipakai; jangan menambah
+  field di luar SCHEMA CHAPTER.
+
+CONTOH onWrong
+{ "type": "challenge", "challengeId": "chl_x", "maxAttempts": 2,
+  "onWrong": {
+    "setFlags": { "flg_salah": true },
+    "retryQuestions": ["Soal yang sama dengan kata berbeda."],
+    "detour": [{ "type": "narration", "text": "Petunjuk tanpa jawaban." }]
+  } }`;
+
+const branchingSection = (usedFlags: readonly string[]): string => {
+  const flags =
+    usedFlags.length > 0
+      ? `FLAGS yang sudah dipakai (pakai ulang id ini bila relevan): ${usedFlags.join(", ")}.`
+      : "Belum ada flag yang dipakai di chapter sebelumnya.";
+
+  return `${SECTION_BRANCHING_RULES}\n${flags}`;
+};
+
 const isDefaultAsset = (id: string) => id.endsWith("_default");
 
 const formatAsset = (id: string, kind: string): string => {
@@ -583,6 +632,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
 
   const user = [
     SECTION_SCHEMA_CHAPTER,
+    ...(input.branching ? [branchingSection(input.usedFlags ?? [])] : []),
     assetSection(input.assets),
     ["OUTLINE", JSON.stringify(input.outline, null, 2)].join("\n"),
     continuitySection(input.continuity),
