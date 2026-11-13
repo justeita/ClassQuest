@@ -37,6 +37,13 @@ export type NpcMarker = {
   npcId: string;
   x: number;
   y: number;
+  /**
+   * NPC di luar pandangan, jadi penanda ditempel di tepi layar. Posisinya
+   * sudah dijepit ke area aman oleh `posisiPenanda`; panah memakai `sudut`.
+   */
+  tepi?: boolean;
+  /** Arah NPC dalam derajat: 0 = kanan, 90 = bawah (searah CSS rotate). */
+  sudut?: number;
 };
 
 export type GameEvent =

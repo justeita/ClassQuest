@@ -134,11 +134,14 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
 - Penanda `!` hanya ada di atas NPC pemberi quest dan **tidak** hilang saat
-  pemain mendekat; chip `Space` muncul di kanannya. Zona interaksi memakai
-  histeresis (masuk 24 px, keluar 32 px) supaya chip tidak berkedip di batas
-  zona. Posisi keduanya diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda
-  tetap menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
-  tantangan, atau menu jeda.
+  pemain mendekat; chip `Space` muncul di kanannya. Selama NPC terlihat, tanda
+  duduk di atas kepalanya; begitu NPC di luar pandangan, tanda menempel di tepi
+  layar dengan panah yang menunjuk arah NPC. Indikator tepi ikut bergeser saat
+  pemain berjalan mendekat, lalu berubah kembali menjadi tanda di atas kepala
+  ketika NPC masuk layar. Zona interaksi memakai histeresis (masuk 24 px, keluar
+  32 px) supaya chip tidak berkedip di batas zona. Posisi keduanya diperbarui
+  tiap frame lewat `NpcHintLayer`, jadi tanda tetap menempel pada NPC saat
+  kamera bergeser, dan disembunyikan selama dialog, tantangan, atau menu jeda.
 - Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
   petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
   ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti

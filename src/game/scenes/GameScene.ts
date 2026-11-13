@@ -19,7 +19,7 @@ import {
   ZONA_HISTERESIS,
   ZONA_RADIUS,
 } from "../interaction";
-import { dalamLayar, duniaKeLayar, type KameraView } from "../layar";
+import { duniaKeLayar, posisiPenanda, type KameraView } from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import { StoryRunner, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
@@ -54,10 +54,10 @@ const DEBOUNCE_MS = 150;
 const INTERVAL_LEWATI_MS = 100;
 
 /**
- * Margin di luar layar sebelum penanda `!` disembunyikan. Cukup besar untuk
- * menutupi tinggi tanda + bobbing, tetapi kecil dibanding lebar kamera.
+ * Jarak penanda dari tepi layar saat NPC quest di luar pandangan. Cukup besar
+ * agar seluruh badge (termasuk panah) tetap terlihat, termasuk saat bobbing.
  */
-const MARGIN_PENANDA = 64;
+const PADDING_PENANDA = 20;
 
 /** Jarak penanda "!" di atas ubun-ubun sprite NPC. */
 const MARKER_OFFSET_Y = 10;
@@ -384,7 +384,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private emitMarkers(markers: NpcMarker[]) {
-    const tanda = markers.map((m) => `${m.npcId}:${m.x}:${m.y}`).join("|");
+    // Sidik harus memuat mode tepi dan sudut: saat NPC melewati batas layar,
+    // x/y yang dibulatkan bisa tidak berubah tetapi panahnya harus muncul.
+    const tanda = markers
+      .map((m) => `${m.npcId}:${m.x}:${m.y}:${m.tepi ? 1 : 0}:${m.sudut ?? 0}`)
+      .join("|");
     if (tanda === this.tandaMarker) return;
     this.tandaMarker = tanda;
     this.bus?.emit({ type: "markers", markers });
@@ -405,7 +409,15 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
-  /** Penanda "!" di atas kepala pemberi quest; null bila jauh di luar layar. */
+  /**
+   * Penanda "!" di atas kepala pemberi quest.
+   *
+   * Selama NPC terlihat, penanda duduk di atas kepalanya. Bila NPC keluar
+   * pandangan, penanda tidak hilang: posisinya dijepit ke tepi layar dan
+   * `sudut` menunjuk arah NPC. Karena dihitung ulang tiap frame, indikator
+   * tepi ikut bergeser saat pemain berjalan mendekat, lalu berubah mulus
+   * menjadi penanda biasa begitu NPC masuk area aman.
+   */
   private markerLayar(
     npcId: string,
     kamera: Phaser.Cameras.Scene2D.Camera,
@@ -420,16 +432,21 @@ export class GameScene extends Phaser.Scene {
     );
 
     // Lebar kamera bukan lagi 640 (lebar internal ikut kontainer), jadi batas
-    // memakai ukuran kamera sebenarnya + margin. Tanpa ini penanda di sisi
-    // kanan layar lebar dianggap "di luar layar" lalu hilang-muncul.
-    if (!dalamLayar(layar, kamera.width, kamera.height, MARGIN_PENANDA)) {
-      return null;
-    }
+    // memakai ukuran kamera sebenarnya. Tanpa ini penanda di sisi kanan layar
+    // lebar dijepit ke tempat yang salah.
+    const posisi = posisiPenanda(
+      layar,
+      kamera.width,
+      kamera.height,
+      PADDING_PENANDA,
+    );
 
     return {
       npcId,
-      x: Math.round(layar.x),
-      y: Math.round(layar.y),
+      x: Math.round(posisi.x),
+      y: Math.round(posisi.y),
+      tepi: posisi.tepi,
+      sudut: Math.round(posisi.sudut),
     };
   }
 

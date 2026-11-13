@@ -251,6 +251,14 @@ kamera yang kini menempel pemain, penanda tertinggal lalu terlihat melompat
 berlangganan bus sendiri, jadi pembaruan tiap frame tidak me-render ulang HUD,
 dialog, atau jurnal. Emisi tetap hanya terjadi saat piksel bulatnya berubah.
 
+Saat NPC pemberi quest berada di luar pandangan, penanda tidak menghilang:
+`posisiPenanda()` (`layar.ts`) menjepit posisinya ke tepi layar dan menghitung
+`sudut` arah NPC, lalu `NpcMarker.tsx` menggambar badge `!` dengan panah yang
+diputar sesuai sudut itu. Karena posisinya dihitung ulang tiap frame, indikator
+tepi ikut bergeser ketika pemain berjalan mendekat dan berubah mulus menjadi
+penanda di atas kepala begitu NPC masuk layar. Area aman memakai padding yang
+sama di kedua mode, jadi tidak ada lompatan di batasnya.
+
 Penanda `!` **tidak** diganti chip `Space` saat pemain mendekat: kedua tanda
 tampil bersamaan (chip di kanan penanda) agar indikator quest tidak hilang-muncul.
 Zona interaksi memakai histeresis — masuk di 24 px, keluar di 32 px — supaya chip
@@ -331,8 +339,10 @@ type GameEvent =
 ```
 
 `DialogueView` = `{ visible, name, text, waiting }`; `PromptView` =
-`{ text, x, y }` dan `NpcMarker` = `{ npcId, x, y }`, keduanya dalam koordinat
-layar internal 640×360 (sudah dikurangi scroll kamera). `QuestState` berisi
+`{ text, x, y }` dan `NpcMarker` = `{ npcId, x, y, tepi?, sudut? }`, keduanya
+dalam koordinat layar internal 640×360 (sudah dikurangi scroll kamera). Untuk
+`NpcMarker`, `tepi: true` berarti NPC di luar pandangan sehingga posisinya sudah
+dijepit ke tepi layar dan `sudut` (derajat, 0 = kanan) adalah arah NPC. `QuestState` berisi
 chapter, scene aktif, daftar quest turunan scene, dan `activeQuestId`; status
 `selesai | aktif | terkunci` dihitung dari posisi `StoryRunner`, bukan ditulis di
 Story JSON. Teks dialog dikirim bertahap saat typewriter berjalan, dan React tidak
