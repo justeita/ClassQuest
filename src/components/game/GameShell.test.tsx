@@ -148,7 +148,7 @@ describe("GameShell", () => {
 
     bus.emit({
       type: "markers",
-      markers: [{ npcId: "char_pak_bima", x: 200, y: 120 }],
+      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
     });
     expect(await screen.findByText("!")).toBeInTheDocument();
 

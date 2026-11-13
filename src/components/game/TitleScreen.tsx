@@ -18,9 +18,10 @@ const MENU_COUNT = 3;
 /**
  * Layar judul (docs/05-frontend/game-player.md → Ready / judul).
  *
- * Sengaja hanya memakai aset yang sudah ada: `bg_mountain_night` dan sprite
- * pemain dari `story.cast`. Tidak ada state permainan di sini — komponen ini
- * hanya menampilkan ringkasan cerita dan menyerahkan kontrol ke `GameShell`.
+ * Sengaja hanya memakai aset yang sudah ada: peta desa
+ * (`/assets/world/map_village.jpg`) dan sprite pemain dari `story.cast`.
+ * Tidak ada state permainan di sini — komponen ini hanya menampilkan ringkasan
+ * cerita dan menyerahkan kontrol ke `GameShell`.
  *
  * "Lanjutkan" belum ditampilkan karena progres `localStorage` belum ada, dan
  * tombol suara menyusul bersama HUD. `Esc` juga belum diiklankan di panel
@@ -71,7 +72,7 @@ export function TitleScreen({ story, onStart }: TitleScreenProps) {
     <div
       className="absolute inset-0 overflow-hidden bg-[#14201a] bg-cover bg-center"
       style={{
-        backgroundImage: "url(/assets/bg/mountain_night.png)",
+        backgroundImage: "url(/assets/world/map_village.jpg)",
         imageRendering: "pixelated",
       }}
     >
@@ -182,7 +183,9 @@ export function TitleScreen({ story, onStart }: TitleScreenProps) {
                   className="mb-2 h-36 w-24"
                   style={{
                     backgroundImage: `url(${spritePemain})`,
-                    backgroundSize: "200% 100%",
+                    // Spritesheet karakter berisi 8 frame arah; tampilkan
+                    // frame pertama (menghadap bawah) saja.
+                    backgroundSize: "800% 100%",
                     backgroundPosition: "left center",
                     backgroundRepeat: "no-repeat",
                     imageRendering: "pixelated",

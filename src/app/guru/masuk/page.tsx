@@ -116,7 +116,7 @@ export default function MasukPage() {
                   `public/assets/` dan dipakai landing, bukan aset manifest baru. */}
               <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-slate-900 bg-brand-50 shadow-[2px_2px_0px_#0f172a]">
                 <Image
-                  src="/assets/portrait/pak_bima.png"
+                  src="/assets/portrait/npc_10.png"
                   alt=""
                   width={64}
                   height={64}
