@@ -241,10 +241,21 @@ dirender `DialogueBox.tsx`; React membalas command `advance`. Prompt interaksi
 memakai event `prompt` dan chip DOM `InteractHint.tsx` (ADR 0007). Hanya NPC
 pemberi quest scene aktif yang memunculkan prompt dan bisa memulai dialog; NPC
 lain tetap menjadi penghalang. Penanda `!` dikirim lewat event `markers` dan
-dirender `NpcMarker.tsx`. Posisi prompt dan penanda dikonversi dari koordinat
-dunia ke layar memakai `camera.scrollX/scrollY` (`layar.ts`), lalu diperbarui
-maksimal ~11 kali per detik (bukan tiap frame). Speaker disorot, beat `transition`
-fade otomatis, beat `challenge` dibuka sebagai overlay React.
+dirender `NpcMarker.tsx`.
+
+Posisi prompt dan penanda dikonversi dari koordinat dunia ke layar memakai
+`camera.scrollX/scrollY` (`layar.ts`) dan dikirim **setiap frame** supaya tanda
+menempel pada NPC saat kamera bergeser. Dulu pengirimannya dibatasi 90 ms; dengan
+kamera yang kini menempel pemain, penanda tertinggal lalu terlihat melompat
+("putus-putus"). Keduanya dirender `NpcHintLayer.tsx` — komponen kecil yang
+berlangganan bus sendiri, jadi pembaruan tiap frame tidak me-render ulang HUD,
+dialog, atau jurnal. Emisi tetap hanya terjadi saat piksel bulatnya berubah.
+
+Penanda `!` **tidak** diganti chip `Space` saat pemain mendekat: kedua tanda
+tampil bersamaan (chip di kanan penanda) agar indikator quest tidak hilang-muncul.
+Zona interaksi memakai histeresis — masuk di 24 px, keluar di 32 px — supaya chip
+tidak berkedip saat pemain berdiri di batas zona. Speaker disorot, beat
+`transition` fade otomatis, beat `challenge` dibuka sebagai overlay React.
 
 Dunia dibangun **sekali** di `create()`: tidak ada `roomId`, tidak ada bangun
 ulang saat pindah chapter. Perpindahan scene hanya menukar musik dan NPC pemberi

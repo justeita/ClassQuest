@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GameBus } from "@/game/gameBus";
 import { DEMO_STORY } from "@/game/demoStory";
+import { persenLebar } from "@/game/layout";
 import type { QuestState } from "@/game/questLog";
 import type { PlayResult } from "@/story/scoring";
 
@@ -156,6 +157,42 @@ describe("GameShell", () => {
     await vi.waitFor(() =>
       expect(screen.queryByText("!")).not.toBeInTheDocument(),
     );
+  });
+
+  it("posisi penanda ikut berubah saat kamera bergeser", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "markers",
+      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
+    });
+    const awal = (await screen.findByText("!")).parentElement;
+    expect(awal?.style.left).toBe(persenLebar(200));
+
+    // Scene mengirim posisi baru tiap frame; penanda harus langsung mengikuti
+    // tanpa menunggu render ulang overlay lain.
+    bus.emit({
+      type: "markers",
+      markers: [{ npcId: "char_npc_10", x: 180, y: 112 }],
+    });
+    await vi.waitFor(() =>
+      expect(screen.getByText("!").parentElement?.style.left).toBe(
+        persenLebar(180),
+      ),
+    );
+  });
+
+  it("penanda quest dan chip Space tampil bersamaan", async () => {
+    await mainkan();
+
+    bus.emit({
+      type: "markers",
+      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
+    });
+    bus.emit({ type: "prompt", hint: { text: "Space", x: 214, y: 126 } });
+
+    expect(await screen.findByText("!")).toBeInTheDocument();
+    expect(screen.getByText("Space")).toBeInTheDocument();
   });
 
   it("kartu chapter muncul saat nomor chapter berubah", async () => {

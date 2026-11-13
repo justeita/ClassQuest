@@ -28,11 +28,24 @@ export function duniaKeLayar(
   };
 }
 
-/** Apakah titik masih berada di dalam area permainan yang terlihat. */
+/**
+ * Apakah titik masih berada di dalam area permainan yang terlihat.
+ *
+ * `margin` memperluas batas ke luar layar. Dipakai penanda NPC: tanda `!` baru
+ * boleh disembunyikan ketika benar-benar di luar pandangan, bukan tepat di
+ * tepi — kalau tidak, tanda berkedip hilang-muncul saat kamera bergeser
+ * beberapa piksel.
+ */
 export function dalamLayar(
   titik: TitikLayar,
   lebar = GAME_WIDTH,
   tinggi = GAME_HEIGHT,
+  margin = 0,
 ): boolean {
-  return titik.x >= 0 && titik.x <= lebar && titik.y >= 0 && titik.y <= tinggi;
+  return (
+    titik.x >= -margin &&
+    titik.x <= lebar + margin &&
+    titik.y >= -margin &&
+    titik.y <= tinggi + margin
+  );
 }

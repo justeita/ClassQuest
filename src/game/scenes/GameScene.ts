@@ -13,7 +13,12 @@ import {
   langkahPemain,
   type MovementKeys,
 } from "../movement";
-import { findNpcInZone, posisiPrompt } from "../interaction";
+import {
+  findNpcInZone,
+  posisiPrompt,
+  ZONA_HISTERESIS,
+  ZONA_RADIUS,
+} from "../interaction";
 import { dalamLayar, duniaKeLayar, type KameraView } from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import { StoryRunner, bolehTerusLewati } from "../StoryRunner";
@@ -49,10 +54,10 @@ const DEBOUNCE_MS = 150;
 const INTERVAL_LEWATI_MS = 100;
 
 /**
- * Jarak minimum antar-emisi posisi prompt/penanda. Posisi berubah setiap frame
- * saat kamera bergeser, tetapi DOM tidak perlu dirender 60 kali per detik.
+ * Margin di luar layar sebelum penanda `!` disembunyikan. Cukup besar untuk
+ * menutupi tinggi tanda + bobbing, tetapi kecil dibanding lebar kamera.
  */
-const PETUNJUK_INTERVAL_MS = 90;
+const MARGIN_PENANDA = 64;
 
 /** Jarak penanda "!" di atas ubun-ubun sprite NPC. */
 const MARKER_OFFSET_Y = 10;
@@ -109,7 +114,8 @@ export class GameScene extends Phaser.Scene {
   /** Sidik posisi prompt/penanda terakhir; mencegah emisi saat tidak berubah. */
   private tandaPrompt = "";
   private tandaMarker = "";
-  private waktuPetunjuk = 0;
+  /** Pemain sedang di zona interaksi pemberi quest (dengan histeresis). */
+  private pemberiQuestDekat = false;
 
   constructor(story: Story, bus?: GameBus) {
     super("GameScene");
@@ -216,7 +222,7 @@ export class GameScene extends Phaser.Scene {
     const phase = this.runner.getState().phase;
 
     if (phase === "explore") {
-      this.updateExplore(time, delta);
+      this.updateExplore(delta);
     } else if (phase !== "challenge") {
       // Tantangan membekukan typewriter dan input lanjut: dialog terakhir tetap
       // terlihat di belakang panel soal (docs/04-game/scene-format.md § challenge).
@@ -296,18 +302,25 @@ export class GameScene extends Phaser.Scene {
    * pemberi quest yang memunculkan prompt dan bisa memulai dialog; NPC lain
    * tetap berdiri sebagai penghalang tanpa memicu scene yang sama.
    */
-  private updateExplore(time: number, delta: number) {
+  private updateExplore(delta: number) {
     if (this.player) {
       this.gerakkanPemain(delta);
       // Urutan gambar mengikuti kaki (world-design.md § Perspektif).
       this.player.setDepth(this.player.y);
     }
 
+    // Histeresis: masuk zona di 24 px, keluar di 32 px. Tanpa ini pemain yang
+    // berdiri di batas zona membuat chip Space berkedip tiap frame.
+    const radius = this.pemberiQuestDekat
+      ? ZONA_RADIUS + ZONA_HISTERESIS
+      : ZONA_RADIUS;
     const dekat = this.player
-      ? findNpcInZone(VILLAGE.npcs, this.player.x, this.player.y)
+      ? findNpcInZone(VILLAGE.npcs, this.player.x, this.player.y, radius)
       : null;
-    const npcId = dekat && dekat === this.pemberiQuest ? dekat : null;
-    this.perbaruiPetunjuk(npcId, time);
+    this.pemberiQuestDekat = dekat !== null && dekat === this.pemberiQuest;
+    const npcId = this.pemberiQuestDekat ? this.pemberiQuest : null;
+
+    this.perbaruiPetunjuk(npcId);
 
     if (npcId && this.lanjutKeysBaruDitekan()) {
       this.runner.interact();
@@ -342,25 +355,24 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Kirim posisi chip "Space" dan penanda "!" dalam koordinat layar. Kamera
-   * bisa bergeser, jadi koordinat dunia dikonversi ulang setiap kali emisi.
-   * Interval 90 ms cukup halus untuk mata dan jauh lebih murah daripada
-   * render DOM tiap frame.
+   * Kirim posisi chip "Space" dan penanda "!" dalam koordinat layar.
+   *
+   * Dipanggil setiap frame. Dulu dibatasi 90 ms supaya React tidak bekerja
+   * terus, tetapi kamera sekarang menempel pemain: penanda yang tertinggal
+   * 90 ms terlihat melompat-lompat ("putus-putus") di atas NPC. Emisi tetap
+   * murah karena sidik posisi di bawah hanya mengirim saat piksel bulatnya
+   * berubah, dan `NpcHintLayer` hanya me-render dua elemen kecil.
    */
-  private perbaruiPetunjuk(npcId: string | null, time: number) {
-    if (time - this.waktuPetunjuk < PETUNJUK_INTERVAL_MS) return;
-    this.waktuPetunjuk = time;
-
+  private perbaruiPetunjuk(npcId: string | null) {
     const kamera = this.cameras.main;
-    const hint = npcId ? this.posisiPromptLayar(npcId, kamera) : null;
-    this.emitPrompt(hint);
+    this.emitPrompt(npcId ? this.posisiPromptLayar(npcId, kamera) : null);
 
-    // Saat pemain sudah di zona NPC, chip Space menggantikan "!" supaya
-    // keduanya tidak bertumpuk di kepala karakter yang sama.
-    const marker =
-      this.pemberiQuest && npcId !== this.pemberiQuest
-        ? this.markerLayar(this.pemberiQuest, kamera)
-        : null;
+    // Penanda "!" tetap tampil walau pemain sudah di zona interaksi. Chip
+    // Space muncul di sampingnya (lihat `posisiPrompt`), jadi indikator quest
+    // tidak hilang-muncul ketika pemain mendekat.
+    const marker = this.pemberiQuest
+      ? this.markerLayar(this.pemberiQuest, kamera)
+      : null;
     this.emitMarkers(marker ? [marker] : []);
   }
 
@@ -393,8 +405,11 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
-  /** Penanda "!" di atas kepala pemberi quest; null bila di luar layar. */
-  private markerLayar(npcId: string, kamera: KameraView): NpcMarker | null {
+  /** Penanda "!" di atas kepala pemberi quest; null bila jauh di luar layar. */
+  private markerLayar(
+    npcId: string,
+    kamera: Phaser.Cameras.Scene2D.Camera,
+  ): NpcMarker | null {
     const npc = VILLAGE.npcs.find((entry) => entry.id === npcId);
     if (!npc) return null;
 
@@ -403,7 +418,13 @@ export class GameScene extends Phaser.Scene {
       npc.x,
       npc.y - TINGGI_KARAKTER - MARKER_OFFSET_Y,
     );
-    if (!dalamLayar(layar)) return null;
+
+    // Lebar kamera bukan lagi 640 (lebar internal ikut kontainer), jadi batas
+    // memakai ukuran kamera sebenarnya + margin. Tanpa ini penanda di sisi
+    // kanan layar lebar dianggap "di luar layar" lalu hilang-muncul.
+    if (!dalamLayar(layar, kamera.width, kamera.height, MARGIN_PENANDA)) {
+      return null;
+    }
 
     return {
       npcId,
@@ -724,6 +745,8 @@ export class GameScene extends Phaser.Scene {
         ? (state.chapter?.scenes[state.sceneIndex] ?? null)
         : null;
     this.pemberiQuest = pilihPemberiQuest(scene, VILLAGE.npcs);
+    // Zona histeresis milik pemberi quest sebelumnya; mulai dari batas masuk.
+    this.pemberiQuestDekat = false;
   }
 
   /**

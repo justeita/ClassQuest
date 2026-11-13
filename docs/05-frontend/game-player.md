@@ -20,7 +20,7 @@ src/app/play/[storyId]/page.tsx        (Server Component)
         ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
         ├─ <ChallengeOverlay />        (DOM)
         ├─ <QuestTracker />            (DOM)
-        ├─ <NpcMarker />               (DOM)
+        ├─ <NpcHintLayer />            (DOM: penanda `!` + chip `Space`)
         ├─ <ChapterCard />             (DOM, transisi)
         ├─ <QuestToast />              (DOM, transisi)
         ├─ <HUD />                     (DOM)
@@ -32,8 +32,9 @@ Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
 > **Yang ada hari ini:** `TitleScreen`, `GameShell`, `GameCanvas`,
-> `ChallengeOverlay`, `QuestTracker`, `NpcMarker`, `ChapterCard`, `QuestToast`,
-> `HUD`, `PauseMenu`, dan `ResultScreen` sudah ada.
+> `ChallengeOverlay`, `QuestTracker`, `NpcHintLayer` (berisi `NpcMarker` dan
+> `InteractHint`), `ChapterCard`, `QuestToast`, `HUD`, `PauseMenu`, dan
+> `ResultScreen` sudah ada.
 >
 > `/play/[storyId]` membaca cerita terbit lewat `getPlayableStory()`
 > (`src/server/stories/playable.ts`). Hanya `status = 'published'` dengan
@@ -132,9 +133,12 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   `Esc`) lewat komponen `Keycap`. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
-- Penanda `!` hanya ada di atas NPC pemberi quest. Saat pemain mendekat, chip
-  `Space` menggantikan penanda itu. Keduanya memakai koordinat layar yang ikut
-  kamera dan disembunyikan selama dialog, tantangan, atau menu jeda.
+- Penanda `!` hanya ada di atas NPC pemberi quest dan **tidak** hilang saat
+  pemain mendekat; chip `Space` muncul di kanannya. Zona interaksi memakai
+  histeresis (masuk 24 px, keluar 32 px) supaya chip tidak berkedip di batas
+  zona. Posisi keduanya diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda
+  tetap menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
+  tantangan, atau menu jeda.
 - Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
   petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
   ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti

@@ -60,7 +60,7 @@ semua nilai di bawah dinyatakan dalam piksel.
 | Portrait dialog       | 64×64 px                                                 |
 | Kecepatan pemain      | 180 px/detik                                             |
 | Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki              |
-| Zona interaksi NPC    | 24 px dari titik kaki ke titik kaki                      |
+| Zona interaksi NPC    | 24 px masuk / 32 px keluar (histeresis 8 px)             |
 | Dead zone kamera      | 128×96 px di tengah layar                                |
 
 Skala kanvas dihitung `ukuranKanvas()` di `src/game/constants.ts` dengan dua
