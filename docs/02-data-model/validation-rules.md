@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -112,6 +112,21 @@ type ValidationResult = {
 | `E_EMPTY_ANSWERS`           | `acceptedAnswers` kosong                       | "Isi minimal satu jawaban yang diterima."              |
 | `E_DUPLICATE_CHALLENGE_REF` | Satu tantangan dirujuk lebih dari sekali       | "Rujuk tantangan `{id}` hanya sekali."                 |
 
+### Semantik — konsekuensi jawaban salah
+
+Semua field di bawah ini opsional. Aturan hanya berlaku bila field dipakai.
+
+| Kode                | Arti                                         | Hint untuk AI                                                       |
+| ------------------- | -------------------------------------------- | ------------------------------------------------------------------- |
+| `E_RETRY_COUNT`     | `retryQuestions` ≠ `maxAttempts` − 1         | "Isi `retryQuestions` tepat `maxAttempts` − 1 entri."               |
+| `E_FLAG_UNDECLARED` | Flag dipakai tanpa dideklarasikan di `flags` | "Tambahkan flag `{id}` ke `flags` atau ganti dengan flag yang ada." |
+| `E_DETOUR_TOO_LONG` | `onWrong.detour` lebih dari 3 beat           | "Pendekkan detour menjadi maksimal 3 beat narasi/dialog."           |
+
+`maxAttempts` default 1, jadi tantangan tanpa `onWrong` tidak butuh
+`retryQuestions`. Retry hanya mengganti teks soal; opsi dan jawaban benar tidak
+berubah. Tantangan di dalam `detour` ditolak lapis struktural (`E_SCHEMA`)
+karena schema hanya mengizinkan beat `narration`/`dialogue` di sana.
+
 ### Batas teks
 
 | Kode              | Field                             | Maks  |
@@ -125,6 +140,9 @@ type ValidationResult = {
 | `E_TEXT_TOO_LONG` | `options[].text` / `items[].text` | 120   |
 | `E_TEXT_TOO_LONG` | `acceptedAnswers[]`               | 60    |
 | `E_TEXT_TOO_LONG` | `hints[]`                         | 140   |
+| `E_TEXT_TOO_LONG` | `textVariants[].text`             | 240   |
+| `E_TEXT_TOO_LONG` | `onWrong.detour[].text`           | 240   |
+| `E_TEXT_TOO_LONG` | `retryQuestions[]`                | 300   |
 | `E_TEXT_EMPTY`    | Semua field teks wajib            | min 1 |
 
 Batas ini bukan selera: textbox game hanya muat ~180 karakter per halaman pada

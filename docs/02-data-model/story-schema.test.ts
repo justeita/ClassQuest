@@ -59,12 +59,16 @@ describe("story.schema.json", () => {
     const block = schemaDoc.match(/type Story = \{([\s\S]*?)\n\};/);
     expect(block).not.toBeNull();
 
-    const documented = [...block![1].matchAll(/^\s+(\w+):/gm)].map(
-      (match) => match[1],
+    const documented = [...block![1].matchAll(/^\s+(\w+)(\?)?:/gm)].map(
+      (match) => ({ name: match[1], optional: match[2] === "?" }),
     );
 
-    expect(Object.keys(schema.properties)).toEqual(documented);
-    expect(schema.required).toEqual(documented);
+    expect(Object.keys(schema.properties)).toEqual(
+      documented.map((field) => field.name),
+    );
+    expect(schema.required).toEqual(
+      documented.filter((field) => !field.optional).map((field) => field.name),
+    );
   });
 
   it("memakai versi yang sama dengan judul dokumen", () => {

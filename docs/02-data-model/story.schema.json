@@ -43,7 +43,12 @@
         ]
       }
     },
-    "assetUsage": { "$ref": "#/$defs/assetUsage" }
+    "assetUsage": { "$ref": "#/$defs/assetUsage" },
+    "flags": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/flag" }
+    },
+    "scoring": { "$ref": "#/$defs/scoring" }
   },
   "$defs": {
     "meta": {
@@ -166,7 +171,12 @@
           "properties": {
             "type": { "const": "dialogue" },
             "speakerId": { "type": "string", "minLength": 1 },
-            "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+            "text": { "type": "string", "minLength": 1, "maxLength": 240 },
+            "textVariants": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/textVariant" }
+            }
           }
         },
         {
@@ -175,7 +185,9 @@
           "required": ["type", "challengeId"],
           "properties": {
             "type": { "const": "challenge" },
-            "challengeId": { "type": "string", "minLength": 1 }
+            "challengeId": { "type": "string", "minLength": 1 },
+            "maxAttempts": { "type": "integer", "minimum": 1, "maximum": 3 },
+            "onWrong": { "$ref": "#/$defs/onWrong" }
           }
         },
         {
@@ -377,6 +389,88 @@
       "properties": {
         "id": { "type": "string", "pattern": "^itm_[a-z0-9_]+$" },
         "text": { "type": "string", "minLength": 1, "maxLength": 120 }
+      }
+    },
+    "flag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "default"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^flg_[a-z0-9_]+$" },
+        "default": { "type": "boolean" }
+      }
+    },
+    "scoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["basis"],
+      "properties": {
+        "basis": { "const": "firstAttempt" }
+      }
+    },
+    "textVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["when", "text"],
+      "properties": {
+        "when": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["flag", "is"],
+          "properties": {
+            "flag": { "type": "string", "pattern": "^flg_[a-z0-9_]+$" },
+            "is": { "type": "boolean" }
+          }
+        },
+        "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+      }
+    },
+    "detourBeat": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "text"],
+          "properties": {
+            "type": { "const": "narration" },
+            "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "speakerId", "text"],
+          "properties": {
+            "type": { "const": "dialogue" },
+            "speakerId": { "type": "string", "minLength": 1 },
+            "text": { "type": "string", "minLength": 1, "maxLength": 240 },
+            "textVariants": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/textVariant" }
+            }
+          }
+        }
+      ]
+    },
+    "onWrong": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "setFlags": {
+          "type": "object",
+          "propertyNames": { "pattern": "^flg_[a-z0-9_]+$" },
+          "additionalProperties": { "type": "boolean" }
+        },
+        "retryQuestions": {
+          "type": "array",
+          "maxItems": 2,
+          "items": { "type": "string", "minLength": 5, "maxLength": 300 }
+        },
+        "detour": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/detourBeat" }
+        }
       }
     },
     "assetUsage": {
