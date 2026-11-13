@@ -12,11 +12,10 @@ import {
   ChapterCard,
   type ChapterCardView,
 } from "@/components/game/ChapterCard";
-import { NpcMarker } from "@/components/game/NpcMarker";
+import { NpcHintLayer } from "@/components/game/NpcHintLayer";
 import { QuestToast } from "@/components/game/QuestToast";
 import { QuestTracker } from "@/components/game/QuestTracker";
 import { Hud } from "@/components/game/HUD";
-import { InteractHint } from "@/components/game/InteractHint";
 import { SkipHint } from "@/components/game/SkipHint";
 import { SpeedLines } from "@/components/game/SpeedLines";
 import { PauseMenu } from "@/components/game/PauseMenu";
@@ -32,12 +31,7 @@ import {
   type EntriDialog,
   type EntriKonsep,
 } from "@/game/dialogLog";
-import type {
-  DialogueView,
-  GameBus,
-  NpcMarker as NpcMarkerView,
-  PromptView,
-} from "@/game/gameBus";
+import type { DialogueView, GameBus } from "@/game/gameBus";
 import type { QuestState } from "@/game/questLog";
 import type { GameHandle } from "@/game/types";
 import type { Story } from "@/story/schema";
@@ -46,8 +40,11 @@ import type { Answer, PlayResult } from "@/story/scoring";
 type GameCanvasProps = {
   /** Cerita yang dimainkan; scene tidak lagi memuat fixture sendiri. */
   story: Story;
-  /** Dipanggil sekali saat cerita selesai, membawa ringkasan hasil. */
-  onFinished?: (result: PlayResult) => void;
+  /**
+   * Dipanggil sekali saat cerita selesai. `answers` adalah jawaban percobaan
+   * pertama yang dipakai layar hasil untuk menyimpan ke server.
+   */
+  onFinished?: (result: PlayResult, answers: Answer[]) => void;
 };
 
 export function GameCanvas({ story, onFinished }: GameCanvasProps) {
@@ -60,13 +57,13 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [tantangan, setTantangan] = useState<ChallengeView | null>(null);
   const [hasil, setHasil] = useState<GradedView | null>(null);
   const [quest, setQuest] = useState<QuestState | null>(null);
-  const [penanda, setPenanda] = useState<NpcMarkerView[]>([]);
+  /** Bus game setelah Phaser siap; dipakai lapisan penanda & chip prompt. */
+  const [bus, setBus] = useState<GameBus | null>(null);
   const [kartuChapter, setKartuChapter] = useState<ChapterCardView | null>(
     null,
   );
   const [toastQuest, setToastQuest] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogueView | null>(null);
-  const [hint, setHint] = useState<PromptView | null>(null);
   const [entriLog, setEntriLog] = useState<EntriDialog[]>([]);
   const [jurnal, setJurnal] = useState<EntriKonsep[]>([]);
   const [bukuLog, setBukuLog] = useState(false);
@@ -150,6 +147,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         container.focus({ preventScroll: true });
         gameRef.current = game;
         busRef.current = game.bus;
+        setBus(game.bus);
 
         // Overlay hanya menerima view tanpa jawaban; penilaian di sisi game.
         lepas.push(
@@ -163,8 +161,6 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           game.bus.on("challenge", ({ view }) => {
             setHasil(null);
             setTantangan(view);
-            setHint(null);
-            setPenanda([]);
             setSedangLewati(false);
           }),
         );
@@ -185,13 +181,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           }),
         );
         lepas.push(
-          game.bus.on("finished", ({ result }) => {
+          game.bus.on("finished", ({ result, answers }) => {
             setTantangan(null);
             setHasil(null);
-            setHint(null);
-            setPenanda([]);
             setSedangLewati(false);
-            onFinishedRef.current?.(result);
+            onFinishedRef.current?.(result, answers);
           }),
         );
         lepas.push(
@@ -219,11 +213,6 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           }),
         );
         lepas.push(
-          game.bus.on("markers", ({ markers }) => {
-            setPenanda(markers);
-          }),
-        );
-        lepas.push(
           game.bus.on("dialogue", ({ view }) => {
             setDialog(view);
 
@@ -239,11 +228,6 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
               setTantangan(null);
               setHasil(null);
             }
-          }),
-        );
-        lepas.push(
-          game.bus.on("prompt", (payload) => {
-            setHint(payload.hint);
           }),
         );
         lepas.push(
@@ -531,22 +515,17 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
               width: bingkai.w > 0 ? bingkai.w : "100%",
               height: bingkai.h > 0 ? bingkai.h : "100%",
               containerType: "size",
-              // Lebar dunia internal mengikuti rasio layar (lihat
-              // `lebarInternal`); overlay memakai angka internal 640 sebagai
-              // pembanding, jadi nilai aktualnya dipasang di sini.
+              // Lebar dunia internal mengikuti kontainer (lihat `lebarKanvas`);
+              // overlay memakai angka internal 640 sebagai pembanding, jadi
+              // nilai aktualnya dipasang di sini.
               ["--gw" as string]:
                 bingkai.h > 0 ? Math.round(360 * (bingkai.w / bingkai.h)) : 640,
             }}
           >
-            {!jeda &&
-              !tantangan &&
-              !dialog?.visible &&
-              penanda.map((marker) => (
-                <NpcMarker key={marker.npcId} marker={marker} />
-              ))}
-            {!jeda && !tantangan && !dialog?.visible && hint && (
-              <InteractHint hint={hint} />
-            )}
+            <NpcHintLayer
+              bus={bus}
+              tersembunyi={jeda || !!tantangan || !!dialog?.visible}
+            />
             {!jeda && !tantangan && <ChapterCard view={kartuChapter} />}
             {!jeda && !tantangan && <QuestToast title={toastQuest} />}
             {!jeda && dialogTerlihat && <SkipHint berjalan={sedangLewati} />}

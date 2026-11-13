@@ -8,17 +8,19 @@ type InteractHintProps = {
 };
 
 /**
- * Chip "Space" di atas NPC yang bisa diajak bicara. Dulu digambar Phaser;
- * sekarang DOM supaya tajam (ADR 0007) dan bisa dibaca screen reader.
+ * Chip "Space" di samping penanda `!` pada NPC yang bisa diajak bicara. Dulu
+ * digambar Phaser; sekarang DOM supaya tajam (ADR 0007) dan bisa dibaca screen
+ * reader.
  *
- * `hint.x`/`hint.y` adalah titik tengah chip dalam piksel internal 640×360
- * (lihat `posisiPrompt` di `interaction.ts`), jadi posisinya diubah ke persen
- * ruang game dan chip digeser ke atas titik itu.
+ * `hint.x`/`hint.y` adalah sudut kiri-bawah chip dalam piksel internal ruang
+ * game (lihat `posisiPrompt` di `interaction.ts`). Chip sengaja tidak
+ * menggantikan penanda `!` — keduanya tampil bersamaan supaya indikator quest
+ * tidak berkedip hilang-muncul saat pemain masuk-keluar zona interaksi.
  */
 export function InteractHint({ hint }: InteractHintProps) {
   return (
     <div
-      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full font-game"
+      className="pointer-events-none absolute z-10 -translate-y-full font-game"
       style={{ left: persenLebar(hint.x), top: persenTinggi(hint.y) }}
     >
       <span

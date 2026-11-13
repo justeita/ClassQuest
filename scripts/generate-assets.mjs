@@ -6,10 +6,10 @@
  *   bun run assets:generate -- --only=image
  *   bun run assets:generate -- --only=audio
  *
- * Yang dibuat di sini hanya aset **generik**: latar default, siluet karakter
- * default, panel UI, dan efek suara. Karakter desa, potret, peta, dan lagu
- * berasal dari paket aset pemilik proyek dan disalin oleh
- * `scripts/import-world.mjs`; berkasnya tidak boleh ditimpa generator.
+ * Yang dibuat di sini hanya aset **generik**: latar default, panel UI, dan efek
+ * suara. Karakter, potret, peta, dan lagu berasal dari aset dunia desa yang
+ * disalin oleh `scripts/import-world.mjs`; berkasnya tidak boleh ditimpa
+ * generator.
  *
  * Gambar digambar dengan kanvas piksel di `scripts/lib/` (tanpa dependensi,
  * deterministik). Audio disintesis ke WAV lalu dienkode ke OGG memakai ffmpeg:
@@ -26,12 +26,7 @@ import { fileURLToPath } from "node:url";
 
 import { encodePng } from "./lib/pixel.mjs";
 import { backgroundDefault } from "./lib/scenes.mjs";
-import {
-  characterDefaultSheet,
-  defaultPanel,
-  portraitFrame,
-  textboxPanel,
-} from "./lib/characters.mjs";
+import { defaultPanel, portraitFrame, textboxPanel } from "./lib/ui.mjs";
 import { sfxClick, sfxCorrect, sfxPage, sfxWrong } from "./lib/audio.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -43,7 +38,6 @@ const PUBLIC = join(ROOT, "public");
 
 const IMAGES = [
   ["bg/default.png", backgroundDefault],
-  ["char/default.png", characterDefaultSheet],
   ["ui/textbox.png", textboxPanel],
   ["ui/portrait_frame.png", portraitFrame],
   ["ui/default.png", defaultPanel],

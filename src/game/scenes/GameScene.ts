@@ -4,7 +4,7 @@ import { scoreAnswer, type Answer } from "@/story/scoring";
 import type { DetourBeat, Story } from "@/story/schema";
 
 import { clampVolume } from "../audioSettings";
-import { CAMERA_LERP, deadzonePx, kameraMode } from "../camera";
+import { CAMERA_LERP, ZOOM_KAMERA, deadzoneDunia, kameraMode } from "../camera";
 import { DEPTH_LATAR } from "../depth";
 import {
   ambilTombolGerak,
@@ -13,10 +13,20 @@ import {
   langkahPemain,
   type MovementKeys,
 } from "../movement";
-import { findNpcInZone, posisiPrompt } from "../interaction";
-import { dalamLayar, duniaKeLayar, type KameraView } from "../layar";
+import {
+  findNpcInZone,
+  posisiPrompt,
+  ZONA_HISTERESIS,
+  ZONA_RADIUS,
+} from "../interaction";
+import {
+  duniaKeLayar,
+  posisiPenanda,
+  terlihatDiLayar,
+  type KameraView,
+} from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
-import { StoryRunner, bolehTerusLewati } from "../StoryRunner";
+import { StoryRunner, akhirBab, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import {
   BranchingRun,
@@ -24,13 +34,9 @@ import {
   type RetryPlan,
 } from "../branching";
 import { buildChallengeView } from "../challengeView";
-import type { GameBus, NpcMarker, PromptView } from "../gameBus";
+import type { GameBus, NpcMarker, NpcNameplate, PromptView } from "../gameBus";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
-import {
-  assetEntry,
-  DEFAULT_CHARACTER_ID,
-  resolveSceneLook,
-} from "../sceneAssets";
+import { assetEntry, resolveSceneLook } from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
 import {
   FRAME_ARAH,
@@ -58,13 +64,23 @@ const DEBOUNCE_MS = 150;
 const INTERVAL_LEWATI_MS = 100;
 
 /**
- * Jarak minimum antar-emisi posisi prompt/penanda. Posisi berubah setiap frame
- * saat kamera bergeser, tetapi DOM tidak perlu dirender 60 kali per detik.
+ * Jeda sebelum bab berikutnya dibuka **otomatis** dari fase `chapter_end`.
+ *
+ * Bab tidak lagi menunggu tombol: begitu beat terakhir sebuah bab selesai,
+ * GameScene menjadwalkan bab berikutnya sendiri. Jeda pendek menjaga peralihan
+ * tidak terasa seperti lompatan dan memberi ruang bagi kartu judul bab. Pemain
+ * tetap bisa mempercepat dengan Space/Enter bila mau.
  */
-const PETUNJUK_INTERVAL_MS = 90;
+const JEDA_AKHIR_BAB_MS = 700;
 
-/** Jarak penanda "!" di atas ubun-ubun sprite NPC. */
-const MARKER_OFFSET_Y = 10;
+/** Jarak papan nama dari ubun-ubun sprite NPC. */
+const JARAK_NAMA = 6;
+
+/**
+ * Titik jangkar kotak `!` pemberi quest: di atas papan nama, bukan tepat di
+ * atas kepala. Papan nama setinggi ±16 px + celah 2 px, jadi 6 + 16 + 2 = 24.
+ */
+const MARKER_OFFSET_Y = 24;
 
 /**
  * Detour yang sedang diputar setelah jawaban salah. Runner sengaja **tidak**
@@ -115,7 +131,6 @@ export class GameScene extends Phaser.Scene {
   /** Pembicara beat dialog terakhir; dipakai sebagai nama speaker saat tantangan. */
   private pembicaraTerakhir: string | null = null;
   private readonly playerId: string;
-  private spritePemainId = "";
   private arahTerakhir: ArahGerak = "down";
   private lastAdvance = 0;
   /** Mode lewati ditahan (ala Persona 3 Reload): beat maju cepat selama ditahan. */
@@ -134,7 +149,11 @@ export class GameScene extends Phaser.Scene {
   /** Sidik posisi prompt/penanda terakhir; mencegah emisi saat tidak berubah. */
   private tandaPrompt = "";
   private tandaMarker = "";
-  private waktuPetunjuk = 0;
+  private tandaNama = "";
+  /** Pemain sedang di zona interaksi pemberi quest (dengan histeresis). */
+  private pemberiQuestDekat = false;
+  /** Jadwal pembukaan bab berikutnya; dibatalkan saat "Ulangi chapter". */
+  private jadwalBab?: Phaser.Time.TimerEvent;
 
   constructor(story: Story, bus?: GameBus) {
     super("GameScene");
@@ -156,15 +175,11 @@ export class GameScene extends Phaser.Scene {
     const pemain =
       this.story.cast.find((member) => member.role === "player") ??
       this.story.cast[0];
-    this.spritePemainId =
-      pemain && this.textures.exists(pemain.spriteId)
-        ? pemain.spriteId
-        : DEFAULT_CHARACTER_ID;
 
     this.player = this.buatKarakter(
       SPAWN_PEMAIN.x,
       SPAWN_PEMAIN.y,
-      this.spritePemainId,
+      pemain?.spriteId ?? "",
       FRAME_ARAH[this.arahTerakhir],
     );
     this.pasangKamera();
@@ -233,9 +248,12 @@ export class GameScene extends Phaser.Scene {
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
 
-    // Scene dihancurkan (mis. "Main lagi"): mode lewati tidak boleh tertinggal
-    // menunjuk runner yang sudah tidak tampil.
-    this.events.once("shutdown", () => this.hentikanLewati());
+    // Scene dihancurkan (mis. "Main lagi"): mode lewati dan jadwal bab tidak
+    // boleh tertinggal menunjuk scene yang sudah tidak tampil.
+    this.events.once("shutdown", () => {
+      this.hentikanLewati();
+      this.batalkanJadwalBab();
+    });
   }
 
   update(time: number, delta: number) {
@@ -254,7 +272,7 @@ export class GameScene extends Phaser.Scene {
     const phase = this.runner.getState().phase;
 
     if (phase === "explore") {
-      this.updateExplore(time, delta);
+      this.updateExplore(delta);
     } else if (phase !== "challenge") {
       // Tantangan membekukan typewriter dan input lanjut: dialog terakhir tetap
       // terlihat di belakang panel soal (docs/04-game/scene-format.md § challenge).
@@ -278,10 +296,15 @@ export class GameScene extends Phaser.Scene {
       if (!this.textures.exists(object.assetId)) continue;
       this.duniaObjects.push(
         this.add
-          .image(object.x, object.y, object.assetId)
+          .image(Math.round(object.x), Math.round(object.y), object.assetId)
           .setOrigin(0, 0)
           .setDisplaySize(object.w, object.h)
-          .setDepth(object.depth),
+          .setDepth(object.depth)
+          // Data editor memperbesar objek dengan skala pecahan (±1,66×), dan
+          // `safeAuto` hanya membulatkan objek tanpa skala. Tanpa `fullAuto`
+          // objek meluncur di sub-piksel sementara peta membulat, sehingga
+          // pixel art tampak bergetar saat pemain berjalan.
+          .setVertexRoundMode("fullAuto"),
       );
     }
 
@@ -298,6 +321,13 @@ export class GameScene extends Phaser.Scene {
   /**
    * Sprite karakter berjangkar di titik kaki, ukurannya mengikuti frame
    * spritesheet-nya. Semua karakter desa sama tinggi (`TINGGI_KARAKTER`).
+   *
+   * Posisi dan gambar dibulatkan ke piksel utuh: skala 0,875 membuat sprite
+   * bukan objek "hanya translasi", jadi tanpa `fullAuto` ia ikut meluncur di
+   * sub-piksel saat kamera bergeser (pixel art bergetar).
+   *
+   * Tidak ada sprite cadangan: `manifest.test.ts` menjamin setiap sprite di
+   * manifest punya berkasnya, dan `PreloadScene` memuat semua sprite `cast`.
    */
   private buatKarakter(
     x: number,
@@ -305,18 +335,16 @@ export class GameScene extends Phaser.Scene {
     spriteId: string,
     face: number,
   ): Phaser.GameObjects.Sprite {
-    const key = this.textures.exists(spriteId)
-      ? spriteId
-      : DEFAULT_CHARACTER_ID;
-    const info = assetEntry(key);
+    const info = assetEntry(spriteId);
     const ukuran = ukuranKarakter(
       info?.frameWidth ?? 24,
       info?.frameHeight ?? 32,
     );
     return this.add
-      .sprite(x, y, key, face)
+      .sprite(Math.round(x), Math.round(y), spriteId, face)
       .setOrigin(0.5, 1)
-      .setDisplaySize(ukuran.width, ukuran.height);
+      .setDisplaySize(ukuran.width, ukuran.height)
+      .setVertexRoundMode("fullAuto");
   }
 
   /**
@@ -324,18 +352,25 @@ export class GameScene extends Phaser.Scene {
    * pemberi quest yang memunculkan prompt dan bisa memulai dialog; NPC lain
    * tetap berdiri sebagai penghalang tanpa memicu scene yang sama.
    */
-  private updateExplore(time: number, delta: number) {
+  private updateExplore(delta: number) {
     if (this.player) {
       this.gerakkanPemain(delta);
       // Urutan gambar mengikuti kaki (world-design.md § Perspektif).
       this.player.setDepth(this.player.y);
     }
 
+    // Histeresis: masuk zona di 24 px, keluar di 32 px. Tanpa ini pemain yang
+    // berdiri di batas zona membuat chip Space berkedip tiap frame.
+    const radius = this.pemberiQuestDekat
+      ? ZONA_RADIUS + ZONA_HISTERESIS
+      : ZONA_RADIUS;
     const dekat = this.player
-      ? findNpcInZone(VILLAGE.npcs, this.player.x, this.player.y)
+      ? findNpcInZone(VILLAGE.npcs, this.player.x, this.player.y, radius)
       : null;
-    const npcId = dekat && dekat === this.pemberiQuest ? dekat : null;
-    this.perbaruiPetunjuk(npcId, time);
+    this.pemberiQuestDekat = dekat !== null && dekat === this.pemberiQuest;
+    const npcId = this.pemberiQuestDekat ? this.pemberiQuest : null;
+
+    this.perbaruiPetunjuk(npcId);
 
     if (npcId && this.lanjutKeysBaruDitekan()) {
       this.runner.interact();
@@ -359,7 +394,10 @@ export class GameScene extends Phaser.Scene {
       batas: { width: VILLAGE.width, height: VILLAGE.height },
     });
 
-    sprite.setPosition(tujuan.x, tujuan.y);
+    // Posisi dibulatkan ke piksel utuh: kamera dan objek dunia sama-sama
+    // duduk di grid yang sama, jadi tidak ada setengah piksel yang membuat
+    // gambar "berkedip" saat berjalan.
+    sprite.setPosition(Math.round(tujuan.x), Math.round(tujuan.y));
     if (arah) {
       this.arahTerakhir = arah;
       sprite.setFrame(FRAME_ARAH[arah]);
@@ -367,25 +405,26 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Kirim posisi chip "Space" dan penanda "!" dalam koordinat layar. Kamera
-   * bisa bergeser, jadi koordinat dunia dikonversi ulang setiap kali emisi.
-   * Interval 90 ms cukup halus untuk mata dan jauh lebih murah daripada
-   * render DOM tiap frame.
+   * Kirim posisi chip "Space", penanda quest, dan papan nama NPC dalam
+   * koordinat layar.
+   *
+   * Dipanggil setiap frame. Dulu dibatasi 90 ms supaya React tidak bekerja
+   * terus, tetapi kamera sekarang menempel pemain: penanda yang tertinggal
+   * 90 ms terlihat melompat-lompat ("putus-putus") di atas NPC. Emisi tetap
+   * murah karena sidik posisi di bawah hanya mengirim saat piksel bulatnya
+   * berubah, dan `NpcHintLayer` hanya me-render beberapa elemen kecil.
    */
-  private perbaruiPetunjuk(npcId: string | null, time: number) {
-    if (time - this.waktuPetunjuk < PETUNJUK_INTERVAL_MS) return;
-    this.waktuPetunjuk = time;
-
+  private perbaruiPetunjuk(npcId: string | null) {
     const kamera = this.cameras.main;
-    const hint = npcId ? this.posisiPromptLayar(npcId, kamera) : null;
-    this.emitPrompt(hint);
+    this.emitPrompt(npcId ? this.posisiPromptLayar(npcId, kamera) : null);
+    this.emitNametags(kamera);
 
-    // Saat pemain sudah di zona NPC, chip Space menggantikan "!" supaya
-    // keduanya tidak bertumpuk di kepala karakter yang sama.
-    const marker =
-      this.pemberiQuest && npcId !== this.pemberiQuest
-        ? this.markerLayar(this.pemberiQuest, kamera)
-        : null;
+    // Penanda "!" tetap tampil walau pemain sudah di zona interaksi. Chip
+    // Space muncul di sampingnya (lihat `posisiPrompt`), jadi indikator quest
+    // tidak hilang-muncul ketika pemain mendekat.
+    const marker = this.pemberiQuest
+      ? this.markerLayar(this.pemberiQuest, kamera)
+      : null;
     this.emitMarkers(marker ? [marker] : []);
   }
 
@@ -396,8 +435,41 @@ export class GameScene extends Phaser.Scene {
     this.bus?.emit({ type: "prompt", hint });
   }
 
+  /** Papan nama semua NPC yang masih terlihat, bukan hanya pemberi quest. */
+  private emitNametags(kamera: Phaser.Cameras.Scene2D.Camera) {
+    const plates: NpcNameplate[] = [];
+
+    for (const npc of VILLAGE.npcs) {
+      const nama = this.castNames.get(npc.id);
+      if (!nama) continue;
+
+      const layar = duniaKeLayar(
+        kamera,
+        npc.x,
+        npc.y - TINGGI_KARAKTER - JARAK_NAMA,
+      );
+      if (!terlihatDiLayar(layar, kamera.width, kamera.height)) continue;
+
+      plates.push({
+        npcId: npc.id,
+        nama,
+        x: Math.round(layar.x),
+        y: Math.round(layar.y),
+      });
+    }
+
+    const tanda = plates.map((p) => `${p.npcId}:${p.x}:${p.y}`).join("|");
+    if (tanda === this.tandaNama) return;
+    this.tandaNama = tanda;
+    this.bus?.emit({ type: "nametags", plates });
+  }
+
   private emitMarkers(markers: NpcMarker[]) {
-    const tanda = markers.map((m) => `${m.npcId}:${m.x}:${m.y}`).join("|");
+    // Sidik harus memuat mode tepi dan sudut: saat NPC melewati batas layar,
+    // x/y yang dibulatkan bisa tidak berubah tetapi penunjuk beacon berputar.
+    const tanda = markers
+      .map((m) => `${m.npcId}:${m.x}:${m.y}:${m.tepi ? 1 : 0}:${m.sudut ?? 0}`)
+      .join("|");
     if (tanda === this.tandaMarker) return;
     this.tandaMarker = tanda;
     this.bus?.emit({ type: "markers", markers });
@@ -418,8 +490,20 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
-  /** Penanda "!" di atas kepala pemberi quest; null bila di luar layar. */
-  private markerLayar(npcId: string, kamera: KameraView): NpcMarker | null {
+  /**
+   * Penanda quest pemberi quest.
+   *
+   * Selama NPC terlihat, kotak `!` duduk di atas papan namanya (papan nama
+   * sendiri dikirim lewat `emitNametags` untuk semua NPC). Bila NPC keluar
+   * pandangan, penanda tidak hilang: posisinya dijepit ke tepi layar sebagai
+   * beacon HUD dengan penunjuk arah. Karena dihitung ulang tiap frame, beacon
+   * ikut bergeser saat pemain berjalan mendekat, lalu berubah mulus menjadi
+   * kotak `!` begitu NPC masuk area aman.
+   */
+  private markerLayar(
+    npcId: string,
+    kamera: Phaser.Cameras.Scene2D.Camera,
+  ): NpcMarker | null {
     const npc = VILLAGE.npcs.find((entry) => entry.id === npcId);
     if (!npc) return null;
 
@@ -428,12 +512,18 @@ export class GameScene extends Phaser.Scene {
       npc.x,
       npc.y - TINGGI_KARAKTER - MARKER_OFFSET_Y,
     );
-    if (!dalamLayar(layar)) return null;
+
+    // Lebar kamera bukan lagi 640 (lebar internal ikut kontainer), jadi batas
+    // memakai ukuran kamera sebenarnya. Tanpa ini penanda di sisi kanan layar
+    // lebar dijepit ke tempat yang salah.
+    const posisi = posisiPenanda(layar, kamera.width, kamera.height);
 
     return {
       npcId,
-      x: Math.round(layar.x),
-      y: Math.round(layar.y),
+      x: Math.round(posisi.x),
+      y: Math.round(posisi.y),
+      tepi: posisi.tepi,
+      sudut: Math.round(posisi.sudut),
     };
   }
 
@@ -485,8 +575,33 @@ export class GameScene extends Phaser.Scene {
 
   /** Lanjut dari beat yang sedang tampil ke beat/scene berikutnya. */
   private lanjutBeat() {
+    this.batalkanJadwalBab();
     this.runner.advance();
     this.presentBeat();
+  }
+
+  /**
+   * Jadwalkan pembukaan bab berikutnya saat cerita mencapai `chapter_end`.
+   *
+   * Satu jadwal saja: `presentBeat` bisa dipanggil berkali-kali di fase yang
+   * sama (mis. saat menjeda), jadi jadwal ganda dicegah. Pemain tetap boleh
+   * mempercepat dengan Space/Enter — jadwal ini hanya menutup kasus "diam".
+   */
+  private jadwalkanBabBerikutnya() {
+    if (this.jadwalBab) return;
+    this.jadwalBab = this.time.delayedCall(JEDA_AKHIR_BAB_MS, () => {
+      this.jadwalBab = undefined;
+      // Bisa saja pemain sudah menekan Space lebih dulu; hanya lanjut bila
+      // kursor memang masih berhenti di akhir bab.
+      if (!akhirBab(this.runner.getState())) return;
+      this.lanjutBeat();
+    });
+  }
+
+  /** Buang jadwal bab berikutnya (dipakai saat bab dimulai ulang/selesai). */
+  private batalkanJadwalBab() {
+    this.jadwalBab?.remove(false);
+    this.jadwalBab = undefined;
   }
 
   /**
@@ -585,6 +700,8 @@ export class GameScene extends Phaser.Scene {
     if (state.phase === "explore" || state.phase === "chapter_end") {
       this.textbox?.hide();
       this.sorotSpeaker(null);
+      // Akhir bab langsung berlanjut sendiri; tidak perlu menekan tombol.
+      if (akhirBab(state)) this.jadwalkanBabBerikutnya();
       return;
     }
 
@@ -629,6 +746,10 @@ export class GameScene extends Phaser.Scene {
   /**
    * Kirim ringkasan sekali main ke React saat cerita selesai. `scoreStory`
    * menghitung poin, jumlah benar, dan konsep lemah dari percobaan pertama.
+   *
+   * `answers` ikut dikirim karena layar hasil menyimpan hasil main lewat
+   * Server Action `savePlayResult`, dan action itu hanya menerima jawaban
+   * mentah: skor dihitung ulang di server, bukan dipercaya dari klien.
    */
   private kirimHasil() {
     if (this.selesaiDikirim) return;
@@ -636,6 +757,7 @@ export class GameScene extends Phaser.Scene {
     this.bus?.emit({
       type: "finished",
       result: this.answers.result(this.story),
+      answers: this.answers.all(),
     });
   }
 
@@ -662,6 +784,7 @@ export class GameScene extends Phaser.Scene {
   private ulangiChapter() {
     this.hentikanLewati();
     this.detour = null;
+    this.batalkanJadwalBab();
     this.runner.restartChapter();
     this.textbox?.hide();
     this.sembunyikanPetunjuk();
@@ -862,20 +985,25 @@ export class GameScene extends Phaser.Scene {
         ? (state.chapter?.scenes[state.sceneIndex] ?? null)
         : null;
     this.pemberiQuest = pilihPemberiQuest(scene, VILLAGE.npcs);
+    // Zona histeresis milik pemberi quest sebelumnya; mulai dari batas masuk.
+    this.pemberiQuestDekat = false;
   }
 
   /**
    * Kamera desa (world-design.md § Kamera): batas = ukuran peta, ikuti pemain
-   * dengan dead zone 128×96 px dan lerp 0.12. Peta desa selalu lebih luas dari
-   * layar, tetapi aturan "lock" tetap dipakai supaya peta kecil kelak tenang.
+   * dengan dead zone 128×96 px di layar dan lerp 1. Kamera sedikit keluar dari
+   * 1:1 (`ZOOM_KAMERA`) supaya dunia terasa lebih luas; UI Phaser menutup
+   * sendiri lewat skala terbalik. Peta desa selalu lebih luas dari layar,
+   * tetapi aturan "lock" tetap dipakai supaya peta kecil kelak tenang.
    */
   private pasangKamera() {
     const cam = this.cameras.main;
     cam.setBounds(0, 0, VILLAGE.width, VILLAGE.height);
+    cam.setZoom(ZOOM_KAMERA);
 
     if (kameraMode(VILLAGE) === "follow" && this.player) {
       cam.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
-      const zona = deadzonePx();
+      const zona = deadzoneDunia(ZOOM_KAMERA);
       cam.setDeadzone(zona.width, zona.height);
     } else {
       cam.stopFollow();
@@ -952,7 +1080,10 @@ export class GameScene extends Phaser.Scene {
 
   private kembalikanPemain() {
     if (!this.player) return;
-    this.player.setPosition(SPAWN_PEMAIN.x, SPAWN_PEMAIN.y);
+    this.player.setPosition(
+      Math.round(SPAWN_PEMAIN.x),
+      Math.round(SPAWN_PEMAIN.y),
+    );
     this.arahTerakhir = "down";
     this.player.setFrame(FRAME_ARAH[this.arahTerakhir]);
     this.player.setDepth(this.player.y);

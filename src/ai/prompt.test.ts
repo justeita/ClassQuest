@@ -610,14 +610,44 @@ describe("blok aset", () => {
   });
 
   it("menawarkan aset default hanya bila jenis itu tidak punya pilihan lain", () => {
-    const { user } = buildOutlinePrompt(outlineInput());
+    const { user } = buildOutlinePrompt(
+      outlineInput({
+        // Manifes buatan: background/musik hanya punya aset default, sedangkan
+        // karakter punya pilihan lain. Aturan penyembunyian default butuh kasus
+        // seperti ini karena manifes asli tidak lagi menyimpan siluet cadangan.
+        assets: [
+          { id: "bg_default", kind: "background" },
+          { id: "char_default", kind: "character" },
+          { id: "char_mc", kind: "character" },
+          { id: "bgm_default", kind: "music" },
+        ],
+      }),
+    );
 
-    // Background dan musik kini hanya punya aset default, jadi keduanya harus
-    // muncul supaya model tidak kehabisan pilihan.
+    // Background dan musik hanya punya aset default, jadi keduanya harus muncul
+    // supaya model tidak kehabisan pilihan.
     expect(user).toContain("bg_default");
     expect(user).toContain("bgm_default");
-    // Karakter punya banyak pilihan, jadi siluet cadangan tidak ditawarkan.
+    // Karakter punya pilihan lain, jadi id cadangan tidak ditawarkan.
+    expect(user).toContain("char_mc");
     expect(user).not.toContain("char_default");
+  });
+
+  it("tidak menawarkan aset sfx dan ui ke model", () => {
+    const { user } = buildOutlinePrompt(
+      outlineInput({
+        assets: [
+          { id: "bg_default", kind: "background" },
+          { id: "char_mc", kind: "character" },
+          { id: "bgm_default", kind: "music" },
+          { id: "sfx_click", kind: "sfx" },
+          { id: "ui_textbox", kind: "ui" },
+        ],
+      }),
+    );
+
+    // Cerita hanya memilih latar, karakter, dan musik; efek suara dan panel
+    // adalah aset runtime yang tidak boleh dipilih model.
     expect(user).not.toContain("sfx_click");
     expect(user).not.toContain("ui_textbox");
   });

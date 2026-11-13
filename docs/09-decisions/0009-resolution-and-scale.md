@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -72,7 +72,7 @@ Alasan:
    1080p, sehingga pixel tetap tajam dan tidak ada sisa garis pecahan.
 3. **Masih bisa dibangun generator.** Semua latar tetap digambar pada grid
    1 px pada resolusi ini; yang berubah adalah konstanta di `scenes.mjs`,
-   `characters.mjs`, dan `textbox.ts`.
+   `scenes.mjs`, `ui.mjs`, dan `textbox.ts`.
 
 Asumsi: satu tile = 16×16 px. Peta, zona interaksi, kecepatan pemain, dan
 ketebalan dinding dinyatakan dalam kelipatan tile supaya konsisten dan mudah
@@ -108,6 +108,18 @@ diubah.
   `src/game/textbox.ts`, `scripts/lib/{scenes,characters,pixel}.mjs`.
 - [`../01-architecture/repo-structure.md`](../01-architecture/repo-structure.md) —
   catatan resolusi di baris `config.ts`.
+
+> **Catatan lanjutan 2026-11-13 — cara menampilkan skala.** Angka 640×360 tetap.
+> Yang berubah adalah cara menampilkannya: `Scale.FIT` diganti `Scale.NONE` +
+> `zoom` dari `ukuranKanvas()` di `src/game/constants.ts`, supaya lebar internal
+> bisa ikut dihitung (dijepit 640–960 px). Skala **bulat** (1×/2×/3×) dipakai saat
+> sisa ruang kontainer ≤6% karena pixel art paling tajam; kalau sisa ruangnya
+> lebih besar, kanvas dibesarkan **penuh** (mis. 1,83×) agar game mengisi bingkai
+> halaman, bukan menjadi strip kecil dengan bar gelap besar. Skala penuh tidak
+> lagi membuat gambar bergetar karena posisi kamera, objek, dan vertex sudah
+> dikunci ke piksel utuh (`CAMERA_LERP` 1, `vertexRoundMode` `fullAuto`). Sisi
+> halaman sendiri diberi margin 8–24 px dan sudut membulat, jadi sisa ruang
+> terbaca sebagai bingkai jendela.
 
 ## Kapan keputusan ini ditinjau ulang
 

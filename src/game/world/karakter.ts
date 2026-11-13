@@ -46,8 +46,8 @@ export const SKALA_KARAKTER = 0.875;
 export const TINGGI_KARAKTER = 56;
 
 /**
- * Ukuran gambar satu karakter dari ukuran framenya. Berlaku untuk semua
- * karakter, termasuk `char_default` yang framenya lebih kecil.
+ * Ukuran gambar satu karakter dari ukuran framenya, untuk semua karakter desa
+ * yang tingginya sama.
  */
 export function ukuranKarakter(
   frameWidth: number,

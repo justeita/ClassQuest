@@ -50,6 +50,33 @@ export const PORTRAIT = {
   imageSize: 64,
 } as const;
 
+/**
+ * Penanda quest (`NpcMarker.tsx`) — kotak `!` yang sama dipakai saat NPC
+ * terlihat maupun saat NPC di luar pandangan menjadi beacon tepi layar.
+ *
+ * Geometrinya tinggal di sini supaya jarak aman dari tepi layar
+ * (`INSET_PENANDA` di `layar.ts`) bisa dihitung dari jangkauan penunjuk, bukan
+ * angka yang disalin dua kali.
+ */
+export const PENANDA = {
+  /** Sisi kotak `!`. */
+  kotak: 26,
+  /** Segitiga penunjuk arah yang menjulur keluar dari pusat kotak. */
+  penunjuk: {
+    lebar: 9,
+    tinggi: 7,
+    /** Jarak pusat segitiga dari pusat kotak. */
+    geser: 19,
+  },
+} as const;
+
+/**
+ * Jarak ujung penunjuk dari pusat kotak, dalam px internal: segitiga digeser
+ * sejauh `geser`, lalu ujungnya menambah setengah tingginya.
+ */
+export const JANGKAUAN_PENUNJUK =
+  PENANDA.penunjuk.geser + PENANDA.penunjuk.tinggi / 2;
+
 /** Posisi/ukuran dalam persen ruang game, untuk `style` CSS overlay DOM. */
 export function persen(nilai: number, total: number): string {
   return `${Number(((nilai / total) * 100).toFixed(4))}%`;
@@ -58,7 +85,7 @@ export function persen(nilai: number, total: number): string {
 /**
  * Koordinat x internal → persen lebar ruang game **aktual**.
  *
- * Lebar internal mengikuti rasio layar (`lebarInternal`), jadi angka 640 tidak
+ * Lebar internal mengikuti kontainer (`lebarKanvas`), jadi angka 640 tidak
  * lagi pasti. Nilai aktual datang dari CSS variable `--gw` yang dipasang di
  * bingkai kanvas; fallback `GAME_WIDTH` menjaga pratinjau/tes tetap jalan.
  */
@@ -89,7 +116,7 @@ export function kotakPersen(kotak: {
 /**
  * Panjang internal (px pada tinggi 360) → lebar kontainer game.
  *
- * Lebar internal dunia mengikuti rasio layar (`lebarInternal`), jadi 1 unit
+ * Lebar internal dunia mengikuti kontainer (`lebarKanvas`), jadi 1 unit
  * internal = `100 / --gw` persen lebar kontainer. `cqh` tetap dipakai sebagai
  * acuan karena tinggi internal selalu 360 — keduanya sebanding.
  */

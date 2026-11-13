@@ -383,6 +383,7 @@ type SavePlayResultOutcome =
 Aturan:
 
 - **Skor dihitung server.** Klien tidak boleh mengirim field skor (`earnedPoints`, `correctCount`, dsb.); field tersebut ditolak (`invalid`). Server menghitung ulang skor via `scoreStory()` dari cerita versi terbit yang tersimpan.
+- **Pemanggil di klien:** `GameShell` memanggil action ini sekali saat event `finished` (membawa `answers` percobaan pertama). Layar hasil tampil lebih dulu; kegagalan simpan hanya mengubah status di layar ("Hasil main belum tersimpan."), tidak memblokir siswa.
 - Jawaban divalidasi terhadap tantangan cerita: id tantangan atau opsi tidak dikenal, jawaban ganda, atau jumlah jawaban melebihi tantangan ditolak (`invalid`).
 - Data yang disimpan hanya agregat di tabel `play_results` (tanpa data per-opsi, IP, user-agent, atau identitas siswa).
 - **Rate limit:** 120 panggilan per 10 menit per IP, diperiksa paling awal sebelum input disentuh. Melebihi batas menghasilkan `{ ok: false, reason: "rate_limited" }` (Server Action tidak bisa mengirim HTTP 429, jadi tidak ada header `Retry-After`; UI cukup menampilkan pesan "coba lagi sebentar lagi"). Kalau penghitungnya gagal, hasil bermain **tetap diproses** (fail open). Angka ini longgar karena satu kelas bisa berbagi satu IP.

@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-10
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -12,20 +12,23 @@ dan [`engine.md`](./engine.md).
 
 ## Ringkasan mapping
 
-| Story                   | Runtime                                            |
-| ----------------------- | -------------------------------------------------- |
-| `chapters[]`            | Urutan chapter; satu chapter = satu "bab" gameplay |
-| `scenes[]`              | Satu background + satu musik + deretan beat        |
-| `beats[]`               | Satu langkah dialog atau satu tantangan            |
-| `cast[]`                | Sprite yang bisa muncul + portrait                 |
-| `challenges[]`          | Overlay React, dipanggil dari beat `challenge`     |
-| `backgroundId` chapter  | Default background untuk semua scene di chapter    |
-| `backgroundId` scene    | Override background chapter                        |
-| `musicId` chapter/scene | Sama, override berlaku                             |
+| Story                   | Runtime                                                                   |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `chapters[]`            | Urutan chapter; satu chapter = satu "bab" gameplay                        |
+| `scenes[]`              | Satu pemberi quest + satu override musik + deretan beat                   |
+| `beats[]`               | Satu langkah dialog atau satu tantangan                                   |
+| `cast[]`                | Sprite yang bisa muncul + potret                                          |
+| `challenges[]`          | Overlay React, dipanggil dari beat `challenge`                            |
+| `musicId` chapter/scene | Musik yang diputar; override scene berlaku                                |
+| `backgroundId`          | Hanya untuk layar judul/hasil; di dalam dunia game latar selalu peta desa |
+
+Sejak dunia menjadi satu peta desa (`world-design.md`), scene **tidak** lagi
+menukar gambar latar. Yang benar-benar berubah saat scene berganti: **musik** dan
+**NPC pemberi quest**. Dunia, objek, dan posisi pemain tetap.
 
 ## Resolusi nilai
 
-Nilai efektif dihitung sekali saat chapter dimulai, bukan tiap beat:
+Nilai efektif dihitung saat chapter dimulai, bukan tiap beat:
 
 ```ts
 export function resolveSceneLook(chapter: Chapter, scene: Scene | null) {
@@ -37,112 +40,122 @@ export function resolveSceneLook(chapter: Chapter, scene: Scene | null) {
 ```
 
 Modul nyata ada di `src/game/sceneAssets.ts`; di sana juga ada
-`collectStoryAssets(story)` yang mengumpulkan aset dipakai cerita untuk preload.
+`collectStoryAssets(story)` yang mengumpulkan aset cerita untuk preload.
 
 Aturan:
 
-- `bg_default`/`bgm_default` **hanya** dipakai kalau aset yang diminta gagal
-  dimuat. Kalau id tidak ada di manifest, itu bug validasi — jangan diam-diam
-  mengganti.
+- `chapter.backgroundId` dan `chapter.musicId` **wajib** di schema; `bg_default`
+  dan `bgm_default` hanya terpakai bila field kosong (data rusak) atau untuk
+  layar judul/hasil. Jangan memakai itu sebagai pengganti id yang salah.
+- Di dalam game, `GameScene` **hanya** memakai `musicId`. `backgroundId` diabaikan
+  karena latar dunia adalah peta desa; `putarMusik()` tetap jatuh ke `bgm_default`
+  bila audio yang diminta tidak ikut termuat.
 - Ganti musik hanya bila `musicId` berbeda dari scene sebelumnya. Jangan restart
   track yang sama.
 
 ## Preload
 
-`PreloadScene` tidak memuat seluruh manifest. `collectStoryAssets(story)`
-mengambil hanya:
+`PreloadScene` memuat, dalam urutan ini:
 
-- background chapter + override scene + `bg_default`;
-- musik chapter + override scene + `bgm_default`;
-- `spriteId` setiap `cast` (spritesheet 24×32, 10 frame idle+jalan) beserta portrait-nya;
-- aset UI (`ui_textbox`, `ui_portrait_frame`, `ui_default`) dan SFX
-  (`sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`).
+1. **Seluruh aset dunia desa** (`WORLD` dari `src/assets/manifest.ts`) — peta,
+   potongan objek, spritesheet karakter, dan musik default. Dunia tidak bisa
+   dirender sebagian, jadi semuanya dimuat sekali di awal.
+2. **Aset cerita** lewat `collectStoryAssets(story)`: background chapter +
+   override scene, musik chapter + override scene, dan `spriteId` setiap `cast`
+   beserta potretnya.
+3. **Aset UI dan SFX runtime** (`ui_textbox`, `ui_portrait_frame`, `ui_default`,
+   `sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`).
 
 Semua key loader memakai `id` manifest, jadi scene tidak menebak path file.
+`manifest.test.ts` menjamin setiap id punya berkasnya, sehingga `PreloadScene`
+tidak menyediakan sprite cadangan.
 
-## Ruangan dan eksplorasi (ADR 0008)
+## Dunia dan eksplorasi
 
-Per ADR 0008 dan 0010, scene dirender sebagai **ruangan satu peta** yang bisa
-dijelajahi (bisa lebih luas dari layar):
+Per ADR 0008 dan 0010, cerita dijalankan di atas **satu dunia desa** yang bisa
+dijelajahi:
 
-- Scene dibuka dalam fase `explore`: pemain spawn di titik tetap, lalu bergerak
-  4 arah (`W`/`A`/`S`/`D`, panah) dengan collision.
-- Data map — lantai, dinding, penempatan NPC, spawn, zona interaksi —
-  didefinisikan **di sisi game** (`src/game/maps/`, satu `RoomData` per
-  `roomId`) dan **tidak mengubah kontrak Story JSON**.
-- Ruangan menyimpan lantai/dinding/spawn/zona; sprite karakter memakai
-  `spriteId` dari `cast` (spritesheet 24×32) dan background dari
-  `backgroundId`. Bila texture tidak ada, runtime jatuh ke `char_default` /
-  `bg_default` tanpa menghentikan permainan.
-- Collision: dinding keliling ruangan + objek padat; arcade physics gravity 0
-  (sudah diset di `config.ts`). Collider dibangun dari data objek yang sama
-  yang digambar (ADR 0010) — tidak ada collider terpisah dari visual. Prop
-  besar boleh memakai sub-collider di dalam kotaknya (ADR 0011).
-- NPC/objek interaksi punya zona kecil. Pemain di dalam zona → indikator
-  interaksi muncul → `Space`/`Enter` memutar deretan beat scene itu (fase
-  `dialog`); gerak terkunci sampai deretan beat habis.
+- Dunia dibangun sekali di `GameScene.create()` dari `VILLAGE`
+  (`src/game/world/village.json`): gambar peta, 300 penempatan objek, dan 9 NPC.
+- Scene dibuka dalam fase `explore`: pemain berdiri di titik spawn, lalu bergerak
+  **8 arah** (`W`/`A`/`S`/`D` atau panah) dengan collision dari data dunia.
+- Data dunia — peta, penempatan NPC, spawn, sel collision — didefinisikan **di
+  sisi game** dan **tidak mengubah kontrak Story JSON**.
+- Sprite karakter memakai `spriteId` dari `cast` (spritesheet 8 frame, tinggi
+  frame 64 px, lebar per karakter). Bila texture karakter tidak ada, sprite itu
+  tidak digambar — tidak ada sprite cadangan.
+- Gerak **bukan** fisika Phaser: `movement.ts` menghitung langkah per sumbu dan
+  memeriksa `buatTabrakan()` dari sel collision editor. Kotak tabrakan hanya di
+  kaki (16×9 px). Detailnya di
+  [`world-design.md`](./world-design.md#objek-dan-collision).
+- NPC/objek interaksi punya zona 24 px di sekitar titik kaki. Pemain di dalam zona
+  → indikator `Space` muncul → `Space`/`Enter` memutar deretan beat scene itu
+  (fase `dialog`); gerak terkunci sampai deretan beat habis.
+
+Hanya **NPC pemberi quest** scene aktif yang memunculkan prompt dan bisa memulai
+dialog; NPC lain tetap berdiri sebagai penghalang.
 
 ## Peta visual
 
-Resolusi 640×360 (ADR 0009). Layout di bawah berlaku saat fase `dialog`
-(textbox terbuka); saat fase `explore`, textbox tersembunyi dan karakter bebas
-bergerak. Posisi dalam piksel:
+Resolusi internal 640×360 (ADR 0009); lebar kanvas = lebar kontainer ÷ skala
+(dijepit 640–960 px) dan tinggi tetap 360. Skala bulat dipakai saat sisa ruang
+≤6%, selain itu kanvas memenuhi bingkai halaman. Layout berikut berlaku saat fase
+`dialog` (textbox terbuka); saat fase `explore`, textbox tersembunyi dan pemain
+bebas bergerak.
 
 ```text
 ┌──────────────────────────────────────────────────────┐ 640×360
-│                                                  │
-│                BACKGROUND (full)                 │
-│                                                  │
-│     ┌──────┐                                     │
-│     │SPRITE│  ← karakter aktif, kiri bawah       │
-│     │24×32 │                                     │
-│     └──────┘                                     │
-│ ┌──────────────────────────────────────────────┐ │
-│ │ TEXTBOX (ui_textbox)                         │ │
-│ │ Nama                                         │ │
-│ │ Teks dialog...                               │ │
-│ └──────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────┘
+│                                                      │
+│              PETA DESA (kamera follow)               │
+│                                                      │
+│                     ┌───────┐                        │
+│                     │PEMAIN │  ← di posisi dunianya  │
+│                     └───────┘                        │
+│                                                      │
+│ ┌──────┐ ┌─────────────────────────────────────────┐ │
+│ │PORTRA│ │ TEXTBOX (ui_textbox)                    │ │
+│ │72 px │ │ Nama                                    │ │
+│ └──────┘ │ Teks dialog...                          │ │
+│          └─────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────┘
 ```
 
-| Elemen     | Posisi/ukuran                                              |
-| ---------- | ---------------------------------------------------------- |
-| Background | `0,0`, 640×360, `setOrigin(0)`                             |
-| Sprite     | `x=48`, `y=240`, origin bottom-left (kaki di atas textbox) |
-| Portrait   | Opsional, di atas textbox, 64×64                           |
-| Textbox    | `x=16`, `y=240`, lebar 608, tinggi 104                     |
-| Nama       | Di dalam textbox, baris pertama (DOM)                      |
-| Teks       | Maks 3 baris per halaman, ~60 karakter/baris (DOM)         |
-| Indikator  | Panah kecil berkedip di kanan bawah saat menunggu (DOM)    |
+| Elemen    | Posisi/ukuran                                                             |
+| --------- | ------------------------------------------------------------------------- |
+| Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`         |
+| Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                          |
+| Textbox   | 608×104, terpusat horizontal, `y=240`, menempel layar (`setScrollFactor`) |
+| Portrait  | Bingkai 72×72 di atas panel, gambar 64×64 di dalamnya                     |
+| Nama      | Di dalam textbox, baris pertama (DOM)                                     |
+| Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)            |
+| Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                   |
 
 > **Panel di Phaser, teks di DOM (ADR 0007).** Phaser hanya menggambar
 > `ui_textbox`, bingkai portrait, dan portrait-nya. Nama, isi dialog, dan
 > indikator "lanjut" dirender `DialogueBox.tsx` di lapisan DOM dengan posisi
 > persen dari `src/game/layout.ts`, sehingga huruf tajam di layar. Prompt
-> interaksi `Space` juga DOM (`InteractHint.tsx`). Jangan menambah teks game
-> baru di canvas: canvas 640×360 di-upscale `pixelated`, jadi semua huruf di
-> dalamnya bergerigi.
+> interaksi `Space` juga DOM (`InteractHint.tsx`). Jangan menambah teks game baru
+> di canvas: canvas di-upscale `pixelated`, jadi semua huruf di dalamnya
+> bergerigi.
 
 Beginilah hasilnya di layar:
 
-![Layar dialog: ruang kelas, dua karakter, textbox di bawah](../assets/game-screen.svg)
+![Layar dialog: desa, dua karakter, textbox di bawah](../assets/game-screen.svg)
 
 > Gambar di atas digambar pada kanvas 320×180 lalu diperbesar agar tajam di
 > layar. Yang berlaku untuk aset dan kode adalah angka di tabel: 640×360.
 
-Batas keras **240 karakter per beat** berasal dari schema. Satu halaman textbox
-hanya memuat 3 baris × ~60 karakter ≈ 180 karakter, jadi beat yang lebih panjang
-ditampilkan sebagai **dua halaman**: siswa menekan lanjut sekali lagi sebelum beat
-berikutnya. Dengan begitu tidak ada teks yang terpotong, dan angka 240 di
-validator tetap punya alasan. Kalau kamu mengubah ukuran textbox, hitung ulang
-kedua angka itu.
+Batas keras **240 karakter per beat** berasal dari schema
+(`boundedText(1, 240)`). Panel 608×104 pada ukuran huruf game memuat beberapa
+baris; teks yang lebih panjang tetap dirender utuh oleh DOM (belum ada paginasi
+otomatis). Kalau kamu mengubah ukuran textbox, periksa ulang tampilannya di
+layar kecil.
 
 ## Siklus beat
 
 ```mermaid
 flowchart TD
-  S["Scene mulai"] --> A["Set background"]
-  A --> B["Set musik<br/>(hanya jika berubah)"]
+  S["Scene mulai"] --> B["Set musik<br/>(hanya jika berubah)"]
   B --> X["Fase explore:<br/>pemain jalan bebas"]
   X --> D0["Interaksi NPC<br/>Space/Enter di zona"]
   D0 --> C["beatIndex = 0"]
@@ -176,7 +189,7 @@ terjadi sebelum beat pertama scene.
 ### `narration`
 
 - Textbox tanpa nama.
-- Sprite karakter sebelumnya **tetap** tampil (kecuali scene berganti).
+- Sprite speaker sebelumnya diredam (tidak ada yang disorot).
 - Tidak ada portrait.
 
 ### `dialogue`
@@ -207,47 +220,54 @@ terjadi sebelum beat pertama scene.
 
 ## Typewriter
 
-- Kecepatan 30–40 karakter/detik.
+- Kecepatan 35 karakter/detik (`Typewriter`, default 35; rentang desain 30–40).
 - Klik/Spasi saat mengetik → tampilkan seluruh teks (bukan lanjut beat).
 - Klik/Spasi saat selesai → lanjut beat.
-- Teks harus di-`setText` utuh, bukan per karakter dengan `Text` baru; gunakan
-  counter dan `setText(text.slice(0, n))` — cukup untuk 240 karakter.
+- Teks di-`setText` utuh, bukan per karakter dengan `Text` baru; gunakan counter
+  dan `slice(0, n)` — cukup untuk 240 karakter.
 
 ## Perpindahan scene dan chapter
 
-| Peristiwa         | Visual                                                 |
-| ----------------- | ------------------------------------------------------ |
-| Scene → scene     | Fade 300 ms; musik lanjut bila sama                    |
-| Chapter → chapter | Fade + kartu judul chapter (1,5 detik), musik berganti |
-| Chapter terakhir  | Fade ke layar hasil (React)                            |
+| Peristiwa         | Visual                                                            |
+| ----------------- | ----------------------------------------------------------------- |
+| Scene → scene     | Musik berganti bila `musicId` berubah; NPC pemberi quest berganti |
+| Chapter → chapter | Kartu judul chapter, musik berganti bila perlu                    |
+| Chapter terakhir  | Fade ke layar hasil (React)                                       |
 
-Kartu judul chapter diambil dari `chapter.title` dan `chapter.concept`.
+Dunia **tidak** dibangun ulang dan pemain **tidak** dikembalikan ke spawn saat
+scene berganti. Spawn hanya dipakai saat memulai cerita atau saat **"Ulangi
+chapter"** dari menu jeda.
 
 ## Contoh lengkap
 
 Story: [`../02-data-model/story.example.json`](../02-data-model/story.example.json)
 
-Chapter 1, scene `sc_01_02`:
+Chapter 1, scene `sc_01_02` ("Tiga Kali Resep"):
 
 ```json
 {
   "id": "sc_01_02",
-  "title": "Uap yang Tak Terlihat",
+  "title": "Tiga Kali Resep",
   "beats": [
     {
       "type": "dialogue",
-      "speakerId": "char_pak_bima",
-      "text": "Air bisa berubah wujud. Saat dipanaskan matahari, air menjadi uap yang tidak terlihat."
+      "speakerId": "char_npc_10",
+      "text": "Sebelum mulai, ayo pastikan takarannya benar. Salah takaran, kue pesta bisa gagal."
     },
     { "type": "challenge", "challengeId": "chl_01_01" },
     {
       "type": "dialogue",
-      "speakerId": "char_tirta",
-      "text": "Aku uap yang baru lepas dari genangan itu. Ringan sekali, sampai aku bisa naik."
+      "speakerId": "char_npc_1",
+      "text": "Benar, sembilan cangkir tepung butuh enam cangkir gula. Kamu sudah paham perbandingan."
     },
     {
       "type": "narration",
-      "text": "Nara mengikuti arah naiknya uap, meski matanya tidak bisa melihat apa pun."
+      "text": "Nara menuang bahan dengan hati-hati. Aroma kue mulai memenuhi dapur."
+    },
+    {
+      "type": "dialogue",
+      "speakerId": "char_mc",
+      "text": "Jadi selama perbandingannya tetap, rasa kue juga tetap enak."
     }
   ]
 }
@@ -255,13 +275,13 @@ Chapter 1, scene `sc_01_02`:
 
 Yang terjadi:
 
-1. Background tetap `bg_classroom_day` (dari chapter).
-2. Ruangan `sc_01_02` dibuka dalam fase `explore`: Nara berjalan bebas.
-3. Pemain mendekati Pak Bima (zona interaksi dari map dummy) → `Space`/`Enter`.
-4. Pak Bima tampil, textbox berisi nama + kalimat.
+1. Musik chapter tetap `bgm_default` (tidak berganti).
+2. Dunia desa tidak berubah; pemain tetap di posisi terakhirnya.
+3. Pemberi quest scene ini adalah Pak Wira (`char_npc_10`); dekati dia → `Space`.
+4. Pak Wira tampil, textbox berisi nama + kalimat.
 5. Klik → beat tantangan → dialog pause, overlay `chl_01_01` muncul.
 6. Siswa menjawab → feedback + penjelasan → overlay tertutup.
-7. Tirta muncul (sprite `char_tirta`), dialog.
+7. Bu Sri (`char_npc_1`) tampil, dialog.
 8. Narasi tanpa nama.
 9. Scene selesai → `sc_01_03`.
 
@@ -293,11 +313,11 @@ memegang `Story`, lalu hasil boolean dikirim ke UI.
 
 ## Kesalahan mapping yang harus dihindari
 
-| Kesalahan                               | Akibat                            |
-| --------------------------------------- | --------------------------------- |
-| Memakai `chapter.backgroundId` langsung | Override scene diabaikan          |
-| Restart musik tiap scene                | Musik terasa terpotong            |
-| Menutup textbox saat tantangan          | Dialog kehilangan konteks         |
-| Mengirim jawaban benar ke komponen UI   | Jawaban bocor di DOM              |
-| Membuat `Text` baru tiap karakter       | FPS turun, memori naik            |
-| Memakai indeks array sebagai id         | Progress rusak saat cerita diedit |
+| Kesalahan                              | Akibat                              |
+| -------------------------------------- | ----------------------------------- |
+| Membangun ulang dunia saat scene ganti | Posisi pemain hilang, peta berkedip |
+| Restart musik tiap scene               | Musik terasa terpotong              |
+| Menutup textbox saat tantangan         | Dialog kehilangan konteks           |
+| Mengirim jawaban benar ke komponen UI  | Jawaban bocor di DOM                |
+| Membuat `Text` baru tiap karakter      | FPS turun, memori naik              |
+| Memakai indeks array sebagai id        | Progress rusak saat cerita diedit   |

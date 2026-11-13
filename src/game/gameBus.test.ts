@@ -82,7 +82,7 @@ describe("GameBus", () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  it("event finished membawa ringkasan hasil apa adanya", () => {
+  it("event finished membawa ringkasan hasil dan jawaban apa adanya", () => {
     const bus = new GameBus();
     const handler = vi.fn();
     bus.on("finished", handler);
@@ -94,9 +94,12 @@ describe("GameBus", () => {
       totalChallenges: 6,
       weakConcepts: ["Kondensasi"],
     };
-    bus.emit({ type: "finished", result });
+    const answers = [
+      { challengeId: "chl_01_01", type: "short_answer" as const, text: "uap" },
+    ];
+    bus.emit({ type: "finished", result, answers });
 
-    expect(handler).toHaveBeenCalledWith({ type: "finished", result });
+    expect(handler).toHaveBeenCalledWith({ type: "finished", result, answers });
   });
 });
 

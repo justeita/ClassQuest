@@ -197,6 +197,18 @@ export class StoryRunner {
 }
 
 /**
+ * Apakah kursor sedang berhenti di akhir bab.
+ *
+ * `chapter_end` berarti seluruh scene bab ini selesai; `advance()` berikutnya
+ * membuka bab baru (atau mengakhiri cerita bila ini bab terakhir). GameScene
+ * memakai predikat ini untuk membuka bab berikutnya **otomatis** tanpa
+ * menunggu tombol.
+ */
+export function akhirBab(state: StoryRunnerState): boolean {
+  return state.phase === "chapter_end";
+}
+
+/**
  * Apakah kursor boleh melompati beat yang sedang tampil?
  *
  * Hanya beat dialog/narasi. Beat `challenge` tidak pernah boleh dilewati —

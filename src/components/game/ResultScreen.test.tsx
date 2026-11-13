@@ -64,6 +64,35 @@ describe("ResultScreen", () => {
     ).toBeInTheDocument();
   });
 
+  it("menampilkan status penyimpanan hasil apa adanya", () => {
+    const { rerender } = render(
+      <ResultScreen
+        result={adaKonsepLemah}
+        statusSimpan="menyimpan"
+        onMainLagi={() => {}}
+      />,
+    );
+    expect(screen.getByText("Menyimpan hasil main…")).toBeInTheDocument();
+
+    rerender(
+      <ResultScreen
+        result={adaKonsepLemah}
+        statusSimpan="gagal"
+        onMainLagi={() => {}}
+      />,
+    );
+    expect(screen.getByText("Hasil main belum tersimpan.")).toBeInTheDocument();
+
+    rerender(
+      <ResultScreen
+        result={adaKonsepLemah}
+        statusSimpan="tersimpan"
+        onMainLagi={() => {}}
+      />,
+    );
+    expect(screen.getByText("Hasil main tersimpan.")).toBeInTheDocument();
+  });
+
   it("tidak menampilkan ranking atau perbandingan siswa lain", () => {
     const { container } = render(
       <ResultScreen result={adaKonsepLemah} onMainLagi={() => {}} />,
