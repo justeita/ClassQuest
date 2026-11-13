@@ -183,13 +183,13 @@ Nama file: `snake_case` tanpa prefix (`classroom_day.png`), karena prefix ada di
 Logo, ikon aplikasi, dan favicon **tidak** masuk manifest dan tidak punya `id`:
 mereka tidak pernah dipilih AI atau dirujuk cerita. Tempatnya:
 
-| Berkas                             | Dipakai di                                     |
-| ---------------------------------- | ---------------------------------------------- |
-| `public/brand/classquest_logo.png` | Header `/`, halaman 404, sidebar portal guru   |
-| `public/brand/classquest_icon.png` | Kotak ikon halaman masuk guru (buku + bintang) |
-| `src/app/favicon.ico`              | Tab browser (16/32/48 px, hasil konversi)      |
-| `src/app/icon.png`                 | Ikon PWA/tab modern, 192×192                   |
-| `src/app/apple-icon.png`           | `apple-touch-icon` 192×192                     |
+| Berkas                             | Dipakai di                                                           |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `public/brand/classquest_logo.png` | Header `/`, halaman 404, sidebar portal guru, panel brand masuk guru |
+| `public/brand/classquest_icon.png` | Kaki halaman `/` dan halaman 404 (`AppFooter`)                       |
+| `src/app/favicon.ico`              | Tab browser (16/32/48 px, hasil konversi)                            |
+| `src/app/icon.png`                 | Ikon PWA/tab modern, 192×192                                         |
+| `src/app/apple-icon.png`           | `apple-touch-icon` 192×192                                           |
 
 Aturan:
 

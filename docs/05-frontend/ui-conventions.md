@@ -156,6 +156,47 @@ Aturan:
 - `src/app/(landing)/legal.test.tsx` menjaga judul, navigasi aktif, tautan kaki
   halaman, dan kebenaran kunci cookie.
 
+### Halaman masuk guru (`/guru/masuk`)
+
+Halaman masuk adalah satu-satunya halaman `/guru` yang tampil tanpa sesi, jadi ia
+memakai bahasa visual portal (palet `brand-*`, kartu bergaya pixel) sekaligus
+bingkai brand yang sama dengan `/`:
+
+| Bagian      | Isi                                                                          |
+| ----------- | ---------------------------------------------------------------------------- |
+| Panel brand | Logo penuh + chip `LOGICODIX 2026`, judul, ringkasan, dan empat langkah alur |
+| Panel form  | Kartu pixel berisi field username, sandi, dan tombol "MASUK KE PORTAL"       |
+
+Aturan:
+
+- Empat langkah memakai teks yang sama dengan kartu alur di `/` — jangan menyalin
+  versi yang berbeda.
+- **Jangan menampilkan statistik hiasan** (level, XP, lencana, jumlah siswa) yang
+  tidak ada di produk; itu melanggar aturan copy di dokumen ini dan
+  [`../00-product/mvp-scope.md`](../00-product/mvp-scope.md).
+- Panel brand memakai logo penuh (bukan ikon Font Awesome + teks) dan potret
+  karakter game yang sudah ada di `public/assets/`; tidak ada aset baru.
+- `.guru-wave-clip` (lengkungan pemisah panel) dipasang pada **lapisan latar**
+  `absolute inset-0`, bukan pada `<aside>` berisi konten: `clip-path` memotong
+  seluruh keturunan elemen, jadi kalau dipasang di `<aside>` isi panel terpotong
+  saat halaman di-zoom. Lengkungan hanya aktif di layar ≥ 1024 px; di layar
+  sempit kedua panel menumpuk lurus.
+- Di layar ≥ 1024 px halaman **dikunci setinggi viewport** (`lg:h-[100dvh]`):
+  tanpa scrollbar di desktop.
+- Jarak dan ukuran kunci memakai variabel lentur `--masuk-*` (di `globals.css`)
+  yang dihitung dari tinggi viewport dengan `clamp()`. Ini yang menjaga tata
+  letak tetap proporsional saat peramban di-zoom (zoom mengecilkan viewport CSS;
+  dengan ukuran tetap, isi panel bertumpuk). Tiap variabel punya batas bawah
+  (ukuran minimum yang masih terbaca) dan batas atas (ukuran desain; mulai
+  lapang lagi di tinggi ≥ 900 px). **Jangan mengganti ke ukuran tetap** tanpa
+  mengukur ulang di beberapa tinggi viewport.
+- Tiap kolom punya `lg:overflow-y-auto` sebagai jaring pengaman: bila viewport
+  sangat pendek (di bawah ~540 px) isinya menggelinding di dalam kolom, bukan
+  terpotong. Kartu form memakai `lg:my-auto` (bukan `align-items: center`) supaya
+  bagian atasnya tetap terjangkau saat meluber.
+- Di layar < 1024 px dua panel ditumpuk dan tetap menggulir seperti halaman
+  biasa.
+
 ## Tipografi
 
 | Peran               | Font                                                                 | Ukuran                                |
