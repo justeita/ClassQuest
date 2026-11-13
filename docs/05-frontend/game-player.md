@@ -133,18 +133,20 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   `Esc`) lewat komponen `Keycap`. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
-- Penanda `!` hanya ada di atas NPC pemberi quest dan **tidak** hilang saat
+- Penanda quest hanya ada di atas NPC pemberi quest dan **tidak** hilang saat
   pemain mendekat; chip `Space` muncul di kanannya. Selama NPC terlihat, tanda
-  duduk di atas kepalanya; begitu NPC di luar pandangan, tanda berganti menjadi
-  beacon kecil bergaya HUD di tepi layar. Sisi tempat beacon berhenti menunjukkan
-  arah NPC, tanpa panah atau segitiga. Jarak aman atas lebih lebar supaya beacon
-  tidak menutupi tombol HUD, dan beacon tetap tembus klik. Beacon ikut bergeser
-  saat pemain berjalan mendekat, lalu berubah kembali menjadi tanda di atas
-  kepala ketika NPC masuk layar. Zona interaksi memakai histeresis (masuk 24 px,
-  keluar 32 px) supaya chip tidak berkedip di batas zona. Posisi keduanya
-  diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda tetap menempel pada NPC
-  saat kamera bergeser, dan disembunyikan selama dialog, tantangan, atau menu
-  jeda.
+  seru tinggi bergaya pixel (batang + titik) berdiri di atas kepala NPC dengan
+  **papan nama** dari `cast.name` di bawahnya, jadi siswa tahu siapa yang harus
+  diajak bicara. Begitu NPC di luar pandangan, tanda berganti menjadi **beacon**
+  kotak besar bergaya HUD di tepi layar, lengkap dengan penunjuk kecil di atas
+  kotak yang berputar mengikuti arah NPC. Jarak aman atas lebih lebar supaya
+  penunjuk dan beacon tidak menutupi tombol HUD, dan beacon tetap tembus klik.
+  Beacon ikut bergeser saat pemain berjalan mendekat, lalu berubah kembali
+  menjadi tanda seru + papan nama ketika NPC masuk layar. Zona interaksi memakai
+  histeresis (masuk 24 px, keluar 32 px) supaya chip tidak berkedip di batas
+  zona. Posisi keduanya diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda
+  tetap menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
+  tantangan, atau menu jeda.
 - Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
   petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
   ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti

@@ -30,23 +30,28 @@ describe("posisiPenanda", () => {
       x: 320,
       y: 120,
       tepi: false,
+      sudut: 0,
     });
   });
 
-  it("menjepit penanda ke tepi kiri saat NPC di luar pandangan", () => {
+  it("menjepit penanda ke tepi kiri dan menunjuk ke kiri", () => {
     expect(posisiPenanda({ x: -120, y: 150 })).toEqual({
       x: INSET_PENANDA.kiri,
       y: 150,
       tepi: true,
+      sudut: 180,
     });
   });
 
-  it("menjepit ke sudut kanan-bawah memakai jarak aman masing-masing sisi", () => {
+  it("menjepit ke sudut kanan-bawah dan menunjuk diagonal", () => {
     const posisi = posisiPenanda({ x: 700, y: 400 });
 
     expect(posisi.x).toBe(GAME_WIDTH - INSET_PENANDA.kanan);
     expect(posisi.y).toBe(GAME_HEIGHT - INSET_PENANDA.bawah);
     expect(posisi.tepi).toBe(true);
+    // NPC di kanan-bawah → penunjuk menghadap kanan-bawah.
+    expect(posisi.sudut).toBeGreaterThan(0);
+    expect(posisi.sudut).toBeLessThan(90);
   });
 
   it("memberi jarak lebih lebar di atas agar tidak menutupi HUD", () => {
@@ -55,6 +60,8 @@ describe("posisiPenanda", () => {
     expect(posisi.x).toBe(320);
     expect(posisi.y).toBe(INSET_PENANDA.atas);
     expect(posisi.tepi).toBe(true);
+    // NPC di atas layar → penunjuk menghadap ke atas.
+    expect(posisi.sudut).toBe(-90);
   });
 
   it("mengikuti lebar kamera internal yang adaptif", () => {
@@ -63,6 +70,7 @@ describe("posisiPenanda", () => {
     expect(posisi.x).toBe(780 - INSET_PENANDA.kanan);
     expect(posisi.y).toBe(180);
     expect(posisi.tepi).toBe(true);
+    expect(posisi.sudut).toBe(0);
   });
 
   it("menerima jarak aman khusus tanpa mengubah perilaku jepitan", () => {
@@ -72,6 +80,7 @@ describe("posisiPenanda", () => {
       x: 10,
       y: 50,
       tepi: true,
+      sudut: 180,
     });
   });
 

@@ -53,8 +53,11 @@ const DEBOUNCE_MS = 150;
  */
 const INTERVAL_LEWATI_MS = 100;
 
-/** Jarak penanda "!" di atas ubun-ubun sprite NPC. */
-const MARKER_OFFSET_Y = 10;
+/**
+ * Jarak papan nama dari ubun-ubun sprite NPC. Cukup tinggi agar chip `Space`
+ * (yang duduk dekat kepala) tidak bertabrakan dengan papan nama.
+ */
+const MARKER_OFFSET_Y = 24;
 
 /**
  * Scene permainan: satu dunia desa yang dibangun **sekali**, lalu dijalankan
@@ -378,10 +381,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   private emitMarkers(markers: NpcMarker[]) {
-    // Sidik harus memuat mode tepi: saat NPC melewati batas layar, x/y yang
-    // dibulatkan bisa tidak berubah tetapi beacon tetap harus muncul.
+    // Sidik harus memuat mode tepi dan sudut: saat NPC melewati batas layar,
+    // x/y yang dibulatkan bisa tidak berubah tetapi penunjuk beacon berputar.
     const tanda = markers
-      .map((m) => `${m.npcId}:${m.x}:${m.y}:${m.tepi ? 1 : 0}`)
+      .map((m) => `${m.npcId}:${m.x}:${m.y}:${m.tepi ? 1 : 0}:${m.sudut ?? 0}`)
       .join("|");
     if (tanda === this.tandaMarker) return;
     this.tandaMarker = tanda;
@@ -404,13 +407,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Penanda "!" di atas kepala pemberi quest.
+   * Penanda quest di atas kepala pemberi quest.
    *
-   * Selama NPC terlihat, penanda duduk di atas kepalanya. Bila NPC keluar
-   * pandangan, penanda tidak hilang: posisinya dijepit ke tepi layar sebagai
-   * beacon HUD. Karena dihitung ulang tiap frame, beacon ikut bergeser saat
-   * pemain berjalan mendekat, lalu berubah mulus menjadi penanda biasa begitu
-   * NPC masuk area aman.
+   * Selama NPC terlihat, penanda duduk di atas kepalanya: tanda seru tinggi
+   * plus papan nama. Bila NPC keluar pandangan, penanda tidak hilang:
+   * posisinya dijepit ke tepi layar sebagai beacon HUD dengan penunjuk arah.
+   * Karena dihitung ulang tiap frame, beacon ikut bergeser saat pemain berjalan
+   * mendekat, lalu berubah mulus menjadi penanda biasa begitu NPC masuk area
+   * aman.
    */
   private markerLayar(
     npcId: string,
@@ -432,9 +436,11 @@ export class GameScene extends Phaser.Scene {
 
     return {
       npcId,
+      nama: this.castNames.get(npcId) ?? npcId,
       x: Math.round(posisi.x),
       y: Math.round(posisi.y),
       tepi: posisi.tepi,
+      sudut: Math.round(posisi.sudut),
     };
   }
 

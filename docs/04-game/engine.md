@@ -251,22 +251,29 @@ kamera yang kini menempel pemain, penanda tertinggal lalu terlihat melompat
 berlangganan bus sendiri, jadi pembaruan tiap frame tidak me-render ulang HUD,
 dialog, atau jurnal. Emisi tetap hanya terjadi saat piksel bulatnya berubah.
 
-Saat NPC pemberi quest berada di luar pandangan, penanda tidak menghilang:
-`posisiPenanda()` (`layar.ts`) menjepit posisinya ke tepi layar, lalu
-`NpcMarker.tsx` merendernya sebagai **beacon** kecil bergaya HUD — kotak gelap
-`bg-[#0b120e]/90` dengan garis dan glyph aksen `#E8A87C`, ditambah cincin yang
-berdenyut. Tidak ada panah atau segitiga: sisi layar tempat beacon berhenti yang
-menunjukkan arah NPC. `INSET_PENANDA` memberi jarak aman, dengan sisi atas lebih
-lebar (52 px internal) supaya beacon tidak menutupi baris HUD. Karena posisinya
-dihitung ulang tiap frame, beacon ikut bergeser ketika pemain berjalan mendekat
-dan berubah mulus menjadi penanda di atas kepala begitu NPC masuk layar.
+Saat NPC pemberi quest terlihat, `NpcMarker.tsx` menggambar tanda seru tinggi
+(batang + titik bergaya pixel) di atas kepala NPC, dengan papan nama dari
+`cast.name` di bawahnya supaya siswa tahu siapa pemberi quest. Papan nama diberi
+chip gelap bergaris `#3D4B41`, teks krem tebal, dan lebar maksimum agar nama
+panjang dipotong dengan elipsis, bukan menutupi dunia.
+
+Saat NPC berada di luar pandangan, penanda tidak menghilang: `posisiPenanda()`
+(`layar.ts`) menjepit posisinya ke tepi layar, lalu penanda menjadi **beacon**
+bergaya HUD — kotak 26 px gelap `bg-[#0b120e]/90` dengan garis dan glyph aksen
+`#E8A87C`, cincin yang berdenyut, serta **penunjuk kecil di atas kotak** yang
+berputar mengikuti `sudut` arah NPC. `INSET_PENANDA` memberi jarak aman (atas
+68 px internal karena ada penunjuk + baris HUD). Karena posisinya dihitung ulang
+tiap frame, beacon ikut bergeser ketika pemain berjalan mendekat dan berubah
+mulus menjadi tanda seru + papan nama begitu NPC masuk layar.
 `pointer-events-none` menjaga tombol di bawahnya tetap bisa diklik.
 
-Penanda `!` **tidak** diganti chip `Space` saat pemain mendekat: kedua tanda
-tampil bersamaan (chip di kanan penanda) agar indikator quest tidak hilang-muncul.
-Zona interaksi memakai histeresis — masuk di 24 px, keluar di 32 px — supaya chip
-tidak berkedip saat pemain berdiri di batas zona. Speaker disorot, beat
-`transition` fade otomatis, beat `challenge` dibuka sebagai overlay React.
+Penanda tanda seru **tidak** diganti chip `Space` saat pemain mendekat: kedua
+tanda tampil bersamaan (chip di kanan penanda) agar indikator quest tidak
+hilang-muncul. Papan nama sengaja diletakkan lebih tinggi daripada chip `Space`
+supaya keduanya tidak bertabrakan. Zona interaksi memakai histeresis — masuk di
+24 px, keluar di 32 px — supaya chip tidak berkedip saat pemain berdiri di batas
+zona. Speaker disorot, beat `transition` fade otomatis, beat `challenge` dibuka
+sebagai overlay React.
 
 Dunia dibangun **sekali** di `create()`: tidak ada `roomId`, tidak ada bangun
 ulang saat pindah chapter. Perpindahan scene hanya menukar musik dan NPC pemberi
@@ -342,10 +349,12 @@ type GameEvent =
 ```
 
 `DialogueView` = `{ visible, name, text, waiting }`; `PromptView` =
-`{ text, x, y }` dan `NpcMarker` = `{ npcId, x, y, tepi? }`, keduanya dalam
-koordinat layar internal 640×360 (sudah dikurangi scroll kamera). Untuk
+`{ text, x, y }` dan `NpcMarker` = `{ npcId, nama, x, y, tepi?, sudut? }`,
+keduanya dalam koordinat layar internal 640×360 (sudah dikurangi scroll kamera).
+`nama` berasal dari `cast.name` dan dipakai papan nama di atas kepala NPC. Untuk
 `NpcMarker`, `tepi: true` berarti NPC di luar pandangan sehingga posisinya sudah
-dijepit ke area aman di tepi layar. `QuestState` berisi
+dijepit ke area aman di tepi layar dan `sudut` (derajat, 0 = kanan) memutar
+penunjuk beacon. `QuestState` berisi
 chapter, scene aktif, daftar quest turunan scene, dan `activeQuestId`; status
 `selesai | aktif | terkunci` dihitung dari posisi `StoryRunner`, bukan ditulis di
 Story JSON. Teks dialog dikirim bertahap saat typewriter berjalan, dan React tidak

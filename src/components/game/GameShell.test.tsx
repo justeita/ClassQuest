@@ -161,13 +161,13 @@ describe("GameShell", () => {
 
     bus.emit({
       type: "markers",
-      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
+      markers: [{ npcId: "char_npc_10", nama: "Nama Uji", x: 200, y: 120 }],
     });
-    expect(await screen.findByText("!")).toBeInTheDocument();
+    expect(await screen.findByText("Nama Uji")).toBeInTheDocument();
 
     bus.emit({ type: "markers", markers: [] });
     await vi.waitFor(() =>
-      expect(screen.queryByText("!")).not.toBeInTheDocument(),
+      expect(screen.queryByText("Nama Uji")).not.toBeInTheDocument(),
     );
   });
 
@@ -176,21 +176,22 @@ describe("GameShell", () => {
 
     bus.emit({
       type: "markers",
-      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
+      markers: [{ npcId: "char_npc_10", nama: "Nama Uji", x: 200, y: 120 }],
     });
-    const awal = (await screen.findByText("!")).parentElement;
+    await screen.findByText("Nama Uji");
+    const awal = document.querySelector<HTMLElement>('[data-tanda="dekat"]');
     expect(awal?.style.left).toBe(persenLebar(200));
 
     // Scene mengirim posisi baru tiap frame; penanda harus langsung mengikuti
     // tanpa menunggu render ulang overlay lain.
     bus.emit({
       type: "markers",
-      markers: [{ npcId: "char_npc_10", x: 180, y: 112 }],
+      markers: [{ npcId: "char_npc_10", nama: "Nama Uji", x: 180, y: 112 }],
     });
     await vi.waitFor(() =>
-      expect(screen.getByText("!").parentElement?.style.left).toBe(
-        persenLebar(180),
-      ),
+      expect(
+        document.querySelector<HTMLElement>('[data-tanda="dekat"]')?.style.left,
+      ).toBe(persenLebar(180)),
     );
   });
 
@@ -199,11 +200,11 @@ describe("GameShell", () => {
 
     bus.emit({
       type: "markers",
-      markers: [{ npcId: "char_npc_10", x: 200, y: 120 }],
+      markers: [{ npcId: "char_npc_10", nama: "Nama Uji", x: 200, y: 120 }],
     });
     bus.emit({ type: "prompt", hint: { text: "Space", x: 214, y: 126 } });
 
-    expect(await screen.findByText("!")).toBeInTheDocument();
+    expect(await screen.findByText("Nama Uji")).toBeInTheDocument();
     expect(screen.getByText("Space")).toBeInTheDocument();
   });
 
