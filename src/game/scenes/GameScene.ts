@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 import { scoreAnswer, type Answer } from "@/story/scoring";
-import type { Story } from "@/story/schema";
+import type { DetourBeat, Story } from "@/story/schema";
 
 import { clampVolume } from "../audioSettings";
 import { CAMERA_LERP, deadzonePx, kameraMode } from "../camera";
@@ -18,6 +18,11 @@ import { dalamLayar, duniaKeLayar, type KameraView } from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
 import { StoryRunner, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
+import {
+  BranchingRun,
+  resolveDialogueText,
+  type RetryPlan,
+} from "../branching";
 import { buildChallengeView } from "../challengeView";
 import type { GameBus, NpcMarker, PromptView } from "../gameBus";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
@@ -60,6 +65,17 @@ const PETUNJUK_INTERVAL_MS = 90;
 
 /** Jarak penanda "!" di atas ubun-ubun sprite NPC. */
 const MARKER_OFFSET_Y = 10;
+
+/**
+ * Detour yang sedang diputar setelah jawaban salah. Runner sengaja **tidak**
+ * disentuh: soal yang sama akan ditampilkan ulang setelah detour habis.
+ */
+type DetourState = {
+  beats: DetourBeat[];
+  index: number;
+  challengeId: string;
+  retryQuestion: string;
+};
 
 /**
  * Scene permainan: satu dunia desa yang dibangun **sekali**, lalu dijalankan
@@ -108,6 +124,10 @@ export class GameScene extends Phaser.Scene {
   private waktuLewati = 0;
   /** Jawaban percobaan pertama per challenge; jawaban ulang tidak menimpa. */
   private readonly answers = new AnswerLog();
+  /** Konsekuensi jawaban salah: flag cerita + jumlah percobaan (story-schema.md). */
+  private readonly branching: BranchingRun;
+  /** Detour aktif; null bila cerita tidak sedang memutar konsekuensi salah. */
+  private detour: DetourState | null = null;
   private selesaiDikirim = false;
   /** Sidik quest terakhir yang dikirim; mencegah render React tiap beat. */
   private questTerakhir = "";
@@ -121,6 +141,7 @@ export class GameScene extends Phaser.Scene {
     this.story = story;
     this.bus = bus;
     this.runner = new StoryRunner(story);
+    this.branching = new BranchingRun(story);
     this.castNames = new Map(
       story.cast.map((member) => [member.id, member.name]),
     );
@@ -221,6 +242,14 @@ export class GameScene extends Phaser.Scene {
     // Time-lapse lewati berjalan selama tombol ditahan; diperiksa lebih dulu
     // supaya langkahnya tetap maju walau fase sempat berganti di antara frame.
     if (this.lewatiDitahan) this.perbaruiLewati(time);
+
+    // Detour konsekuensi jawaban salah diputar seperti dialog/narasi biasa,
+    // walau runner masih menahan di beat challenge (soal belum di-resolve).
+    if (this.detour !== null) {
+      this.textbox?.tick(delta);
+      this.checkLanjutKeys();
+      return;
+    }
 
     const phase = this.runner.getState().phase;
 
@@ -435,6 +464,14 @@ export class GameScene extends Phaser.Scene {
     if (now - this.lastAdvance < DEBOUNCE_MS) return;
     this.lastAdvance = now;
 
+    // Detour konsekuensi: satu tekanan menyelesaikan ketikan atau maju satu
+    // beat detour. Runner belum bergerak, jadi aturan tantangan tidak berlaku.
+    if (this.detour !== null) {
+      this.mainkanSfx("sfx_click");
+      this.lanjutDetour();
+      return;
+    }
+
     // Saat challenge, input dialog diabaikan — overlay React yang memegang kendali.
     if (this.runner.getState().phase === "challenge") return;
 
@@ -497,6 +534,10 @@ export class GameScene extends Phaser.Scene {
   private nilaiJawaban(answer: Answer) {
     const state = this.runner.getState();
     if (state.phase !== "challenge" || !state.beat) return;
+    if (this.detour !== null) return;
+
+    const beat = state.beat;
+    if (beat.type !== "challenge") return;
 
     const challenge = this.runner.getChallenge(answer.challengeId);
     if (!challenge) return;
@@ -506,7 +547,16 @@ export class GameScene extends Phaser.Scene {
     this.kirimQuest();
 
     const hasil = scoreAnswer(challenge, answer);
+    const outcome = this.branching.grade(beat, hasil.isCorrect);
     this.mainkanSfx(hasil.isCorrect ? "sfx_correct" : "sfx_wrong");
+
+    // Jawaban salah yang masih punya percobaan: mainkan detour lalu ulangi soal
+    // yang sama. Penjelasan sengaja belum ditampilkan agar soal ulang bermakna.
+    if (outcome.retry) {
+      this.mulaiDetour(outcome.retry, beat.challengeId);
+      return;
+    }
+
     this.bus?.emit({
       type: "graded",
       challengeId: hasil.challengeId,
@@ -554,11 +604,13 @@ export class GameScene extends Phaser.Scene {
 
     let view: BeatView;
     if (beat.type === "dialogue") {
+      // Varian teks dipilih dari nilai flag saat ini (story-schema.md).
+      const text = resolveDialogueText(beat, this.branching.flags());
       this.pembicaraTerakhir = beat.speakerId;
       this.sorotSpeaker(beat.speakerId);
       view = {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
-        text: beat.text,
+        text,
         portraitKey: this.portraitKey(beat.speakerId),
       };
     } else {
@@ -569,7 +621,7 @@ export class GameScene extends Phaser.Scene {
     this.bus?.emit({
       type: "log",
       name: view.name,
-      text: beat.text,
+      text: view.text,
       sceneJudul: state.sceneJudul,
     });
   }
@@ -609,6 +661,7 @@ export class GameScene extends Phaser.Scene {
   /** "Ulangi chapter" dari menu jeda: reset kursor, lalu lanjutkan loop scene. */
   private ulangiChapter() {
     this.hentikanLewati();
+    this.detour = null;
     this.runner.restartChapter();
     this.textbox?.hide();
     this.sembunyikanPetunjuk();
@@ -630,7 +683,7 @@ export class GameScene extends Phaser.Scene {
    * respons melayang di atasnya (docs/05-frontend/game-player.md § Challenge).
    * Panel textbox Phaser dijamin aktif dan menampilkan teks soal tantangan.
    */
-  private bukaTantangan(challengeId: string) {
+  private bukaTantangan(challengeId: string, promptOverride?: string) {
     this.sembunyikanPetunjuk();
 
     const challenge = this.runner.getChallenge(challengeId);
@@ -650,10 +703,12 @@ export class GameScene extends Phaser.Scene {
       this.sorotSpeaker(speakerId);
     }
 
+    // Soal ulang hanya mengganti teks soal; opsi dan jawaban benar tetap sama.
+    const prompt = promptOverride ?? challenge.prompt;
     const text =
       challenge.type === "true_false" && challenge.statement
-        ? `${challenge.prompt}\n\n"${challenge.statement}"`
-        : challenge.prompt;
+        ? `${prompt}\n\n"${challenge.statement}"`
+        : prompt;
 
     this.textbox?.show({
       name,
@@ -662,7 +717,94 @@ export class GameScene extends Phaser.Scene {
     });
     this.textbox?.complete();
 
-    this.bus.emit({ type: "challenge", view: buildChallengeView(challenge) });
+    const view = buildChallengeView(challenge);
+    this.bus.emit({
+      type: "challenge",
+      view: promptOverride ? { ...view, prompt } : view,
+    });
+  }
+
+  /**
+   * Mulai deretan detour setelah jawaban salah. Setiap beat diputar lewat
+   * renderer dialog/narasi yang sama dengan beat biasa; setelah habis, soal
+   * yang sama dibuka lagi dengan teks `retryQuestions`.
+   */
+  private mulaiDetour(retry: RetryPlan, challengeId: string) {
+    this.detour = {
+      beats: retry.detour,
+      index: 0,
+      challengeId,
+      retryQuestion: retry.retryQuestion,
+    };
+    this.sembunyikanPetunjuk();
+
+    if (this.detour.beats.length === 0) {
+      this.bukaTantanganUlang();
+      return;
+    }
+    this.tampilkanDetourBeat();
+  }
+
+  /** Tampilkan satu beat detour; dialog memakai varian teks seperti biasa. */
+  private tampilkanDetourBeat() {
+    const detour = this.detour;
+    if (!detour) return;
+
+    const beat = detour.beats[detour.index];
+    if (!beat) {
+      this.bukaTantanganUlang();
+      return;
+    }
+
+    let view: BeatView;
+    if (beat.type === "dialogue") {
+      const text = resolveDialogueText(beat, this.branching.flags());
+      this.pembicaraTerakhir = beat.speakerId;
+      this.sorotSpeaker(beat.speakerId);
+      view = {
+        name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
+        text,
+        portraitKey: this.portraitKey(beat.speakerId),
+      };
+    } else {
+      this.sorotSpeaker(null);
+      view = { name: null, text: beat.text };
+    }
+
+    this.textbox?.show(view);
+    this.bus?.emit({
+      type: "log",
+      name: view.name,
+      text: view.text,
+      sceneJudul: this.runner.getState().sceneJudul,
+    });
+  }
+
+  /** Satu langkah detour: selesaikan ketikan, lalu maju atau ulangi soal. */
+  private lanjutDetour() {
+    const detour = this.detour;
+    if (!detour) return;
+
+    if (this.textbox?.isTyping()) {
+      this.textbox.complete();
+      return;
+    }
+
+    detour.index += 1;
+    if (detour.index >= detour.beats.length) {
+      this.bukaTantanganUlang();
+      return;
+    }
+    this.tampilkanDetourBeat();
+  }
+
+  /** Buka lagi challenge yang sama dengan teks soal ulang. */
+  private bukaTantanganUlang() {
+    const detour = this.detour;
+    if (!detour) return;
+
+    this.detour = null;
+    this.bukaTantangan(detour.challengeId, detour.retryQuestion);
   }
 
   private presentTransition(withFade: boolean) {

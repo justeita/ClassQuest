@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -232,6 +232,10 @@ tempel soal di tengah dialog.
 - Mini-game di luar tantangan.
 - Voice acting.
 - Save ke cloud.
+
+Konsekuensi otomatis jawaban salah (detour singkat sebelum soal diulang, lihat
+[`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)) bukan
+pilihan dialog pemain, jadi larangan di atas tetap berlaku untuk pilihan dialog.
 
 ## Referensi internal
 

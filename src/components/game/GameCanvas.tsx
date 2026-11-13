@@ -226,6 +226,19 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         lepas.push(
           game.bus.on("dialogue", ({ view }) => {
             setDialog(view);
+
+            // Detour konsekuensi jawaban salah diputar lewat renderer dialog
+            // yang sama (story-schema.md). Overlay tantangan harus menutup
+            // supaya detour terlihat; tidak ada event baru untuk ini.
+            //
+            // Aman untuk alur biasa: prompt tantangan juga tampil sebagai
+            // `dialogue`, tetapi event-nya dikirim **sebelum** `challenge`
+            // sehingga setTantangan(null) di sini langsung ditimpa view soal
+            // pada batch yang sama.
+            if (view.visible) {
+              setTantangan(null);
+              setHasil(null);
+            }
           }),
         );
         lepas.push(
