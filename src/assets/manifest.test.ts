@@ -56,17 +56,20 @@ const EXTENSION: Record<AssetKind, readonly string[]> = {
 /** Jumlah per kind dari tabel ringkasan `inventory.md`. */
 const INVENTORY_COUNTS: Record<AssetKind, number> = {
   background: 1,
-  character: 11,
+  character: 10,
   world: 81,
   music: 1,
   sfx: 4,
   ui: 3,
 };
 
-/** Fallback yang wajib ada, dari `asset-manifest.md`. `sfx` boleh tidak ada. */
+/**
+ * Fallback yang wajib ada, dari `asset-manifest.md`. `sfx` boleh tidak ada,
+ * dan `character` tidak punya fallback: setiap sprite karakter di `cast` harus
+ * benar-benar ada di manifest.
+ */
 const REQUIRED_FALLBACKS: Partial<Record<AssetKind, string>> = {
   background: "bg_default",
-  character: "char_default",
   music: "bgm_default",
   ui: "ui_default",
 };

@@ -6,7 +6,6 @@ import type { Chapter, Scene, Story } from "@/story/schema";
 import {
   collectStoryAssets,
   DEFAULT_BACKGROUND_ID,
-  DEFAULT_CHARACTER_ID,
   DEFAULT_MUSIC_ID,
   resolveSceneLook,
 } from "./sceneAssets";
@@ -84,7 +83,6 @@ describe("collectStoryAssets", () => {
         "char_npc_8",
         "char_npc_9",
         "char_npc_10",
-        DEFAULT_CHARACTER_ID,
         "ui_textbox",
         "ui_portrait_frame",
         "sfx_click",
@@ -115,7 +113,6 @@ describe("collectStoryAssets", () => {
       expect.arrayContaining([
         DEFAULT_BACKGROUND_ID,
         DEFAULT_MUSIC_ID,
-        DEFAULT_CHARACTER_ID,
         "ui_textbox",
       ]),
     );

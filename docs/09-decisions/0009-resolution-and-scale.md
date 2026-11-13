@@ -72,7 +72,7 @@ Alasan:
    1080p, sehingga pixel tetap tajam dan tidak ada sisa garis pecahan.
 3. **Masih bisa dibangun generator.** Semua latar tetap digambar pada grid
    1 px pada resolusi ini; yang berubah adalah konstanta di `scenes.mjs`,
-   `characters.mjs`, dan `textbox.ts`.
+   `scenes.mjs`, `ui.mjs`, dan `textbox.ts`.
 
 Asumsi: satu tile = 16×16 px. Peta, zona interaksi, kecepatan pemain, dan
 ketebalan dinding dinyatakan dalam kelipatan tile supaya konsisten dan mudah

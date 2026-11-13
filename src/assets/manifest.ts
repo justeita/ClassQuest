@@ -58,7 +58,7 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     height: 360,
   },
 
-  /* Karakter: pemain desa, warga desa, dan siluet cadangan. */
+  /* Karakter: pemain desa dan warga desa. */
   {
     id: "char_mc",
     kind: "character",
@@ -159,16 +159,6 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     frameWidth: 40,
     frameHeight: 64,
   },
-  {
-    id: "char_default",
-    kind: "character",
-    path: "/assets/char/default.png",
-    label: "Karakter default",
-    tags: ["default", "cadangan", "fallback", "netral", "siluet"],
-    frameWidth: 24,
-    frameHeight: 32,
-  },
-
   /* Musik: satu lagu untuk seluruh permainan. */
   {
     id: "bgm_default",
