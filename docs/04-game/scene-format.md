@@ -116,13 +116,12 @@ bebas bergerak.
 │                     ┌───────┐                        │
 │                     │PEMAIN │  ← di posisi dunianya  │
 │                     └───────┘                        │
-│  ┌───────────┐                                       │
-│  │           │  ← tanpa bingkai                      │
-│  │  POTRET   │                                       │
-│  │  (di atas │                                       │
-│  │   textbox)│                                       │
-│  │           │                                       │
-│  └───────────┘                                       │
+│ ┌───────────────────────┐                            │
+│ │                       │  ← tanpa bingkai (DOM)     │
+│ │        POTRET         │    NPC: kiri · MC: kanan   │
+│ │   dasar menempel tepi │                            │
+│ │        atas panel     │                            │
+│ └───────────────────────┘                            │
 │ ┌──────────────────────────────────────────────────┐ │
 │ │ TEXTBOX (panel gelap)                            │ │
 │ │ Nama                                             │ │
@@ -131,15 +130,15 @@ bebas bergerak.
 └──────────────────────────────────────────────────────┘
 ```
 
-| Elemen    | Posisi/ukuran                                                                |
-| --------- | ---------------------------------------------------------------------------- |
-| Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`            |
-| Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                             |
-| Textbox   | 608×104, terpusat horizontal, `y=240`; kotak navy gelap membulat (CSS)       |
-| Potret    | Slot 252×220 px internal, dasar sejajar tepi atas panel, tanpa bingkai (DOM) |
-| Nama      | Di dalam textbox, baris pertama (DOM)                                        |
-| Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)               |
-| Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                      |
+| Elemen    | Posisi/ukuran                                                                                            |
+| --------- | -------------------------------------------------------------------------------------------------------- |
+| Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`                                        |
+| Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                                                         |
+| Textbox   | 608×104, terpusat horizontal, `y=240`; kotak navy gelap membulat (CSS)                                   |
+| Potret    | Setengah lebar panel; NPC di pangkal kiri, MC dicerminkan di kanan; dasar menempel tepi atas panel (DOM) |
+| Nama      | Di dalam textbox, baris pertama (DOM)                                                                    |
+| Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)                                           |
+| Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                                                  |
 
 > **Semua di DOM (ADR 0007 + ADR 0017).** Phaser hanya memegang state typewriter
 > (`textbox.ts`); panel, potret, nama, isi dialog, dan indikator "lanjut" dirender
@@ -150,6 +149,13 @@ bebas bergerak.
 > `src/game/layout.ts`. Prompt interaksi `Space` juga DOM
 > (`InteractHint.tsx`). Jangan menambah teks game baru di canvas: canvas
 > di-upscale `pixelated`, jadi semua huruf di dalamnya bergerigi.
+>
+> Potret memakai **tinggi kepala** sebagai acuan skala (bukan tinggi gambar),
+> jadi wajah semua karakter tampil sebesar yang sama walau pembingkaian sumber
+> aslinya berbeda (`scripts/import-portraits.mjs`). Saat pembicara sedang
+> "bicara" (teks masih diketik) potretnya menyala, lalu sorotnya padam saat teks
+> penuh menunggu pemain. Selama soal belum dijawab, potret disembunyikan; setelah
+> dinilai ia tampil lagi untuk umpan balik senang/marah.
 
 Beginilah hasilnya di layar:
 

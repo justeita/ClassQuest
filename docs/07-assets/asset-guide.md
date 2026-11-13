@@ -89,7 +89,7 @@ manifest (dari `src/assets/characterFrames.ts`), karena ukurannya tidak seragam.
 
 | Properti   | Nilai                                                       |
 | ---------- | ----------------------------------------------------------- |
-| Resolusi   | **512 px tinggi**, lebar 431–502 px mengikuti konten        |
+| Resolusi   | **648×512 px**, kanvas dan rasio sama untuk semua karakter  |
 | Format     | PNG dengan latar transparan, satu berkas per ekspresi       |
 | Ekspresi   | `neutral`, `happy`, `sad`, `angry`, `shocked`, `thinking`   |
 | Lokasi     | `public/assets/portrait/<nama>/<ekspresi>.png`              |
@@ -100,10 +100,11 @@ Nama folder mengikuti berkas sumber (`mc`, `npc_1`, …), bukan id manifest.
 Manifest karakter memetakan keenamnya lewat `portraits`, dan **semua ekspresi
 wajib ada** untuk setiap karakter. Potret tidak memakai bingkai: `DialogueBox`
 menggambarnya di atas panel dialog dengan dasar sejajar tepi atas panel, jadi
-tidak ada bagian potret yang tertutup kotak (ADR 0017). Importer juga
-menyeragamkan lebar kanvas tiap karakter dan memusatkan kepala, supaya potret
-tidak bergeser saat ekspresi berganti. Karena potret
-dirender DOM, berkasnya tidak dimuat `PreloadScene`.
+tidak ada bagian potret yang tertutup kotak (ADR 0017). Importer menormalkan
+**tinggi kepala**, bukan tinggi gambar, lalu menyusun semua potret ke kanvas
+648×512 yang identik — wajah tiap karakter tampil sebesar yang sama, rasionya
+sama, dan kepalanya dipusatkan supaya potret tidak bergeser saat ekspresi
+berganti. Karena potret dirender DOM, berkasnya tidak dimuat `PreloadScene`.
 
 ### Musik
 

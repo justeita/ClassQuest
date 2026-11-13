@@ -534,9 +534,10 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
 "${tantangan.statement}"`
                             : tantangan.prompt,
                         waiting: false,
-                        // Potret pembicara tantangan datang dari beat soal; saat
-                        // jawaban dinilai, game menggantinya jadi senang/marah.
-                        portrait: dialog?.portrait ?? null,
+                        // Saat soal belum dijawab, sembunyikan potret supaya
+                        // tidak menutupi pilihan jawaban; setelah dinilai,
+                        // tampilkan lagi untuk umpan balik senang/marah.
+                        portrait: hasil ? (dialog?.portrait ?? null) : null,
                       }
                     : (dialog ?? {
                         visible: false,

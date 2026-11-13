@@ -44,22 +44,25 @@ export const CHALLENGE = {
  * atas** panel dialog — dasarnya sejajar tepi atas panel, jadi tidak ada bagian
  * potret yang tertutup kotak.
  *
- * Slot ini berukuran tetap (`width`×`height`) dan gambarnya dirender
- * `object-contain`, jadi potret lebar berbeda tetap terpusat di `centerX` tanpa
- * menggeser kepala. `scripts/import-portraits.mjs` sudah menyeragamkan lebar
- * kanvas tiap karakter dan menjepit pusat kepalanya ke tengah, jadi pergantian
- * ekspresi tidak menggoyang potret ke kiri/kanan.
+ * Lebarnya **setengah lebar panel**: NPC berpangkal di pojok kiri atas panel,
+ * MC (yang dicerminkan) di pojok kanan atas; keduanya menjulur ke tengah tepi
+ * atas. Slot berukuran tetap dan gambarnya dirender `object-contain`, jadi
+ * potret tetap mengisi persis walau rasio berkasnya meleset sedikit.
+ *
+ * `scripts/import-portraits.mjs` menyeragamkan **tinggi kepala** (bukan tinggi
+ * gambar) dan menaruh semua potret di kanvas berukuran sama, jadi wajah semua
+ * karakter tampil sebesar yang sama dan pergantian ekspresi tidak menggeser
+ * potret. Rasio kanvas importer (648:512) sengaja sama dengan slot di sini.
  */
 export const PORTRAIT = {
-  /** Tinggi slot potret (px internal). */
-  height: 220,
+  /** Lebar slot potret (px internal) = setengah lebar panel dialog. */
+  width: TEXTBOX.width / 2,
   /**
-   * Lebar slot (px internal); cukup untuk potret terlebar (kanvas 582 px saat
-   * tinggi aslinya 512) supaya tidak ada karakter yang menyentuh tepi layar.
+   * Tinggi slot potret (px internal). Menjaga rasio 304:240 yang sama dengan
+   * kanvas importer, dan cukup memuat kepala beserta bahu di atas panel
+   * (panel mulai di `y=240`).
    */
-  width: 252,
-  /** Titik x pusat kepala potret dari tepi kiri ruang game (px internal). */
-  centerX: 130,
+  height: 240,
 } as const;
 
 /**

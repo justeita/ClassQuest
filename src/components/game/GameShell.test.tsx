@@ -846,6 +846,38 @@ describe("GameShell — soal di atas dialog", () => {
     expect(screen.queryByText("▼")).not.toBeInTheDocument();
   });
 
+  it("menyembunyikan potret selama soal dan menampilkannya lagi setelah dinilai", async () => {
+    await mainkan();
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Air di bumi tidak pernah hilang.",
+        waiting: true,
+        portrait: {
+          src: "/assets/portrait/npc_1/neutral.png",
+          alt: "Potret Bu Ratna",
+        },
+      },
+    });
+    expect(await screen.findByAltText("Potret Bu Ratna")).toBeInTheDocument();
+
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+    // Soal belum dijawab: potret disembunyikan supaya tidak menutupi pilihan.
+    expect(screen.queryByAltText("Potret Bu Ratna")).not.toBeInTheDocument();
+
+    bus.emit({
+      type: "graded",
+      challengeId: "chl_01_01",
+      correct: true,
+      explanation: "Benar.",
+    });
+    // Setelah dinilai, potret tampil lagi untuk umpan balik senang/marah.
+    expect(await screen.findByAltText("Potret Bu Ratna")).toBeInTheDocument();
+  });
+
   it("fokus kembali ke area game setelah tantangan ditutup", async () => {
     await mainkan();
     bus.emit({ type: "challenge", view: challenge });

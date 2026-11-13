@@ -78,15 +78,23 @@ Aturan bentuknya:
   kotak navy gelap membulat — bukan lagi gambar `ui_textbox` — dan nama pembicara
   memakai huruf pixel teal; `ui_textbox` dan `ui_portrait_frame` tidak dipakai
   runtime dan tidak dimuat `PreloadScene`.
+- Potret menyala (glow teal berdenyut) selagi pembicara mengetik kalimatnya dan
+  padam saat teks penuh menunggu pemain. Selama soal belum dijawab, semua potret
+  disembunyikan supaya tidak menutupi pilihan jawaban; setelah dinilai ia tampil
+  lagi untuk umpan balik senang/marah.
 
 Alasan:
 
 1. Potret dirender browser pada resolusi layar asli, jadi wajahnya tajam —
    sedangkan panel tetap pixel karena memang dibuat pixel.
-2. Tanpa bingkai, dasar potret sejajar tepi atas panel: tidak ada bagian potret
-   yang tertutup kotak, dan kepalanya menjulang penuh di atas dialog. Slot tetap
-   - importer yang memusatkan kepala membuat pergantian ekspresi tidak
-     menggeser potret. Itu siluet dialog Persona yang dituju.
+2. Tanpa bingkai, dasar potret menempel tepi atas panel: tidak ada bagian potret
+   yang tertutup kotak, dan kepalanya menjulang penuh di atas dialog. NPC
+   berpangkal di pojok kiri atas panel dan MC — yang dicerminkan agar menghadap
+   ke tengah — di pojok kanan; lebarnya setengah panel, jadi keduanya menjulur
+   sampai tengah tepi atas. Importer menormalkan tinggi kepala (bukan tinggi
+   gambar) dan memusatkan kepala, jadi wajah semua karakter sama besar dan
+   pergantian ekspresi tidak menggeser potret. Itu siluet dialog Persona yang
+   dituju.
 3. `expression` opsional membuat cerita lama, fixture, dan hasil generator tetap
    valid tanpa migrasi.
 4. Satu daftar ekspresi mencegah zod, JSON Schema, manifest, dan prompt

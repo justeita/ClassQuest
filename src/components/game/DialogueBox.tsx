@@ -28,11 +28,19 @@ type DialogueBoxProps = {
  * bingkai pixel, nama pembicara teal dengan huruf pixel kapital, isi dialog
  * putih. Potret berdiri **di atas** panel — dasar gambar sejajar tepi atasnya —
  * dengan slot tetap (`PORTRAIT`) supaya kepala tidak goyang saat ekspresi
- * berganti. Posisi memakai persen dari `TEXTBOX`/`PORTRAIT`; ukuran huruf dan
+ * berganti. NPC berpangkal di pojok kiri atas panel; MC dicerminkan di pojok
+ * kanan atas. Posisi memakai persen dari `TEXTBOX`/`PORTRAIT`; ukuran huruf dan
  * padding memakai `cqw` supaya ikut skala canvas.
  */
 export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
   if (!view.visible) return null;
+
+  // MC digambar menghadap ke kanan seperti NPC; di sisi kanan ia dicerminkan
+  // supaya menghadap ke tengah dialog.
+  const mc = view.portrait?.src.includes("/mc/") ?? false;
+  // Selagi teks diketik, pembicara sedang "bicara": potretnya menyala. Begitu
+  // teks penuh dan menunggu pemain, sorotnya padam.
+  const bicara = !view.waiting;
 
   return (
     <div
@@ -55,23 +63,34 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
     >
       {
         /* Potret di atas panel: `bottom-100%` menaruh dasarnya di tepi atas
-            panel, `left` + `translateX(-50%)` memusatkan slot pada `centerX`.
-            `object-contain` menjaga potret tetap di slot yang sama walau lebar
-            kanvas beda antar-karakter, jadi kepala tidak goyang. */
+            panel. NPC menempel pojok kiri (`left-0`), MC pojok kanan
+            (`right-0` + `scaleX(-1)`); lebarnya setengah panel, jadi keduanya
+            menjulur sampai tengah tepi atas. `object-contain object-bottom`
+            menjaga dasar potret tetap menempel walau rasio berkasnya meleset
+            sedikit dari slot. */
         view.portrait && (
-          <Image
-            src={view.portrait.src}
-            alt={view.portrait.alt}
-            width={512}
-            height={512}
-            className="pointer-events-none absolute bottom-full select-none object-contain object-bottom"
+          <div
+            className="pointer-events-none absolute bottom-full select-none"
             style={{
-              left: cqw(PORTRAIT.centerX),
-              transform: "translateX(-50%)",
+              left: mc ? undefined : 0,
+              right: mc ? 0 : undefined,
               width: cqw(PORTRAIT.width),
               height: cqw(PORTRAIT.height),
+              transform: mc ? "scaleX(-1)" : undefined,
             }}
-          />
+          >
+            <Image
+              src={view.portrait.src}
+              alt={view.portrait.alt}
+              width={648}
+              height={512}
+              className={`h-full w-full object-contain object-bottom transition-[filter,opacity] duration-300 ${
+                bicara
+                  ? "animate-portrait-bicara"
+                  : "opacity-90 saturate-90 motion-reduce:opacity-90"
+              }`}
+            />
+          </div>
         )
       }
 

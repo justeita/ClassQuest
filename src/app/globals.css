@@ -24,6 +24,8 @@
   --animate-quest-pop: quest-pop 0.2s ease-out both;
   /* Kebalikannya: kotak obrolan singkat memudar & menyusut saat pemain pergi. */
   --animate-quest-pop-out: quest-pop-out 0.2s ease-in both;
+  /* Sorot potret saat pembicara mengetik kalimatnya (gaya Persona). */
+  --animate-portrait-bicara: portrait-bicara 1.8s ease-in-out infinite;
 
   /* --- Portal guru (desain dari `guru.html`, lihat src/app/guru) --- */
   --color-brand-50: #f0f7ff;
@@ -164,6 +166,20 @@
   }
 }
 
+/* Sorot potret di kotak dialog saat pembicara mengetik kalimatnya: potretnya
+   menyala dengan glow teal yang berdenyut lembut, lalu padam begitu teks penuh
+   dan menunggu pemain melanjutkan. `drop-shadow` mengikuti siluet PNG, jadi
+   yang menyala bentuk karakternya — bukan kotak gambar. */
+@keyframes portrait-bicara {
+  0%,
+  100% {
+    filter: brightness(1.04) drop-shadow(0 0 6px rgb(85 208 165 / 0.35));
+  }
+  50% {
+    filter: brightness(1.12) drop-shadow(0 0 14px rgb(85 208 165 / 0.6));
+  }
+}
+
 /*
  * Panel tantangan duduk di atas dialog, bukan menutupi seluruh layar
  * (docs/05-frontend/game-player.md § Challenge). Nilai `--challenge-*` diisi
@@ -193,7 +209,8 @@
   .animate-quest-slide-in,
   .animate-quest-slide-out,
   .animate-quest-pop,
-  .animate-quest-pop-out {
+  .animate-quest-pop-out,
+  .animate-portrait-bicara {
     animation: none;
   }
 }

@@ -19,21 +19,30 @@
  *
  *   public/assets/portrait/<nama>/<ekspresi>.png
  *
- * `<nama>` mengikuti id sprite tanpa prefix (`mc`, `npc_1`, `npc_3`, …, `npc_10`;
+ * `<nama>` mengikuti id sprite tanpa prefix (`mc`, `npc_1`, `npc_3`, ..., `npc_10`;
  * game melewatkan `npc_2`). Folder sumber `2` adalah karakter pemain; folder
  * lain dipetakan langsung ke nomornya.
  *
- * Setiap potret dipotong ke kotak piksel opaque-nya lalu tingginya diseragamkan
- * ke `TINGGI_POTRET`, supaya semua karakter tampil sebesar mungkin tanpa
- * membawa piksel transparan yang tidak terpakai. Penyekalaan memakai rata-rata
- * kotak berbobot alpha (premultiplied), jadi tepi rambut tidak berhalo gelap.
+ * ## Kenapa potret lama tampak tidak seragam
  *
- * Setelah dipotong, lebar tiap ekspresi satu karakter berbeda-beda. Kalau
- * ditempel dengan lebar tetap, pusat kepalanya bergeser ke kiri/kanan tiap kali
- * ekspresi berganti — potret tampak "maju-mundur". Karena itu keenam ekspresi
- * satu karakter disusun ulang ke kanvas **selebar sama** dengan pusat kepala
- * (rata-rata x berbobot alpha pada pita kepala) dijepit ke tengah kanvas.
- * Hasilnya rasionya identik, jadi potret bisa ditaruh di slot tetap tanpa goyang.
+ * Aset mentah memakai pembingkaian berbeda-beda: sebagian hanya kepala sampai
+ * bahu, sebagian menyertakan dada lebih banyak. Kalau tiap potret hanya
+ * ditinggikan ke 512 px (cara lama), kepala karakter berbingkai rapat jadi
+ * raksasa sementara yang berbingkai lebar terlihat kecil.
+ *
+ * Karena itu importer menormalkan **tinggi kepala**, bukan tinggi gambar:
+ * leher dideteksi dari penyempitan lebar terbawah antara kepala dan bahu, lalu
+ * tiap karakter disekalakan supaya tingginya sama (`TINGGI_KEPALA`). Semua
+ * potret juga disusun ke kanvas berukuran dan berasio identik
+ * (`LEBAR_KANVAS`×`TINGGI_KANVAS`), jadi `object-contain` di slot DOM mengisi
+ * persis dan wajah semua karakter tampil sebesar yang sama. Badan yang lebih
+ * panjang dari bingkai terpotong rapi di tepi bawah — potret selalu dada ke
+ * atas.
+ *
+ * Penyekalaan memakai rata-rata kotak berbobot alpha (premultiplied), jadi tepi
+ * rambut tidak berhalo gelap. Pusat kepala (rata-rata x berbobot alpha pada
+ * pita kepala) dijejalkan ke tengah kanvas per ekspresi supaya pergantian
+ * ekspresi tidak menggeser potret ke kiri/kanan.
  */
 
 import {
@@ -46,7 +55,7 @@ import {
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createCanvas, encodePng } from "./lib/pixel.mjs";
+import { encodePng } from "./lib/pixel.mjs";
 import { decodePng } from "./lib/png.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -88,17 +97,37 @@ const KATA_KUNCI = [
   { ekspresi: "thinking", kata: ["think", "pikir", "bingung", "confused"] },
 ];
 
-/** Tinggi potret hasil; cukup tajam untuk kanvas yang di-upscale. */
-const TINGGI_POTRET = 512;
+/** Tinggi kanvas potret hasil; cukup tajam untuk kanvas yang di-upscale. */
+const TINGGI_KANVAS = 512;
+
+/**
+ * Lebar kanvas potret hasil. Semua karakter memakai kanvas berukuran sama
+ * supaya rasio dan resolusinya identik. Angkanya menjaga rasio `lebar:tinggi`
+ * sama dengan `PORTRAIT` di `src/game/layout.ts` (304:240) supaya
+ * `object-contain` mengisi slot persis tanpa sisa.
+ */
+const LEBAR_KANVAS = 648;
+
+/** Jarak tepi atas kepala dari tepi atas kanvas (px). */
+const MARGIN_ATAS = 40;
+
+/**
+ * Tinggi kepala target (px). Setara `(TINGGI_KANVAS - MARGIN_ATAS) / 1,6`:
+ * bingkai memuat kepala plus 0,6 tinggi kepala badan di bawahnya. Karena rasio
+ * bbox:tinggi-kepala semua karakter ≥ 1,67, badan selalu mencapai tepi bawah
+ * kanvas — tidak ada celah transparan yang membuat potret "melayang".
+ */
+const TINGGI_KEPALA = 295;
 
 /** Ambang alpha untuk menghitung kotak isi (buang bercak hampir transparan). */
 const AMBANG_ALPHA = 16;
 
 /**
- * Porsi atas gambar yang dianggap "kepala" (kepala sampai bahu). Dipakai untuk
- * menghitung pusat kepala; 35% atas cukup memuat wajah tanpa terseret badan.
+ * Porsi bbox yang dipakai sebagai tinggi kepala kalau leher tidak terdeteksi —
+ * mis. tokoh berambut/jubah lebar yang lebarnya tidak menyempit di leher.
+ * Nilainya rata-rata leher karakter lain.
  */
-const PORSI_KEPALA = 0.35;
+const PORSI_KEPALA_BAWAAN = 0.52;
 
 /** Nama berkas tanpa ekstensi → ekspresi; `null` bila tidak ada yang cocok. */
 function ekspresiDariNama(nama) {
@@ -188,24 +217,104 @@ function rataKanvas(image, x0, x1, y0, y1) {
   return [r / alpha, g / alpha, b / alpha, (alpha / bobot) * 255];
 }
 
-/** Potong ke kotak isi lalu seragamkan tingginya; lebar mengikuti rasio asli. */
-function rapikan(image) {
-  const box = kotakOpaque(image);
-  const lebar = box.maxX - box.minX + 1;
+/** Profil lebar opaque tiap baris di dalam kotak isi. */
+function profilLebar(image, box) {
   const tinggi = box.maxY - box.minY + 1;
-  const skala = TINGGI_POTRET / tinggi;
-  const outW = Math.max(1, Math.round(lebar * skala));
-  const outH = TINGGI_POTRET;
-  const data = new Uint8Array(outW * outH * 4);
+  const profil = new Array(tinggi);
+  for (let k = 0; k < tinggi; k += 1) {
+    const y = box.minY + k;
+    let minX = image.width;
+    let maxX = -1;
+    for (let x = box.minX; x <= box.maxX; x += 1) {
+      if (image.data[(y * image.width + x) * 4 + 3] < AMBANG_ALPHA) continue;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+    }
+    profil[k] = maxX < 0 ? 0 : maxX - minX + 1;
+  }
+  return profil;
+}
 
-  for (let y = 0; y < outH; y += 1) {
-    const sy0 = box.minY + (y / outH) * tinggi;
-    const sy1 = box.minY + ((y + 1) / outH) * tinggi;
-    for (let x = 0; x < outW; x += 1) {
-      const sx0 = box.minX + (x / outW) * lebar;
-      const sx1 = box.minX + ((x + 1) / outW) * lebar;
+/**
+ * Tinggi kepala dalam px sumber: dari tepi atas bbox sampai leher — penyempitan
+ * lebar terdalam antara puncak kepala/bahu dan 80% bbox. Bila tidak ada
+ * penyempitan berarti (rambut atau jubah lebar), pakai rasio bawaan supaya
+ * skalanya tidak melejit.
+ */
+function tinggiKepala(image, box) {
+  const profil = profilLebar(image, box);
+  const tinggi = profil.length;
+
+  const lo = Math.max(0, Math.round(tinggi * 0.15));
+  const hi = Math.max(lo, Math.round(tinggi * 0.45));
+  let iPuncak = lo;
+  let lebarPuncak = -1;
+  for (let i = lo; i <= hi; i += 1) {
+    if (profil[i] > lebarPuncak) {
+      lebarPuncak = profil[i];
+      iPuncak = i;
+    }
+  }
+
+  let iLeher = iPuncak;
+  let lebarLeher = Infinity;
+  const batasLeher = Math.max(iPuncak, Math.round(tinggi * 0.8));
+  for (let i = iPuncak; i <= batasLeher; i += 1) {
+    if (profil[i] < lebarLeher) {
+      lebarLeher = profil[i];
+      iLeher = i;
+    }
+  }
+
+  if (lebarPuncak <= 0 || lebarLeher > lebarPuncak * 0.8) {
+    return Math.max(1, Math.round(tinggi * PORSI_KEPALA_BAWAAN));
+  }
+  return Math.max(1, iLeher);
+}
+
+/** Pusat horizontal kepala (relatif tepi kiri bbox) berbobot alpha. */
+function pusatKepala(image, box, tinggiKepalaSumber) {
+  const y0 = box.minY;
+  const y1 = Math.min(box.maxY + 1, box.minY + Math.max(1, tinggiKepalaSumber));
+  let jumlah = 0;
+  let bobot = 0;
+  for (let y = y0; y < y1; y += 1) {
+    for (let x = box.minX; x <= box.maxX; x += 1) {
+      const a = image.data[(y * image.width + x) * 4 + 3];
+      if (a < AMBANG_ALPHA) continue;
+      jumlah += x * a;
+      bobot += a;
+    }
+  }
+  return bobot > 0 ? jumlah / bobot - box.minX : (box.maxX - box.minX + 1) / 2;
+}
+
+/** Nilai tengah; dipakai supaya satu ekspresi janggal tidak menggeser skala. */
+function median(nilai) {
+  const urut = [...nilai].sort((a, b) => a - b);
+  const tengah = Math.floor(urut.length / 2);
+  return urut.length % 2 === 0
+    ? (urut[tengah - 1] + urut[tengah]) / 2
+    : urut[tengah];
+}
+
+/**
+ * Susun satu ekspresi ke kanvas tetap: kepala ditinggikan `skala` kali,
+ * puncaknya di `MARGIN_ATAS`, pusatnya di tengah kanvas. Bagian luar kanvas
+ * (badan yang lebih panjang) terpotong otomatis.
+ */
+function susunPotret(image, box, skala, pusat) {
+  const data = new Uint8Array(LEBAR_KANVAS * TINGGI_KANVAS * 4);
+  const kiri = LEBAR_KANVAS / 2 - pusat * skala;
+
+  for (let y = 0; y < TINGGI_KANVAS; y += 1) {
+    const sy0 = box.minY + (y - MARGIN_ATAS) / skala;
+    const sy1 = box.minY + (y + 1 - MARGIN_ATAS) / skala;
+    for (let x = 0; x < LEBAR_KANVAS; x += 1) {
+      const sx0 = box.minX + (x - kiri) / skala;
+      const sx1 = box.minX + (x + 1 - kiri) / skala;
       const [r, g, b, a] = rataKanvas(image, sx0, sx1, sy0, sy1);
-      const at = (y * outW + x) * 4;
+      const at = (y * LEBAR_KANVAS + x) * 4;
       data[at] = Math.round(r);
       data[at + 1] = Math.round(g);
       data[at + 2] = Math.round(b);
@@ -213,50 +322,7 @@ function rapikan(image) {
     }
   }
 
-  return { width: outW, height: outH, data };
-}
-
-/** Pusat horizontal kepala: rata-rata x berbobot alpha pada pita kepala. */
-function pusatKepala(image) {
-  const yMax = Math.max(1, Math.round(image.height * PORSI_KEPALA));
-  let jumlah = 0;
-  let bobot = 0;
-  for (let y = 0; y < yMax; y += 1) {
-    for (let x = 0; x < image.width; x += 1) {
-      const a = image.data[(y * image.width + x) * 4 + 3];
-      if (a < AMBANG_ALPHA) continue;
-      jumlah += x * a;
-      bobot += a;
-    }
-  }
-  return bobot > 0 ? jumlah / bobot : image.width / 2;
-}
-
-/**
- * Susun enam potret satu karakter ke kanvas selebar sama, pusat kepala di tengah.
- *
- * `gambar` = `Map<ekspresi, kanvas rapikan>`. Lebar kanvas diambil dua kali
- * jangkauan terjauh dari pusat kepala ke tepi gambar, supaya tiap gambar tetap
- * utuh saat kepalanya dipusatkan. Hasil: rasio semua ekspresi identik.
- */
-function seragamkan(gambar) {
-  const pusat = new Map();
-  let lebar = 1;
-  for (const [ekspresi, img] of gambar) {
-    const c = pusatKepala(img);
-    pusat.set(ekspresi, c);
-    lebar = Math.max(lebar, 2 * Math.max(c, img.width - c));
-  }
-  lebar = Math.ceil(lebar);
-
-  const hasil = new Map();
-  for (const [ekspresi, img] of gambar) {
-    const kanvas = createCanvas(lebar, TINGGI_POTRET);
-    const x = Math.round(lebar / 2 - pusat.get(ekspresi));
-    kanvas.blit(img, x, 0);
-    hasil.set(ekspresi, kanvas);
-  }
-  return hasil;
+  return { width: LEBAR_KANVAS, height: TINGGI_KANVAS, data };
 }
 
 /** Hapus keluaran lama supaya folder sumber yang dihapus tidak menyisakan berkas. */
@@ -272,15 +338,25 @@ for (const { folder, nama, pemain } of PETA) {
   const dir = join(ROOT, "public", "assets", "portrait", nama);
   mkdirSync(dir, { recursive: true });
 
-  const potret = seragamkan(
-    new Map(
-      EKSPRESI.map((ekspresi) => [ekspresi, rapikan(gambar.get(ekspresi))]),
-    ),
-  );
+  // Ukur tiap ekspresi dulu: kotak isi + tinggi kepala.
+  const ukur = EKSPRESI.map((ekspresi) => {
+    const image = gambar.get(ekspresi);
+    const box = kotakOpaque(image);
+    return { ekspresi, image, box, kepala: tinggiKepala(image, box) };
+  });
 
-  for (const ekspresi of EKSPRESI) {
-    const png = Buffer.from(encodePng(potret.get(ekspresi)));
-    writeFileSync(join(dir, `${ekspresi}.png`), png);
+  // Satu skala per karakter (median antar-ekspresi) supaya ukuran kepala tidak
+  // berubah saat ekspresi berganti.
+  const skala = TINGGI_KEPALA / median(ukur.map((entri) => entri.kepala));
+
+  for (const { ekspresi, image, box, kepala } of ukur) {
+    const potret = susunPotret(
+      image,
+      box,
+      skala,
+      pusatKepala(image, box, kepala),
+    );
+    writeFileSync(join(dir, `${ekspresi}.png`), Buffer.from(encodePng(potret)));
     jumlah += 1;
   }
   log(

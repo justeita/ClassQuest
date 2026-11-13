@@ -256,9 +256,13 @@ Keputusan (ADR 0007, diperluas ADR 0017): **teks permainan pindah ke DOM**.
 
 - Panel, potret, nama, isi dialog, dan indikator "lanjut" dirender React
   (`DialogueBox.tsx`). Panel bukan lagi gambar `ui_textbox`, melainkan kotak CSS
-  navy gelap membulat. Potret anime tidak dibungkus bingkai: ia berdiri di atas
-  panel dengan dasar sejajar tepi atasnya, dan berekspresi sesuai field
-  `expression` beat. Prompt interaksi `Space` juga DOM (`InteractHint.tsx`).
+  navy gelap membulat. Potret anime tidak dibungkus bingkai: NPC berdiri di
+  pangkal kiri atas panel, MC (dicerminkan) di pangkal kanan — dasarnya menempel
+  tepi atas panel — dan berekspresi sesuai field `expression` beat. Importer
+  menormalkan tinggi kepala supaya wajah semua karakter sama besar. Potret
+  menyala saat pembicaranya sedang diketik dan padam saat menunggu; selama soal
+  belum dijawab potret disembunyikan. Prompt interaksi `Space` juga DOM
+  (`InteractHint.tsx`).
 - Nama pembicara memakai **Pixelify Sans** (utility `font-pixel`, variabel
   `--font-pixelify` dipasang di `src/app/layout.tsx`): huruf pixel kapital teal
   untuk hierarki nama, sedangkan isi dialog tetap Patrick Hand.

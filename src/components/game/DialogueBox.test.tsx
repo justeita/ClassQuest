@@ -89,4 +89,82 @@ describe("DialogueBox", () => {
 
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
+
+  it("menempel potret NPC di pojok kiri tanpa dicerminkan", () => {
+    render(
+      <DialogueBox
+        view={{
+          ...bicara,
+          portrait: {
+            src: "/assets/portrait/npc_1/neutral.png",
+            alt: "Potret Bu Ratna",
+          },
+        }}
+        onAdvance={() => {}}
+      />,
+    );
+
+    const slot = screen.getByAltText("Potret Bu Ratna").parentElement;
+    expect(slot?.style.left).toBe("0px");
+    expect(slot?.style.right).toBe("");
+    expect(slot?.style.transform).toBe("");
+  });
+
+  it("menaruh potret MC di pojok kanan dan mencerminkannya", () => {
+    render(
+      <DialogueBox
+        view={{
+          ...bicara,
+          portrait: {
+            src: "/assets/portrait/mc/neutral.png",
+            alt: "Potret Nara",
+          },
+        }}
+        onAdvance={() => {}}
+      />,
+    );
+
+    const slot = screen.getByAltText("Potret Nara").parentElement;
+    expect(slot?.style.right).toBe("0px");
+    expect(slot?.style.left).toBe("");
+    expect(slot?.style.transform).toBe("scaleX(-1)");
+  });
+
+  it("menyorot potret selagi teks diketik lalu meredupkannya saat menunggu", () => {
+    const { rerender } = render(
+      <DialogueBox
+        view={{
+          ...bicara,
+          waiting: false,
+          portrait: {
+            src: "/assets/portrait/npc_1/happy.png",
+            alt: "Potret Bu Ratna",
+          },
+        }}
+        onAdvance={() => {}}
+      />,
+    );
+
+    expect(screen.getByAltText("Potret Bu Ratna").className).toContain(
+      "animate-portrait-bicara",
+    );
+
+    rerender(
+      <DialogueBox
+        view={{
+          ...bicara,
+          waiting: true,
+          portrait: {
+            src: "/assets/portrait/npc_1/happy.png",
+            alt: "Potret Bu Ratna",
+          },
+        }}
+        onAdvance={() => {}}
+      />,
+    );
+
+    const potret = screen.getByAltText("Potret Bu Ratna");
+    expect(potret.className).not.toContain("animate-portrait-bicara");
+    expect(potret.className).toContain("opacity-90");
+  });
 });

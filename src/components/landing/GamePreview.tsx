@@ -43,17 +43,17 @@ export function GamePreview() {
         </p>
 
         {/* Dialog meniru gaya Persona (ADR 0017): potret tanpa bingkai berdiri
-            di **atas** panel, dasarnya sejajar tepi atas kotak, jadi tidak ada
-            bagian potret yang tertutup. Slot berukuran tetap + `object-contain`
-            supaya kepala tetap terpusat saat ekspresi berganti. */}
+            di **atas** panel, dasarnya menempel tepi atas kotak. NPC di pangkal
+            kiri (MC dicerminkan di kanan). Slot tetap + `object-contain` supaya
+            potret mengisi persis dan tidak goyang saat ekspresi berganti. */}
         <div className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
           <div className="relative">
             <Image
               src="/assets/portrait/npc_10/thinking.png"
               alt="Potret Pak Wira"
-              width={512}
+              width={648}
               height={512}
-              className="pointer-events-none absolute bottom-full left-12 h-28 w-32 -translate-x-1/2 object-contain object-bottom sm:left-16 sm:h-36 sm:w-40"
+              className="pointer-events-none absolute bottom-full left-0 h-24 w-[50%] object-contain object-bottom sm:h-32"
             />
 
             <div className="relative rounded-xl border border-white/5 bg-slate-900/95 px-3 pb-2.5 pt-2 sm:px-4">
