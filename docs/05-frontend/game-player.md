@@ -214,6 +214,13 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Daftar `weakConcepts` dengan kalimat: "Coba ulang bagian ini: Kondensasi".
 - Tombol "Main lagi" dan "Kembali ke awal".
 - Tanpa ranking, tanpa perbandingan dengan siswa lain.
+- Hasil disimpan lewat Server Action `savePlayResult` (`src/app/play/actions.ts`):
+  `GameScene` mengirim event `finished` berisi `result` **dan** `answers`
+  percobaan pertama, lalu `GameShell` mengirim `{ storyId, result: { answers } }`.
+  Hanya jawaban yang dikirim — server menghitung ulang skor dari cerita terbit.
+  Layar hasil tampil tanpa menunggu simpan; statusnya ditulis jujur di bawah
+  ringkasan: "Menyimpan hasil main…", "Hasil main tersimpan.", atau
+  "Hasil main belum tersimpan.".
 
 ### Error
 
@@ -302,7 +309,8 @@ Aturan:
 - Simpan setelah setiap beat (throttle 500 ms).
 - Kunci: `classquest:progress:{storyId}`.
 - Saat mount, baca progres; kalau `storyVersion` beda → tawarkan mulai ulang.
-- Saat selesai, simpan `PlayResult` dan tandai selesai.
+- Saat selesai, kirim **jawaban** ke `savePlayResult` (server menghitung ulang
+  skor); jangan mengirim field skor.
 
 ## Checklist implementasi
 

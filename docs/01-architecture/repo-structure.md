@@ -127,7 +127,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/components/game/TitleScreen.tsx`             | ya   | Layar judul: ringkasan cerita + menu Mulai                     |
 | `src/components/game/HUD.tsx`                     | ya   | HUD: chapter aktif, tombol suara, tombol jeda                  |
 | `src/components/game/PauseMenu.tsx`               | ya   | Menu jeda: lanjut, ulangi chapter, suara, keluar               |
-| `src/components/game/ResultScreen.tsx`            | ya   | Layar hasil: skor, jawaban tepat, konsep lemah                 |
+| `src/components/game/ResultScreen.tsx`            | ya   | Layar hasil: skor, jawaban tepat, konsep lemah, status simpan  |
 | `src/app/play`                                    | ya   | Halaman siswa dari cerita terbit (fallback demo)               |
 | `src/proxy.ts`                                    | ya   | Gerbang 404 `/play/<id>` sebelum halaman dirender              |
 | `src/proxy.test.ts`                               | ya   | Tes gerbang 404 halaman siswa                                  |

@@ -50,8 +50,12 @@ export type GameEvent =
       correct: boolean;
       explanation: string;
     }
-  /** Cerita selesai; `result` dihitung dari percobaan pertama tiap tantangan. */
-  | { type: "finished"; result: PlayResult }
+  /**
+   * Cerita selesai; `result` dihitung dari percobaan pertama tiap tantangan.
+   * `answers` ikut dikirim karena hanya jawaban mentah yang boleh disimpan ke
+   * server — skor selalu dihitung ulang di sana (`savePlayResult`).
+   */
+  | { type: "finished"; result: PlayResult; answers: Answer[] }
   /** Satu beat dialog/narasi tampil penuh; dipakai log dialog (PR D). */
   | {
       type: "log";

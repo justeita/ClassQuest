@@ -11,14 +11,20 @@ import { GameBus } from "@/game/gameBus";
 import { DEMO_STORY } from "@/game/demoStory";
 import { persenLebar } from "@/game/layout";
 import type { QuestState } from "@/game/questLog";
-import type { PlayResult } from "@/story/scoring";
+import type { Answer, PlayResult } from "@/story/scoring";
 
 // Phaser tidak bisa hidup di jsdom. Yang diuji di sini hanya kontrak
 // layar → bus → React: layar judul, HUD, menu jeda, overlay tantangan,
 // layar hasil, dan "Main lagi".
-const mocks = vi.hoisted(() => ({ createGame: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  createGame: vi.fn(),
+  savePlayResult: vi.fn(),
+}));
 
 vi.mock("@/game/createGame", () => ({ createGame: mocks.createGame }));
+vi.mock("@/app/play/actions", () => ({
+  savePlayResult: mocks.savePlayResult,
+}));
 
 vi.mock("next/link", () => ({
   default: ({
@@ -43,6 +49,10 @@ const hasilPalsu: PlayResult = {
   totalChallenges: 6,
   weakConcepts: ["Kondensasi"],
 };
+
+const jawabanPalsu: Answer[] = [
+  { challengeId: "chl_demo_1", type: "short_answer", text: "penguapan" },
+];
 
 /** Tunggu sampai GameCanvas selesai memasang pendengar bus-nya. */
 async function tungguBusTerpasang() {
@@ -80,6 +90,8 @@ beforeEach(() => {
   };
   mocks.createGame.mockReset();
   mocks.createGame.mockImplementation(() => ({ bus, destroy: () => {} }));
+  mocks.savePlayResult.mockReset();
+  mocks.savePlayResult.mockResolvedValue({ ok: true });
 });
 
 describe("GameShell", () => {
@@ -401,7 +413,7 @@ describe("GameShell", () => {
   it("menampilkan layar hasil saat event finished datang", async () => {
     await mainkan();
 
-    bus.emit({ type: "finished", result: hasilPalsu });
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
 
     expect(
       await screen.findByText(/Perjalanan ini sudah sampai ujung/i),
@@ -411,10 +423,43 @@ describe("GameShell", () => {
     ).toBeInTheDocument();
   });
 
+  it("menyimpan hasil main lewat server action tanpa mengirim skor", async () => {
+    await mainkan();
+
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
+
+    await vi.waitFor(() =>
+      expect(mocks.savePlayResult).toHaveBeenCalledWith({
+        storyId: DEMO_STORY.meta.id,
+        result: { answers: jawabanPalsu },
+      }),
+    );
+    expect(
+      await screen.findByText("Hasil main tersimpan."),
+    ).toBeInTheDocument();
+  });
+
+  it("kegagalan simpan tidak menghalangi layar hasil", async () => {
+    mocks.savePlayResult.mockResolvedValue({
+      ok: false,
+      reason: "rate_limited",
+    });
+    await mainkan();
+
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
+
+    expect(
+      await screen.findByText("Hasil main belum tersimpan."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Perjalanan ini sudah sampai ujung/i),
+    ).toBeInTheDocument();
+  });
+
   it("Main lagi menyembunyikan layar hasil", async () => {
     await mainkan();
 
-    bus.emit({ type: "finished", result: hasilPalsu });
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
     fireEvent.click(await screen.findByRole("button", { name: /main lagi/i }));
 
     expect(
@@ -426,7 +471,7 @@ describe("GameShell", () => {
     await mainkan();
     const panggilanAwal = mocks.createGame.mock.calls.length;
 
-    bus.emit({ type: "finished", result: hasilPalsu });
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
     fireEvent.click(await screen.findByRole("button", { name: /main lagi/i }));
 
     await vi.waitFor(() =>

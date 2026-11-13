@@ -318,7 +318,7 @@ type GameEvent =
       correct: boolean;
       explanation: string;
     }
-  | { type: "finished"; result: PlayResult }
+  | { type: "finished"; result: PlayResult; answers: Answer[] }
   | {
       type: "log";
       name: string | null;

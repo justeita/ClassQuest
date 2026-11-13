@@ -40,8 +40,11 @@ import type { Answer, PlayResult } from "@/story/scoring";
 type GameCanvasProps = {
   /** Cerita yang dimainkan; scene tidak lagi memuat fixture sendiri. */
   story: Story;
-  /** Dipanggil sekali saat cerita selesai, membawa ringkasan hasil. */
-  onFinished?: (result: PlayResult) => void;
+  /**
+   * Dipanggil sekali saat cerita selesai. `answers` adalah jawaban percobaan
+   * pertama yang dipakai layar hasil untuk menyimpan ke server.
+   */
+  onFinished?: (result: PlayResult, answers: Answer[]) => void;
 };
 
 export function GameCanvas({ story, onFinished }: GameCanvasProps) {
@@ -178,11 +181,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           }),
         );
         lepas.push(
-          game.bus.on("finished", ({ result }) => {
+          game.bus.on("finished", ({ result, answers }) => {
             setTantangan(null);
             setHasil(null);
             setSedangLewati(false);
-            onFinishedRef.current?.(result);
+            onFinishedRef.current?.(result, answers);
           }),
         );
         lepas.push(

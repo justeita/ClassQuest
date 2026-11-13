@@ -602,6 +602,10 @@ export class GameScene extends Phaser.Scene {
   /**
    * Kirim ringkasan sekali main ke React saat cerita selesai. `scoreStory`
    * menghitung poin, jumlah benar, dan konsep lemah dari percobaan pertama.
+   *
+   * `answers` ikut dikirim karena layar hasil menyimpan hasil main lewat
+   * Server Action `savePlayResult`, dan action itu hanya menerima jawaban
+   * mentah: skor dihitung ulang di server, bukan dipercaya dari klien.
    */
   private kirimHasil() {
     if (this.selesaiDikirim) return;
@@ -609,6 +613,7 @@ export class GameScene extends Phaser.Scene {
     this.bus?.emit({
       type: "finished",
       result: this.answers.result(this.story),
+      answers: this.answers.all(),
     });
   }
 
