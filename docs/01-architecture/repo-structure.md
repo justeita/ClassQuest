@@ -119,6 +119,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/gameBus.ts`                             | ya   | Bridge bertipe Phaser ↔ React (event + command)                |
 | `src/game/challengeView.ts`                       | ya   | Data tantangan aman untuk overlay (tanpa jawaban)              |
 | `src/game/answerLog.ts`                           | ya   | Catatan jawaban percobaan pertama + ringkasan hasil            |
+| `src/game/branching.ts`                           | ya   | Flag cerita, varian teks, dan rencana detour jawaban salah     |
+| `src/game/branching.test.ts`                      | ya   | Tes percobaan ulang, flag, dan varian teks                     |
 | `src/game/demoStory.ts`                           | ya   | Akses cerita demo untuk halaman siswa dan dev                  |
 | `src/game/fixture`                                | ya   | Cerita demo untuk pengembangan frontend game                   |
 | `src/components/game/GameCanvas.tsx`              | ya   | Host Phaser + overlay tantangan di React                       |

@@ -17,6 +17,11 @@
  *   jadi dua tantangan per chapter. Tambahan itu disengaja: `W_NO_CHALLENGE_IN_SCENE`
  *   akan muncul untuk setiap scene tanpa tantangan, dan cerita cadangan tidak
  *   boleh membebani guru dengan warning yang tidak mereka picu.
+ * - **Bisa didemokan penuh.** Chapter pertama memberi dua tantangan dengan
+ *   `maxAttempts` dan `onWrong` (retry + detour), plus dialog `textVariants`
+ *   yang bereaksi pada flag hasil jawaban salah. Jadi fitur bercabang bisa
+ *   dicoba tanpa kunci API. Detour hanya memakai speaker dan aset yang sudah
+ *   dipakai cerita ini.
  * - **Jujur.** Tidak mengarang fakta tentang PDF. Teks hanya menyebut *nama*
  *   konsep; penjelasan isi tetap tugas guru lewat editor. Penanda
  *   `usedFallback` hidup di record job, bukan di dalam `Story`
@@ -336,6 +341,14 @@ const GENERIC_DISTRACTORS = [
   "Kegiatan olahraga",
 ] as const;
 
+/**
+ * Flag cerita cadangan. Dua flag ini dinyalakan oleh jawaban salah pada dua
+ * tantangan chapter pertama, lalu dibaca `textVariants` di dialog sesudahnya.
+ * Id mengikuti pola `flg_[a-z0-9_]+` dan tidak menambah aset apa pun.
+ */
+const FLAG_SALAH_PAPAN = "flg_salah_papan";
+const FLAG_SALAH_CATATAN = "flg_salah_catatan";
+
 const buildOptions = (
   concept: string,
   concepts: readonly string[],
@@ -414,6 +427,7 @@ const buildChapter = (
   cast: readonly Character[],
   playerName: string,
   mentorName: string,
+  branching: boolean,
 ): { chapter: Chapter; challenges: Challenge[] } => {
   const number = String(index + 1).padStart(2, "0");
   const difficulty = ((index % 3) + 1) as 1 | 2 | 3;
@@ -477,7 +491,37 @@ const buildChapter = (
             speakerId: playerId,
             text: "Baik, Pak. Aku siap mencatat hal pentingnya.",
           },
-          { type: "challenge", challengeId: boardChallenge.id },
+          {
+            type: "challenge",
+            challengeId: boardChallenge.id,
+            // Dua tantangan di chapter pertama memberi contoh konsekuensi
+            // jawaban salah; chapter lain tetap sederhana.
+            ...(branching
+              ? {
+                  maxAttempts: 2,
+                  onWrong: {
+                    setFlags: { [FLAG_SALAH_PAPAN]: true },
+                    retryQuestions: [
+                      clip(
+                        `Coba ingat lagi. Kata kunci apa yang barusan ditulis ${mentorName} di papan tulis?`,
+                        300,
+                      ),
+                    ],
+                    detour: [
+                      {
+                        type: "narration",
+                        text: `${playerName} menatap papan tulis sekali lagi. Ada satu kata kunci yang baru saja disebut sebelum soal ini.`,
+                      },
+                      {
+                        type: "dialogue",
+                        speakerId: mentorId,
+                        text: "Tarik napas dulu. Baca ulang kalimat terakhir yang tadi kusebut.",
+                      },
+                    ],
+                  },
+                }
+              : {}),
+          },
           {
             type: "dialogue",
             speakerId: mentorId,
@@ -485,6 +529,22 @@ const buildChapter = (
               `Bagus. Jadi kata kunci hari ini adalah ${concept}.`,
               240,
             ),
+            // Bereaksi pada flag yang dinyalakan jawaban salah di atas. Teks
+            // utama tetap dipakai bila siswa menjawab benar pada percobaan
+            // pertama (flag masih `false`).
+            ...(branching
+              ? {
+                  textVariants: [
+                    {
+                      when: { flag: FLAG_SALAH_PAPAN, is: true },
+                      text: clip(
+                        `Tidak apa-apa sempat ragu. Kata kunci hari ini tetap ${concept}; sekarang kamu sudah menemukannya sendiri.`,
+                        240,
+                      ),
+                    },
+                  ],
+                }
+              : {}),
           },
         ],
       },
@@ -504,11 +564,49 @@ const buildChapter = (
               240,
             ),
           },
-          { type: "challenge", challengeId: notebookChallenge.id },
+          {
+            type: "challenge",
+            challengeId: notebookChallenge.id,
+            ...(branching
+              ? {
+                  maxAttempts: 2,
+                  onWrong: {
+                    setFlags: { [FLAG_SALAH_CATATAN]: true },
+                    retryQuestions: [
+                      clip(
+                        `Perhatikan lagi buku catatan ${playerName}. Hal baru apa yang baru saja dicatat?`,
+                        300,
+                      ),
+                    ],
+                    detour: [
+                      {
+                        type: "narration",
+                        text: `${playerName} membuka buku catatannya dan membaca baris paling bawah.`,
+                      },
+                      {
+                        type: "dialogue",
+                        speakerId: mentorId,
+                        text: "Tidak apa-apa. Lihat lagi catatan yang baru saja kamu tulis.",
+                      },
+                    ],
+                  },
+                }
+              : {}),
+          },
           {
             type: "dialogue",
             speakerId: playerId,
             text: "Sekarang aku tahu kata kunci yang kita pelajari hari ini.",
+            ...(branching
+              ? {
+                  textVariants: [
+                    {
+                      when: { flag: FLAG_SALAH_CATATAN, is: true },
+                      text: "Aku sempat lupa tadi, tapi sekarang catatanku sudah benar.",
+                    },
+                  ],
+                }
+              : {}),
           },
         ],
       },
@@ -579,6 +677,9 @@ export function buildFallbackStory(input: FallbackStoryInput = {}): Story {
       cast,
       playerName,
       mentorName,
+      // Hanya chapter pertama yang memberi contoh percabangan supaya cerita
+      // cadangan tetap ringkas dan seragam untuk konsep apa pun.
+      index === 0,
     );
     chapters.push(built.chapter);
     challenges.push(...built.challenges);
@@ -619,5 +720,9 @@ export function buildFallbackStory(input: FallbackStoryInput = {}): Story {
     chapters,
     challenges,
     assetUsage: assetUsageOf(chapters, cast),
+    flags: [
+      { id: FLAG_SALAH_PAPAN, default: false },
+      { id: FLAG_SALAH_CATATAN, default: false },
+    ],
   };
 }

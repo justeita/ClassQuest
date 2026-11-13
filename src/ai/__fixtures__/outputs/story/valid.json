@@ -63,7 +63,25 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_01_01"
+              "challengeId": "chl_01_01",
+              "maxAttempts": 2,
+              "onWrong": {
+                "setFlags": { "flg_salah_cahaya": true },
+                "retryQuestions": [
+                  "Coba ingat lagi. Apa yang tadi disebut membantu daun membuat makanan sendiri?"
+                ],
+                "detour": [
+                  {
+                    "type": "narration",
+                    "text": "Nara menatap daun sekali lagi dan mengingat kalimat Pak Bima tadi."
+                  },
+                  {
+                    "type": "dialogue",
+                    "speakerId": "char_npc_10",
+                    "text": "Tidak apa-apa. Baca ulang kalimat terakhir yang tadi kusebut."
+                  }
+                ]
+              }
             }
           ]
         },
@@ -78,7 +96,13 @@
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Jadi cahaya matahari dipakai daun untuk memasak? Bagaimana caranya?"
+              "text": "Jadi cahaya matahari dipakai daun untuk memasak? Bagaimana caranya?",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_cahaya", "is": true },
+                  "text": "Tadi aku sempat salah, tapi sekarang aku paham: cahaya matahari menolong daun memasak. Bagaimana caranya?"
+                }
+              ]
             },
             {
               "type": "narration",
@@ -159,7 +183,25 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_03_01"
+              "challengeId": "chl_03_01",
+              "maxAttempts": 2,
+              "onWrong": {
+                "setFlags": { "flg_salah_gula": true },
+                "retryQuestions": [
+                  "Baca lagi catatanmu. Gula apa yang dihasilkan tumbuhan dari fotosintesis?"
+                ],
+                "detour": [
+                  {
+                    "type": "narration",
+                    "text": "Nara membuka lagi buku catatannya dan melihat panah dari matahari menuju daun."
+                  },
+                  {
+                    "type": "dialogue",
+                    "speakerId": "char_npc_10",
+                    "text": "Lihat lagi gambar daunmu. Hasilnya adalah gula yang tadi kita bicarakan."
+                  }
+                ]
+              }
             }
           ]
         },
@@ -174,7 +216,13 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_10",
-              "text": "Glukosa adalah gula yang menjadi makanan tumbuhan. Sebagian disimpan, sebagian dipakai untuk tumbuh."
+              "text": "Glukosa adalah gula yang menjadi makanan tumbuhan. Sebagian disimpan, sebagian dipakai untuk tumbuh.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_gula", "is": true },
+                  "text": "Nah, sekarang kamu sudah menemukannya sendiri: glukosa adalah gula yang menjadi makanan tumbuhan."
+                }
+              ]
             },
             {
               "type": "narration",
@@ -237,5 +285,9 @@
     "backgrounds": ["bg_default"],
     "music": ["bgm_default"],
     "sprites": ["char_mc", "char_npc_10", "char_npc_1"]
-  }
+  },
+  "flags": [
+    { "id": "flg_salah_cahaya", "default": false },
+    { "id": "flg_salah_gula", "default": false }
+  ]
 }

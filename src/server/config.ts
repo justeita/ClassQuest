@@ -2,9 +2,9 @@
  * Konfigurasi server dari environment.
  *
  * **Satu-satunya** modul yang membaca `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`,
- * `AI_BASE_URL`, `AI_TIMEOUT_MS`, `DATABASE_URL`, `DATABASE_AUTH_TOKEN`,
- * `TEACHER_SEED_USERNAME`, `TEACHER_SEED_PASSWORD`, dan
- * `TEACHER_SESSION_SECRET` dari `process.env`
+ * `AI_BASE_URL`, `AI_TIMEOUT_MS`, `AI_BRANCHING`, `AI_DISABLE_THINKING`,
+ * `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `TEACHER_SEED_USERNAME`,
+ * `TEACHER_SEED_PASSWORD`, dan `TEACHER_SESSION_SECRET` dari `process.env`
  * (`docs/03-ai-pipeline/provider-setup.md`, `docs/06-backend/persistence.md`,
  * `docs/08-workflow/setup.md`). Modul lain memakai hasil `loadAiConfig()`,
  * `loadDatabaseConfig()`, `loadTeacherAuthConfig()`, atau `loadSeedConfig()`
@@ -59,6 +59,8 @@ export type AiConfig =
       model: null;
       baseUrl: null;
       timeoutMs: number;
+      /** `AI_BRANCHING=on`: ajari model membuat konsekuensi jawaban salah. */
+      branching: boolean;
     }
   | {
       provider: "anthropic";
@@ -66,6 +68,8 @@ export type AiConfig =
       model: string;
       baseUrl: string | null;
       timeoutMs: number;
+      /** `AI_BRANCHING=on`: ajari model membuat konsekuensi jawaban salah. */
+      branching: boolean;
     }
   | {
       /**
@@ -79,6 +83,15 @@ export type AiConfig =
       /** Sudah divalidasi http/https dan tanpa trailing slash. */
       baseUrl: string;
       timeoutMs: number;
+      /** `AI_BRANCHING=on`: ajari model membuat konsekuensi jawaban salah. */
+      branching: boolean;
+      /**
+       * `AI_DISABLE_THINKING=on`: minta model reasoning tidak memakai token
+       * "thinking" (`thinking: { type: "disabled" }`). Model reasoning
+       * menghabiskan anggaran output untuk thinking sebelum menulis JSON
+       * (ADR 0017), jadi toggle ini wajib untuk provider semacam itu.
+       */
+      disableThinking: boolean;
     };
 
 /** Konfigurasi database. `authToken` hanya dipakai untuk database remote. */
@@ -164,6 +177,15 @@ const read = (env: EnvSource, name: string): string | null => {
   const trimmed = value.trim();
   return trimmed === "" ? null : trimmed;
 };
+
+/**
+ * Saklar fitur berbentuk env. Hanya nilai `"on"` (case-insensitive) yang
+ * menyalakan; kosong, `off`, atau nilai lain mematikan. Nilai default adalah
+ * mati supaya perilaku lama tidak berubah tanpa diminta
+ * (`docs/03-ai-pipeline/prompt-contract.md`).
+ */
+const readToggle = (env: EnvSource, name: string): boolean =>
+  (read(env, name)?.toLowerCase() ?? "") === "on";
 
 const readTimeout = (env: EnvSource): number => {
   const raw = read(env, "AI_TIMEOUT_MS");
@@ -294,6 +316,7 @@ export function loadSeedConfig(env: EnvSource = process.env): SeedConfig {
  */
 export function loadAiConfig(env: EnvSource = process.env): AiConfig {
   const timeoutMs = readTimeout(env);
+  const branching = readToggle(env, "AI_BRANCHING");
 
   // Kosong atau tidak diset berarti `mock`: onboarding dan test tidak boleh
   // butuh kunci (docs/03-ai-pipeline/provider-setup.md).
@@ -313,6 +336,7 @@ export function loadAiConfig(env: EnvSource = process.env): AiConfig {
       model: null,
       baseUrl: null,
       timeoutMs,
+      branching,
     };
   }
 
@@ -340,6 +364,8 @@ export function loadAiConfig(env: EnvSource = process.env): AiConfig {
       model,
       baseUrl: normalizeBaseUrl(baseUrlValue),
       timeoutMs,
+      branching,
+      disableThinking: readToggle(env, "AI_DISABLE_THINKING"),
     };
   }
 
@@ -365,6 +391,7 @@ export function loadAiConfig(env: EnvSource = process.env): AiConfig {
     model,
     baseUrl: read(env, "AI_BASE_URL"),
     timeoutMs,
+    branching,
   };
 }
 

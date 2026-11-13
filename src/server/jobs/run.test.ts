@@ -285,6 +285,15 @@ describe("runJob — fallback dan error tak terduga", () => {
     expect(job.stage).toBe("done");
     expect(Number(job.progress)).toBe(100);
 
+    const log = JSON.parse(String(job.log)) as {
+      promptVersion?: string;
+      fallbackReason?: string | null;
+      diagnostics?: unknown;
+    };
+    expect(log.promptVersion).toBe("story-v4");
+    expect(log.fallbackReason).not.toBeNull();
+    expect(Array.isArray(log.diagnostics)).toBe(true);
+
     const rows = await versions();
     expect(rows).toHaveLength(1);
     expect(Number(rows[0].used_fallback)).toBe(1);

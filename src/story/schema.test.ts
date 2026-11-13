@@ -131,6 +131,32 @@ describe("field opsional", () => {
 
     expect(storySchema.safeParse(story).success).toBe(true);
   });
+
+  it("menerima flags, scoring, maxAttempts, onWrong, dan textVariants", () => {
+    const story = withExample((draft) => {
+      draft.flags = [{ id: "flg_salah_hitung", default: false }];
+      draft.scoring = { basis: "firstAttempt" };
+
+      beatsOf(scenesOf(chapters(draft)[0])[1])[1].maxAttempts = 2;
+      beatsOf(scenesOf(chapters(draft)[0])[1])[1].onWrong = {
+        setFlags: { flg_salah_hitung: true },
+        retryQuestions: [
+          "Coba baca ulang resepnya. Kalau 3 bagian tepung menjadi 9 cangkir, berapa bagian gula?",
+        ],
+        detour: [{ type: "narration", text: "Nara mengulang hitungannya." }],
+      };
+
+      beatsOf(scenesOf(chapters(draft)[0])[1])[0].textVariants = [
+        {
+          when: { flag: "flg_salah_hitung", is: true },
+          text: "Tidak apa-apa, kita coba sekali lagi.",
+        },
+      ];
+    });
+
+    expect(storySchema.safeParse(story).success).toBe(true);
+    expect(documentedAccepts(story)).toBe(true);
+  });
 });
 
 type InvalidCase = { name: string; story: JsonRecord };
@@ -356,15 +382,77 @@ const invalidCases: InvalidCase[] = [
     }),
   },
   {
-    name: "obrolan singkat karakter kosong",
+    name: "maxAttempts di luar 1..3",
     story: withExample((draft) => {
-      cast(draft)[0].smallTalk = "";
+      beatsOf(scenesOf(chapters(draft)[0])[1])[1].maxAttempts = 4;
     }),
   },
   {
-    name: "obrolan singkat karakter lebih dari 240",
+    name: "maxAttempts nol",
     story: withExample((draft) => {
-      cast(draft)[0].smallTalk = "A".repeat(241);
+      beatsOf(scenesOf(chapters(draft)[0])[1])[1].maxAttempts = 0;
+    }),
+  },
+  {
+    name: "retryQuestions lebih dari dua",
+    story: withExample((draft) => {
+      beatsOf(scenesOf(chapters(draft)[0])[1])[1].onWrong = {
+        retryQuestions: [
+          "Soal ulang pertama yang cukup panjang.",
+          "Soal ulang kedua yang cukup panjang.",
+          "Soal ulang ketiga yang cukup panjang.",
+        ],
+      };
+    }),
+  },
+  {
+    name: "teks retry terlalu pendek",
+    story: withExample((draft) => {
+      beatsOf(scenesOf(chapters(draft)[0])[1])[1].onWrong = {
+        retryQuestions: ["Apa?"],
+      };
+    }),
+  },
+  {
+    name: "flag dengan id tidak berpola",
+    story: withExample((draft) => {
+      draft.flags = [{ id: "salah_hitung", default: false }];
+    }),
+  },
+  {
+    name: "textVariant tanpa is",
+    story: withExample((draft) => {
+      beatsOf(scenesOf(chapters(draft)[0])[1])[0].textVariants = [
+        { when: { flag: "flg_salah_hitung" }, text: "Halo." },
+      ];
+    }),
+  },
+  {
+    name: "textVariants kosong",
+    story: withExample((draft) => {
+      beatsOf(scenesOf(chapters(draft)[0])[1])[0].textVariants = [];
+    }),
+  },
+  {
+    name: "detour berisi challenge",
+    story: withExample((draft) => {
+      beatsOf(scenesOf(chapters(draft)[0])[1])[1].onWrong = {
+        detour: [{ type: "challenge", challengeId: "chl_01_01" }],
+      };
+    }),
+  },
+  {
+    name: "field tambahan di onWrong",
+    story: withExample((draft) => {
+      beatsOf(scenesOf(chapters(draft)[0])[1])[1].onWrong = {
+        detourNext: "chl_01_01",
+      };
+    }),
+  },
+  {
+    name: "basis scoring tidak dikenal",
+    story: withExample((draft) => {
+      draft.scoring = { basis: "lastAttempt" };
     }),
   },
 ];

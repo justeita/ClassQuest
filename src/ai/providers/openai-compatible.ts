@@ -272,6 +272,9 @@ export class OpenAiCompatibleProvider implements LlmProvider {
 
     // `req.json` sengaja tidak dipakai: `response_format` tidak dikirim karena
     // tidak semua server mendukungnya (parsing/repair tetap di pipeline).
+    // `thinking` hanya dikirim bila diminta (`AI_DISABLE_THINKING=on`): model
+    // reasoning yang membiarkannya menyala menghabiskan anggaran output untuk
+    // `reasoning_content` sebelum menulis JSON (ADR 0017).
     const body: Record<string, unknown> = {
       model: this.config.model,
       messages: [
@@ -280,6 +283,9 @@ export class OpenAiCompatibleProvider implements LlmProvider {
       ],
       max_tokens: req.maxOutputTokens,
       stream: false,
+      ...(this.config.disableThinking
+        ? { thinking: { type: "disabled" } }
+        : {}),
     };
 
     // Temperature hanya dikirim bila request menyediakannya. `0` tetap

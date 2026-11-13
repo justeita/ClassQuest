@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -27,8 +27,11 @@ type ChallengeBase = {
 };
 ```
 
-`explanation` wajib karena produk ini belajar, bukan hanya menilai. Setelah siswa
-menjawab (benar atau salah), penjelasan selalu ditampilkan.
+`explanation` wajib karena produk ini belajar, bukan hanya menilai. Penjelasan
+ditampilkan setelah hasil final: saat jawaban benar atau di percobaan terakhir.
+Untuk tantangan dengan `onWrong`, percobaan yang masih bisa diulang **tidak**
+menampilkan penjelasan supaya soal ulang tetap bermakna — lihat
+[`story-schema.md`](./story-schema.md#konsekuensi-jawaban-salah-opsional).
 
 ## Ringkasan
 

@@ -22,7 +22,25 @@
           },
           {
             "type": "challenge",
-            "challengeId": "chl_02_01"
+            "challengeId": "chl_02_01",
+            "maxAttempts": 2,
+            "onWrong": {
+              "setFlags": { "flg_salah_hijau": true },
+              "retryQuestions": [
+                "Baca ulang kalimat tadi. Zat apa yang menangkap cahaya matahari di dalam daun?"
+              ],
+              "detour": [
+                {
+                  "type": "narration",
+                  "text": "Nara mengangkat daun itu lagi ke arah cahaya dan mencari butir hijau yang tadi disebut."
+                },
+                {
+                  "type": "dialogue",
+                  "speakerId": "char_npc_10",
+                  "text": "Pelan-pelan saja. Ingat lagi zat hijau yang baru kita bicarakan."
+                }
+              ]
+            }
           }
         ]
       },
@@ -38,7 +56,13 @@
           {
             "type": "dialogue",
             "speakerId": "char_mc",
-            "text": "Iya, klorofil ada di dalam daun dan membantu menangkap cahaya."
+            "text": "Iya, klorofil ada di dalam daun dan membantu menangkap cahaya.",
+            "textVariants": [
+              {
+                "when": { "flag": "flg_salah_hijau", "is": true },
+                "text": "Sekarang aku ingat: klorofil yang membuat daun hijau dan menangkap cahaya."
+              }
+            ]
           },
           {
             "type": "narration",

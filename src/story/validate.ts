@@ -24,8 +24,10 @@ import type {
   Challenge,
   Character,
   Chapter,
+  DetourBeat,
   Scene,
   Story,
+  TextVariant,
 } from "./schema";
 
 /* -------------------------------------------------------------------------- */
@@ -59,6 +61,13 @@ export const ERROR_CODES = [
   "E_DUPLICATE_CHALLENGE_REF",
   "E_TEXT_TOO_LONG",
   "E_TEXT_EMPTY",
+  "E_RETRY_COUNT",
+  "E_FLAG_UNDECLARED",
+  "E_DETOUR_TOO_LONG",
+  // Hanya muncul dari `validateChapter` (validate-parts.ts): `onWrong` wajib
+  // bersama `maxAttempts` 2 atau 3. Validator cerita penuh tidak memeriksanya
+  // lagi karena pipeline sudah menolak chapter ini lebih dulu.
+  "E_ONWRONG_WITHOUT_ATTEMPTS",
   // Tidak ada di tabel dokumen (lihat laporan tugas): dibutuhkan oleh opsi
   // `pageCount`, jadi sengaja diekspor supaya konsumen bisa membedakannya.
   "E_PAGE_COUNT_MISMATCH",
@@ -74,6 +83,9 @@ export const WARNING_CODES = [
   "W_SHORT_ANSWER_ONLY",
   "W_LONG_DIALOGUE_RUN",
   "W_GAP_RECORDED",
+  // Hanya muncul dari `validateChapter` (validate-parts.ts): flag `textVariants`
+  // yang belum pernah di-set. Tidak diproduksi validator cerita penuh.
+  "W_TEXT_VARIANT_FLAG_UNSET",
 ] as const;
 
 export type WarningCode = (typeof WARNING_CODES)[number];
@@ -669,6 +681,9 @@ const checkDuplicateIds = (story: Story, report: ErrorCollector) => {
   };
 
   claim(story.meta.id, "meta.id");
+  story.flags?.forEach((flag, index) => {
+    claim(flag.id, `flags[${index}].id`);
+  });
   story.cast.forEach((character, index) => {
     claim(character.id, `cast[${index}].id`);
   });
@@ -806,6 +821,24 @@ const checkReferences = (
               `challengeId "${beat.challengeId}" tidak ada di daftar challenges.`,
             ),
           );
+        }
+
+        if (beat.type === "challenge" && beat.onWrong?.detour) {
+          beat.onWrong.detour.forEach((detourBeat, detourIndex) => {
+            if (
+              detourBeat.type === "dialogue" &&
+              !castIds.has(detourBeat.speakerId)
+            ) {
+              report(
+                errorIssue(
+                  "E_UNKNOWN_SPEAKER",
+                  `${beatPath}.onWrong.detour[${detourIndex}].speakerId`,
+                  `Karakter "${detourBeat.speakerId}" tidak ada di daftar cast.`,
+                  `"${detourBeat.speakerId}" tidak ada di cast.`,
+                ),
+              );
+            }
+          });
         }
       });
     });
@@ -1009,6 +1042,95 @@ const checkChallengeRules = (story: Story, report: ErrorCollector) => {
         );
       }
     }
+  });
+};
+
+/**
+ * Aturan percabangan "konsekuensi jawaban salah" (opsional, semuanya aditif
+ * terhadap kontrak v1.0). Struktur `onWrong` sendiri sudah dijaga schema;
+ * fungsi ini memeriksa hal yang butuh konteks seluruh cerita: deklarasi flag,
+ * jumlah teks soal ulang, dan panjang detour.
+ */
+const checkBranchingRules = (story: Story, report: ErrorCollector) => {
+  const declaredFlags = new Set((story.flags ?? []).map((flag) => flag.id));
+
+  const rejectUndeclaredFlag = (flagId: string, path: string) => {
+    if (declaredFlags.has(flagId)) return;
+    report(
+      errorIssue(
+        "E_FLAG_UNDECLARED",
+        path,
+        `Flag "${flagId}" dipakai tetapi tidak dideklarasikan di daftar flags.`,
+        `Tambahkan "${flagId}" ke flags atau ganti dengan flag yang sudah ada.`,
+      ),
+    );
+  };
+
+  story.chapters.forEach((chapter, chapterIndex) => {
+    chapter.scenes.forEach((scene, sceneIndex) => {
+      scene.beats.forEach((beat, beatIndex) => {
+        const beatPath = `chapters[${chapterIndex}].scenes[${sceneIndex}].beats[${beatIndex}]`;
+
+        if (beat.type === "dialogue") {
+          beat.textVariants?.forEach((variant, variantIndex) => {
+            rejectUndeclaredFlag(
+              variant.when.flag,
+              `${beatPath}.textVariants[${variantIndex}].when.flag`,
+            );
+          });
+          return;
+        }
+
+        if (beat.type !== "challenge") return;
+
+        const maxAttempts = beat.maxAttempts ?? 1;
+        const expectedRetries = maxAttempts - 1;
+        const retryQuestions = beat.onWrong?.retryQuestions ?? [];
+
+        if (retryQuestions.length !== expectedRetries) {
+          report(
+            errorIssue(
+              "E_RETRY_COUNT",
+              `${beatPath}.onWrong.retryQuestions`,
+              `Tantangan "${beat.challengeId}" memakai ${maxAttempts} percobaan, jadi butuh ${expectedRetries} teks soal ulang, bukan ${retryQuestions.length}.`,
+              `Isi retryQuestions tepat ${expectedRetries} entri.`,
+            ),
+          );
+        }
+
+        if (beat.onWrong?.setFlags) {
+          for (const flagId of Object.keys(beat.onWrong.setFlags)) {
+            rejectUndeclaredFlag(
+              flagId,
+              `${beatPath}.onWrong.setFlags.${flagId}`,
+            );
+          }
+        }
+
+        const detour = beat.onWrong?.detour ?? [];
+
+        if (detour.length > 3) {
+          report(
+            errorIssue(
+              "E_DETOUR_TOO_LONG",
+              `${beatPath}.onWrong.detour`,
+              `Detour tantangan "${beat.challengeId}" berisi ${detour.length} beat, maksimal 3.`,
+              "Pendekkan detour menjadi maksimal 3 beat narasi/dialog.",
+            ),
+          );
+        }
+
+        detour.forEach((detourBeat, detourIndex) => {
+          if (detourBeat.type !== "dialogue") return;
+          detourBeat.textVariants?.forEach((variant, variantIndex) => {
+            rejectUndeclaredFlag(
+              variant.when.flag,
+              `${beatPath}.onWrong.detour[${detourIndex}].textVariants[${variantIndex}].when.flag`,
+            );
+          });
+        });
+      });
+    });
   });
 };
 
@@ -1250,18 +1372,70 @@ export const tidyText = (value: string): string =>
 const tidyOptional = (value: string | undefined) =>
   value === undefined ? undefined : tidyText(value);
 
-const normalizeBeat = (beat: Beat): Beat => {
+const normalizeTextVariants = (
+  variants: readonly TextVariant[] | undefined,
+): TextVariant[] | undefined =>
+  variants?.map((variant) => ({
+    when: { flag: variant.when.flag, is: variant.when.is },
+    text: tidyText(variant.text),
+  }));
+
+const normalizeDetourBeat = (beat: DetourBeat): DetourBeat => {
   switch (beat.type) {
     case "narration":
       return { type: "narration", text: tidyText(beat.text) };
-    case "dialogue":
+    case "dialogue": {
+      const textVariants = normalizeTextVariants(beat.textVariants);
       return {
         type: "dialogue",
         speakerId: beat.speakerId,
         text: tidyText(beat.text),
+        ...(textVariants === undefined ? {} : { textVariants }),
       };
-    case "challenge":
-      return { type: "challenge", challengeId: beat.challengeId };
+    }
+  }
+};
+
+const normalizeBeat = (beat: Beat): Beat => {
+  switch (beat.type) {
+    case "narration":
+      return { type: "narration", text: tidyText(beat.text) };
+    case "dialogue": {
+      const textVariants = normalizeTextVariants(beat.textVariants);
+      return {
+        type: "dialogue",
+        speakerId: beat.speakerId,
+        text: tidyText(beat.text),
+        ...(textVariants === undefined ? {} : { textVariants }),
+      };
+    }
+    case "challenge": {
+      const onWrong =
+        beat.onWrong === undefined
+          ? undefined
+          : {
+              ...(beat.onWrong.setFlags === undefined
+                ? {}
+                : { setFlags: { ...beat.onWrong.setFlags } }),
+              ...(beat.onWrong.retryQuestions === undefined
+                ? {}
+                : {
+                    retryQuestions: beat.onWrong.retryQuestions.map(tidyText),
+                  }),
+              ...(beat.onWrong.detour === undefined
+                ? {}
+                : { detour: beat.onWrong.detour.map(normalizeDetourBeat) }),
+            };
+
+      return {
+        type: "challenge",
+        challengeId: beat.challengeId,
+        ...(beat.maxAttempts === undefined
+          ? {}
+          : { maxAttempts: beat.maxAttempts }),
+        ...(onWrong === undefined ? {} : { onWrong }),
+      };
+    }
     case "transition": {
       const text = tidyOptional(beat.text);
       return {
@@ -1390,6 +1564,17 @@ const normalizeStory = (story: Story): Story => ({
     music: sortedUnique(story.assetUsage.music),
     sprites: sortedUnique(story.assetUsage.sprites),
   },
+  ...(story.flags === undefined
+    ? {}
+    : {
+        flags: story.flags.map((flag) => ({
+          id: flag.id,
+          default: flag.default,
+        })),
+      }),
+  ...(story.scoring === undefined
+    ? {}
+    : { scoring: { basis: story.scoring.basis } }),
 });
 
 /* -------------------------------------------------------------------------- */
@@ -1458,6 +1643,7 @@ export function validateStory(
   checkReferences(story, options, report);
   checkStructureRules(story, report);
   checkChallengeRules(story, report);
+  checkBranchingRules(story, report);
   checkCastRules(story, report);
   checkAssetUsageConsistency(story, report);
   checkPageCount(story, options, report);

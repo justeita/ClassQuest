@@ -137,7 +137,10 @@ flowchart TD
   B --> C{"Beat ini<br/>tantangan?"}
   C -- "ya" --> D["Overlay soal muncul<br/>dialog berhenti"]
   D --> E["Siswa menjawab"]
-  E --> F["Umpan balik + penjelasan<br/>selalu muncul"]
+  E --> R{"Salah dan masih<br/>ada percobaan?"}
+  R -- "ya" --> S["Detour singkat<br/>narasi / dialog"]
+  S --> D
+  R -- "tidak" --> F["Umpan balik + penjelasan<br/>benar atau percobaan terakhir"]
   F --> G["Kembali ke cerita"]
   G --> H{"Masih ada beat<br/>di scene ini?"}
   C -- "bukan" --> H
@@ -244,6 +247,10 @@ tempel soal di tengah dialog.
 - Mini-game di luar tantangan.
 - Voice acting.
 - Save ke cloud.
+
+Konsekuensi otomatis jawaban salah (detour singkat sebelum soal diulang, lihat
+[`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)) bukan
+pilihan dialog pemain, jadi larangan di atas tetap berlaku untuk pilihan dialog.
 
 ## Referensi internal
 

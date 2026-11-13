@@ -146,7 +146,7 @@ Aturan input:
 5. scoring.isCorrect(challenge, answer)  ← fungsi murni
 6. Panel menampilkan feedback:
    - benar/salah (tanpa warna menyala)
-   - explanation (selalu)
+   - explanation (hanya saat benar atau percobaan terakhir)
    - tombol "Lanjut" di footer
 7. Klik "Lanjut" → kirim { type: "resolve_challenge", correct }
 8. Phaser menutup pause, lanjut beat berikutnya
@@ -154,10 +154,20 @@ Aturan input:
 
 Detail penting:
 
-- **Penilaian terjadi sekali per kemunculan.** Jangan menilai ulang saat render.
-- **Satu kemunculan soal hanya bisa dijawab sekali.** Setelah submit, tidak ada
-  "coba lagi" di soal yang sama — overlay menampilkan jawaban benar + penjelasan,
-  lalu "Lanjut". Ini yang membuat skor punya arti.
+- **Penilaian terjadi sekali per percobaan.** Jangan menilai ulang saat render.
+- **Soal bisa diulang bila cerita memakai `onWrong`.** Tantangan dengan `onWrong`
+  punya `maxAttempts` 2 atau 3 (lihat
+  [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md#konsekuensi-jawaban-salah-opsional)).
+  Setelah jawaban salah **dan** masih ada percobaan, game memutar `detour`
+  (narasi/dialog singkat) lewat kotak dialog yang sama, lalu membuka lagi soal
+  yang sama dengan teks `retryQuestions`. Opsi dan jawaban benar tidak berubah.
+- **Penjelasan hanya tampil saat benar atau di percobaan terakhir.** Selama masih
+  ada percobaan berikutnya, overlay tidak menampilkan `explanation` supaya soal
+  ulang tetap bermakna; game baru mengirim `graded` (beserta penjelasan) untuk
+  hasil final.
+- **Tanpa `onWrong`, perilaku lama berlaku.** `maxAttempts` efektif 1, jadi satu
+  kemunculan soal hanya bisa dijawab sekali: overlay menampilkan jawaban benar +
+  penjelasan, lalu "Lanjut". Ini yang membuat skor punya arti.
 - **Tapi mengulang bukan mustahil.** Kalau siswa me-refresh, keluar, atau memilih
   "Ulangi chapter", soal itu akan muncul lagi dari awal. Itu memang disengaja:
   ini game belajar, bukan ujian.
@@ -165,7 +175,11 @@ Detail penting:
   `answers[challengeId] = { correct, at }`; nilai pertama tidak ditimpa saat soal
   dijawab ulang. `weakConcepts` di layar hasil memakai data yang sama, jadi
   mengulang tidak menghapus catatan bahwa konsep itu sempat salah.
-- **Penjelasan selalu muncul**, benar maupun salah.
+- **Batasan yang diketahui:** "Ulangi chapter" **tidak** me-reset jumlah
+  percobaan atau nilai flag konsekuensi jawaban salah. Tantangan yang sudah
+  memakai percobaan tetap begitu setelah chapter diulang, jadi jawaban salah
+  berikutnya bisa langsung dianggap percobaan terakhir. Skor juga tetap memakai
+  percobaan pertama. Membetulkannya tidak termasuk MVP.
 - Fokus keyboard otomatis pindah ke overlay saat muncul, dan kembali ke canvas
   saat ditutup.
 - `Esc` **tidak menutup** overlay tantangan. Satu-satunya jalan keluar adalah
@@ -278,7 +292,7 @@ Tidak dikirim ke mana pun di MVP:
 - [ ] Debounce input 150 ms.
 - [ ] Input dialog diabaikan saat `challenge` dan transisi.
 - [ ] Penilaian lewat `src/story/scoring.ts` (tidak diduplikasi).
-- [ ] `explanation` selalu tampil.
+- [ ] `explanation` tampil saat jawaban benar atau di percobaan terakhir.
 - [ ] Fokus berpindah ke overlay dan kembali.
 - [ ] Progres disimpan dan bisa dipulihkan.
 - [ ] Versi cerita dicek saat resume.
