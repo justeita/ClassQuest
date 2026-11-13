@@ -33,7 +33,6 @@ describe("buildQuestState", () => {
     expect(view!.quests.map((quest) => quest.status)).toEqual([
       "aktif",
       "terkunci",
-      "terkunci",
     ]);
     expect(view!.sceneTitle).toBe(sceneAwal.title);
   });
@@ -50,7 +49,6 @@ describe("buildQuestState", () => {
     expect(view!.quests[0]!.status).toBe("selesai");
     expect(view!.quests[1]!.status).toBe("aktif");
     expect(view!.quests[1]!.tantangan).toEqual({ total: 1, dijawab: 1 });
-    expect(view!.quests[2]!.status).toBe("terkunci");
   });
 
   it("akhir bab menandai semua quest selesai tanpa quest aktif", () => {
@@ -94,20 +92,20 @@ describe("judulQuest", () => {
 });
 
 describe("pilihPemberiQuest", () => {
-  const npcs = [{ id: "char_rani" }, { id: "char_pak_bima" }];
+  const npcs = [{ id: "char_npc_1" }, { id: "char_npc_10" }];
 
   it("memilih pembicara dialog pertama yang hadir di ruangan", () => {
-    expect(pilihPemberiQuest(sceneAwal, npcs)).toBe("char_rani");
+    expect(pilihPemberiQuest(sceneAwal, npcs)).toBe("char_npc_1");
   });
 
   it("jatuh ke NPC pertama bila pembicara tidak ada di ruangan", () => {
-    const hanyaPakBima = [{ id: "char_pak_bima" }];
-    // Scene pertama dibuka Rani, tetapi ia tidak ada di ruangan ini.
-    expect(pilihPemberiQuest(sceneAwal, hanyaPakBima)).toBe("char_pak_bima");
+    const hanyaPakWira = [{ id: "char_npc_10" }];
+    // Scene pertama dibuka Bu Sri, tetapi ia tidak ada di ruangan ini.
+    expect(pilihPemberiQuest(sceneAwal, hanyaPakWira)).toBe("char_npc_10");
   });
 
   it("jatuh ke NPC pertama saat scene kosong", () => {
-    expect(pilihPemberiQuest(null, npcs)).toBe("char_rani");
+    expect(pilihPemberiQuest(null, npcs)).toBe("char_npc_1");
   });
 
   it("mengembalikan null bila ruangan tidak punya NPC", () => {

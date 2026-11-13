@@ -1,20 +1,24 @@
-import type { RoomMap } from "./map";
+import { TINGGI_KARAKTER } from "./world/karakter";
+import type { WorldNpc } from "./world/types";
 
 /**
  * Zona interaksi NPC (ADR 0008): pemain yang cukup dekat dengan NPC bisa
  * memicu deretan beat scene lewat `StoryRunner.interact()`.
- * Pencarian NPC berbasis jarak — murni, tanpa fisika tambahan.
+ * Pencarian NPC berbasis jarak dari titik kaki — murni, tanpa fisika tambahan.
  *
  * Prompt "Space" tidak lagi digambar di canvas; modul ini hanya menghitung
  * posisinya. React (`InteractHint.tsx`) yang menggambar chip teksnya supaya
  * tajam — lihat ADR 0007.
  */
 
-/** Jarak zona interaksi: 1,5 tile = 24 px (world-design.md § Satuan dasar). */
+/** Jarak zona interaksi: 24 px dari titik kaki pemain ke titik kaki NPC. */
 export const ZONA_RADIUS = 24;
 
 /** Teks prompt; tombol yang sama dipakai `GameScene` untuk memicu dialog. */
 export const PROMPT_INTERAKSI = "Space";
+
+/** Jarak chip prompt dari ubun-ubun sprite karakter, dalam piksel. */
+export const JARAK_PROMPT = 8;
 
 export type PromptHint = {
   text: string;
@@ -23,16 +27,22 @@ export type PromptHint = {
   y: number;
 };
 
-/** NPC terdekat yang berada di dalam zona; null kalau tidak ada. */
+/**
+ * NPC terdekat yang berada di dalam zona; null kalau tidak ada.
+ *
+ * Yang diukur jarak antara **titik kaki** pemain dan titik kaki NPC, sama
+ * seperti tabrakan, supaya pemain bisa berdiri di samping NPC yang tinggi
+ * tanpa terasa "jauh".
+ */
 export function findNpcInZone(
-  map: RoomMap,
+  npcs: Pick<WorldNpc, "id" | "x" | "y">[],
   playerX: number,
   playerY: number,
   radius = ZONA_RADIUS,
 ): string | null {
   let terdekat: { id: string; jarak: number } | null = null;
 
-  for (const npc of map.npcs) {
+  for (const npc of npcs) {
     const dx = npc.x - playerX;
     const dy = npc.y - playerY;
     const jarak = Math.hypot(dx, dy);
@@ -46,15 +56,19 @@ export function findNpcInZone(
 
 /**
  * Posisi chip prompt di atas kepala NPC, dalam koordinat internal.
- * `12` px adalah jarak chip ke ubun-ubun sprite 24×32.
+ * Sprite dijangkar di titik kaki, jadi ubun-ubunnya `TINGGI_KARAKTER` px di
+ * atas titik itu; chip diletakkan sedikit di atasnya.
  */
-export function posisiPrompt(map: RoomMap, npcId: string): PromptHint | null {
-  const npc = map.npcs.find((entry) => entry.id === npcId);
+export function posisiPrompt(
+  npcs: Pick<WorldNpc, "id" | "x" | "y">[],
+  npcId: string,
+): PromptHint | null {
+  const npc = npcs.find((entry) => entry.id === npcId);
   if (!npc) return null;
 
   return {
     text: PROMPT_INTERAKSI,
     x: npc.x,
-    y: npc.y - npc.height / 2 - 12,
+    y: npc.y - TINGGI_KARAKTER - JARAK_PROMPT,
   };
 }

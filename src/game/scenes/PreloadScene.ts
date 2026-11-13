@@ -1,21 +1,23 @@
 import Phaser from "phaser";
 
+import { WORLD } from "@/assets/manifest";
 import type { Story } from "@/story/schema";
-
-import { ASSETS_BY_ID } from "@/assets/manifest";
 
 import { collectStoryAssets } from "../sceneAssets";
 import { fontGame } from "../font";
 import { teksTajam } from "../text";
-import { listRoomAssets } from "../maps/roomData";
 
-/** Ukuran satu frame spritesheet karakter (docs/07-assets/asset-guide.md). */
-export const SPRITE_FRAME_WIDTH = 24;
-export const SPRITE_FRAME_HEIGHT = 32;
+/** Dipakai hanya bila entri karakter lupa mengisi ukuran frame. */
+const FRAME_WIDTH_DEFAULT = 24;
+const FRAME_HEIGHT_DEFAULT = 32;
 
 /**
- * Muat hanya aset yang dipakai cerita ini. Semua key loader memakai `id`
- * manifest, jadi scene tidak pernah menebak path file.
+ * Muat hanya aset yang dipakai cerita ini, ditambah seluruh aset dunia desa.
+ * Semua key loader memakai `id` manifest, jadi scene tidak pernah menebak path
+ * file.
+ *
+ * Spritesheet karakter memakai `frameWidth`/`frameHeight` dari manifest karena
+ * tiap karakter desa punya lebar frame sendiri.
  *
  * `create()` langsung menyerahkan kendali ke `GameScene`; layar loading React
  * belum ada, jadi teks progres kecil digambar di canvas.
@@ -31,7 +33,7 @@ export class PreloadScene extends Phaser.Scene {
   preload() {
     const label = teksTajam(
       this.add
-        .text(320, 180, "Memuat… 0%", {
+        .text(320, 180, "Memuat... 0%", {
           fontFamily: fontGame(),
           fontSize: "14px",
           color: "#F7F4EC",
@@ -40,22 +42,21 @@ export class PreloadScene extends Phaser.Scene {
     ).setDepth(1000);
 
     this.load.on("progress", (nilai: number) => {
-      label.setText(`Memuat… ${Math.round(nilai * 100)}%`);
+      label.setText(`Memuat... ${Math.round(nilai * 100)}%`);
     });
 
-    // Tile, prop, dan gambar peta ruangan (ADR 0010/0012) dimuat berdasarkan
-    // data map, bukan seluruh manifest.
-    const ruang = listRoomAssets();
-    for (const id of [...ruang.tiles, ...ruang.props, ...ruang.maps]) {
-      const asset = ASSETS_BY_ID.get(id);
-      if (asset && !this.textures.exists(id)) this.load.image(id, asset.path);
+    // Dunia desa: satu gambar peta dan potongan objeknya. Tidak dirujuk cerita,
+    // jadi dimuat langsung dari manifest (bukan `collectStoryAssets`).
+    for (const asset of WORLD) {
+      if (!this.textures.exists(asset.id))
+        this.load.image(asset.id, asset.path);
     }
 
     for (const asset of collectStoryAssets(this.story)) {
       if (asset.kind === "character") {
         this.load.spritesheet(asset.id, asset.path, {
-          frameWidth: SPRITE_FRAME_WIDTH,
-          frameHeight: SPRITE_FRAME_HEIGHT,
+          frameWidth: asset.frameWidth ?? FRAME_WIDTH_DEFAULT,
+          frameHeight: asset.frameHeight ?? FRAME_HEIGHT_DEFAULT,
         });
         if (asset.portraitPath) {
           this.load.image(`${asset.id}:portrait`, asset.portraitPath);

@@ -1,6 +1,6 @@
 import type { Chapter, Scene, Story } from "@/story/schema";
 
-import type { MapNpc } from "./map";
+import type { WorldNpc } from "./world/types";
 import type { StoryRunnerState } from "./StoryRunner";
 
 /**
@@ -106,7 +106,7 @@ export function buildQuestState(
  */
 export function pilihPemberiQuest(
   scene: Scene | null | undefined,
-  npcs: Pick<MapNpc, "id">[],
+  npcs: Pick<WorldNpc, "id">[],
 ): string | null {
   if (npcs.length === 0) return null;
   if (!scene) return npcs[0]!.id;
