@@ -1,6 +1,6 @@
 ---
 status: tbd
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -44,6 +44,7 @@ AI_API_KEY=...
 AI_MODEL=...
 AI_BASE_URL=...             # opsional, untuk gateway/self-hosted
 AI_TIMEOUT_MS=60000
+AI_BRANCHING=               # opsional: "on" = konsekuensi jawaban salah; kosong = mati
 ```
 
 Aturan:
@@ -52,6 +53,9 @@ Aturan:
 - Validasi di `src/server/config.ts` (satu-satunya pembaca env AI, lihat
   [`../01-architecture/repo-structure.md`](../01-architecture/repo-structure.md));
   kalau `AI_PROVIDER` tidak dikenal → gagal saat start, bukan saat demo.
+- `AI_BRANCHING` hanya nilai `"on"` yang menyalakan; kosong, `off`, atau nilai
+  lain mematikan. Saat mati, prompt chapter persis seperti sebelum fitur
+  percabangan ada (`prompt.test.ts`).
 - Nilai default adalah `mock` — provider nyata belum diputuskan (ADR 0006).
   Jangan menaruh nama provider sungguhan sebagai contoh default, karena itu
   terbaca seperti keputusan.

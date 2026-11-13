@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -51,7 +51,10 @@ Alasan:
 
 **Negatif / utang:**
 
-- Fleksibilitas cerita terbatas pada bentuk yang didukung (tidak ada percabangan).
+- Fleksibilitas cerita terbatas pada bentuk yang didukung. Percabangan sejauh
+  ini hanya berupa konsekuensi jawaban salah (soal ulang + detour singkat),
+  bukan pilihan dialog pemain; lihat
+  [ADR 0016](0016-branching-konsekuensi-jawaban-salah.md).
 - Setiap fitur naratif baru butuh perubahan schema + ADR.
 - Perlu disiplin: jangan menyimpan metadata internal (status, versi, pemilik) di
   dalam JSON.
@@ -64,8 +67,8 @@ Alasan:
 
 ## Kapan ditinjau ulang
 
-Jika produk butuh percabangan cerita, atau jika guru perlu menambah struktur
-(chapter/scene) sendiri.
+Jika guru perlu menambah struktur (chapter/scene) sendiri, atau butuh
+percabangan di luar konsekuensi jawaban salah.
 
 ## Referensi
 
