@@ -8,62 +8,63 @@ type NpcMarkerProps = {
 };
 
 /**
- * Penanda quest di atas NPC pemberi quest.
+ * Penanda quest pemberi quest, dua bentuk dalam satu komponen:
  *
- * Dua bentuk, satu komponen:
+ * - **Menempel**: NPC terlihat, badge `!` oranye duduk di atas kepalanya.
+ * - **Tepi**: NPC di luar pandangan, badge berganti menjadi beacon kecil
+ *   bergaya HUD (`bg-[#0b120e]` + garis aksen) yang ditempel di tepi layar.
+ *   Sisi tempat beacon berhenti menunjukkan arah NPC — tanpa panah atau
+ *   segitiga. Karena posisinya dihitung ulang tiap frame, beacon ikut bergeser
+ *   saat pemain berjalan mendekat, lalu kembali menjadi badge di atas kepala
+ *   begitu NPC masuk layar.
  *
- * - **Menempel**: NPC terlihat, tanda `!` duduk di atas kepalanya.
- * - **Tepi**: NPC di luar pandangan, tanda menempel di tepi layar dan panahnya
- *   menunjuk arah NPC (`marker.sudut`). Posisinya dihitung ulang tiap frame,
- *   jadi saat pemain berjalan mendekat indikator ini ikut bergeser, lalu
- *   berubah mulus menjadi tanda di atas kepala ketika NPC masuk layar.
+ * Beacon memakai `z-30` agar tampil di depan baris HUD, tetapi
+ * `pointer-events-none` supaya tombol di bawahnya tetap bisa diklik. Jarak
+ * aman di `INSET_PENANDA` (layar.ts) menahan beacon agar tidak menutupi tombol.
  *
- * Kedua bentuk memakai jangkar kiri-bawah yang sama. Jadi saat NPC melewati
- * batas layar, badge tidak melompat vertikal — hanya panahnya yang muncul.
- * Mode tepi naik ke `z-30` supaya tidak tertutup HUD/kartu quest di pojok;
- * elemennya `pointer-events-none`, jadi tombol di bawahnya tetap bisa diklik.
- *
- * Animasi naik-turun 2 px dibuat halus dan mati saat `prefers-reduced-motion`,
+ * Animasi naik-turun 2 px dan denyut beacon mati saat `prefers-reduced-motion`,
  * supaya tidak terasa seperti notifikasi berkedip.
  */
 export function NpcMarker({ marker }: NpcMarkerProps) {
-  const tepi = marker.tepi === true;
-  const sudut = marker.sudut ?? 0;
+  if (marker.tepi === true) {
+    return (
+      <div
+        className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2 font-game"
+        style={{ left: persenLebar(marker.x), top: persenTinggi(marker.y) }}
+        data-tepi="true"
+        aria-hidden="true"
+      >
+        {/* Cincin denyut: menandai "ada yang perlu dituju" tanpa memakai panah. */}
+        <span className="absolute -inset-1 animate-quest-beacon border border-[#E8A87C] opacity-0" />
+        <span
+          className="relative flex items-center justify-center border border-[#E8A87C]/80 bg-[#0b120e]/90 font-bold leading-none text-[#E8A87C] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)]"
+          style={{
+            width: cqw(20),
+            height: cqw(20),
+            fontSize: ukuranHuruf(13, 10, 20),
+          }}
+        >
+          !
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`pointer-events-none absolute -translate-x-1/2 -translate-y-full font-game ${
-        tepi ? "z-30" : "z-10"
-      }`}
+      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full font-game"
       style={{ left: persenLebar(marker.x), top: persenTinggi(marker.y) }}
-      data-tepi={tepi ? "true" : undefined}
-      data-sudut={tepi ? String(sudut) : undefined}
       aria-hidden="true"
     >
       <span
-        className="animate-quest-bob flex items-center justify-center gap-1 border border-[#2A1A12] bg-[#E8A87C] text-center font-bold leading-none text-[#2A1A12] shadow-[2px_2px_0_0_rgba(0,0,0,0.35)]"
+        className="animate-quest-bob flex items-center justify-center border border-[#2A1A12] bg-[#E8A87C] text-center font-bold leading-none text-[#2A1A12] shadow-[2px_2px_0_0_rgba(0,0,0,0.35)]"
         style={{
-          width: cqw(tepi ? 30 : 18),
+          width: cqw(18),
           height: cqw(18),
           fontSize: ukuranHuruf(16, 13, 24),
           lineHeight: cqw(18),
         }}
       >
-        {tepi && (
-          <svg
-            viewBox="0 0 9 9"
-            fill="currentColor"
-            data-arah="true"
-            style={{
-              width: cqw(9),
-              height: cqw(9),
-              flex: "none",
-              transform: `rotate(${sudut}deg)`,
-            }}
-          >
-            <path d="M0 0 L9 4.5 L0 9 Z" />
-          </svg>
-        )}
         !
       </span>
     </div>

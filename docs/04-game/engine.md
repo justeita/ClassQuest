@@ -252,12 +252,15 @@ berlangganan bus sendiri, jadi pembaruan tiap frame tidak me-render ulang HUD,
 dialog, atau jurnal. Emisi tetap hanya terjadi saat piksel bulatnya berubah.
 
 Saat NPC pemberi quest berada di luar pandangan, penanda tidak menghilang:
-`posisiPenanda()` (`layar.ts`) menjepit posisinya ke tepi layar dan menghitung
-`sudut` arah NPC, lalu `NpcMarker.tsx` menggambar badge `!` dengan panah yang
-diputar sesuai sudut itu. Karena posisinya dihitung ulang tiap frame, indikator
-tepi ikut bergeser ketika pemain berjalan mendekat dan berubah mulus menjadi
-penanda di atas kepala begitu NPC masuk layar. Area aman memakai padding yang
-sama di kedua mode, jadi tidak ada lompatan di batasnya.
+`posisiPenanda()` (`layar.ts`) menjepit posisinya ke tepi layar, lalu
+`NpcMarker.tsx` merendernya sebagai **beacon** kecil bergaya HUD — kotak gelap
+`bg-[#0b120e]/90` dengan garis dan glyph aksen `#E8A87C`, ditambah cincin yang
+berdenyut. Tidak ada panah atau segitiga: sisi layar tempat beacon berhenti yang
+menunjukkan arah NPC. `INSET_PENANDA` memberi jarak aman, dengan sisi atas lebih
+lebar (52 px internal) supaya beacon tidak menutupi baris HUD. Karena posisinya
+dihitung ulang tiap frame, beacon ikut bergeser ketika pemain berjalan mendekat
+dan berubah mulus menjadi penanda di atas kepala begitu NPC masuk layar.
+`pointer-events-none` menjaga tombol di bawahnya tetap bisa diklik.
 
 Penanda `!` **tidak** diganti chip `Space` saat pemain mendekat: kedua tanda
 tampil bersamaan (chip di kanan penanda) agar indikator quest tidak hilang-muncul.
@@ -339,10 +342,10 @@ type GameEvent =
 ```
 
 `DialogueView` = `{ visible, name, text, waiting }`; `PromptView` =
-`{ text, x, y }` dan `NpcMarker` = `{ npcId, x, y, tepi?, sudut? }`, keduanya
-dalam koordinat layar internal 640×360 (sudah dikurangi scroll kamera). Untuk
+`{ text, x, y }` dan `NpcMarker` = `{ npcId, x, y, tepi? }`, keduanya dalam
+koordinat layar internal 640×360 (sudah dikurangi scroll kamera). Untuk
 `NpcMarker`, `tepi: true` berarti NPC di luar pandangan sehingga posisinya sudah
-dijepit ke tepi layar dan `sudut` (derajat, 0 = kanan) adalah arah NPC. `QuestState` berisi
+dijepit ke area aman di tepi layar. `QuestState` berisi
 chapter, scene aktif, daftar quest turunan scene, dan `activeQuestId`; status
 `selesai | aktif | terkunci` dihitung dari posisi `StoryRunner`, bukan ditulis di
 Story JSON. Teks dialog dikirim bertahap saat typewriter berjalan, dan React tidak

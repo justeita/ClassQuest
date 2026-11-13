@@ -29,68 +29,68 @@ export function duniaKeLayar(
 }
 
 /**
- * Apakah titik berada di dalam area permainan.
+ * Jarak aman penanda dari tepi layar, dalam piksel internal.
  *
- * `margin` positif memperluas batas ke luar layar, negatif mempersempitnya.
- * `posisiPenanda` memakainya untuk mengecek area aman selebar `pad`;
- * koordinat prompt interaksi memakai batas apa adanya.
+ * Sisi atas lebih lebar karena baris HUD duduk di sana: tombol Quest di kiri
+ * dan jeda/musik/catatan di kanan. Dengan jarak ini beacon tidak menutupi
+ * tombol, jadi terlihat seperti bagian HUD, bukan tempelan di atasnya.
  */
-export function dalamLayar(
-  titik: TitikLayar,
-  lebar = GAME_WIDTH,
-  tinggi = GAME_HEIGHT,
-  margin = 0,
-): boolean {
-  return (
-    titik.x >= -margin &&
-    titik.x <= lebar + margin &&
-    titik.y >= -margin &&
-    titik.y <= tinggi + margin
-  );
-}
+export const INSET_PENANDA = {
+  atas: 52,
+  kanan: 18,
+  bawah: 20,
+  kiri: 18,
+} as const;
 
-/** Posisi penanda beserta status tepi dan arah panahnya. */
+/** Jarak aman penanda; isi keempat sisi bila perlu nilai khusus. */
+export type InsetPenanda = {
+  atas: number;
+  kanan: number;
+  bawah: number;
+  kiri: number;
+};
+
+/** Posisi penanda beserta statusnya: menempel di NPC atau di tepi layar. */
 export type PenandaLayar = TitikLayar & {
   /** Titik asli di luar area aman, jadi penanda ditempel di tepi layar. */
   tepi: boolean;
-  /** Arah panah dalam derajat: 0 = kanan, 90 = bawah (searah CSS rotate). */
-  sudut: number;
 };
 
 /**
  * Posisi penanda quest di layar.
  *
- * Selama NPC masih terlihat (di dalam area aman selebar `pad` dari tepi),
+ * Selama NPC masih terlihat (di dalam area aman selebar `inset` dari tepi),
  * posisinya dipakai apa adanya sehingga tanda menempel di atas kepalanya.
  * Begitu NPC keluar pandangan, penanda **tidak menghilang**: posisinya
- * dijepit ke tepi layar dan `sudut` menunjuk arah NPC berada. Saat pemain
- * berjalan mendekat, posisi jepitan ini ikut bergeser mengikuti NPC dan
- * akhirnya kembali menjadi penanda biasa tepat ketika NPC masuk area aman —
- * tidak ada lompatan karena batasnya memakai `pad` yang sama.
+ * dijepit ke tepi layar. Karena posisinya dihitung ulang tiap frame, beacon
+ * tepi ikut bergeser mengikuti NPC saat pemain berjalan mendekat, lalu
+ * kembali menjadi penanda biasa tepat ketika NPC masuk area aman.
+ *
+ * Arah NPC ditunjukkan oleh sisi layar tempat beacon berhenti — tidak perlu
+ * panah, jadi tidak ada bentuk segitiga yang menutupi dunia.
  */
 export function posisiPenanda(
   titik: TitikLayar,
   lebar = GAME_WIDTH,
   tinggi = GAME_HEIGHT,
-  pad = 20,
+  inset: InsetPenanda = INSET_PENANDA,
 ): PenandaLayar {
   // Jaga-jaga untuk layar yang sangat kecil: area aman tidak boleh terbalik.
-  const kiri = pad;
-  const kanan = Math.max(pad, lebar - pad);
-  const atas = pad;
-  const bawah = Math.max(pad, tinggi - pad);
+  const kiri = Math.min(inset.kiri, lebar);
+  const kanan = Math.max(kiri, lebar - inset.kanan);
+  const atas = Math.min(inset.atas, tinggi);
+  const bawah = Math.max(atas, tinggi - inset.bawah);
 
-  // Area aman = layar yang dipersempit `pad` di tiap sisi. Margin negatif
-  // membuat `dalamLayar` mengecek batas dalam, bukan batas layar luar.
-  const diLuar = !dalamLayar(titik, lebar, tinggi, -pad);
+  const diLuar =
+    titik.x < kiri || titik.x > kanan || titik.y < atas || titik.y > bawah;
 
   if (!diLuar) {
-    return { x: titik.x, y: titik.y, tepi: false, sudut: 0 };
+    return { x: titik.x, y: titik.y, tepi: false };
   }
 
-  const x = Math.min(Math.max(titik.x, kiri), kanan);
-  const y = Math.min(Math.max(titik.y, atas), bawah);
-  const sudut = (Math.atan2(titik.y - y, titik.x - x) * 180) / Math.PI;
-
-  return { x, y, tepi: true, sudut };
+  return {
+    x: Math.min(Math.max(titik.x, kiri), kanan),
+    y: Math.min(Math.max(titik.y, atas), bawah),
+    tepi: true,
+  };
 }
