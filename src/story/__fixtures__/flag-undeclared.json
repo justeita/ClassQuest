@@ -7,7 +7,7 @@
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat, riang, dan gotong royong",
-    "synopsis": "Nara membantu warga Desa Sukamaju menyiapkan Pesta Panen. Dari dapur Bu Sri sampai lumbung Pak Joko, ia memakai perbandingan, pecahan, persentase, rata-rata, dan diagram data agar pesta berjalan adil dan meriah.",
+    "synopsis": "Kael membantu warga Desa Sukamaju menyiapkan Pesta Panen. Dari dapur Elian sampai lumbung Griselda, ia memakai perbandingan, pecahan, persentase, rata-rata, dan diagram data agar pesta berjalan adil dan meriah.",
     "estimatedMinutes": 30
   },
   "source": {
@@ -25,73 +25,73 @@
   "cast": [
     {
       "id": "char_mc",
-      "name": "Nara",
+      "name": "Kael",
       "role": "player",
       "spriteId": "char_mc",
       "description": "Siswa SMP yang senang membantu warga desa dan tidak takut berhitung."
     },
     {
       "id": "char_npc_10",
-      "name": "Pak Wira",
+      "name": "Edric",
       "role": "mentor",
       "spriteId": "char_npc_10",
       "description": "Kepala desa yang tenang dan percaya bahwa matematika membuat keputusan lebih adil."
     },
     {
       "id": "char_npc_1",
-      "name": "Bu Sri",
+      "name": "Elian",
       "role": "npc",
       "spriteId": "char_npc_1",
       "description": "Juru masak pesta yang hafal semua resep kue desa."
     },
     {
       "id": "char_npc_3",
-      "name": "Pak Darto",
+      "name": "Elias",
       "role": "npc",
       "spriteId": "char_npc_3",
       "description": "Petani yang mencatat setiap hasil panen di buku lusuhnya."
     },
     {
       "id": "char_npc_4",
-      "name": "Bu Lastri",
+      "name": "Clara",
       "role": "npc",
       "spriteId": "char_npc_4",
       "description": "Pembuat kue yang teliti saat membagi porsi untuk tamu."
     },
     {
       "id": "char_npc_5",
-      "name": "Pak Joko",
+      "name": "Griselda",
       "role": "npc",
       "spriteId": "char_npc_5",
       "description": "Penjaga lumbung yang rajin menimbang hasil panen."
     },
     {
       "id": "char_npc_6",
-      "name": "Kak Nia",
+      "name": "Eldric",
       "role": "npc",
       "spriteId": "char_npc_6",
       "description": "Pemuda panitia pesta yang mengurus stan dan harga."
     },
     {
       "id": "char_npc_7",
-      "name": "Mbah Karto",
+      "name": "Marlow",
       "role": "npc",
       "spriteId": "char_npc_7",
       "description": "Sesepuh desa yang hafal cerita setiap musim panen."
     },
     {
       "id": "char_npc_8",
-      "name": "Bu Ratna",
+      "name": "Leonhardt",
       "role": "npc",
       "spriteId": "char_npc_8",
       "description": "Guru desa yang membantu menulis laporan panen."
     },
     {
       "id": "char_npc_9",
-      "name": "Dewi",
+      "name": "Theo",
       "role": "npc",
       "spriteId": "char_npc_9",
-      "description": "Teman Nara yang senang menata piring dan membuat papan pengumuman."
+      "description": "Teman Kael yang senang menata piring dan membuat papan pengumuman."
     }
   ],
   "chapters": [
@@ -99,13 +99,13 @@
       "id": "ch_01",
       "title": "Pagi di Dapur Pesta",
       "concept": "Perbandingan",
-      "summary": "Pagi hari di Desa Sukamaju, Nara membantu Bu Sri menyiapkan kue untuk Pesta Panen. Ia belajar menjaga perbandingan bahan agar rasa kue tetap sama meski resepnya diperbesar.",
+      "summary": "Pagi hari di Desa Sukamaju, Kael membantu Elian menyiapkan kue untuk Pesta Panen. Ia belajar menjaga perbandingan bahan agar rasa kue tetap sama meski resepnya diperbesar.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_01_01",
-          "title": "Aroma dari Dapur Bu Sri",
+          "title": "Aroma dari Dapur Elian",
           "beats": [
             {
               "type": "narration",
@@ -114,12 +114,12 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_1",
-              "text": "Nara! Tepat waktu. Hari ini kita memasak untuk Pesta Panen. Banyak resep harus dibagi rata."
+              "text": "Kael! Tepat waktu. Hari ini kita memasak untuk Pesta Panen. Banyak resep harus dibagi rata."
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Aku siap membantu, Bu. Apa yang harus kuhitung lebih dulu?"
+              "text": "Aku siap membantu, Elian. Apa yang harus kuhitung lebih dulu?"
             },
             {
               "type": "dialogue",
@@ -128,7 +128,7 @@
             },
             {
               "type": "narration",
-              "text": "Nara mengangguk sambil mengeluarkan buku catatan kecil dari kantong celemeknya."
+              "text": "Kael mengangguk sambil mengeluarkan buku catatan kecil dari kantong celemeknya."
             }
           ]
         },
@@ -157,7 +157,7 @@
             },
             {
               "type": "narration",
-              "text": "Nara menuang bahan dengan hati-hati. Aroma kue mulai memenuhi dapur."
+              "text": "Kael menuang bahan dengan hati-hati. Aroma kue mulai memenuhi dapur."
             },
             {
               "type": "dialogue",
@@ -172,7 +172,7 @@
       "id": "ch_02",
       "title": "Kue untuk Semua",
       "concept": "Pecahan",
-      "summary": "Kue sudah matang dan meja pesta harus segera ditata. Nara bersama Bu Lastri membagi loyang serta memotong kue menjadi bagian-bagian yang mudah dibandingkan.",
+      "summary": "Kue sudah matang dan meja pesta harus segera ditata. Kael bersama Clara membagi loyang serta memotong kue menjadi bagian-bagian yang mudah dibandingkan.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
@@ -187,7 +187,7 @@
             },
             {
               "type": "narration",
-              "text": "Di meja panjang ada empat loyang kue yang sama besar. Bu Lastri mengambil dua loyang untuk meja tamu."
+              "text": "Di meja panjang ada empat loyang kue yang sama besar. Clara mengambil dua loyang untuk meja tamu."
             },
             {
               "type": "challenge",
@@ -205,7 +205,7 @@
             },
             {
               "type": "narration",
-              "text": "Bu Lastri menunjuk empat potongan kue dengan ukuran berbeda."
+              "text": "Clara menunjuk empat potongan kue dengan ukuran berbeda."
             }
           ]
         },
@@ -216,7 +216,7 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Nara, piring tamu masih kosong! Kita harus menyusun potongan kue ini dengan rapi."
+              "text": "Kael, piring tamu masih kosong! Kita harus menyusun potongan kue ini dengan rapi."
             },
             {
               "type": "dialogue",
@@ -234,7 +234,7 @@
             },
             {
               "type": "narration",
-              "text": "Nara menyusun potongan kue di piring dengan rapi, dari seperempat sampai tiga perempat."
+              "text": "Kael menyusun potongan kue di piring dengan rapi, dari seperempat sampai tiga perempat."
             },
             {
               "type": "dialogue",
@@ -249,7 +249,7 @@
       "id": "ch_03",
       "title": "Keranjang di Pasar Desa",
       "concept": "Persentase",
-      "summary": "Hasil panen mulai dijual di pasar desa. Nara membantu Pak Joko menghitung bagian untuk balai desa dan Kak Nia memasang harga diskon untuk pengunjung pesta.",
+      "summary": "Hasil panen mulai dijual di pasar desa. Kael membantu Griselda menghitung bagian untuk balai desa dan Eldric memasang harga diskon untuk pengunjung pesta.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
@@ -282,7 +282,7 @@
             },
             {
               "type": "narration",
-              "text": "Pak Joko mencatat angka itu di papan kecil dekat timbangan."
+              "text": "Griselda mencatat angka itu di papan kecil dekat timbangan."
             }
           ]
         },
@@ -311,7 +311,7 @@
             },
             {
               "type": "narration",
-              "text": "Kak Nia menulis harga baru di papan dengan kapur warna-warni."
+              "text": "Eldric menulis harga baru di papan dengan kapur warna-warni."
             },
             {
               "type": "dialogue",
@@ -326,13 +326,13 @@
       "id": "ch_04",
       "title": "Timbangan di Lumbung",
       "concept": "Rata-rata",
-      "summary": "Menjelang sore, hasil panen masuk ke lumbung desa. Nara membantu Mbah Karto dan Bu Ratna menghitung rata-rata panen supaya laporan desa adil dan mudah dibaca.",
+      "summary": "Menjelang sore, hasil panen masuk ke lumbung desa. Kael membantu Marlow dan Leonhardt menghitung rata-rata panen supaya laporan desa adil dan mudah dibaca.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_04_01",
-          "title": "Empat Keranjang Mbah Karto",
+          "title": "Empat Keranjang Marlow",
           "beats": [
             {
               "type": "dialogue",
@@ -341,7 +341,7 @@
             },
             {
               "type": "narration",
-              "text": "Mbah Karto meletakkan empat keranjang kecil di atas meja. Beratnya empat, enam, delapan, dan sepuluh kilogram."
+              "text": "Marlow meletakkan empat keranjang kecil di atas meja. Beratnya empat, enam, delapan, dan sepuluh kilogram."
             },
             {
               "type": "challenge",
@@ -359,7 +359,7 @@
             },
             {
               "type": "narration",
-              "text": "Mbah Karto mengangguk pelan sambil menutup buku catatan lumbung."
+              "text": "Marlow mengangguk pelan sambil menutup buku catatan lumbung."
             }
           ]
         },
@@ -370,11 +370,11 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_8",
-              "text": "Nara, boleh bantu aku? Catatan panen lima petak di lereng ini belum dijumlah."
+              "text": "Kael, boleh bantu aku? Catatan panen lima petak di lereng ini belum dijumlah."
             },
             {
               "type": "narration",
-              "text": "Di kertas Bu Ratna tertulis angka dua belas, lima belas, sembilan, empat belas, dan sepuluh kilogram."
+              "text": "Di kertas Leonhardt tertulis angka dua belas, lima belas, sembilan, empat belas, dan sepuluh kilogram."
             },
             {
               "type": "dialogue",
@@ -403,7 +403,7 @@
       "id": "ch_05",
       "title": "Papan Data di Panggung",
       "concept": "Diagram data",
-      "summary": "Malam pesta tiba. Nara dan Pak Darto merapikan papan diagram hasil panen, lalu Pak Wira menutup pesta dengan pesan bahwa data yang jujur membuat keputusan desa lebih baik.",
+      "summary": "Malam pesta tiba. Kael dan Elias merapikan papan diagram hasil panen, lalu Edric menutup pesta dengan pesan bahwa data yang jujur membuat keputusan desa lebih baik.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
@@ -460,7 +460,7 @@
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Selisih padi dan kacang dua puluh lima kilogram, Pak."
+              "text": "Selisih padi dan kacang dua puluh lima kilogram, Edric."
             },
             {
               "type": "dialogue",
@@ -485,7 +485,7 @@
     {
       "id": "chl_01_01",
       "type": "multiple_choice",
-      "prompt": "Resep kue pisang memakai 3 bagian tepung dan 2 bagian gula. Jika Bu Sri memakai 9 cangkir tepung, berapa cangkir gula yang dibutuhkan?",
+      "prompt": "Resep kue pisang memakai 3 bagian tepung dan 2 bagian gula. Jika Elian memakai 9 cangkir tepung, berapa cangkir gula yang dibutuhkan?",
       "conceptTag": "Perbandingan",
       "difficulty": 1,
       "explanation": "Perbandingan tepung dan gula adalah 3 : 2. Karena tepung dikali tiga menjadi 9 cangkir, gula juga dikali tiga menjadi 6 cangkir.",

@@ -100,7 +100,7 @@ describe("pilihPemberiQuest", () => {
 
   it("jatuh ke NPC pertama bila pembicara tidak ada di ruangan", () => {
     const hanyaPakWira = [{ id: "char_npc_10" }];
-    // Scene pertama dibuka Bu Sri, tetapi ia tidak ada di ruangan ini.
+    // Scene pertama dibuka Elian, tetapi ia tidak ada di ruangan ini.
     expect(pilihPemberiQuest(sceneAwal, hanyaPakWira)).toBe("char_npc_10");
   });
 

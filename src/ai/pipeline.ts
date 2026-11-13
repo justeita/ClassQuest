@@ -24,6 +24,7 @@
  *   keluaran (ADR 0018).
  */
 
+import { fixedCast } from "../story/cast";
 import { buildFallbackStory } from "../story/fallback";
 import { STORY_SCHEMA_VERSION } from "../story/schema";
 import type {
@@ -367,7 +368,7 @@ const collectFlags = (
  * Yang dibangun di sini dan tidak pernah dipercayakan ke model:
  *
  * - `meta` dan `source` (konsep, `pageCount`, `gaps`),
- * - `cast` dari outline,
+ * - `cast` dari roster tetap (`src/story/cast.ts`), bukan dari model,
  * - `assetUsage` dari hasil pemindaian cerita, diurutkan dan tanpa duplikat.
  */
 export function assemble(
@@ -378,12 +379,10 @@ export function assemble(
   const { meta } = options;
   const pageCount = pageCountOf(meta.pageCount);
 
-  const cast: Character[] = outline.cast.map((member) => ({
-    id: member.id,
-    name: member.name,
-    role: member.role,
-    spriteId: member.spriteId,
-  }));
+  // Roster dikunci: nama, id, role, dan sprite karakter tidak pernah diambil
+  // dari keluaran model. Dengan begitu guru/siswa selalu melihat tokoh desa
+  // yang sama walaupun materi atau model berubah.
+  const cast: Character[] = fixedCast();
 
   const concepts = [
     ...new Set(
@@ -721,6 +720,21 @@ export async function generateStory(
   /* Outline pass                                                           */
   /* ---------------------------------------------------------------------- */
 
+  /**
+   * Ganti `cast` keluaran model dengan roster tetap sebelum validasi.
+   *
+   * Model tetap diminta menyalin cast dari blok CAST, tetapi jawabannya tidak
+   * dipercaya: kalau ia lupa, mengubah nama, atau menambah tokoh, hasilnya tetap
+   * roster desa yang sama. Nilai bukan objek dikembalikan apa adanya supaya
+   * validator yang melaporkan error bentuk.
+   */
+  const withFixedCast = (candidate: unknown): unknown =>
+    typeof candidate === "object" &&
+    candidate !== null &&
+    !Array.isArray(candidate)
+      ? { ...candidate, cast: fixedCast() }
+      : candidate;
+
   const outlinePass = async (): Promise<Outline> => {
     emit("outlining");
 
@@ -735,7 +749,9 @@ export async function generateStory(
     let check = validateOutline(candidate);
 
     for (let attempt = 0; attempt < OUTLINE_GENERATE_ATTEMPTS; attempt += 1) {
-      candidate = await requestPayload(prompt, "outline-invalid");
+      candidate = withFixedCast(
+        await requestPayload(prompt, "outline-invalid"),
+      );
       check = validateOutline(candidate, { manifest: input.manifest });
       if (check.ok) return normalizeSourcePages(candidate as Outline);
     }
@@ -746,9 +762,12 @@ export async function generateStory(
         draft: candidate,
         errors: check.errors,
         truncatedErrorCount: check.truncatedErrorCount,
+        assets: input.manifest,
       });
 
-      candidate = await requestPayload(repairPrompt, "outline-invalid");
+      candidate = withFixedCast(
+        await requestPayload(repairPrompt, "outline-invalid"),
+      );
       check = validateOutline(candidate, { manifest: input.manifest });
       if (check.ok) return normalizeSourcePages(candidate as Outline);
     }

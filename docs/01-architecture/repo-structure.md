@@ -87,6 +87,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/story/validate-parts.test.ts`                | ya   | Tes validasi outline dan chapter                               |
 | `src/story/scoring.ts`                            | ya   | Penilaian jawaban, fungsi murni                                |
 | `src/story/fallback.ts`                           | ya   | Cerita cadangan (deterministik, selalu valid)                  |
+| `src/story/cast.ts`                               | ya   | Roster karakter tetap: nama, sprite, deskripsi, obrolan        |
 | `src/assets/manifest.ts`                          | ya   | Daftar resmi aset + `toAssetManifest()`                        |
 | `src/assets/manifest.test.ts`                     | ya   | Tes id, path, tag, fallback, dan file aset                     |
 | `src/assets/worldAssets.ts`                       | ya   | Entri manifest kind `world` (peta + objek desa), dibangkitkan  |

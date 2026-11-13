@@ -10,7 +10,7 @@ afterEach(cleanup);
 
 const bicara: DialogueView = {
   visible: true,
-  name: "Bu Ratna",
+  name: "Leonhardt",
   text: "Air di bumi tidak pernah benar-benar hilang.",
   waiting: true,
 };
@@ -19,7 +19,7 @@ describe("DialogueBox", () => {
   it("menampilkan nama dan teks dialog", () => {
     render(<DialogueBox view={bicara} onAdvance={() => {}} />);
 
-    expect(screen.getByText("Bu Ratna")).toBeInTheDocument();
+    expect(screen.getByText("Leonhardt")).toBeInTheDocument();
     expect(
       screen.getByText(/Air di bumi tidak pernah benar-benar hilang/),
     ).toBeInTheDocument();
@@ -30,7 +30,7 @@ describe("DialogueBox", () => {
       <DialogueBox view={{ ...bicara, visible: false }} onAdvance={() => {}} />,
     );
 
-    expect(screen.queryByText("Bu Ratna")).not.toBeInTheDocument();
+    expect(screen.queryByText("Leonhardt")).not.toBeInTheDocument();
   });
 
   it("klik panel mengirim satu langkah dialog", () => {
@@ -62,7 +62,7 @@ describe("DialogueBox", () => {
       <DialogueBox view={{ ...bicara, name: null }} onAdvance={() => {}} />,
     );
 
-    expect(screen.queryByText("Bu Ratna")).not.toBeInTheDocument();
+    expect(screen.queryByText("Leonhardt")).not.toBeInTheDocument();
     expect(screen.getByText(/Air di bumi/)).toBeInTheDocument();
   });
 });

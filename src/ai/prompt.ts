@@ -17,17 +17,19 @@
  * - **repair** — memperbaiki draft JSON dari daftar error validator.
  *
  * Urutan blok `user` mengikuti `prompt-contract.md`:
- * SCHEMA → ASSETS → OUTLINE → CONTINUITY → MATERIAL → TASK. Repair memakai
- * formatnya sendiri yang sudah ditetapkan `validation-and-repair.md`.
+ * SCHEMA → ASSETS → CAST → OUTLINE → CONTINUITY → MATERIAL → TASK. Repair
+ * memakai formatnya sendiri yang sudah ditetapkan
+ * `validation-and-repair.md`.
  */
 
 import { ASSETS_BY_ID } from "../assets/manifest";
+import { FIXED_CAST } from "../story/cast";
 import type { CharacterRole } from "../story/schema";
 import type { AssetManifest } from "../story/validate";
 import type { LlmRequest } from "./provider";
 
 /** Versi prompt. Naikkan setiap kali perilaku prompt berubah. */
-export const PROMPT_VERSION = "story-v4";
+export const PROMPT_VERSION = "story-v5";
 
 /**
  * Plafon output per panggilan. Reasoning model bisa memakai 6.000–14.000
@@ -54,8 +56,8 @@ export const MATERIAL_START = "<<<MATERIAL_START>>>";
 export const MATERIAL_END = "<<<MATERIAL_END>>>";
 
 /**
- * System prompt `story-v3`, disalin dari `prompt-contract.md` bagian **System
- * prompt (story-v4)**. Instruksi sistem tidak boleh diletakkan setelah data
+ * System prompt `story-v5`, disalin dari `prompt-contract.md` bagian **System
+ * prompt (story-v5)**. Instruksi sistem tidak boleh diletakkan setelah data
  * pengguna.
  *
  * Blok **SUARA DAN ROLEPLAY** ditambahkan pada `story-v3`: cerita harus terasa
@@ -63,6 +65,9 @@ export const MATERIAL_END = "<<<MATERIAL_END>>>";
  * "Anda/Saya" yang kaku), dan mengikuti tema/nada yang dipilih guru.
  * `story-v4` tidak mengubah blok ini; yang berubah adalah batas eksplisit
  * `SECTION_SCHEMA_OUTLINE` dan plafon output per panggilan.
+ *
+ * `story-v5` menambahkan aturan cast tetap: nama dan penampilan tokoh tidak
+ * boleh diubah model, dan deskripsi penampilan dikirim di blok CAST.
  */
 export const SYSTEM_PROMPT = `Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
 Tugasmu mengubah MATERI dari guru menjadi cerita yang bisa dimainkan.
@@ -72,7 +77,8 @@ ATURAN KERAS
    nama, atau teori yang tidak ada di materi.
 2. Jangan membuat aset baru. Semua backgroundId, musicId, dan spriteId harus
    diambil persis dari daftar ASSETS.
-3. Jangan membuat karakter di luar CAST pada OUTLINE.
+3. Cast sudah ditetapkan di blok CAST. Jangan membuat karakter di luar CAST,
+   dan jangan mengubah nama, id, role, spriteId, deskripsi, atau obrolan tokoh.
 4. Setiap chapter membahas tepat satu konsep dari OUTLINE.
 5. Setiap chapter minimal memiliki satu beat bertipe "challenge".
 6. Patuhi batas panjang teks: beat maksimal 240 karakter.
@@ -385,7 +391,14 @@ const SECTION_SCHEMA_OUTLINE = `SCHEMA
   "language": "id",
   "concepts": ["konsep utama", "konsep pendukung"],
   "cast": [
-    { "id": "char_...", "name": "...", "role": "player", "spriteId": "char_..." }
+    {
+      "id": "char_...",
+      "name": "...",
+      "role": "player",
+      "spriteId": "char_...",
+      "description": "...",
+      "smallTalk": "..."
+    }
   ],
   "chapters": [
     {
@@ -404,6 +417,9 @@ BATAS OUTLINE
   berupa frasa pendek, bukan kalimat.
 - cast 2..10; role wajib salah satu dari "player", "mentor", "npc", "antagonist";
   tepat satu "player", minimal satu "mentor"; spriteId dari ASSETS.
+- cast sudah ditetapkan di blok CAST: salin persis seluruh anggotanya. Jangan
+  menambah tokoh baru atau mengganti nama, id, role, spriteId, deskripsi, dan
+  obrolan singkat.
 - title 3..80 karakter; synopsis 40..400 karakter.
 - chapters 3..6; title 3..60 karakter; summary 20..240 karakter; setiap
   chapters[].concept harus salah satu concepts.
@@ -547,6 +563,25 @@ const assetSection = (assets: AssetManifest): string => {
   ].join("\n\n");
 };
 
+/**
+ * Blok roster tetap. Deskripsi penampilan ikut dikirim supaya model menulis
+ * aksi dan dialog yang cocok dengan sprite (mis. nenek bertongkat atau pelajar
+ * bertopi biru), bukan mengarang ciri fisik yang tidak ada.
+ */
+const castSection = (): string => {
+  const lines = FIXED_CAST.map((member) => {
+    const smallTalk =
+      member.smallTalk === undefined ? "" : ` | obrolan: "${member.smallTalk}"`;
+    return `- ${member.id} | ${member.name} | role: ${member.role} | sprite: ${member.spriteId} | deskripsi: ${member.description ?? "(tanpa deskripsi)"}${smallTalk}`;
+  });
+
+  return [
+    "CAST",
+    "Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role, spriteId, description, dan smallTalk dari daftar ini. Jangan menambah, mengurangi, atau mengganti nama tokoh.",
+    ...lines,
+  ].join("\n");
+};
+
 const materialSection = (kept: readonly KeptPage[]): string => {
   return [
     "MATERIAL",
@@ -639,6 +674,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): PromptResult {
   const user = [
     SECTION_SCHEMA_OUTLINE,
     assetSection(input.assets),
+    castSection(),
     [
       "OUTLINE",
       "Belum ada outline. Buat outline baru dari materi di bawah.",
@@ -688,6 +724,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
     SECTION_SCHEMA_CHAPTER,
     ...(input.branching ? [branchingSection(input.usedFlags ?? [])] : []),
     assetSection(input.assets),
+    castSection(),
     ["OUTLINE", JSON.stringify(input.outline, null, 2)].join("\n"),
     continuitySection(input.continuity),
     materialSection(kept),
@@ -755,7 +792,10 @@ export function buildRepairPrompt(input: RepairPromptInput): PromptResult {
       : JSON.stringify(input.draft ?? null, null, 2);
 
   const context: string[] = [];
-  if (input.assets) context.push(assetSection(input.assets));
+  if (input.assets) {
+    context.push(assetSection(input.assets));
+    context.push(castSection());
+  }
   if (input.outline) {
     context.push(
       ["OUTLINE", JSON.stringify(input.outline, null, 2)].join("\n"),

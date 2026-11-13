@@ -3,7 +3,7 @@
     "id": "ch_02",
     "title": "Warna Hijau Rahasia",
     "concept": "Klorofil",
-    "summary": "Di halaman sekolah, Nara menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
+    "summary": "Di halaman sekolah, Kael menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
     "backgroundId": "bg_default",
     "musicId": "bgm_default",
     "scenes": [
@@ -13,7 +13,7 @@
         "beats": [
           {
             "type": "narration",
-            "text": "Nara membawa daun ke halaman sekolah dan meletakkannya di bangku kayu."
+            "text": "Kael membawa daun ke halaman sekolah dan meletakkannya di bangku kayu."
           },
           {
             "type": "dialogue",
@@ -32,7 +32,7 @@
               "detour": [
                 {
                   "type": "narration",
-                  "text": "Nara mengangkat daun itu lagi ke arah cahaya dan mencari butir hijau yang tadi disebut."
+                  "text": "Kael mengangkat daun itu lagi ke arah cahaya dan mencari butir hijau yang tadi disebut."
                 },
                 {
                   "type": "dialogue",
@@ -90,7 +90,7 @@
     }
   ],
   "continuity": {
-    "previousChapterSummary": "Nara belajar bahwa daun membuat makanan dengan bantuan cahaya matahari.",
+    "previousChapterSummary": "Kael belajar bahwa daun membuat makanan dengan bantuan cahaya matahari.",
     "characterStates": [
       {
         "id": "char_mc",

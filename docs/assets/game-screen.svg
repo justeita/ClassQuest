@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 320 180" role="img" aria-labelledby="game-title game-desc" shape-rendering="crispEdges">
   <title id="game-title">Layar dialog game ClassQuest di desa</title>
-  <desc id="game-desc">Mockup layar game 16:9: Desa Sukamaju dari atas — rumput, jalan tanah, dua rumah, pohon, kolam, dan sumur. Pemain Nara berdiri di dekat Pak Wira, dengan kotak dialog berisi nama dan dua baris teks.</desc>
+  <desc id="game-desc">Mockup layar game 16:9: Desa Sukamaju dari atas — rumput, jalan tanah, dua rumah, pohon, kolam, dan sumur. Pemain Kael berdiri di dekat Edric, dengan kotak dialog berisi nama dan dua baris teks.</desc>
 
   <!-- tanah desa -->
   <rect width="320" height="180" fill="#6F9B7A"/>
@@ -76,7 +76,7 @@
   <rect x="206" y="140" width="3" height="3" fill="#C9A227"/>
   <rect x="120" y="136" width="3" height="3" fill="#D98FA3"/>
 
-  <!-- karakter: Pak Wira (pemberi quest) -->
+  <!-- karakter: Edric (pemberi quest) -->
   <g>
     <rect x="166" y="70" width="20" height="5" fill="#1F1E28"/>
     <rect x="163" y="75" width="26" height="20" fill="#14201A"/>
@@ -85,7 +85,7 @@
     <rect x="179" y="84" width="3" height="3" fill="#F4EFE6"/>
   </g>
 
-  <!-- karakter: Nara (pemain) -->
+  <!-- karakter: Kael (pemain) -->
   <g>
     <rect x="168" y="96" width="18" height="5" fill="#1F1E28"/>
     <rect x="165" y="101" width="24" height="16" fill="#7FA6C9"/>
@@ -99,7 +99,7 @@
   <rect x="8" y="120" width="304" height="52" fill="#14201A"/>
   <rect x="8" y="120" width="304" height="52" fill="none" stroke="#F7F4EC" stroke-width="2"/>
   <rect x="16" y="128" width="46" height="9" fill="#E8A87C"/>
-  <text x="19" y="135" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7" fill="#1F1E28">Pak Wira</text>
+  <text x="19" y="135" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7" fill="#1F1E28">Edric</text>
 
   <text x="16" y="150" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7" fill="#F7F4EC">Sebelum mulai, ayo pastikan</text>
   <text x="16" y="161" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7" fill="#F7F4EC">takarannya benar.</text>

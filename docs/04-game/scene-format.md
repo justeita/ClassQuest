@@ -255,22 +255,30 @@ Chapter 1, scene `sc_01_02` ("Tiga Kali Resep"):
     {
       "type": "dialogue",
       "speakerId": "char_npc_10",
-      "text": "Sebelum mulai, ayo pastikan takarannya benar. Salah takaran, kue pesta bisa gagal."
+      "text": "Sebelum mulai, pastikan takarannya benar. Salah sedikit, warna spanduk bisa pucat dan pesta jadi kurang meriah."
     },
-    { "type": "challenge", "challengeId": "chl_01_01" },
+    {
+      "type": "challenge",
+      "challengeId": "chl_01_01"
+    },
     {
       "type": "dialogue",
       "speakerId": "char_npc_1",
-      "text": "Benar, sembilan cangkir tepung butuh enam cangkir gula. Kamu sudah paham perbandingan."
+      "text": "Benar, sembilan cangkir tinta biru butuh enam cangkir tinta emas. Kau sudah paham perbandingan."
     },
     {
       "type": "narration",
-      "text": "Nara menuang bahan dengan hati-hati. Aroma kue mulai memenuhi dapur."
+      "text": "Kael menuang tinta dengan hati-hati. Biru dan emas perlahan melebur di atas palet kayu."
     },
     {
       "type": "dialogue",
       "speakerId": "char_mc",
-      "text": "Jadi selama perbandingannya tetap, rasa kue juga tetap enak."
+      "text": "Jadi selama perbandingannya tetap, warnanya juga tetap sama, ya?"
+    },
+    {
+      "type": "dialogue",
+      "speakerId": "char_npc_10",
+      "text": "Tepat. Perbandingan menjaga hasil tetap sama, berapa pun besar adonannya."
     }
   ]
 }
@@ -280,13 +288,13 @@ Yang terjadi:
 
 1. Musik chapter tetap `bgm_default` (tidak berganti).
 2. Dunia desa tidak berubah; pemain tetap di posisi terakhirnya.
-3. Pemberi quest scene ini adalah Pak Wira (`char_npc_10`); dekati dia → `Space`.
-4. Pak Wira tampil, textbox berisi nama + kalimat.
+3. Pemberi quest scene ini adalah Edric (`char_npc_10`); dekati dia → `Space`.
+4. Edric tampil, textbox berisi nama + kalimat.
 5. Klik → beat tantangan → dialog pause, overlay `chl_01_01` muncul.
 6. Siswa menjawab → feedback + penjelasan → overlay tertutup.
-7. Bu Sri (`char_npc_1`) tampil, dialog.
+7. Elian (`char_npc_1`) tampil, dialog.
 8. Narasi tanpa nama.
-9. Scene selesai → `sc_01_03`.
+9. Scene selesai → kembali ke dunia (`explore`), lanjut ke bab berikutnya.
 
 ## Data yang dikirim ke React
 

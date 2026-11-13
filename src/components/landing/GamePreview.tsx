@@ -47,7 +47,7 @@ export function GamePreview() {
         <div className="absolute inset-x-3 bottom-3 flex items-start gap-2.5 rounded-lg border-2 border-slate-900 bg-slate-900/92 p-2.5 sm:inset-x-4 sm:bottom-4 sm:gap-3 sm:p-3">
           <span className="shrink-0 overflow-hidden rounded border-2 border-slate-700 bg-slate-800">
             <Image
-              src="/assets/portrait/npc_10.png"
+              src="/assets/portrait/npc_1.png"
               alt=""
               width={64}
               height={64}
@@ -58,11 +58,11 @@ export function GamePreview() {
 
           <div className="min-w-0">
             <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-300">
-              Pak Wira
+              Elian
             </p>
             <p className="font-game text-[13px] leading-snug text-slate-100 sm:text-sm">
-              Tiga bagian tepung, dua bagian gula. Berapa cangkir gula untuk
-              sembilan cangkir tepung?
+              Tiga bagian tinta biru, dua bagian tinta emas. Berapa cangkir
+              tinta emas untuk sembilan cangkir biru?
             </p>
           </div>
         </div>

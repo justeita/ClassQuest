@@ -280,7 +280,7 @@ describe("addStudent", () => {
     const duplikat = await addStudent(db, {
       teacherId: TEACHER_ID,
       classroomId,
-      name: "Dewi",
+      name: "Theo",
       nis: "AB-09",
     });
     expect(duplikat).toEqual({

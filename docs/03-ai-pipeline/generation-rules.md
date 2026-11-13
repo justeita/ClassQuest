@@ -17,8 +17,8 @@ system prompt, dan sebagian diperiksa validator.
    Kebutuhan yang tidak terpenuhi dicatat di `source.gaps`.
 3. **Aset yang ada, bukan yang dibayangkan.** Pilih `backgroundId`, `musicId`,
    `spriteId` hanya dari manifest.
-4. **Karakter konsisten.** Nama, peran, dan lokasi tidak berubah tanpa alasan yang
-   ada di cerita.
+4. **Karakter konsisten.** Nama, peran, penampilan, dan lokasi mengikuti roster
+   tetap di blok `CAST`; jangan mengganti nama atau menambah tokoh baru.
 5. **Setiap chapter punya tantangan.** Materi tanpa latihan bukan game.
 6. **Jawaban tantangan ada di cerita.** Siswa tidak boleh ditebak-tebakan.
 7. **Kalimat pendek.** Maksimal 240 karakter per beat; idealnya 1–2 kalimat.
@@ -27,6 +27,16 @@ system prompt, dan sebagian diperiksa validator.
 9. **Tutup dengan perubahan.** Akhir chapter harus mengubah sesuatu: pengetahuan
    karakter, lokasi, atau pertanyaan baru.
 10. **Aman untuk sekolah.** Tidak ada kekerasan, horor, romansa, atau tema depresi.
+
+## Cast tetap
+
+Sepuluh tokoh desa (Kael dan sembilan warga) adalah roster tetap di
+`src/story/cast.ts`. Nama, id, role, sprite, deskripsi, dan obrolan singkat tidak
+boleh diubah model. Prompt mengirim blok `CAST` lengkap, termasuk deskripsi
+penampilan yang terlihat di sprite (topi, kacamata, jubah, tongkat), supaya aksi
+dan dialog cocok dengan gambar. Pipeline menimpa `outline.cast` sebelum validasi
+dan `assemble()` memakai roster yang sama, jadi nama tidak bisa berubah lewat
+keluaran model.
 
 ## Struktur satu chapter (formula 5 scene)
 
@@ -74,9 +84,9 @@ model wajib mematuhinya.
 
 | Yang harus konsisten | Contoh pelanggaran                                   |
 | -------------------- | ---------------------------------------------------- |
-| Lokasi karakter      | Nara tiba-tiba di kelas padahal chapter lalu di awan |
-| Pengetahuan karakter | Nara menjelaskan konsep yang belum ia temui          |
-| Nama & peran         | "Bu Bima" padahal cast-nya "Pak Bima"                |
+| Lokasi karakter      | Kael tiba-tiba di kelas padahal chapter lalu di awan |
+| Pengetahuan karakter | Kael menjelaskan konsep yang belum ia temui          |
+| Nama & peran         | "Bima" padahal cast-nya "Edric"                      |
 | Waktu & cuaca        | Sore tiba-tiba jadi pagi tanpa transisi              |
 | Aset yang dipakai    | Chapter di pantai tapi background kelas              |
 
@@ -112,7 +122,7 @@ Rasio yang sehat dalam satu scene: 1 tantangan + 2–6 beat narasi/dialog (total
 
 ```text
 Pak Bima: "Lihat genangan itu. Pagi tadi masih penuh."
-Nara: "Sekarang tinggal bercak gelap. Padahal tidak ada yang mengepel."
+Kael: "Sekarang tinggal bercak gelap. Padahal tidak ada yang mengepel."
 Pak Bima: "Berarti airnya pergi ke suatu tempat. Ke mana?"
 ```
 
@@ -125,7 +135,7 @@ Cerita ini dimainkan, jadi tulisannya harus terasa seperti roleplay, bukan buku
 pelajaran.
 
 - **Sudut pandang.** Pilih satu dan pakai konsisten: narasi menyapa pemain dengan
-  "kamu", atau menyebut nama tokoh pemain (mis. "Nara"). Jangan mencampur
+  "kamu", atau menyebut nama tokoh pemain (mis. "Kael"). Jangan mencampur
   keduanya dalam satu cerita.
 - **Register.** Pakai bahasa sehari-hari siswa. Hindari "Anda" dan "Saya" yang
   kaku; bentuk formal hanya untuk tokoh yang memang sengaja formal. Kalau semua
@@ -198,6 +208,7 @@ Ketegangan hanya boleh berasal dari **rasa ingin tahu**, bukan ancaman.
 - [ ] Tidak ada fakta di luar materi.
 - [ ] Semua aset ada di manifest.
 - [ ] Tidak ada karakter yang muncul tiba-tiba.
+- [ ] Nama, peran, dan penampilan tokoh sesuai blok `CAST`; tidak ada nama baru.
 - [ ] Setiap tantangan bisa dijawab dari cerita.
 - [ ] Tidak ada beat > 240 karakter.
 - [ ] Cerita ditutup, tidak menggantung tanpa alasan.
@@ -213,6 +224,6 @@ Ketegangan hanya boleh berasal dari **rasa ingin tahu**, bukan ancaman.
 | Dialog terasa formal/jauh      | Register "Anda/Saya" tidak diatur         | Pakai bahasa sehari-hari; ikuti nada guru    |
 | Tantangan tidak nyambung       | Challenge ditulis terpisah                | Tulis tantangan tepat setelah konsep muncul  |
 | Semua chapter sama strukturnya | Model meniru contoh                       | Variasikan hook; jangan kirim contoh panjang |
-| Nama karakter berubah          | Cast tidak ditegaskan                     | Kirim cast lengkap + larangan rename         |
+| Nama karakter berubah          | Cast tidak ditegaskan                     | Kirim blok CAST + timpa `outline.cast`       |
 | Aset karangan                  | Daftar aset tidak dikirim/terlalu panjang | Kirim hanya aset relevan + validasi ketat    |
 | Cerita menggantung             | Tidak ada instruksi menutup               | Wajibkan penutupan `openThreads`             |

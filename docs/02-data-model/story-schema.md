@@ -136,6 +136,13 @@ Aturan:
   saat bukan pemberi quest scene aktif: satu kalimat di textbox, tanpa mengubah
   urutan cerita. Karakter tanpa `smallTalk` tetap diam. Pipeline AI tidak wajib
   mengisinya.
+- `description` **opsional**, tetapi di ClassQuest selalu diisi roster tetap dan
+  ikut dikirim ke prompt. Isinya menjelaskan penampilan yang terlihat di sprite
+  (topi, kacamata, jubah, tongkat) supaya aksi dan dialog cocok dengan gambar.
+- Pipeline ClassQuest memakai roster tetap di `src/story/cast.ts` — Kael dan
+  sembilan warga desa — untuk **semua** cerita. Model tidak boleh mengganti nama,
+  id, role, sprite, deskripsi, atau obrolan tokoh. Schema tetap mengizinkan cast
+  lain karena kontrak cerita tidak berubah; yang mengunci roster adalah pipeline.
 
 ### `chapters`
 
@@ -247,12 +254,12 @@ Contoh:
   "onWrong": {
     "setFlags": { "flg_salah_hitung": true },
     "retryQuestions": [
-      "Coba baca ulang resepnya. Kalau 3 bagian tepung menjadi 9 cangkir, berapa bagian gula?"
+      "Coba baca ulang resepnya. Kalau 3 bagian tinta biru menjadi 9 cangkir, berapa bagian tinta emas?"
     ],
     "detour": [
       {
         "type": "narration",
-        "text": "Nara mencoret hitungan pertamanya dan menarik napas."
+        "text": "Kael mencoret hitungan pertamanya dan menarik napas."
       },
       {
         "type": "dialogue",
@@ -350,7 +357,7 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat dan penasaran",
-    "synopsis": "Nara mengikuti perjalanan setetes air dari halaman sekolah sampai kembali lagi ke bumi.",
+    "synopsis": "Kael mengikuti perjalanan setetes air dari halaman sekolah sampai kembali lagi ke bumi.",
     "estimatedMinutes": 8
   },
   "source": {
@@ -361,7 +368,7 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
   "cast": [
     {
       "id": "char_nara",
-      "name": "Nara",
+      "name": "Kael",
       "role": "player",
       "spriteId": "char_nara"
     },
@@ -377,7 +384,7 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
       "id": "ch_01",
       "title": "Pagi yang Menguap",
       "concept": "Evaporasi",
-      "summary": "Nara memperhatikan genangan di halaman sekolah yang menyusut tanpa diseka.",
+      "summary": "Kael memperhatikan genangan di halaman sekolah yang menyusut tanpa diseka.",
       "backgroundId": "bg_classroom_day",
       "musicId": "bgm_school_calm",
       "scenes": [

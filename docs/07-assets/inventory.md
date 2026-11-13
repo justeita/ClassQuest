@@ -73,8 +73,8 @@ dialog.
 | `char_npc_1`  | Pelajar bertopi biru | `/assets/char/npc_1.png`  | `/assets/portrait/npc_1.png`  | 38×64 | pelajar, topi, biru, desa, remaja, warga      | ready  |
 | `char_npc_3`  | Pelajar berkacamata  | `/assets/char/npc_3.png`  | `/assets/portrait/npc_3.png`  | 36×64 | pelajar, kacamata, desa, remaja, warga, siswa | ready  |
 | `char_npc_4`  | Gadis berjubah biru  | `/assets/char/npc_4.png`  | `/assets/portrait/npc_4.png`  | 35×64 | gadis, jubah, biru, desa, warga, remaja       | ready  |
-| `char_npc_5`  | Nenek bertongkat     | `/assets/char/npc_5.png`  | `/assets/portrait/npc_5.png`  | 45×64 | nenek, tongkat, tua, desa, warga, bijak       | ready  |
-| `char_npc_6`  | Kakek berjubah hijau | `/assets/char/npc_6.png`  | `/assets/portrait/npc_6.png`  | 40×64 | kakek, jubah, hijau, desa, warga, tua         | ready  |
+| `char_npc_5`  | Tetua bertongkat     | `/assets/char/npc_5.png`  | `/assets/portrait/npc_5.png`  | 45×64 | tetua, tongkat, tua, desa, warga, bijak       | ready  |
+| `char_npc_6`  | Tetua berjubah hijau | `/assets/char/npc_6.png`  | `/assets/portrait/npc_6.png`  | 40×64 | tetua, jubah, hijau, desa, warga, tua         | ready  |
 | `char_npc_7`  | Nelayan desa         | `/assets/char/npc_7.png`  | `/assets/portrait/npc_7.png`  | 51×64 | nelayan, perahu, ikan, desa, warga, sungai    | ready  |
 | `char_npc_8`  | Penjaga desa         | `/assets/char/npc_8.png`  | `/assets/portrait/npc_8.png`  | 51×64 | penjaga, jaga, desa, warga, aman, pos         | ready  |
 | `char_npc_9`  | Petani desa          | `/assets/char/npc_9.png`  | `/assets/portrait/npc_9.png`  | 46×64 | petani, sawah, tani, desa, warga, panen       | ready  |

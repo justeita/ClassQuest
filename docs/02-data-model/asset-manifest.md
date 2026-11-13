@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -132,8 +132,8 @@ BACKGROUNDS
 - bg_schoolyard_day | Halaman sekolah, siang | halaman, sekolah, luar, siang, schoolyard, outdoor
 
 CHARACTERS
-- char_nara | Nara (siswa) | siswa, perempuan, seragam, remaja, student
-- char_pak_bima | Pak Bima (guru) | guru, dewasa, pria, pengajar, teacher
+- char_mc | Pemuda syal biru | pemuda, syal, biru, desa, pemain, karakter
+- char_npc_10 | Tetua bijak desa | tetua, bijak, tua, desa, warga, penasihat
 ```
 
 Kalau AI butuh suasana yang tidak ada (mis. "laboratorium"), ia harus memilih

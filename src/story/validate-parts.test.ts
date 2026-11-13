@@ -198,7 +198,7 @@ describe("validateChapter — kode error", () => {
       (draft) => {
         draft.chapter.scenes[0].beats[2] = {
           type: "narration",
-          text: "Nara mengangguk pelan.",
+          text: "Kael mengangguk pelan.",
         };
         draft.challenges = [];
       },
@@ -338,7 +338,7 @@ describe("validateChapter — kode error", () => {
       "chapter.scenes[0].beats[2].onWrong.detour",
       (draft) => {
         draft.chapter.scenes[0].beats[2].onWrong.detour.push(
-          { type: "narration", text: "Nara membaca ulang catatannya." },
+          { type: "narration", text: "Kael membaca ulang catatannya." },
           { type: "narration", text: "Pak Bima menunggu dengan sabar." },
         );
       },
@@ -533,7 +533,7 @@ describe("warning", () => {
         for (let index = 0; index < 7; index += 1) {
           draft.chapter.scenes[0].beats.push({
             type: "narration",
-            text: `Nara mencatat pengamatan ke-${index + 1}.`,
+            text: `Kael mencatat pengamatan ke-${index + 1}.`,
           });
         }
       },

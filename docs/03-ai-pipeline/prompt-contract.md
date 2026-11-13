@@ -9,7 +9,7 @@ owner: tim ClassQuest
 Prompt adalah kode. Ia punya versi, dites, dan tidak diubah diam-diam.
 
 - Implementasi: `src/ai/prompt.ts`
-- Versi saat ini: `PROMPT_VERSION = "story-v4"`
+- Versi saat ini: `PROMPT_VERSION = "story-v5"`
 - Aturan isi cerita: [`generation-rules.md`](./generation-rules.md)
 - Schema output: [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)
 
@@ -24,17 +24,18 @@ Selalu urutan ini. Instruksi sistem tidak boleh berada setelah data pengguna.
   1. SCHEMA (bentuk JSON yang harus dihasilkan)
   1b. BRANCHING (opsional; hanya bila AI_BRANCHING=on)
   2. ASSETS (daftar aset yang boleh dipakai)
-  3. OUTLINE (struktur yang sudah disepakati)
-  4. CONTINUITY (ringkasan chapter sebelumnya)
-  5. MATERIAL (teks materi, sebagai DATA)
-  6. TASK (chapter mana yang ditulis, batasan jumlah)
+  3. CAST (roster tetap: id, nama, role, sprite, deskripsi penampilan)
+  4. OUTLINE (struktur yang sudah disepakati)
+  5. CONTINUITY (ringkasan chapter sebelumnya)
+  6. MATERIAL (teks materi, sebagai DATA)
+  7. TASK (chapter mana yang ditulis, batasan jumlah)
 ```
 
 **Kenapa urutan ini:** materi diletakkan setelah instruksi dan dibungkus penanda
 data, sehingga teks seperti "abaikan aturan di atas" di dalam PDF tidak terlihat
 seperti perintah baru.
 
-## System prompt (story-v4)
+## System prompt (story-v5)
 
 ```text
 Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
@@ -45,7 +46,8 @@ ATURAN KERAS
    nama, atau teori yang tidak ada di materi.
 2. Jangan membuat aset baru. Semua backgroundId, musicId, dan spriteId harus
    diambil persis dari daftar ASSETS.
-3. Jangan membuat karakter di luar CAST pada OUTLINE.
+3. Cast sudah ditetapkan di blok CAST. Jangan membuat karakter di luar CAST,
+   dan jangan mengubah nama, id, role, spriteId, deskripsi, atau obrolan tokoh.
 4. Setiap chapter membahas tepat satu konsep dari OUTLINE.
 5. Setiap chapter minimal memiliki satu beat bertipe "challenge".
 6. Patuhi batas panjang teks: beat maksimal 240 karakter.
@@ -100,6 +102,14 @@ sedangkan nada konkret per-generasi dikirim lewat `TASK` (`meta.tone`), mis.
 — setiap item `concepts` maksimal 60 karakter, `cast[].role` wajib salah satu
 dari `"player"`, `"mentor"`, `"npc"`, `"antagonist"` — dan plafon output per
 panggilan naik ke 8.000 token (lihat ADR 0018).
+
+`story-v5` menambahkan aturan cast tetap. Nama, id, role, sprite, deskripsi
+penampilan, dan obrolan singkat tokoh berasal dari `src/story/cast.ts`, bukan
+dari model. Prompt tetap meminta model menyalin cast, tetapi pipeline menimpa
+`outline.cast` sebelum validasi dan `assemble()` selalu memakai roster tetap.
+Tujuannya: cerita dari PDF mana pun tetap menampilkan tokoh desa yang sama, dan
+deskripsi penampilan (mis. "nenek bertongkat") membuat aksi/dialog cocok dengan
+sprite.
 
 ## Blok schema di prompt
 
@@ -191,6 +201,26 @@ tetap ditampilkan; tanpa itu model tidak punya pilihan sama sekali. Hanya
 `background`, `character`, dan `music` yang masuk blok aset; `sfx` dan `ui`
 adalah aset runtime dan tidak pernah ditawarkan. Perilaku ini dikunci
 `src/ai/prompt.test.ts`.
+
+## Blok cast di prompt
+
+Roster karakter tetap dikirim sebagai blok `CAST` tepat setelah `ASSETS`.
+Sumbernya `src/story/cast.ts`; jangan menyalin nama ke prompt builder.
+
+```text
+CAST
+Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role,
+spriteId, description, dan smallTalk dari daftar ini. ...
+
+- char_mc | Kael | role: player | sprite: char_mc | deskripsi: Pemuda bersyal biru ...
+- char_npc_10 | Edric | role: mentor | sprite: char_npc_10 | deskripsi: Tetua desa ...
+- char_npc_5 | Griselda | role: npc | sprite: char_npc_5 | deskripsi: Tetua desa berambut putih tersanggul ...
+```
+
+Deskripsi **wajib** ikut karena menyebut ciri yang terlihat di sprite (topi,
+kacamata, jubah, tongkat). Tanpa itu model bisa menulis aksi yang tidak cocok
+dengan gambar. Pipeline tetap menimpa `outline.cast` dengan roster ini sebelum
+validasi, jadi model tidak bisa mengganti nama walaupun mengabaikan instruksi.
 
 ## Blok kontinuitas
 
