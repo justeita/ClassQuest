@@ -10,12 +10,53 @@ import {
   TEXTBOX,
   ukuranHuruf,
 } from "@/game/layout";
+import type { PortraitView } from "@/game/textbox";
 
 type DialogueBoxProps = {
   view: DialogueView;
   /** Klik panel = satu langkah dialog (selesaikan ketikan atau lanjut beat). */
   onAdvance: () => void;
 };
+
+type PortraitSlotProps = {
+  portrait: PortraitView;
+  /** Pembicara menyala; lawan bicaranya meredup. */
+  bicara: boolean;
+};
+
+/**
+ * Satu potret di atas panel: NPC menempel pojok kiri, MC dicerminkan di pojok
+ * kanan. Pembicara menyala dengan glow teal; yang sedang tidak bicara tetap
+ * tampil tetapi dibuat gelap, jadi pemain selalu tahu siapa yang bicara.
+ */
+function PortraitSlot({ portrait, bicara }: PortraitSlotProps) {
+  const mc = portrait.src.includes("/mc/");
+
+  return (
+    <div
+      className="pointer-events-none absolute bottom-full select-none overflow-hidden"
+      style={{
+        left: mc ? undefined : 0,
+        right: mc ? 0 : undefined,
+        width: cqw(PORTRAIT.width),
+        height: cqw(PORTRAIT.height),
+        transform: mc ? "scaleX(-1)" : undefined,
+      }}
+    >
+      <Image
+        src={portrait.src}
+        alt={portrait.alt}
+        width={648}
+        height={512}
+        className={`h-full w-full object-contain object-bottom transition-[filter,opacity] duration-300 ${
+          bicara
+            ? "animate-portrait-bicara"
+            : "opacity-90 brightness-50 saturate-75"
+        }`}
+      />
+    </div>
+  );
+}
 
 /**
  * Kotak dialog lengkap di lapisan DOM: panel gelap membulat, potret, nama, dan
@@ -26,21 +67,14 @@ type DialogueBoxProps = {
  *
  * Bentuk panel mengikuti referensi gaya Persona: kotak navy gelap membulat tanpa
  * bingkai pixel, nama pembicara teal dengan huruf pixel kapital, isi dialog
- * putih. Potret berdiri **di atas** panel — dasar gambar sejajar tepi atasnya —
- * dengan slot tetap (`PORTRAIT`) supaya kepala tidak goyang saat ekspresi
- * berganti. NPC berpangkal di pojok kiri atas panel; MC dicerminkan di pojok
- * kanan atas. Posisi memakai persen dari `TEXTBOX`/`PORTRAIT`; ukuran huruf dan
- * padding memakai `cqw` supaya ikut skala canvas.
+ * putih. Dua potret berdiri **di atas** panel dengan dasar menempel tepi
+ * atasnya: NPC di pojok kiri, MC dicerminkan di pojok kanan. Pembicara menyala
+ * dan lawan bicaranya meredup, jadi giliran bicara selalu terbaca. Posisi
+ * memakai persen dari `TEXTBOX`/`PORTRAIT`; ukuran huruf dan padding memakai
+ * `cqw` supaya ikut skala canvas.
  */
 export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
   if (!view.visible) return null;
-
-  // MC digambar menghadap ke kanan seperti NPC; di sisi kanan ia dicerminkan
-  // supaya menghadap ke tengah dialog.
-  const mc = view.portrait?.src.includes("/mc/") ?? false;
-  // Selagi teks diketik, pembicara sedang "bicara": potretnya menyala. Begitu
-  // teks penuh dan menunggu pemain, sorotnya padam.
-  const bicara = !view.waiting;
 
   return (
     <div
@@ -62,37 +96,18 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
       role="presentation"
     >
       {
-        /* Potret di atas panel: `bottom-100%` menaruh dasarnya di tepi atas
-            panel. NPC menempel pojok kiri (`left-0`), MC pojok kanan
-            (`right-0` + `scaleX(-1)`); lebarnya setengah panel, jadi keduanya
-            menjulur sampai tengah tepi atas. `object-contain object-bottom`
-            menjaga dasar potret tetap menempel walau rasio berkasnya meleset
-            sedikit dari slot. */
-        view.portrait && (
-          <div
-            className="pointer-events-none absolute bottom-full select-none"
-            style={{
-              left: mc ? undefined : 0,
-              right: mc ? 0 : undefined,
-              width: cqw(PORTRAIT.width),
-              height: cqw(PORTRAIT.height),
-              transform: mc ? "scaleX(-1)" : undefined,
-            }}
-          >
-            <Image
-              src={view.portrait.src}
-              alt={view.portrait.alt}
-              width={648}
-              height={512}
-              className={`h-full w-full object-contain object-bottom transition-[filter,opacity] duration-300 ${
-                bicara
-                  ? "animate-portrait-bicara"
-                  : "opacity-90 saturate-90 motion-reduce:opacity-90"
-              }`}
-            />
-          </div>
-        )
+        /* Dua potret di atas panel: lawan bicara diredupkan lebih dulu, lalu
+            pembicara yang menyala. `bottom-full` menaruh dasar keduanya di tepi
+            atas panel; NPC menempel pojok kiri, MC pojok kanan. Lebar slot
+            setengah panel dan isi potret sudah mentok tepi di kanvasnya, jadi
+            karakternya sejajar dengan sisi kotak dialog. */
+        view.portrait &&
+          view.pendamping &&
+          view.pendamping.src !== view.portrait.src && (
+            <PortraitSlot portrait={view.pendamping} bicara={false} />
+          )
       }
+      {view.portrait && <PortraitSlot portrait={view.portrait} bicara />}
 
       {/* Panel dialog: kotak navy gelap membulat tanpa bingkai pixel (gaya
             Persona). Digambar CSS, bukan `ui_textbox.png`, supaya sudut dan

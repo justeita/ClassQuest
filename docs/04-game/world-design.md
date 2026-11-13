@@ -259,9 +259,10 @@ Keputusan (ADR 0007, diperluas ADR 0017): **teks permainan pindah ke DOM**.
   navy gelap membulat. Potret anime tidak dibungkus bingkai: NPC berdiri di
   pangkal kiri atas panel, MC (dicerminkan) di pangkal kanan — dasarnya menempel
   tepi atas panel — dan berekspresi sesuai field `expression` beat. Importer
-  menormalkan tinggi kepala supaya wajah semua karakter sama besar. Potret
-  menyala saat pembicaranya sedang diketik dan padam saat menunggu; selama soal
-  belum dijawab potret disembunyikan. Prompt interaksi `Space` juga DOM
+  menormalkan tinggi kepala dan menggeser potret sampai mentok tepi, jadi wajah
+  semua karakter sama besar dan karakternya sejajar sisi kotak. Pembicara
+  menyala, lawan bicaranya meredup dan tetap terlihat; selama soal belum dijawab
+  kedua potret disembunyikan. Prompt interaksi `Space` juga DOM
   (`InteractHint.tsx`).
 - Nama pembicara memakai **Pixelify Sans** (utility `font-pixel`, variabel
   `--font-pixelify` dipasang di `src/app/layout.tsx`): huruf pixel kapital teal

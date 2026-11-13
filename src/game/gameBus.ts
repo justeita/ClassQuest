@@ -25,8 +25,14 @@ export type DialogueView = {
   text: string;
   /** Teks sudah penuh dan menunggu pemain melanjutkan. */
   waiting: boolean;
-  /** Potret pembicara di belakang kotak dialog; null bila tidak ada. */
+  /** Potret pembicara yang menyala di atas kotak dialog; null bila tidak ada. */
   portrait: PortraitView | null;
+  /**
+   * Potret lawan bicara (MC saat NPC yang bicara, atau sebaliknya). Selama
+   * giliran satu pihak, potretnya menyala dan yang ini meredup; null bila tidak
+   * ada pasangan.
+   */
+  pendamping?: PortraitView | null;
 };
 
 /**

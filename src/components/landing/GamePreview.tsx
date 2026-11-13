@@ -42,12 +42,19 @@ export function GamePreview() {
           Bab 1 · Perbandingan
         </p>
 
-        {/* Dialog meniru gaya Persona (ADR 0017): potret tanpa bingkai berdiri
-            di **atas** panel, dasarnya menempel tepi atas kotak. NPC di pangkal
-            kiri (MC dicerminkan di kanan). Slot tetap + `object-contain` supaya
-            potret mengisi persis dan tidak goyang saat ekspresi berganti. */}
+        {/* Dialog meniru gaya Persona (ADR 0017): dua potret tanpa bingkai
+            berdiri di **atas** panel, dasarnya menempel tepi atas kotak. NPC
+            yang bicara di kiri menyala; potret MC di kanan dicerminkan dan
+            diredupkan sebagai lawan bicara. */}
         <div className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
           <div className="relative">
+            <Image
+              src="/assets/portrait/mc/neutral.png"
+              alt="Potret Nara"
+              width={648}
+              height={512}
+              className="pointer-events-none absolute bottom-full right-0 h-24 w-[50%] -scale-x-100 object-contain object-bottom brightness-50 sm:h-32"
+            />
             <Image
               src="/assets/portrait/npc_10/thinking.png"
               alt="Potret Pak Wira"

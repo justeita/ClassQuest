@@ -78,10 +78,11 @@ Aturan bentuknya:
   kotak navy gelap membulat — bukan lagi gambar `ui_textbox` — dan nama pembicara
   memakai huruf pixel teal; `ui_textbox` dan `ui_portrait_frame` tidak dipakai
   runtime dan tidak dimuat `PreloadScene`.
-- Potret menyala (glow teal berdenyut) selagi pembicara mengetik kalimatnya dan
-  padam saat teks penuh menunggu pemain. Selama soal belum dijawab, semua potret
-  disembunyikan supaya tidak menutupi pilihan jawaban; setelah dinilai ia tampil
-  lagi untuk umpan balik senang/marah.
+- Potret pembicara menyala (glow teal berdenyut) selama sesi dialog, dan potret
+  lawan bicara tetap tampil tetapi diredupkan — saat MC bicara, potret NPC
+  meredup, begitu pula sebaliknya. Selama soal belum dijawab, kedua potret
+  disembunyikan supaya tidak menutupi pilihan jawaban; setelah dinilai keduanya
+  tampil lagi untuk umpan balik senang/marah.
 
 Alasan:
 
@@ -92,9 +93,9 @@ Alasan:
    berpangkal di pojok kiri atas panel dan MC — yang dicerminkan agar menghadap
    ke tengah — di pojok kanan; lebarnya setengah panel, jadi keduanya menjulur
    sampai tengah tepi atas. Importer menormalkan tinggi kepala (bukan tinggi
-   gambar) dan memusatkan kepala, jadi wajah semua karakter sama besar dan
-   pergantian ekspresi tidak menggeser potret. Itu siluet dialog Persona yang
-   dituju.
+   gambar) dan menggeser potret sampai mentok tepi kanvas, jadi wajah semua
+   karakter sama besar, karakternya sejajar sisi kotak, dan pergantian ekspresi
+   tidak menggeser wajah. Itu siluet dialog Persona yang dituju.
 3. `expression` opsional membuat cerita lama, fixture, dan hasil generator tetap
    valid tanpa migrasi.
 4. Satu daftar ekspresi mencegah zod, JSON Schema, manifest, dan prompt

@@ -40,9 +40,12 @@
  * atas.
  *
  * Penyekalaan memakai rata-rata kotak berbobot alpha (premultiplied), jadi tepi
- * rambut tidak berhalo gelap. Pusat kepala (rata-rata x berbobot alpha pada
- * pita kepala) dijejalkan ke tengah kanvas per ekspresi supaya pergantian
- * ekspresi tidak menggeser potret ke kiri/kanan.
+ * rambut tidak berhalo gelap. Kepala semua ekspresi ditaruh di x kanvas yang
+ * sama, lalu patokan itu digeser ke kiri sampai potret mentok tepi kiri kanvas;
+ * sisa yang melewati tepi terpotong di sisi luar. Dengan begitu potret benar
+ * menempel di tepi kotak dialog, wajah tidak bergoyang saat ekspresi berganti,
+ * dan tidak ada pose yang terpotong di sisi wajah. MC dicerminkan
+ * `DialogueBox`, sehingga rata kiri di kanvas menjadi rata kanan di slotnya.
  */
 
 import {
@@ -300,12 +303,15 @@ function median(nilai) {
 
 /**
  * Susun satu ekspresi ke kanvas tetap: kepala ditinggikan `skala` kali,
- * puncaknya di `MARGIN_ATAS`, pusatnya di tengah kanvas. Bagian luar kanvas
- * (badan yang lebih panjang) terpotong otomatis.
+ * puncaknya di `MARGIN_ATAS`, dan gambar digeser `geserKiri` px. `geserKiri`
+ * bernilai ≤ 0, jadi isi potret selalu mencapai (atau melewati) tepi kiri
+ * kanvas; bagian yang melewati terpotong. Karena semua karakter rata kiri,
+ * MC yang dicerminkan di DOM otomatis rata kanan di slotnya. Badan yang lebih
+ * panjang dari bingkai juga terpotong di tepi bawah.
  */
-function susunPotret(image, box, skala, pusat) {
+function susunPotret(image, box, skala, geserKiri) {
   const data = new Uint8Array(LEBAR_KANVAS * TINGGI_KANVAS * 4);
-  const kiri = LEBAR_KANVAS / 2 - pusat * skala;
+  const kiri = geserKiri;
 
   for (let y = 0; y < TINGGI_KANVAS; y += 1) {
     const sy0 = box.minY + (y - MARGIN_ATAS) / skala;
@@ -349,12 +355,23 @@ for (const { folder, nama, pemain } of PETA) {
   // berubah saat ekspresi berganti.
   const skala = TINGGI_KEPALA / median(ukur.map((entri) => entri.kepala));
 
+  // Patokan horizontal: kepala semua ekspresi ditaruh di x yang sama
+  // (`pusatX`) supaya wajah tidak bergoyang; nilainya diambil dari ekspresi
+  // dengan kepala paling kiri, sehingga potret selalu mentok (atau melewati)
+  // tepi kiri kanvas. Sisa yang melewati tepi terpotong di sisi luar — persis
+  // gaya potret dialog yang menempel di tepi kotak.
+  const pusatX = Math.min(
+    ...ukur.map(
+      (entri) => pusatKepala(entri.image, entri.box, entri.kepala) * skala,
+    ),
+  );
+
   for (const { ekspresi, image, box, kepala } of ukur) {
     const potret = susunPotret(
       image,
       box,
       skala,
-      pusatKepala(image, box, kepala),
+      pusatX - pusatKepala(image, box, kepala) * skala,
     );
     writeFileSync(join(dir, `${ekspresi}.png`), Buffer.from(encodePng(potret)));
     jumlah += 1;

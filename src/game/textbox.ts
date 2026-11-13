@@ -23,6 +23,8 @@ export type BeatView = {
   text: string;
   /** Potret pembicara; null bila beat ini tidak menampilkan potret. */
   portrait?: PortraitView | null;
+  /** Potret lawan bicara yang tampil meredup; null bila tidak ada. */
+  pendamping?: PortraitView | null;
 };
 
 /** Keadaan dialog yang dikirim ke React setiap kali berubah. */
@@ -31,7 +33,10 @@ export type DialogueState = {
   name: string | null;
   text: string;
   waiting: boolean;
+  /** Potret pembicara yang menyala. */
   portrait: PortraitView | null;
+  /** Potret lawan bicara yang tetap tampil tetapi meredup. */
+  pendamping: PortraitView | null;
 };
 
 export type Textbox = {
@@ -62,6 +67,7 @@ export function createTextbox(
   let terlihat = false;
   let nama: string | null = null;
   let potret: PortraitView | null = null;
+  let pendamping: PortraitView | null = null;
   /** Sidik state terakhir yang dikirim; cegah render DOM tiap frame. */
   let terakhir: string | null = null;
 
@@ -72,6 +78,7 @@ export function createTextbox(
       text: terlihat ? typewriter.current() : "",
       waiting: terlihat && typewriter.isDone(),
       portrait: terlihat ? potret : null,
+      pendamping: terlihat ? pendamping : null,
     };
   }
 
@@ -87,6 +94,7 @@ export function createTextbox(
     show(beat) {
       nama = beat.name;
       potret = beat.portrait ?? null;
+      pendamping = beat.pendamping ?? null;
       typewriter = new Typewriter(beat.text);
       terlihat = true;
       kirim();
@@ -114,6 +122,7 @@ export function createTextbox(
       terlihat = false;
       nama = null;
       potret = null;
+      pendamping = null;
       kirim();
     },
   };

@@ -130,26 +130,8 @@ describe("DialogueBox", () => {
     expect(slot?.style.transform).toBe("scaleX(-1)");
   });
 
-  it("menyorot potret selagi teks diketik lalu meredupkannya saat menunggu", () => {
-    const { rerender } = render(
-      <DialogueBox
-        view={{
-          ...bicara,
-          waiting: false,
-          portrait: {
-            src: "/assets/portrait/npc_1/happy.png",
-            alt: "Potret Bu Ratna",
-          },
-        }}
-        onAdvance={() => {}}
-      />,
-    );
-
-    expect(screen.getByAltText("Potret Bu Ratna").className).toContain(
-      "animate-portrait-bicara",
-    );
-
-    rerender(
+  it("tetap menyorot potret pembicara walau teks sudah selesai diketik", () => {
+    render(
       <DialogueBox
         view={{
           ...bicara,
@@ -163,8 +145,58 @@ describe("DialogueBox", () => {
       />,
     );
 
-    const potret = screen.getByAltText("Potret Bu Ratna");
-    expect(potret.className).not.toContain("animate-portrait-bicara");
-    expect(potret.className).toContain("opacity-90");
+    expect(screen.getByAltText("Potret Bu Ratna").className).toContain(
+      "animate-portrait-bicara",
+    );
+  });
+
+  it("meredupkan potret NPC saat MC yang bicara dan sebaliknya", () => {
+    const { rerender } = render(
+      <DialogueBox
+        view={{
+          ...bicara,
+          portrait: {
+            src: "/assets/portrait/mc/neutral.png",
+            alt: "Potret Nara",
+          },
+          pendamping: {
+            src: "/assets/portrait/npc_1/neutral.png",
+            alt: "Potret Bu Ratna",
+          },
+        }}
+        onAdvance={() => {}}
+      />,
+    );
+
+    expect(screen.getByAltText("Potret Nara").className).toContain(
+      "animate-portrait-bicara",
+    );
+    const npc = screen.getByAltText("Potret Bu Ratna");
+    expect(npc.className).not.toContain("animate-portrait-bicara");
+    expect(npc.className).toContain("brightness-50");
+
+    rerender(
+      <DialogueBox
+        view={{
+          ...bicara,
+          portrait: {
+            src: "/assets/portrait/npc_1/neutral.png",
+            alt: "Potret Bu Ratna",
+          },
+          pendamping: {
+            src: "/assets/portrait/mc/neutral.png",
+            alt: "Potret Nara",
+          },
+        }}
+        onAdvance={() => {}}
+      />,
+    );
+
+    expect(screen.getByAltText("Potret Bu Ratna").className).toContain(
+      "animate-portrait-bicara",
+    );
+    const mc = screen.getByAltText("Potret Nara");
+    expect(mc.className).not.toContain("animate-portrait-bicara");
+    expect(mc.className).toContain("brightness-50");
   });
 });

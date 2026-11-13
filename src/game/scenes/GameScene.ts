@@ -131,6 +131,11 @@ export class GameScene extends Phaser.Scene {
   /** Pembicara beat dialog terakhir; dipakai sebagai nama speaker saat tantangan. */
   private pembicaraTerakhir: string | null = null;
   /**
+   * NPC terakhir yang bicara. Dipakai sebagai potret pendamping (meredup) saat
+   * MC yang mengambil giliran, supaya lawan bicara tetap terlihat di layar.
+   */
+  private lawanBicaraTerakhir: string | null = null;
+  /**
    * Pembicara yang menampilkan soal tantangan aktif. Dipakai saat feedback
    * jawaban mengganti potretnya jadi senang/marah.
    */
@@ -508,6 +513,7 @@ export class GameScene extends Phaser.Scene {
    */
   private mulaiObrolan(npcId: string, teks: string) {
     this.obrolanAktif = npcId;
+    this.lawanBicaraTerakhir = npcId;
     this.sembunyikanPetunjuk();
     this.sorotSpeaker(npcId);
 
@@ -516,6 +522,7 @@ export class GameScene extends Phaser.Scene {
       name: nama,
       text: teks,
       portrait: this.potretUntuk(npcId),
+      pendamping: this.potretLawan(npcId),
     });
     this.bus?.emit({
       type: "log",
@@ -528,6 +535,7 @@ export class GameScene extends Phaser.Scene {
   /** Tutup obrolan singkat; prompt muncul lagi pada frame berikutnya. */
   private tutupObrolan() {
     this.obrolanAktif = null;
+    this.lawanBicaraTerakhir = null;
     this.textbox?.hide();
     this.sorotSpeaker(null);
   }
@@ -882,20 +890,30 @@ export class GameScene extends Phaser.Scene {
     let view: BeatView;
     if (beat.type === "dialogue") {
       this.pembicaraTerakhir = beat.speakerId;
+      // Ingat NPC yang bicara supaya potretnya tetap tampil (meredup) saat MC
+      // mengambil giliran berikutnya.
+      if (beat.speakerId !== this.playerId) {
+        this.lawanBicaraTerakhir = beat.speakerId;
+      }
       this.sorotSpeaker(beat.speakerId);
       view = {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
         text: beat.text,
         portrait: this.potretUntuk(beat.speakerId, beat.expression),
+        pendamping: this.potretLawan(beat.speakerId),
       };
     } else {
       // Narasi tidak menampilkan nama, tetapi boleh memunculkan potret
       // lewat `speakerId` bila AI ingin menyorot reaksi seseorang.
+      if (beat.speakerId && beat.speakerId !== this.playerId) {
+        this.lawanBicaraTerakhir = beat.speakerId;
+      }
       this.sorotSpeaker(null);
       view = {
         name: null,
         text: beat.text,
         portrait: this.potretUntuk(beat.speakerId ?? null, beat.expression),
+        pendamping: this.potretLawan(beat.speakerId ?? null),
       };
     }
     this.textbox?.show(view);
@@ -956,6 +974,7 @@ export class GameScene extends Phaser.Scene {
     this.sceneAktif = null;
     this.questTerakhir = "";
     this.pembicaraTerakhir = null;
+    this.lawanBicaraTerakhir = null;
     this.speakerTantangan = null;
     // Dunia tetap seperti semula; hanya titik kaki pemain yang dikembalikan.
     this.kembalikanPemain();
@@ -978,7 +997,10 @@ export class GameScene extends Phaser.Scene {
     if (!challenge || !this.bus) return;
 
     const speakerId =
-      this.pembicaraTerakhir ??
+      (this.pembicaraTerakhir !== this.playerId
+        ? this.pembicaraTerakhir
+        : null) ??
+      this.lawanBicaraTerakhir ??
       this.pemberiQuest ??
       this.story.cast.find((c) => c.role === "mentor")?.id ??
       null;
@@ -987,6 +1009,9 @@ export class GameScene extends Phaser.Scene {
       : null;
     // Simpan pembicara soal supaya feedback jawaban bisa memakai potretnya lagi.
     this.speakerTantangan = speakerId;
+    if (speakerId && speakerId !== this.playerId) {
+      this.lawanBicaraTerakhir = speakerId;
+    }
 
     if (speakerId) {
       this.sorotSpeaker(speakerId);
@@ -1001,6 +1026,7 @@ export class GameScene extends Phaser.Scene {
       name,
       text,
       portrait: this.potretUntuk(speakerId),
+      pendamping: this.potretLawan(speakerId),
     });
     this.textbox?.complete();
 
@@ -1167,6 +1193,19 @@ export class GameScene extends Phaser.Scene {
       src,
       alt: `Potret ${this.castNames.get(speakerId) ?? speakerId}`,
     };
+  }
+
+  /**
+   * Potret lawan bicara untuk menemani pembicara: MC saat NPC yang bicara,
+   * atau NPC terakhir saat MC yang mengambil giliran. Potret ini tetap tampil
+   * tetapi diredupkan `DialogueBox`; `null` bila tidak ada pasangan.
+   */
+  private potretLawan(speakerId: string | null): PortraitView | null {
+    if (!speakerId) return null;
+    if (speakerId === this.playerId) {
+      return this.potretUntuk(this.lawanBicaraTerakhir);
+    }
+    return this.potretUntuk(this.playerId);
   }
 
   private kembalikanPemain() {
