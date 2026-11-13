@@ -44,16 +44,15 @@ import { PreloadScene } from "./scenes/PreloadScene";
 
 export { GAME_WIDTH, GAME_HEIGHT } from "./constants";
 
-import { GAME_HEIGHT, lebarInternal } from "./constants";
+import { GAME_HEIGHT, lebarKanvas, skalaBulat } from "./constants";
 
 export function createGameConfig(
   parent: HTMLElement,
   story: Story,
   bus?: GameBus,
 ): Phaser.Types.Core.GameConfig {
-  const lebar = lebarInternal(
-    parent.clientHeight > 0 ? parent.clientWidth / parent.clientHeight : 16 / 9,
-  );
+  const skala = skalaBulat(parent.clientWidth, parent.clientHeight);
+  const lebar = lebarKanvas(parent.clientWidth, skala);
 
   return {
     type: Phaser.AUTO,
@@ -64,7 +63,8 @@ export function createGameConfig(
     pixelArt: true,
     roundPixels: true,
     scale: {
-      mode: Phaser.Scale.FIT,
+      mode: Phaser.Scale.NONE,
+      zoom: skala,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     scene: [new PreloadScene(story), new GameScene(story, bus)],
@@ -74,9 +74,12 @@ export function createGameConfig(
 
 Yang penting dari konfigurasi ini:
 
-- **Tinggi internal 360**, lebarnya mengikuti rasio layar lewat `lebarInternal()`
-  (dikunci 640–960). Layar lebar menampilkan **lebih banyak dunia ke samping**,
-  bukan bar hitam (FIT) atau potongan atas-bawah (ENVELOP). Angka dan warna ini
+- **Tinggi internal 360**, lebarnya `lebar kontainer ÷ skala bulat`
+  (`skalaBulat()` + `lebarKanvas()` di `constants.ts`, dijepit 640–960). Skala
+  **selalu bilangan bulat**, jadi `Scale.NONE` + `zoom` dipakai alih-alih `FIT`:
+  satu piksel internal jatuh tepat di 1/2/3 piksel layar, dan pixel art tidak
+  berkedip saat kamera bergerak. Sisa ruang di tepi menjadi bar gelap `#14201a`.
+  `createGame.ts` menghitung ulang skala pada event `resize`. Angka dan warna ini
   harus sama dengan [`game-design.md`](./game-design.md#resolusi-dan-skala) dan
   [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md).
 - **Tidak ada `physics`.** Gerak dan tabrakan dihitung sendiri oleh
@@ -88,6 +91,10 @@ Yang penting dari konfigurasi ini:
 Catatan Phaser 4:
 
 - `roundPixels` **default `false`** di v4. Tanpa ini, pixel art akan blur/bergetar.
+- Pembulatan per objek memakai `vertexRoundMode`. Default `safeAuto` hanya
+  membulatkan objek yang **tidak** diskalakan atau diputar; objek terskala
+  (prop editor ±1,66×, karakter 0,875×) perlu
+  `setVertexRoundMode("fullAuto")` supaya tidak meluncur di sub-piksel.
 - `setTintFill()` sudah dihapus. Untuk efek highlight, pakai `setTint()` +
   `setTintMode()`.
 - FX dan mask kini satu sistem filter. Jangan menyalin contoh Phaser 3.
@@ -387,8 +394,10 @@ Yang sudah berlaku di kode hari ini:
 - [x] Phaser diimpor dinamis di dalam `useEffect`.
 - [x] `game.destroy(true)` di cleanup.
 - [x] `pixelArt: true`, `roundPixels: true`.
-- [x] `scale.mode = FIT`, tinggi dasar 360 dengan lebar adaptif (ADR 0009);
-      halaman full-bleed dan kanvas selalu tampil utuh di dalamnya.
+- [x] `scale.mode = NONE` + `zoom` bulat, tinggi dasar 360 dengan lebar adaptif
+      `lebarKanvas()` (ADR 0009); sisa ruang di tepi menjadi bar gelap.
+- [x] `vertexRoundMode` `fullAuto` untuk objek terskala; posisi pemain dan NPC
+      dibulatkan ke piksel utuh.
 - [x] Key aset = `assetId`.
 - [x] Bridge mengirim `GameEvent` dan menerima `GameCommand`.
 - [x] Tidak ada state penting hanya di dalam Phaser (progres dihitung ulang dari

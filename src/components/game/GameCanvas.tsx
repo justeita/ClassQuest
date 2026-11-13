@@ -518,9 +518,9 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
               width: bingkai.w > 0 ? bingkai.w : "100%",
               height: bingkai.h > 0 ? bingkai.h : "100%",
               containerType: "size",
-              // Lebar dunia internal mengikuti rasio layar (lihat
-              // `lebarInternal`); overlay memakai angka internal 640 sebagai
-              // pembanding, jadi nilai aktualnya dipasang di sini.
+              // Lebar dunia internal mengikuti kontainer (lihat `lebarKanvas`);
+              // overlay memakai angka internal 640 sebagai pembanding, jadi
+              // nilai aktualnya dipasang di sini.
               ["--gw" as string]:
                 bingkai.h > 0 ? Math.round(360 * (bingkai.w / bingkai.h)) : 640,
             }}

@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -130,6 +130,13 @@ Alasan:
 > **Prop besar:** kanopi pohon dan badan furnitur besar tidak boleh menjadi
 > collider penuh. `RoomObject.collider` opsional menandai area solid di dalam
 > kotak objek — lihat [ADR 0011](0011-large-prop-subcollider.md).
+
+> **Catatan lanjutan 2026-11-13 — kamera menempel pemain.** `lerp` 0,12
+> diganti `1` (`CAMERA_LERP`). Luncuran kamera yang terus mengejar pemain
+> membuat seluruh dunia bergeser pelan sepanjang waktu; digabung pixel art yang
+> berkedip, gerak itu terasa memualkan. Dead zone 128×96 px tetap. Dengan `lerp`
+> 1, `scrollX/scrollY` juga tetap bilangan bulat, dan objek yang diskalakan
+> memakai `setVertexRoundMode("fullAuto")` supaya tidak meluncur di sub-piksel.
 
 ## Kapan keputusan ini ditinjau ulang
 

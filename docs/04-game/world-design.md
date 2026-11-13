@@ -48,22 +48,28 @@ dunia desa **tidak** memakai satuan tile 16×16: editor peta menempel gambar di
 koordinat piksel bebas, dan angka itu disalin apa adanya ke game. Jadi hampir
 semua nilai di bawah dinyatakan dalam piksel.
 
-| Hal                   | Nilai                                                        |
-| --------------------- | ------------------------------------------------------------ |
-| Resolusi internal     | 640×360 px                                                   |
-| Lebar kanvas          | mengikuti rasio layar, dikunci 640–960 px (tinggi tetap 360) |
-| Peta desa             | 2390×1792 px                                                 |
-| Sel collision editor  | 7,9667×5,9733 px (peta dibagi rata menjadi grid 300×300)     |
-| Frame sprite karakter | 64 px tinggi; lebar per karakter berbeda (34–51 px)          |
-| Tinggi karakter       | 56 px di peta (frame 64 px × skala 0,875)                    |
-| Portrait dialog       | 64×64 px                                                     |
-| Kecepatan pemain      | 180 px/detik                                                 |
-| Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki                  |
-| Zona interaksi NPC    | 24 px dari titik kaki ke titik kaki                          |
-| Dead zone kamera      | 128×96 px di tengah layar                                    |
+| Hal                   | Nilai                                                          |
+| --------------------- | -------------------------------------------------------------- |
+| Resolusi internal     | 640×360 px                                                     |
+| Lebar kanvas          | lebar kontainer ÷ skala bulat, dijepit 640–960 px (tinggi 360) |
+| Skala ke layar        | bilangan bulat 1×, 2×, 3×, … — tidak pernah pecahan            |
+| Peta desa             | 2390×1792 px                                                   |
+| Sel collision editor  | 7,9667×5,9733 px (peta dibagi rata menjadi grid 300×300)       |
+| Frame sprite karakter | 64 px tinggi; lebar per karakter berbeda (34–51 px)            |
+| Tinggi karakter       | 56 px di peta (frame 64 px × skala 0,875)                      |
+| Portrait dialog       | 64×64 px                                                       |
+| Kecepatan pemain      | 180 px/detik                                                   |
+| Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki                    |
+| Zona interaksi NPC    | 24 px dari titik kaki ke titik kaki                            |
+| Dead zone kamera      | 128×96 px di tengah layar                                      |
 
-Lebar kanvas adaptif ada di `src/game/constants.ts` (`lebarInternal`): layar lebar
-menampilkan **lebih banyak dunia ke samping**, bukan bar hitam atau potongan
+Skala kanvas **selalu bilangan bulat** (`skalaBulat()` di
+`src/game/constants.ts`): satu piksel internal jatuh tepat di 1, 2, 3, … piksel
+layar. `Scale.FIT` tidak dipakai karena skala pecahan (mis. 2,41×) membuat lebar
+piksel bergantian 2 dan 3 px, lalu pola itu bergeser setiap kamera bergerak —
+pixel art terlihat berkedip saat pemain berjalan. Konsekuensinya sisa ruang di
+tepi menjadi bar gelap; lebar internal (`lebarKanvas()`) tetap dijepit 640–960 px
+supaya layar lebar menampilkan **lebih banyak dunia ke samping**, bukan potongan
 atas-bawah.
 
 ## Perspektif
@@ -150,12 +156,26 @@ Aturan collision:
 | ----------------- | ---------------------------------------------------------------------- |
 | Mode              | Mengikuti pemain, kamera berhenti di tepi peta (`setBounds`)           |
 | Dead zone         | Kotak 128×96 px di tengah layar; kamera diam selama pemain di dalamnya |
-| Pergerakan kamera | `lerp` 0,12 — bergeser halus, tidak menempel kaku                      |
+| Pergerakan kamera | `lerp` 1 — menempel pemain, tanpa luncuran                             |
 | Dunia = layar     | Kamera dikunci ke tengah dunia, tidak bergerak                         |
-| `roundPixels`     | `true` — wajib, mencegah jitter saat lerp di pixel art                 |
+| `roundPixels`     | `true` — membulatkan gambar ke piksel utuh                             |
+| Pembulatan posisi | Titik kaki pemain, NPC, dan objek selalu bilangan bulat                |
 
 Karena peta desa jauh lebih luas dari layar, mode yang berlaku selalu `follow`.
 Mode `lock` tetap ada di `camera.ts` untuk peta kecil yang mungkin dibuat kelak.
+
+**Luncuran kamera dibuang (2026-11-13).** Sebelumnya kamera memakai `lerp` 0,12
+supaya gerak terasa sinematik. Di pixel art keputusan itu salah: kamera selalu
+mengejar ketinggalan, jadi seluruh dunia bergeser pelan sepanjang waktu dan mata
+membacanya sebagai getaran yang membuat pusing. Sekarang kamera menempel pemain;
+`lerp` 1 juga menjaga `scrollX/scrollY` tetap bilangan bulat.
+
+**Objek terskala tetap dibulatkan.** Objek dari editor diskalakan dengan faktor
+pecahan (mis. `house_red` 185×128 digambar 308×212 ≈ 1,66×), dan karakter 0,875×.
+Phaser hanya membulatkan objek yang "hanya translasi" (`safeAuto`), jadi objek
+terskala diberi `setVertexRoundMode("fullAuto")` di `GameScene`. Tanpa itu objek
+meluncur di sub-piksel sementara peta membulat — sumber getaran yang paling
+terlihat.
 
 ## Sprite karakter
 

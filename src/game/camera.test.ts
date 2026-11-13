@@ -25,7 +25,7 @@ describe("deadzone dan lerp", () => {
     expect(DEADZONE_PX).toEqual({ width: 128, height: 96 });
   });
 
-  it("lerp 0.12 sesuai world-design.md", () => {
-    expect(CAMERA_LERP).toBe(0.12);
+  it("kamera menempel pemain tanpa luncuran", () => {
+    expect(CAMERA_LERP).toBe(1);
   });
 });

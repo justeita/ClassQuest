@@ -14,8 +14,20 @@ export type UkuranDunia = { width: number; height: number };
 /** Dead zone: kamera diam selama pemain masih di dalam kotak 128×96 px. */
 export const DEADZONE_PX = { width: 128, height: 96 };
 
-/** Pergerakan kamera halus, tidak menempel kaku (world-design.md § Kamera). */
-export const CAMERA_LERP = 0.12;
+/**
+ * Kamera menempel pemain (world-design.md § Kamera).
+ *
+ * `1` berarti posisi kamera mengikuti target apa adanya; tidak ada luncuran
+ * yang mengejar ketinggalan di belakang pemain. Luncuran halus (`0,12`) dulu
+ * dipakai supaya gerak terasa sinematik, tetapi di pixel art ia justru membuat
+ * seluruh dunia bergeser pelan setiap saat: mata membaca getaran itu sebagai
+ * pusing/mual (catatan lanjutan 2026-11-13 di ADR 0010).
+ *
+ * Nilai 1 juga menjaga `scrollX/scrollY` tetap bilangan bulat — target pemain
+ * dan dead zone sama-sama bulat — sehingga objek tidak pernah duduk di
+ * setengah piksel.
+ */
+export const CAMERA_LERP = 1;
 
 export type CameraMode = "lock" | "follow";
 

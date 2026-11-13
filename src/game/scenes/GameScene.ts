@@ -240,10 +240,15 @@ export class GameScene extends Phaser.Scene {
       if (!this.textures.exists(object.assetId)) continue;
       this.duniaObjects.push(
         this.add
-          .image(object.x, object.y, object.assetId)
+          .image(Math.round(object.x), Math.round(object.y), object.assetId)
           .setOrigin(0, 0)
           .setDisplaySize(object.w, object.h)
-          .setDepth(object.depth),
+          .setDepth(object.depth)
+          // Data editor memperbesar objek dengan skala pecahan (±1,66×), dan
+          // `safeAuto` hanya membulatkan objek tanpa skala. Tanpa `fullAuto`
+          // objek meluncur di sub-piksel sementara peta membulat, sehingga
+          // pixel art tampak bergetar saat pemain berjalan.
+          .setVertexRoundMode("fullAuto"),
       );
     }
 
@@ -261,6 +266,10 @@ export class GameScene extends Phaser.Scene {
    * Sprite karakter berjangkar di titik kaki, ukurannya mengikuti frame
    * spritesheet-nya. Semua karakter desa sama tinggi (`TINGGI_KARAKTER`).
    *
+   * Posisi dan gambar dibulatkan ke piksel utuh: skala 0,875 membuat sprite
+   * bukan objek "hanya translasi", jadi tanpa `fullAuto` ia ikut meluncur di
+   * sub-piksel saat kamera bergeser (pixel art bergetar).
+   *
    * Tidak ada sprite cadangan: `manifest.test.ts` menjamin setiap sprite di
    * manifest punya berkasnya, dan `PreloadScene` memuat semua sprite `cast`.
    */
@@ -276,9 +285,10 @@ export class GameScene extends Phaser.Scene {
       info?.frameHeight ?? 32,
     );
     return this.add
-      .sprite(x, y, spriteId, face)
+      .sprite(Math.round(x), Math.round(y), spriteId, face)
       .setOrigin(0.5, 1)
-      .setDisplaySize(ukuran.width, ukuran.height);
+      .setDisplaySize(ukuran.width, ukuran.height)
+      .setVertexRoundMode("fullAuto");
   }
 
   /**
@@ -321,7 +331,10 @@ export class GameScene extends Phaser.Scene {
       batas: { width: VILLAGE.width, height: VILLAGE.height },
     });
 
-    sprite.setPosition(tujuan.x, tujuan.y);
+    // Posisi dibulatkan ke piksel utuh: kamera dan objek dunia sama-sama
+    // duduk di grid yang sama, jadi tidak ada setengah piksel yang membuat
+    // gambar "berkedip" saat berjalan.
+    sprite.setPosition(Math.round(tujuan.x), Math.round(tujuan.y));
     if (arah) {
       this.arahTerakhir = arah;
       sprite.setFrame(FRAME_ARAH[arah]);
@@ -801,7 +814,10 @@ export class GameScene extends Phaser.Scene {
 
   private kembalikanPemain() {
     if (!this.player) return;
-    this.player.setPosition(SPAWN_PEMAIN.x, SPAWN_PEMAIN.y);
+    this.player.setPosition(
+      Math.round(SPAWN_PEMAIN.x),
+      Math.round(SPAWN_PEMAIN.y),
+    );
     this.arahTerakhir = "down";
     this.player.setFrame(FRAME_ARAH[this.arahTerakhir]);
     this.player.setDepth(this.player.y);

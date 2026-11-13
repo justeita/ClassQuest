@@ -58,7 +58,7 @@ export function persen(nilai: number, total: number): string {
 /**
  * Koordinat x internal → persen lebar ruang game **aktual**.
  *
- * Lebar internal mengikuti rasio layar (`lebarInternal`), jadi angka 640 tidak
+ * Lebar internal mengikuti kontainer (`lebarKanvas`), jadi angka 640 tidak
  * lagi pasti. Nilai aktual datang dari CSS variable `--gw` yang dipasang di
  * bingkai kanvas; fallback `GAME_WIDTH` menjaga pratinjau/tes tetap jalan.
  */
@@ -89,7 +89,7 @@ export function kotakPersen(kotak: {
 /**
  * Panjang internal (px pada tinggi 360) → lebar kontainer game.
  *
- * Lebar internal dunia mengikuti rasio layar (`lebarInternal`), jadi 1 unit
+ * Lebar internal dunia mengikuti kontainer (`lebarKanvas`), jadi 1 unit
  * internal = `100 / --gw` persen lebar kontainer. `cqh` tetap dipakai sebagai
  * acuan karena tinggi internal selalu 360 — keduanya sebanding.
  */

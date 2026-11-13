@@ -94,12 +94,15 @@ Menambah entri `RAMP` berarti menambah baris di tabel ini pada PR yang sama.
 
 - Resolusi internal: **640×360** (16:9), kelipatan tile 16×16 — keputusan di
   [ADR 0009](../09-decisions/0009-resolution-and-scale.md). Sama dengan
-  `GAME_WIDTH`/`GAME_HEIGHT` di `src/game/config.ts`.
-- Ditampilkan dengan `Phaser.Scale.FIT` mengikuti ukuran kontainer; 640×360 naik
-  pas 2× di 720p dan 3× di 1080p, jadi pixel tetap tajam.
+  `GAME_WIDTH`/`GAME_HEIGHT` di `src/game/constants.ts`.
+- Ditampilkan dengan skala **bulat** (`Phaser.Scale.NONE` + `zoom`): 640×360 naik
+  tepat 2× di 720p dan 3× di 1080p, jadi pixel tetap tajam. Sisa ruang di tepi
+  menjadi bar gelap bertema `#14201A`.
 - `pixelArt: true` dan `roundPixels: true` **wajib** di konfigurasi Phaser.
-  `pixelArt` yang membuat tekstur memakai nearest-neighbor, sehingga pixel tetap
-  tajam walau skalanya pecahan — bukan integer scaling manual.
+  `pixelArt` membuat tekstur memakai nearest-neighbor; `roundPixels` membulatkan
+  gambar ke piksel utuh. Objek yang diskalakan tetap butuh
+  `setVertexRoundMode("fullAuto")` — lihat
+  [`world-design.md`](./world-design.md#kamera).
 - Konsekuensi yang harus dijaga: pada layar kecil, skala bisa mendekati 1x dan
   teks jadi terlalu kecil. Batas dan jalan keluarnya ada di
   [`accessibility.md`](./accessibility.md#ukuran-teks).

@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -108,6 +108,15 @@ diubah.
   `src/game/textbox.ts`, `scripts/lib/{scenes,characters,pixel}.mjs`.
 - [`../01-architecture/repo-structure.md`](../01-architecture/repo-structure.md) —
   catatan resolusi di baris `config.ts`.
+
+> **Catatan lanjutan 2026-11-13 — skala bulat.** Angka 640×360 tetap. Yang
+> berubah adalah cara menampilkannya: kanvas tidak lagi memakai `Scale.FIT`
+> (skala pecahan mengikuti kontainer), melainkan `Scale.NONE` + `zoom` bulat
+> dari `skalaBulat()` di `src/game/constants.ts`. Skala pecahan membuat satu
+> piksel internal bergantian menempati 2–3 piksel layar; pola itu bergeser
+> setiap kamera bergerak, sehingga pixel art terlihat berkedip. Sisa ruang di
+> tepi menjadi bar gelap, dan lebar internal tetap dijepit 640–960 px
+> (`lebarKanvas()`).
 
 ## Kapan keputusan ini ditinjau ulang
 
