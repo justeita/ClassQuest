@@ -19,7 +19,7 @@ classquest/
 │   ├── components/          # komponen React: guru/ (portal) + game/ (shell)
 │   ├── ai/                  # prompt builder, provider LLM, pipeline
 │   ├── assets/              # manifest aset (sumber kebenaran id aset)
-│   ├── game/                # Phaser: scene, map, gerak, bridge ke React
+│   ├── game/                # Phaser: scene, dunia desa, gerak, bridge React
 │   ├── lib/                 # utilitas murni (mis. aturan tahun ajaran)
 │   ├── server/              # auth, db, cerita, job, kelas, hasil main, rate limit
 │   ├── story/               # schema, validator, scoring, fallback
@@ -89,6 +89,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/story/fallback.ts`                           | ya   | Cerita cadangan (deterministik, selalu valid)                  |
 | `src/assets/manifest.ts`                          | ya   | Daftar resmi aset + `toAssetManifest()`                        |
 | `src/assets/manifest.test.ts`                     | ya   | Tes id, path, tag, fallback, dan file aset                     |
+| `src/assets/worldAssets.ts`                       | ya   | Entri manifest kind `world` (peta + objek desa), dibangkitkan  |
 | `src/ai/provider.ts`                              | ya   | Antarmuka `LlmProvider` + error provider                       |
 | `src/ai/mock-provider.ts`                         | ya   | Provider mock deterministik dari fixture                       |
 | `src/ai/factory.ts`                               | ya   | `createLlmProvider` dari konfigurasi env AI                    |
@@ -107,13 +108,13 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/typewriter.ts`                          | ya   | Efek ketik murni (30–40 karakter/detik)                        |
 | `src/game/textbox.ts`                             | ya   | Textbox dialog sesuai scene-format.md                          |
 | `src/game/interaction.ts`                         | ya   | Zona interaksi NPC + prompt (ADR 0008)                         |
-| `src/game/map.ts`                                 | ya   | Konverter RoomData (tile) → peta runtime piksel                |
-| `src/game/maps`                                   | ya   | Data ruangan per scene + template default (ADR 0010)           |
-| `src/game/map.test.ts`                            | ya   | Tes resolver map dan konverter collider                        |
-| `src/game/camera.ts`                              | ya   | Keputusan kamera per ruangan: lock/follow (ADR 0010)           |
+| `src/game/world`                                  | ya   | Data dunia desa: tipe, peta, frame arah, tabrakan              |
+| `src/game/world/village.json`                     | ya   | Peta desa + objek + NPC hasil impor editor peta                |
+| `src/game/world/collision.test.ts`                | ya   | Tes grid tabrakan sel tertutup dan kotak kaki NPC              |
+| `src/game/camera.ts`                              | ya   | Kamera mengikuti pemain dengan dead zone di dunia desa         |
 | `src/game/camera.test.ts`                         | ya   | Tes mode kamera, dead zone, dan lerp                           |
-| `src/game/constants.ts`                           | ya   | Konstanta resolusi + tile tanpa dependensi                     |
-| `src/game/movement.ts`                            | ya   | Gerak pemain 4 arah + collision top-down (ADR 0008)            |
+| `src/game/constants.ts`                           | ya   | Konstanta resolusi tanpa dependensi                            |
+| `src/game/movement.ts`                            | ya   | Gerak pemain 4 arah + tabrakan grid manual (ADR 0008)          |
 | `src/game/movement.test.ts`                       | ya   | Tes arah gerak dan layout frame animasi                        |
 | `src/game/gameBus.ts`                             | ya   | Bridge bertipe Phaser ↔ React (event + command)                |
 | `src/game/challengeView.ts`                       | ya   | Data tantangan aman untuk overlay (tanpa jawaban)              |
@@ -192,12 +193,13 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/server/jobs/schedule.test.ts`                | ya   | Tes penjadwalan `after()` dan penanganan kegagalan             |
 | `src/server/jobs/status.ts`                       | ya   | Status job untuk polling + `getLatestJobId`                    |
 | `src/server/jobs/status.test.ts`                  | ya   | Tes pencarian job terbaru milik guru                           |
-| `public/assets`                                   | ya   | File aset game (dibuat `bun run assets:generate`)              |
+| `public/assets`                                   | ya   | File aset game (`assets:generate` + `assets:world`)            |
 | `public/brand`                                    | ya   | Logo + ikon brand (bukan aset game, tanpa id manifest)         |
 | `src/app/favicon.ico`                             | ya   | Favicon 16/32/48 px dari ikon brand                            |
 | `src/app/icon.png`                                | ya   | Ikon aplikasi 192×192                                          |
 | `src/app/apple-icon.png`                          | ya   | `apple-touch-icon` 192×192                                     |
 | `scripts/generate-assets.mjs`                     | ya   | Generator aset pixel + audio, tanpa dependensi                 |
+| `scripts/import-world.mjs`                        | ya   | Impor peta desa dari editor + tulis `worldAssets.ts`           |
 | `scripts/dev-publish.ts`                          | ya   | Script dev penerbit cerita                                     |
 
 ## Struktur target
@@ -317,7 +319,7 @@ utilitas murni tanpa I/O.
 | Route (Next)       | `kebab-case` folder    | `materi/baru`          |
 | Tipe/interface     | `PascalCase`           | `Story`, `Challenge`   |
 | Konstanta          | `SCREAMING_SNAKE_CASE` | `MAX_PDF_BYTES`        |
-| Aset               | `snake_case` + prefix  | `bg_classroom_day.png` |
+| Aset               | `snake_case` + prefix  | `char_npc_1.png`       |
 | Test               | colocated `*.test.ts`  | `validate.test.ts`     |
 
 > Pengecualian: file Phaser scene memakai `PascalCase` (`PreloadScene.ts`) karena
@@ -338,7 +340,7 @@ utilitas murni tanpa I/O.
 ### Aset
 
 - File aset di `public/assets/...`, dirujuk lewat id manifest, **bukan** path langsung.
-- Path langsung di kode game dianggap bug (kecuali di `AssetLoader`).
+- Path langsung di kode game dianggap bug (kecuali di `PreloadScene`).
 
 ## Di mana meletakkan sesuatu
 
