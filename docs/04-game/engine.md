@@ -44,15 +44,17 @@ import { PreloadScene } from "./scenes/PreloadScene";
 
 export { GAME_WIDTH, GAME_HEIGHT } from "./constants";
 
-import { GAME_HEIGHT, lebarKanvas, skalaBulat } from "./constants";
+import { GAME_HEIGHT, ukuranKanvas } from "./constants";
 
 export function createGameConfig(
   parent: HTMLElement,
   story: Story,
   bus?: GameBus,
 ): Phaser.Types.Core.GameConfig {
-  const skala = skalaBulat(parent.clientWidth, parent.clientHeight);
-  const lebar = lebarKanvas(parent.clientWidth, skala);
+  const { skala, lebar } = ukuranKanvas(
+    parent.clientWidth,
+    parent.clientHeight,
+  );
 
   return {
     type: Phaser.AUTO,
@@ -74,11 +76,11 @@ export function createGameConfig(
 
 Yang penting dari konfigurasi ini:
 
-- **Tinggi internal 360**, lebarnya `lebar kontainer ÷ skala bulat`
-  (`skalaBulat()` + `lebarKanvas()` di `constants.ts`, dijepit 640–960). Skala
-  **selalu bilangan bulat**, jadi `Scale.NONE` + `zoom` dipakai alih-alih `FIT`:
-  satu piksel internal jatuh tepat di 1/2/3 piksel layar, dan pixel art tidak
-  berkedip saat kamera bergerak. Sisa ruang di tepi menjadi bar gelap `#14201a`.
+- **Tinggi internal 360**, lebarnya `lebar kontainer ÷ skala`
+  (`ukuranKanvas()` di `constants.ts`, dijepit 640–960). Skala bulat 1×/2×/3×
+  dipakai saat sisa ruangnya ≤6%; kalau tidak, skala **penuh** (mis. 1,83×) supaya
+  kanvas mengisi bingkai dan tidak jadi strip kecil. `Scale.NONE` + `zoom`
+  dipakai (bukan `FIT`) karena lebar internal ikut dihitung di sini.
   `createGame.ts` menghitung ulang skala pada event `resize`. Angka dan warna ini
   harus sama dengan [`game-design.md`](./game-design.md#resolusi-dan-skala) dan
   [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md).
@@ -394,8 +396,9 @@ Yang sudah berlaku di kode hari ini:
 - [x] Phaser diimpor dinamis di dalam `useEffect`.
 - [x] `game.destroy(true)` di cleanup.
 - [x] `pixelArt: true`, `roundPixels: true`.
-- [x] `scale.mode = NONE` + `zoom` bulat, tinggi dasar 360 dengan lebar adaptif
-      `lebarKanvas()` (ADR 0009); sisa ruang di tepi menjadi bar gelap.
+- [x] `scale.mode = NONE` + `zoom` dari `ukuranKanvas()`, tinggi dasar 360 dengan
+      lebar adaptif (ADR 0009): skala bulat untuk pixel paling tajam, skala penuh
+      saat sisa ruangnya terlalu besar.
 - [x] `vertexRoundMode` `fullAuto` untuk objek terskala; posisi pemain dan NPC
       dibulatkan ke piksel utuh.
 - [x] Key aset = `assetId`.

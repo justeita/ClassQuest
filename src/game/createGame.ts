@@ -3,7 +3,7 @@ import Phaser from "phaser";
 import type { Story } from "@/story/schema";
 
 import { createGameConfig } from "./config";
-import { GAME_HEIGHT, lebarKanvas, skalaBulat } from "./constants";
+import { GAME_HEIGHT, ukuranKanvas } from "./constants";
 import { GameBus } from "./gameBus";
 import type { GameHandle } from "./types";
 
@@ -17,12 +17,14 @@ export function createGame(parent: HTMLElement, story: Story): GameHandle {
 
   /**
    * Mode `Scale.NONE` tidak menyesuaikan diri sendiri seperti `FIT`: setelah
-   * jendela berubah ukuran, skala bulat dan lebar internal dihitung ulang di
-   * sini. Kamera scene ikut menyesuaikan lewat `CameraManager` Phaser.
+   * jendela berubah ukuran, skala dan lebar internal dihitung ulang di sini.
+   * Kamera scene ikut menyesuaikan lewat `CameraManager` Phaser.
    */
   const aturUkuran = () => {
-    const skala = skalaBulat(parent.clientWidth, parent.clientHeight);
-    const lebar = lebarKanvas(parent.clientWidth, skala);
+    const { skala, lebar } = ukuranKanvas(
+      parent.clientWidth,
+      parent.clientHeight,
+    );
     game.scale.setZoom(skala);
     game.scale.resize(lebar, GAME_HEIGHT);
   };

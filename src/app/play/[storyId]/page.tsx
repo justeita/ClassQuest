@@ -36,11 +36,14 @@ export default async function PlayPage(props: PageProps<"/play/[storyId]">) {
   if (story === null) notFound();
 
   return (
-    // Game mengisi seluruh viewport (full-bleed): kanvas dan menu judul
-    // menutupi sampai pojok, bukan kotak kecil di tengah halaman.
-    <main className="h-dvh w-full overflow-hidden bg-[#14201a]">
+    // Game memakai hampir seluruh viewport, tetapi diberi bingkai tipis:
+    // margin kecil di tepi membuatnya terasa seperti jendela permainan, bukan
+    // kanvas yang menempel mentah ke pojok peramban.
+    <main className="h-dvh w-full overflow-hidden bg-[#0b120e] p-2 sm:p-4 lg:p-6">
       <h1 className="sr-only">{story.meta.title}</h1>
-      <GameShell story={story} />
+      <div className="h-full w-full overflow-hidden rounded-lg bg-[#14201a] ring-1 ring-white/10 sm:rounded-xl">
+        <GameShell story={story} />
+      </div>
     </main>
   );
 }

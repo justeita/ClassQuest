@@ -103,10 +103,12 @@ Catatan:
 ## Ukuran teks
 
 Canvas berukuran sesuai resolusi internal (sekarang 640×360, ADR 0009) dan
-diskalakan dengan **faktor bulat** (`Phaser.Scale.NONE` + `zoom`): kanvas
-membesar 1×, 2×, atau 3× dari kontainer, dan sisa ruang di tepi menjadi bar
-gelap. Skala pecahan sengaja dihindari karena membuat pixel art berkedip saat
-kamera bergerak (lihat [`world-design.md`](./world-design.md#kamera)).
+diskalakan lewat `ukuranKanvas()` (`Phaser.Scale.NONE` + `zoom`). Skala **bulat**
+dipakai saat sisa ruang kontainer ≤6%; selain itu skala **penuh** supaya kanvas
+mengisi bingkai halaman dan teks tidak mengecil di layar pendek. Skala penuh
+membuat lebar piksel bisa bergantian 1–2 px, tetapi tidak membuat pola bergeser
+karena posisi kamera dan objek dikunci ke piksel utuh (lihat
+[`world-design.md`](./world-design.md#kamera)).
 
 Teks dialog, nama speaker, indikator lanjut, prompt interaksi, penanda `!`, dan
 panel quest **tidak** digambar di canvas: semuanya DOM di atas canvas (ADR 0007),

@@ -48,29 +48,35 @@ dunia desa **tidak** memakai satuan tile 16×16: editor peta menempel gambar di
 koordinat piksel bebas, dan angka itu disalin apa adanya ke game. Jadi hampir
 semua nilai di bawah dinyatakan dalam piksel.
 
-| Hal                   | Nilai                                                          |
-| --------------------- | -------------------------------------------------------------- |
-| Resolusi internal     | 640×360 px                                                     |
-| Lebar kanvas          | lebar kontainer ÷ skala bulat, dijepit 640–960 px (tinggi 360) |
-| Skala ke layar        | bilangan bulat 1×, 2×, 3×, … — tidak pernah pecahan            |
-| Peta desa             | 2390×1792 px                                                   |
-| Sel collision editor  | 7,9667×5,9733 px (peta dibagi rata menjadi grid 300×300)       |
-| Frame sprite karakter | 64 px tinggi; lebar per karakter berbeda (34–51 px)            |
-| Tinggi karakter       | 56 px di peta (frame 64 px × skala 0,875)                      |
-| Portrait dialog       | 64×64 px                                                       |
-| Kecepatan pemain      | 180 px/detik                                                   |
-| Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki                    |
-| Zona interaksi NPC    | 24 px dari titik kaki ke titik kaki                            |
-| Dead zone kamera      | 128×96 px di tengah layar                                      |
+| Hal                   | Nilai                                                    |
+| --------------------- | -------------------------------------------------------- |
+| Resolusi internal     | 640×360 px                                               |
+| Lebar kanvas          | lebar kontainer ÷ skala, dijepit 640–960 px (tinggi 360) |
+| Skala ke layar        | bulat saat sisa ruang ≤6%, selain itu penuh (mis. 1,83×) |
+| Peta desa             | 2390×1792 px                                             |
+| Sel collision editor  | 7,9667×5,9733 px (peta dibagi rata menjadi grid 300×300) |
+| Frame sprite karakter | 64 px tinggi; lebar per karakter berbeda (34–51 px)      |
+| Tinggi karakter       | 56 px di peta (frame 64 px × skala 0,875)                |
+| Portrait dialog       | 64×64 px                                                 |
+| Kecepatan pemain      | 180 px/detik                                             |
+| Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki              |
+| Zona interaksi NPC    | 24 px dari titik kaki ke titik kaki                      |
+| Dead zone kamera      | 128×96 px di tengah layar                                |
 
-Skala kanvas **selalu bilangan bulat** (`skalaBulat()` di
-`src/game/constants.ts`): satu piksel internal jatuh tepat di 1, 2, 3, … piksel
-layar. `Scale.FIT` tidak dipakai karena skala pecahan (mis. 2,41×) membuat lebar
-piksel bergantian 2 dan 3 px, lalu pola itu bergeser setiap kamera bergerak —
-pixel art terlihat berkedip saat pemain berjalan. Konsekuensinya sisa ruang di
-tepi menjadi bar gelap; lebar internal (`lebarKanvas()`) tetap dijepit 640–960 px
-supaya layar lebar menampilkan **lebih banyak dunia ke samping**, bukan potongan
-atas-bawah.
+Skala kanvas dihitung `ukuranKanvas()` di `src/game/constants.ts` dengan dua
+mode. Kalau kontainer hampir pas kelipatan tinggi 360 (sisa ≤6%, `SISA_SKALA_MAKS`),
+skala **bulat**: satu piksel internal jatuh tepat di 1, 2, 3, … piksel layar dan
+pixel art paling tajam. Kalau tidak, skala **penuh** (tinggi kontainer ÷ 360,
+mis. 1,83×) supaya game mengisi bingkai — dulu jendela 1366×660 hanya mendapat
+kanvas 960×360, terlihat seperti strip kecil dengan bar gelap besar. Skala
+pecahan aman karena posisi objek, kamera, dan vertex sudah dikunci ke piksel
+utuh (`roundPixels`, `fullAuto`, `CAMERA_LERP` 1), jadi pola piksel tidak
+bergeser saat pemain berjalan.
+
+Lebar internal (`lebarKanvas()`) dijepit 640–960 px supaya layar lebar
+menampilkan **lebih banyak dunia ke samping**, bukan potongan atas-bawah. Halaman
+game juga memberi margin kecil dan bingkai membulat, jadi sisa ruang (kalau ada)
+terbaca sebagai bingkai jendela, bukan kanvas yang bocor ke tepi peramban.
 
 ## Perspektif
 

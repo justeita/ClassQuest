@@ -120,11 +120,12 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ### Playing
 
-- Kanvas diskalakan dengan **faktor bulat** (`Scale.NONE` + `zoom`): kanvas
-  selalu tampil utuh (tidak pernah ter-crop), membesar 1×/2×/3× mengikuti
-  kontainer, dan sisa ruang di tepi menjadi bar gelap. Skala pecahan sengaja
-  dihindari karena membuat piksel bergantian 2–3 px dan tampak berkedip saat
-  pemain berjalan.
+- Kanvas diskalakan lewat `ukuranKanvas()` (`Scale.NONE` + `zoom`): kanvas selalu
+  tampil utuh (tidak pernah ter-crop). Skala **bulat** dipakai saat sisa ruang
+  kontainer ≤6% (pixel paling tajam); selain itu skala **penuh** supaya kanvas
+  mengisi bingkai — di jendela laptop 1366×660 dulu hanya dapat 960×360. Halaman
+  memberi margin 8–24 px dan sudut membulat, jadi sisa ruang terbaca sebagai
+  bingkai jendela, bukan kanvas yang menempel ke tepi.
 - Tombol buku quest di kiri atas (`Q` Quest): membuka jendela buku catatan ala Minecraft journal dengan 2 halaman perkamen yang menampilkan bab, judul scene, daftar tugas dengan status `Aktif`/`Selesai`/`Terkunci`, dan hitungan tantangan. Dapat dibuka/tutup dengan tombol `Q` atau `Esc`.
 - HUD kanan atas: tombol jeda dan tombol suara. Semua tombol HUD dan quest
   menampilkan tombol keyboardnya sebagai keycap konsisten (`Tab`, `B`, `Q`,
@@ -225,17 +226,18 @@ di [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#penanganan-
 
 ## Responsif
 
-| Layar             | Perilaku                                                                     |
-| ----------------- | ---------------------------------------------------------------------------- |
-| Desktop ≥ 1024 px | Kanvas selebar viewport dengan skala bulat; sisi lebar lebih luas            |
-| Tablet            | Sama — dunia tetap utuh, hanya lebih sempit                                  |
-| HP landscape      | Skala 1× pada ponsel biasa; kanvas selebar layar, sisa tinggi jadi bar gelap |
-| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati)                 |
+| Layar             | Perilaku                                                     |
+| ----------------- | ------------------------------------------------------------ |
+| Desktop ≥ 1024 px | Kanvas mengisi bingkai (margin 24 px, sudut membulat)        |
+| Tablet            | Sama — margin 16 px, dunia tetap utuh                        |
+| HP landscape      | Kanvas mengisi bingkai, skala ±1×; HUD kecil                 |
+| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati) |
 
-Halaman game memakai seluruh viewport, dan kanvas **selalu tampil utuh** —
-Fullscreen API peramban tidak dipakai dan tidak dipaksa, jadi tidak ada konten
-yang terpotong di layar apa pun. Ruang yang tidak terpakai oleh skala bulat
-menjadi bar gelap, bukan potongan gambar.
+Halaman game memakai seluruh viewport dengan margin 8–24 px dan bingkai bersudut
+membulat. Kanvas **selalu tampil utuh**: skala bulat dipakai bila sisa ruangnya
+≤6%, selain itu kanvas dibesarkan penuh mengikuti bingkai supaya tidak muncul bar
+gelap besar. Fullscreen API peramban tidak dipakai dan tidak dipaksa, jadi tidak
+ada konten yang terpotong di layar apa pun.
 
 ## Berbagi
 
@@ -303,7 +305,7 @@ Aturan:
 - [ ] Hanya cerita `published` yang bisa diakses.
 - [ ] `notFound()` untuk id tidak dikenal.
 - [ ] Phaser hanya dimuat di halaman game.
-- [ ] Kanvas skala bulat tampil utuh di halaman full-bleed (sisa ruang = bar gelap).
+- [ ] Kanvas tampil utuh di bingkai halaman (margin 8–24 px, sudut membulat).
 - [ ] Overlay tidak menerima jawaban benar.
 - [ ] Progres bisa dipulihkan.
 - [ ] Error aset tidak menghentikan permainan.
