@@ -10,13 +10,11 @@ import { ASSETS_BY_ID, toAssetManifest } from "../../assets/manifest";
 
 /** Id yang dipakai fixture mock; harus sama dengan isi `outputs/`. */
 const FIXTURE_ASSET_IDS = [
-  "bg_classroom_day",
-  "bg_schoolyard_day",
-  "char_nara",
-  "char_pak_bima",
-  "char_tirta",
-  "bgm_school_calm",
-  "bgm_adventure",
+  "bg_default",
+  "char_mc",
+  "char_npc_10",
+  "char_npc_1",
+  "bgm_default",
 ] as const;
 
 export const MOCK_ASSET_MANIFEST = toAssetManifest(

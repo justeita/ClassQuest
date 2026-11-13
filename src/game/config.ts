@@ -6,7 +6,7 @@ import type { GameBus } from "./gameBus";
 import { GameScene } from "./scenes/GameScene";
 import { PreloadScene } from "./scenes/PreloadScene";
 
-/** Resolusi internal 640×360, kelipatan tile 16 (ADR 0009). */
+/** Resolusi internal 640×360 (ADR 0009). */
 export { GAME_WIDTH, GAME_HEIGHT } from "./constants";
 
 import { GAME_HEIGHT, lebarInternal } from "./constants";
@@ -31,13 +31,6 @@ export function createGameConfig(
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
-    },
-    physics: {
-      default: "arcade",
-      arcade: {
-        gravity: { x: 0, y: 0 },
-        debug: false,
-      },
     },
     scene: [new PreloadScene(story), new GameScene(story, bus)],
   };

@@ -314,20 +314,14 @@ describe("normalisasi", () => {
 
   it("mengurutkan assetUsage", () => {
     const unsorted = clone(example);
-    unsorted.assetUsage.music = [
-      "bgm_school_calm",
-      "bgm_ending",
-      "bgm_adventure",
-    ];
+    unsorted.assetUsage.sprites = [...example.assetUsage.sprites].reverse();
 
     const result = validateStory(unsorted, options);
 
     expect(result.ok, JSON.stringify(result.errors)).toBe(true);
-    expect(result.story?.assetUsage.music).toEqual([
-      "bgm_adventure",
-      "bgm_ending",
-      "bgm_school_calm",
-    ]);
+    expect(result.story?.assetUsage.sprites).toEqual(
+      [...example.assetUsage.sprites].sort(),
+    );
   });
 
   /**
@@ -337,11 +331,7 @@ describe("normalisasi", () => {
    */
   it("menolak duplikat assetUsage di lapis struktural, bukan mendiamkannya", () => {
     const duplicated = clone(example);
-    duplicated.assetUsage.music = [
-      "bgm_school_calm",
-      "bgm_ending",
-      "bgm_school_calm",
-    ];
+    duplicated.assetUsage.music = ["bgm_default", "bgm_default"];
 
     const result = validateStory(duplicated, options);
 
@@ -648,8 +638,6 @@ describe("fixture demo game", () => {
     expect(result.ok).toBe(true);
     expect(result.errors).toEqual([]);
     expect(result.warnings.map((warning) => warning.code)).toEqual([
-      "W_NO_CHALLENGE_IN_SCENE",
-      "W_NO_CHALLENGE_IN_SCENE",
       "W_NO_CHALLENGE_IN_SCENE",
     ]);
   });

@@ -213,42 +213,31 @@ model. Detail dan keputusan provider ada di
 | Anthropic SDK             | https://github.com/anthropics/sdk | Apache-2.0 |
 | Starter `create-next-app` | https://github.com/vercel/next.js | MIT        |
 
-Aset gambar game:
+Aset gambar dan audio game:
 
-| Aset                                                                     | Sumber                                    | Lisensi                                   |
-| ------------------------------------------------------------------------ | ----------------------------------------- | ----------------------------------------- |
-| `prop_tree_large`, `prop_tree_medium`, `prop_tree_flower`                | Craftpix — Free Top Down Trees Pixel Art  | Craftpix Free License                     |
-| `prop_bush_small`, `prop_bush_flower`                                    | Craftpix — Free Top Down Bushes Pixel Art | Craftpix Free License                     |
-| `prop_shelf`, `prop_door`                                                | Craftpix — Main Character's Home          | Craftpix Free License                     |
-| `map_halaman_sekolah`                                                    | Ventilatore — The Fan-tasy Tileset (Free) | The Fan-tasy Free License (non-komersial) |
-| Background, karakter (termasuk `char_nino`), tile, prop lain, musik, sfx | Dibuat generator repo                     | Milik proyek                              |
+| Aset                                                                                   | Sumber                                        | Lisensi                     |
+| -------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------- |
+| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, dan `bgm_default`         | Paket aset proyek (`Asset/assets_classquest`) | Milik proyek + paket gratis |
+| `bg_default`, `char_default`, `ui_textbox`, `ui_portrait_frame`, `ui_default`, `sfx_*` | Dibuat generator repo                         | Milik proyek                |
 
-Semua paket Craftpix berasal dari <https://craftpix.net>. Lisensi freebie-nya
-mengizinkan pemakaian komersial dan modifikasi; atribusi tidak diwajibkan, tetapi
-kami cantumkan di sini. Yang disimpan di repo hanya aset yang sudah dipotong dan
-dipakai game, bukan isi paket mentah. Detail berkas asal dan kotak potong ada di
+Peta desa, potongan objek, karakter, potret, dan lagu disalin apa adanya dari
+folder paket aset proyek di luar repo oleh `scripts/import-world.mjs`; yang
+di-commit hanya berkas yang benar-benar dipakai game. Paket itu disusun tim dari
+gambar buatan sendiri (termasuk artwork hasil AI) dan beberapa paket gratis:
+**Pixel Crawler — Free Pack (Exterior 0.1)** oleh Anokolisa
+(<https://anokolisa.itch.io>), **The Fan-tasy Tileset (Free)** oleh Ventilatore
+(<https://ventilatore.itch.io/the-fantasy-tileset>), dan **TILESET VILLAGE TOP
+DOWN**. Lisensi paket gratis mengizinkan pemakaian di produk jadi, tetapi
+melarang menjual atau mendistribusikan ulang berkas mentahnya — karena itu repo
+ini hanya memuat berkas yang sudah dipakai game, bukan isi paket. Rincian per
+berkas dan batas tiap lisensi dicatat di
 [docs/07-assets/inventory.md](docs/07-assets/inventory.md#sumber-dan-lisensi).
 
-`char_nino` adalah gambar orisinal generator. Siluet dan warna rambutnya
-terinspirasi karakter referensi, sedangkan pose dan proporsi animasi delapan
-arahnya memakai **The adventurer — Female — Free** oleh Sscary
-(<https://sscary.itch.io/the-adventurer-female>) sebagai **acuan gaya saja**.
-Lisensi paket itu mengizinkan pemakaian komersial dan modifikasi, tetapi melarang
-pendistribusian ulang berkas mentah; karena itu repo ini tidak memuat satu pun
-berkasnya, dan kredit ini ditulis sebagai penghargaan.
+Spritesheet karakter desa memakai gaya delapan arah dari paket karakter gratis
+di folder aset proyek; potretnya dipotong dari frame menghadap bawah. Musik
+`bgm_default` adalah satu lagu berlatar desa yang ikut dalam paket aset proyek.
 
-`map_halaman_sekolah` adalah peta halaman sekolah yang dijahit dari **The
-Fan-tasy Tileset (Free)** oleh Ventilatore
-(<https://ventilatore.itch.io/the-fantasy-tileset>) lewat
-`scripts/compose-map.mjs`. Edisi gratisnya **non-komersial**: boleh dipakai dan
-diubah untuk proyek non-komersial, tetapi tidak boleh dijual atau didistribusikan
-ulang sebagai aset. Yang di-commit hanya satu PNG peta jadi, bukan tileset
-mentahnya. Bila ClassQuest kelak dikomersialkan, peta ini wajib diganti aset
-berlisensi komersial atau digambar ulang tim.
-
-Musik dan SFX disintesis sendiri oleh `scripts/lib/audio.mjs`, jadi tidak ada
-komponen audio pihak ketiga. Font Patrick Hand memakai lisensi SIL OFL 1.1
-(`public/fonts/OFL.txt`).
+Font Patrick Hand memakai lisensi SIL OFL 1.1 (`public/fonts/OFL.txt`).
 
 ## Lisensi dan Penggunaan
 

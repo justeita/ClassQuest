@@ -140,18 +140,24 @@ Hanya `id`, `kind`, `label`, `tags`. Jangan kirim path atau base64.
 ```text
 ASSETS
 BACKGROUNDS
-- bg_classroom_day | Kelas, siang | kelas, sekolah, belajar, siang, classroom
-...
+- bg_default | Latar default | default, cadangan, netral, fallback, latar
 CHARACTERS
-- char_nara | Nara (siswa) | siswa, perempuan, seragam, remaja
+- char_mc | Pemuda syal biru | pemuda, syal, biru, desa, pemain
 ...
 MUSIC
-- bgm_school_calm | Sekolah tenang | tenang, sekolah, pagi, calm
+- bgm_default | Musik desa | desa, tenang, hangat, pengantar, musik
 ...
 ```
 
 Aturan: kalau aset yang dibutuhkan tidak ada, pilih yang paling dekat dan tulis
 kekurangannya di `source.gaps`.
+
+**Aset default hanya ditawarkan bila jenisnya tidak punya pilihan lain.**
+`assetList()` menyembunyikan id berawalan `_default` (mis. `char_default`)
+selama jenis itu masih punya aset lain, supaya model tidak memilih siluet
+cadangan. Kalau seluruh jenis hanya punya aset default — seperti `background`
+dan `music` sekarang — aset itu tetap ditampilkan; tanpa itu model tidak punya
+pilihan sama sekali. Perilaku ini dikunci `src/ai/prompt.test.ts`.
 
 ## Blok kontinuitas
 
@@ -159,8 +165,8 @@ kekurangannya di `source.gaps`.
 CONTINUITY
 Chapter sebelumnya: {previousChapterSummary}
 Karakter:
-- char_nara: di {location}; tahu: {knows}
-- char_pak_bima: di {location}; tahu: {knows}
+- char_mc: di {location}; tahu: {knows}
+- char_npc_10: di {location}; tahu: {knows}
 Belum selesai: {openThreads}
 ```
 

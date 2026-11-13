@@ -398,7 +398,7 @@ describe("validateOutline — kode error", () => {
       "E_DUPLICATE_ID",
       "cast[1].id",
       (outline) => {
-        outline.cast[1].id = "char_nara";
+        outline.cast[1].id = "char_mc";
       },
     ],
     [

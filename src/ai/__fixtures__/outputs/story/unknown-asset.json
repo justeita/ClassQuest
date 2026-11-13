@@ -18,24 +18,24 @@
   },
   "cast": [
     {
-      "id": "char_nara",
+      "id": "char_mc",
       "name": "Nara",
       "role": "player",
-      "spriteId": "char_nara",
+      "spriteId": "char_mc",
       "description": "Siswa yang suka mengamati tanaman."
     },
     {
-      "id": "char_pak_bima",
+      "id": "char_npc_10",
       "name": "Pak Bima",
       "role": "mentor",
-      "spriteId": "char_pak_bima",
+      "spriteId": "char_npc_10",
       "description": "Guru IPA yang sabar dan suka bertanya."
     },
     {
-      "id": "char_tirta",
+      "id": "char_npc_1",
       "name": "Tirta",
       "role": "npc",
-      "spriteId": "char_tirta",
+      "spriteId": "char_npc_1",
       "description": "Roh air yang membantu Nara melihat hal kecil."
     }
   ],
@@ -46,7 +46,7 @@
       "concept": "Fotosintesis",
       "summary": "Nara memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
       "backgroundId": "bg_lab",
-      "musicId": "bgm_school_calm",
+      "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_01_01",
@@ -58,7 +58,7 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
+              "speakerId": "char_npc_10",
               "text": "Daun itu tidak makan seperti kita. Ia membuat makanannya sendiri dengan bantuan cahaya matahari."
             },
             {
@@ -77,7 +77,7 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_nara",
+              "speakerId": "char_mc",
               "text": "Jadi cahaya matahari dipakai daun untuk memasak? Bagaimana caranya?"
             },
             {
@@ -93,8 +93,8 @@
       "title": "Warna Hijau Rahasia",
       "concept": "Klorofil",
       "summary": "Di halaman sekolah, Nara menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
-      "backgroundId": "bg_schoolyard_day",
-      "musicId": "bgm_school_calm",
+      "backgroundId": "bg_default",
+      "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_02_01",
@@ -106,7 +106,7 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_tirta",
+              "speakerId": "char_npc_1",
               "text": "Aku melihat butir-butir hijau di dalam daun itu. Mereka menangkap cahaya sebelum cahaya itu lewat."
             },
             {
@@ -125,7 +125,7 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
+              "speakerId": "char_npc_10",
               "text": "Butir hijau itu disebut klorofil. Tanpa klorofil, daun tidak bisa menangkap cahaya."
             },
             {
@@ -141,8 +141,8 @@
       "title": "Makanan dari Cahaya",
       "concept": "Glukosa",
       "summary": "Nara memahami bahwa fotosintesis menghasilkan glukosa, makanan bagi tumbuhan.",
-      "backgroundId": "bg_schoolyard_day",
-      "musicId": "bgm_adventure",
+      "backgroundId": "bg_default",
+      "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_03_01",
@@ -154,7 +154,7 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_nara",
+              "speakerId": "char_mc",
               "text": "Kalau cahaya sudah ditangkap, apa yang dibuat daun dari cahaya itu?"
             },
             {
@@ -173,7 +173,7 @@
             },
             {
               "type": "dialogue",
-              "speakerId": "char_pak_bima",
+              "speakerId": "char_npc_10",
               "text": "Glukosa adalah gula yang menjadi makanan tumbuhan. Sebagian disimpan, sebagian dipakai untuk tumbuh."
             },
             {
@@ -234,8 +234,8 @@
     }
   ],
   "assetUsage": {
-    "backgrounds": ["bg_lab", "bg_schoolyard_day"],
-    "music": ["bgm_adventure", "bgm_school_calm"],
-    "sprites": ["char_nara", "char_pak_bima", "char_tirta"]
+    "backgrounds": ["bg_lab", "bg_default"],
+    "music": ["bgm_default"],
+    "sprites": ["char_mc", "char_npc_10", "char_npc_1"]
   }
 }

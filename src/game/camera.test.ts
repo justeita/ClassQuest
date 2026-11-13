@@ -1,28 +1,28 @@
 import { describe, expect, it } from "vitest";
 
-import { CAMERA_LERP, DEADZONE_TILES, deadzonePx, kameraMode } from "./camera";
+import { CAMERA_LERP, DEADZONE_PX, deadzonePx, kameraMode } from "./camera";
 
 describe("kameraMode", () => {
-  it("ruangan seukuran layar dikunci ke tengah", () => {
-    expect(kameraMode({ widthTiles: 40, heightTiles: 22.5 })).toBe("lock");
-    expect(kameraMode({ widthTiles: 30, heightTiles: 20 })).toBe("lock");
+  it("dunia seukuran layar atau lebih kecil dikunci ke tengah", () => {
+    expect(kameraMode({ width: 640, height: 360 })).toBe("lock");
+    expect(kameraMode({ width: 480, height: 300 })).toBe("lock");
   });
 
-  it("ruangan lebih luas dari layar mengikuti pemain", () => {
-    expect(kameraMode({ widthTiles: 48, heightTiles: 28 })).toBe("follow");
-    expect(kameraMode({ widthTiles: 41, heightTiles: 23 })).toBe("follow");
+  it("dunia lebih luas dari layar mengikuti pemain", () => {
+    expect(kameraMode({ width: 2390, height: 1792 })).toBe("follow");
+    expect(kameraMode({ width: 641, height: 360 })).toBe("follow");
   });
 
   it("melebihi salah satu dimensi saja sudah cukup untuk follow", () => {
-    expect(kameraMode({ widthTiles: 64, heightTiles: 20 })).toBe("follow");
-    expect(kameraMode({ widthTiles: 20, heightTiles: 40 })).toBe("follow");
+    expect(kameraMode({ width: 1024, height: 200 })).toBe("follow");
+    expect(kameraMode({ width: 200, height: 400 })).toBe("follow");
   });
 });
 
 describe("deadzone dan lerp", () => {
-  it("dead zone 8×6 tile dalam piksel", () => {
+  it("dead zone 128×96 px", () => {
     expect(deadzonePx()).toEqual({ width: 128, height: 96 });
-    expect(DEADZONE_TILES).toEqual({ width: 8, height: 6 });
+    expect(DEADZONE_PX).toEqual({ width: 128, height: 96 });
   });
 
   it("lerp 0.12 sesuai world-design.md", () => {

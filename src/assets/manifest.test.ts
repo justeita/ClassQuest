@@ -8,13 +8,11 @@ import {
   ASSETS_BY_ID,
   BACKGROUNDS,
   CHARACTERS,
-  MAPS,
   MUSIC,
-  PROPS,
   SFX,
-  TILES,
-  UI,
   STORY_ASSET_KINDS,
+  UI,
+  WORLD,
   type AssetEntry,
   type AssetKind,
   toAssetManifest,
@@ -24,9 +22,9 @@ import {
  * Kontrak manifest: `docs/02-data-model/asset-manifest.md` bagian **Test wajib**
  * dan `docs/07-assets/inventory.md` bagian **Cara memeriksa konsistensi**.
  *
- * Test ini menjaga docs tetap jujur: id, prefix, path, tag, fallback, ukuran
- * background, dan jumlah per kind. Pemeriksaan file memakai daftar
- * `PENDING_FILES` di bawah — lihat komentarnya.
+ * Test ini menjaga docs tetap jujur: id, prefix, path, tag, fallback, ukuran,
+ * dan jumlah per kind. Pemeriksaan file memakai daftar `PENDING_FILES` di bawah
+ * — lihat komentarnya.
  */
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -35,33 +33,32 @@ const PUBLIC_DIR = join(REPO, "public");
 const PREFIX: Record<AssetKind, string> = {
   background: "bg_",
   character: "char_",
-  tile: "tile_",
-  prop: "prop_",
-  map: "map_",
+  world: "world_",
   music: "bgm_",
   sfx: "sfx_",
   ui: "ui_",
 };
 
-const EXTENSION: Record<AssetKind, string> = {
-  background: "png",
-  character: "png",
-  tile: "png",
-  prop: "png",
-  map: "png",
-  music: "ogg",
-  sfx: "ogg",
-  ui: "png",
+/**
+ * Ekstensi yang diizinkan per kind. Bentuk daftar, bukan satu nilai, karena
+ * peta desa disimpan sebagai JPEG (foto peta dari editor) sedangkan sisa aset
+ * dunia berupa PNG transparan.
+ */
+const EXTENSION: Record<AssetKind, readonly string[]> = {
+  background: ["png"],
+  character: ["png"],
+  world: ["png", "jpg"],
+  music: ["mp3"],
+  sfx: ["ogg"],
+  ui: ["png"],
 };
 
 /** Jumlah per kind dari tabel ringkasan `inventory.md`. */
 const INVENTORY_COUNTS: Record<AssetKind, number> = {
-  background: 8,
-  character: 6,
-  tile: 11,
-  prop: 13,
-  map: 1,
-  music: 5,
+  background: 1,
+  character: 11,
+  world: 81,
+  music: 1,
   sfx: 4,
   ui: 3,
 };
@@ -70,8 +67,6 @@ const INVENTORY_COUNTS: Record<AssetKind, number> = {
 const REQUIRED_FALLBACKS: Partial<Record<AssetKind, string>> = {
   background: "bg_default",
   character: "char_default",
-  tile: "tile_default",
-  prop: "prop_default",
   music: "bgm_default",
   ui: "ui_default",
 };
@@ -97,6 +92,9 @@ const fileEntries = (asset: AssetEntry) => [
 
 const diskPath = (assetPath: string) =>
   join(PUBLIC_DIR, assetPath.replace(/^\//, ""));
+
+/** Ekstensi berkas tanpa titik, mis. `png`. */
+const extensionOf = (path: string) => path.slice(path.lastIndexOf(".") + 1);
 
 describe("manifest — id", () => {
   it("semua id unik", () => {
@@ -130,10 +128,10 @@ describe("manifest — id", () => {
   it("filter per kind sesuai isi ASSETS", () => {
     expect(BACKGROUNDS.every((a) => a.kind === "background")).toBe(true);
     expect(CHARACTERS.every((a) => a.kind === "character")).toBe(true);
+    expect(WORLD.every((a) => a.kind === "world")).toBe(true);
     expect(MUSIC.every((a) => a.kind === "music")).toBe(true);
     expect(SFX.every((a) => a.kind === "sfx")).toBe(true);
     expect(UI.every((a) => a.kind === "ui")).toBe(true);
-    expect(MAPS.every((a) => a.kind === "map")).toBe(true);
   });
 });
 
@@ -146,9 +144,11 @@ describe("manifest — path", () => {
   it("path menunjuk ke /assets/ dengan nama file snake_case", () => {
     const wrong = ASSETS.filter((asset) => {
       const name = asset.id.slice(PREFIX[asset.kind].length);
+      const folder = folderOf(asset.kind);
+      const extension = extensionOf(asset.path);
       return (
-        asset.path !==
-        `/assets/${folderOf(asset.kind)}/${name}.${EXTENSION[asset.kind]}`
+        !EXTENSION[asset.kind].includes(extension) ||
+        asset.path !== `/assets/${folder}/${name}.${extension}`
       );
     }).map((asset) => asset.path);
 
@@ -193,23 +193,6 @@ describe("manifest — fallback dan ukuran", () => {
     }
   });
 
-  it("tile memakai 16×16", () => {
-    const wrong = TILES.filter(
-      (asset) => asset.width !== 16 || asset.height !== 16,
-    ).map((asset) => `${asset.id} (${asset.width}×${asset.height})`);
-
-    expect(wrong).toEqual([]);
-  });
-
-  it("prop memakai kelipatan 16", () => {
-    const wrong = PROPS.filter(
-      (asset) =>
-        (asset.width ?? 0) % 16 !== 0 || (asset.height ?? 0) % 16 !== 0,
-    ).map((asset) => `${asset.id} (${asset.width}×${asset.height})`);
-
-    expect(wrong).toEqual([]);
-  });
-
   it("background memakai 640×360", () => {
     const wrong = BACKGROUNDS.filter(
       (asset) => asset.width !== 640 || asset.height !== 360,
@@ -218,14 +201,19 @@ describe("manifest — fallback dan ukuran", () => {
     expect(wrong).toEqual([]);
   });
 
-  it("peta memakai kelipatan 16 agar sejajar grid tile", () => {
-    const wrong = MAPS.filter(
+  it("setiap karakter punya ukuran frame", () => {
+    const wrong = CHARACTERS.filter(
       (asset) =>
-        (asset.width ?? 0) % 16 !== 0 ||
-        (asset.height ?? 0) % 16 !== 0 ||
-        !asset.width ||
-        !asset.height,
-    ).map((asset) => `${asset.id} (${asset.width}×${asset.height})`);
+        !asset.frameWidth || !asset.frameHeight || asset.frameWidth <= 0,
+    ).map((asset) => asset.id);
+
+    expect(wrong).toEqual([]);
+  });
+
+  it("entri dunia punya ukuran piksel", () => {
+    const wrong = WORLD.filter((asset) => !asset.width || !asset.height).map(
+      (asset) => `${asset.id} (${asset.width}×${asset.height})`,
+    );
 
     expect(wrong).toEqual([]);
   });
@@ -249,8 +237,8 @@ describe("manifest — bentuk untuk validator", () => {
     expect(manifest).toEqual(
       storyAssets.map((asset) => ({ id: asset.id, kind: asset.kind })),
     );
-    // Tile, prop, dan peta milik map game (ADR 0010/0012), bukan kontrak cerita.
-    for (const asset of [...TILES, ...PROPS, ...MAPS]) {
+    // Peta desa dan potongan objeknya milik sisi game, bukan kontrak cerita.
+    for (const asset of WORLD) {
       expect(manifest.find((entry) => entry.id === asset.id)).toBeUndefined();
     }
   });
@@ -312,8 +300,6 @@ describe("manifest — pemakai", () => {
 function folderOf(kind: AssetKind): string {
   if (kind === "background") return "bg";
   if (kind === "character") return "char";
-  if (kind === "tile") return "tile";
-  if (kind === "prop") return "prop";
   return kind;
 }
 

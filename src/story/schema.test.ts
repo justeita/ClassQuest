@@ -122,8 +122,8 @@ describe("field opsional", () => {
   it("menerima override background dan musik di scene", () => {
     const story = withExample((draft) => {
       const scene = scenesOf(chapters(draft)[0])[0];
-      scene.backgroundId = "bg_cloud_sky";
-      scene.musicId = "bgm_adventure";
+      scene.backgroundId = "bg_default";
+      scene.musicId = "bgm_default";
     });
 
     expect(storySchema.safeParse(story).success).toBe(true);
@@ -306,7 +306,7 @@ const invalidCases: InvalidCase[] = [
   {
     name: "aset duplikat di assetUsage",
     story: withExample((draft) => {
-      assetUsage(draft).music = ["bgm_school_calm", "bgm_school_calm"];
+      assetUsage(draft).music = ["bgm_default", "bgm_default"];
     }),
   },
   {

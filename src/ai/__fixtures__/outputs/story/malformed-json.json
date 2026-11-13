@@ -22,8 +22,8 @@
   },
   "cast": [
     {
-      "id": "char_nara",
+      "id": "char_mc",
       "name": "Nara",
       "role": "player",
-      "spriteId": "char_nara",
+      "spriteId": "char_mc",
  

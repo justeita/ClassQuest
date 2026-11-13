@@ -5,23 +5,17 @@ import type { Story } from "@/story/schema";
 
 import { clampVolume } from "../audioSettings";
 import { CAMERA_LERP, deadzonePx, kameraMode } from "../camera";
-import { DEPTH_DINDING, DEPTH_LANTAI } from "../depth";
-import { roomForScene, type RoomMap } from "../map";
-import { resolveRoomData } from "../maps/roomData";
-import { TILE_SIZE, type RoomData, type RoomObject } from "../maps/types";
+import { DEPTH_LATAR } from "../depth";
 import {
-  applyMovement,
-  createPlayer,
   ambilTombolGerak,
   arahGerak,
-  FRAME_ANIMASI,
-  type ArahGerak,
+  DT_MAKSIMUM,
+  langkahPemain,
   type MovementKeys,
 } from "../movement";
 import { findNpcInZone, posisiPrompt } from "../interaction";
 import { dalamLayar, duniaKeLayar, type KameraView } from "../layar";
 import { createTextbox, type BeatView, type Textbox } from "../textbox";
-import type { PlayerConfig } from "../types";
 import { StoryRunner, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import { buildChallengeView } from "../challengeView";
@@ -32,9 +26,14 @@ import {
   DEFAULT_CHARACTER_ID,
   resolveSceneLook,
 } from "../sceneAssets";
-
-/** Kecepatan pemain: 5 tile/detik = 80 px/detik (world-design.md § Satuan dasar). */
-const PLAYER_CONFIG: PlayerConfig = { speed: 80 };
+import { buatTabrakan, type Tabrakan } from "../world/collision";
+import {
+  FRAME_ARAH,
+  TINGGI_KARAKTER,
+  ukuranKarakter,
+  type ArahGerak,
+} from "../world/karakter";
+import { SPAWN_PEMAIN, VILLAGE } from "../world/village";
 
 /** Non-speaker diredupkan sesuai scene-format.md (0x9a9a9a). */
 const NPC_DIM_COLOR = 0x9a9a9a;
@@ -60,24 +59,34 @@ const INTERVAL_LEWATI_MS = 100;
 const PETUNJUK_INTERVAL_MS = 90;
 
 /** Jarak penanda "!" di atas ubun-ubun sprite NPC. */
-const MARKER_OFFSET_Y = 22;
+const MARKER_OFFSET_Y = 10;
 
+/**
+ * Scene permainan: satu dunia desa yang dibangun **sekali**, lalu dijalankan
+ * sepanjang cerita.
+ *
+ * Peta, objek, dan NPC berasal dari `VILLAGE` (`world/village.json`, hasil
+ * `scripts/import-world.mjs`) dan digambar apa adanya: objek berjangkar
+ * kiri-atas dengan urutan `depth` dari data, karakter berjangkar di titik kaki.
+ * Perpindahan chapter **tidak** membangun ulang dunia dan **tidak** memindahkan
+ * pemain; hanya `ulangiChapter` yang mengembalikannya ke titik mulai.
+ *
+ * Gerak dan tabrakan bukan fisika Phaser: `world/collision.ts` menyalin rumus
+ * editor peta, jadi apa yang terlihat di editor sama dengan yang dirasakan
+ * pemain.
+ */
 export class GameScene extends Phaser.Scene {
   private readonly bus?: GameBus;
   private readonly story: Story;
-  private room!: RoomMap;
-  private roomData!: RoomData;
-  private player?: Phaser.Physics.Arcade.Sprite;
+  private player?: Phaser.GameObjects.Sprite;
   private keys?: MovementKeys;
   private lanjutKeys?: Record<"space" | "enter", Phaser.Input.Keyboard.Key>;
   private runner: StoryRunner;
   private castNames: Map<string, string>;
   private npcSprites = new Map<string, Phaser.GameObjects.Sprite>();
-  private propSprites = new Map<string, Phaser.GameObjects.GameObject>();
-  /** Semua objek ruangan aktif; dihancurkan saat pindah scene. */
-  private ruanganObjects: Phaser.GameObjects.GameObject[] = [];
-  private wallBodies?: Phaser.Physics.Arcade.StaticGroup;
-  private colliderRuangan?: Phaser.Physics.Arcade.Collider;
+  /** Semua objek dunia (peta, potongan objek, NPC); dibangun sekali. */
+  private duniaObjects: Phaser.GameObjects.GameObject[] = [];
+  private tabrakan!: Tabrakan;
   private textbox?: Textbox;
   private music?: Phaser.Sound.BaseSound;
   private musicKey: string | null = null;
@@ -85,8 +94,6 @@ export class GameScene extends Phaser.Scene {
   private volumeSfx = 1;
   private volumeSedangJeda = false;
   private sceneAktif: string | null = null;
-  /** `roomId` ruangan yang sedang dibangun; menentukan kapan pemain di-spawn. */
-  private roomAktif: string | null = null;
   /** NPC pemegang quest scene aktif; hanya dia yang bisa memicu dialog. */
   private pemberiQuest: string | null = null;
   /** Pembicara beat dialog terakhir; dipakai sebagai nama speaker saat tantangan. */
@@ -123,26 +130,23 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
-    this.buatAnimasiKarakter();
-    this.pasangRuangan(this.runner.getState());
+    this.bangunDunia();
 
     const pemain =
       this.story.cast.find((member) => member.role === "player") ??
       this.story.cast[0];
-    const spritePemain = this.textures.exists(
-      pemain?.spriteId ?? DEFAULT_CHARACTER_ID,
-    )
-      ? (pemain?.spriteId ?? DEFAULT_CHARACTER_ID)
-      : DEFAULT_CHARACTER_ID;
-    this.spritePemainId = spritePemain;
-    this.arahTerakhir = "down";
-    this.player = createPlayer(this, this.room, PLAYER_CONFIG, spritePemain);
-    this.colliderRuangan = this.physics.add.collider(
-      this.player,
-      this.wallBodies!,
+    this.spritePemainId =
+      pemain && this.textures.exists(pemain.spriteId)
+        ? pemain.spriteId
+        : DEFAULT_CHARACTER_ID;
+
+    this.player = this.buatKarakter(
+      SPAWN_PEMAIN.x,
+      SPAWN_PEMAIN.y,
+      this.spritePemainId,
+      FRAME_ARAH[this.arahTerakhir],
     );
     this.pasangKamera();
-    this.mainkanIdle(this.player, spritePemain);
 
     this.keys = ambilTombolGerak(this);
     this.lanjutKeys = this.input.keyboard?.addKeys("space,enter") as Record<
@@ -221,7 +225,7 @@ export class GameScene extends Phaser.Scene {
     const phase = this.runner.getState().phase;
 
     if (phase === "explore") {
-      this.updateExplore(time);
+      this.updateExplore(time, delta);
     } else if (phase !== "challenge") {
       // Tantangan membekukan typewriter dan input lanjut: dialog terakhir tetap
       // terlihat di belakang panel soal (docs/04-game/scene-format.md § challenge).
@@ -231,20 +235,75 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
+   * Bangun dunia dari `VILLAGE`: gambar peta, potongan objek, lalu karakter.
+   * Dipanggil sekali di `create()`; tidak ada bangun ulang saat pindah chapter.
+   */
+  private bangunDunia() {
+    if (this.textures.exists(VILLAGE.mapId)) {
+      this.duniaObjects.push(
+        this.add.image(0, 0, VILLAGE.mapId).setOrigin(0).setDepth(DEPTH_LATAR),
+      );
+    }
+
+    for (const object of VILLAGE.objects) {
+      if (!this.textures.exists(object.assetId)) continue;
+      this.duniaObjects.push(
+        this.add
+          .image(object.x, object.y, object.assetId)
+          .setOrigin(0, 0)
+          .setDisplaySize(object.w, object.h)
+          .setDepth(object.depth),
+      );
+    }
+
+    for (const npc of VILLAGE.npcs) {
+      const sprite = this.buatKarakter(npc.x, npc.y, npc.id, npc.face);
+      sprite.setDepth(npc.depth);
+      this.npcSprites.set(npc.id, sprite);
+      this.duniaObjects.push(sprite);
+    }
+
+    this.tabrakan = buatTabrakan(VILLAGE);
+  }
+
+  /**
+   * Sprite karakter berjangkar di titik kaki, ukurannya mengikuti frame
+   * spritesheet-nya. Semua karakter desa sama tinggi (`TINGGI_KARAKTER`).
+   */
+  private buatKarakter(
+    x: number,
+    y: number,
+    spriteId: string,
+    face: number,
+  ): Phaser.GameObjects.Sprite {
+    const key = this.textures.exists(spriteId)
+      ? spriteId
+      : DEFAULT_CHARACTER_ID;
+    const info = assetEntry(key);
+    const ukuran = ukuranKarakter(
+      info?.frameWidth ?? 24,
+      info?.frameHeight ?? 32,
+    );
+    return this.add
+      .sprite(x, y, key, face)
+      .setOrigin(0.5, 1)
+      .setDisplaySize(ukuran.width, ukuran.height);
+  }
+
+  /**
    * Fase explore: gerak bebas, zona interaksi, dan pemicu dialog. Hanya NPC
    * pemberi quest yang memunculkan prompt dan bisa memulai dialog; NPC lain
    * tetap berdiri sebagai penghalang tanpa memicu scene yang sama.
    */
-  private updateExplore(time: number) {
+  private updateExplore(time: number, delta: number) {
     if (this.player) {
-      applyMovement(this.player, this.keys);
+      this.gerakkanPemain(delta);
       // Urutan gambar mengikuti kaki (world-design.md § Perspektif).
       this.player.setDepth(this.player.y);
-      this.perbaruiAnimasi(arahGerak(this.keys));
     }
 
     const dekat = this.player
-      ? findNpcInZone(this.room, this.player.x, this.player.y)
+      ? findNpcInZone(VILLAGE.npcs, this.player.x, this.player.y)
       : null;
     const npcId = dekat && dekat === this.pemberiQuest ? dekat : null;
     this.perbaruiPetunjuk(npcId, time);
@@ -252,6 +311,29 @@ export class GameScene extends Phaser.Scene {
     if (npcId && this.lanjutKeysBaruDitekan()) {
       this.runner.interact();
       this.presentBeat();
+    }
+  }
+
+  /** Satu langkah gerak: hitung titik kaki baru, lalu gambar sesuai arah. */
+  private gerakkanPemain(delta: number) {
+    const sprite = this.player;
+    if (!sprite) return;
+
+    const arah = arahGerak(this.keys);
+    const dt = Math.min(delta / 1000, DT_MAKSIMUM);
+    const tujuan = langkahPemain({
+      x: sprite.x,
+      y: sprite.y,
+      arah,
+      dt,
+      tabrakan: this.tabrakan,
+      batas: { width: VILLAGE.width, height: VILLAGE.height },
+    });
+
+    sprite.setPosition(tujuan.x, tujuan.y);
+    if (arah) {
+      this.arahTerakhir = arah;
+      sprite.setFrame(FRAME_ARAH[arah]);
     }
   }
 
@@ -297,7 +379,7 @@ export class GameScene extends Phaser.Scene {
     npcId: string,
     kamera: KameraView,
   ): PromptView | null {
-    const dunia = posisiPrompt(this.room, npcId);
+    const dunia = posisiPrompt(VILLAGE.npcs, npcId);
     if (!dunia) return null;
     const layar = duniaKeLayar(kamera, dunia.x, dunia.y);
     return {
@@ -309,13 +391,13 @@ export class GameScene extends Phaser.Scene {
 
   /** Penanda "!" di atas kepala pemberi quest; null bila di luar layar. */
   private markerLayar(npcId: string, kamera: KameraView): NpcMarker | null {
-    const npc = this.room.npcs.find((entry) => entry.id === npcId);
+    const npc = VILLAGE.npcs.find((entry) => entry.id === npcId);
     if (!npc) return null;
 
     const layar = duniaKeLayar(
       kamera,
       npc.x,
-      npc.y - npc.height / 2 - MARKER_OFFSET_Y,
+      npc.y - TINGGI_KARAKTER - MARKER_OFFSET_Y,
     );
     if (!dalamLayar(layar)) return null;
 
@@ -534,8 +616,7 @@ export class GameScene extends Phaser.Scene {
     this.sceneAktif = null;
     this.questTerakhir = "";
     this.pembicaraTerakhir = null;
-    // Spawn ulang di ruangan yang sudah terbangun. Kalau scene pertama chapter
-    // ini memakai ruangan lain, `terapkanLook()` yang membangun ulang peta.
+    // Dunia tetap seperti semula; hanya titik kaki pemain yang dikembalikan.
     this.kembalikanPemain();
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
@@ -603,8 +684,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Terapkan background + musik untuk scene aktif. Dipanggil setiap beat,
-   * tetapi hanya mengubah sesuatu saat scene/bab benar-benar berganti.
+   * Terapkan musik scene aktif dan perbarui pemberi quest. Dipanggil setiap
+   * beat, tetapi hanya mengubah sesuatu saat scene benar-benar berganti.
+   *
+   * Dunia **tidak** dibangun ulang di sini: peta desa sama untuk semua scene,
+   * jadi pindah chapter hanya menukar musik dan NPC pemegang quest.
    */
   private terapkanLook(state: ReturnType<StoryRunner["getState"]>) {
     const chapter = state.chapter;
@@ -622,232 +706,39 @@ export class GameScene extends Phaser.Scene {
     if (gantiScene) this.mainkanSfx("sfx_page");
     if (sceneId !== null) this.sceneAktif = sceneId;
 
-    // Ruangan dibangun dari data map scene aktif (ADR 0010); scene tanpa map
-    // khusus memakai template default. Identitas yang dibandingkan adalah
-    // `roomId`, bukan `sceneId`: beberapa scene bisa terjadi di ruangan yang
-    // sama. Pemain hanya kembali ke spawn saat benar-benar pindah ruangan.
-    const dataRuang = resolveRoomData(sceneId);
-    if (this.roomAktif !== dataRuang.roomId) {
-      this.pasangRuangan(state);
-      this.kembalikanPemain();
-    }
-
-    // Pemberi quest bisa berganti walau ruangannya sama (scene baru).
+    // Pemberi quest bisa berganti walau di peta yang sama (scene baru).
     this.perbaruiPemberiQuest();
 
     this.putarMusik(look.musicId);
   }
 
-  /** Pemberi quest scene aktif: pembicara dialog pertama yang ada di ruangan. */
+  /** Pemberi quest scene aktif: pembicara dialog pertama yang ada di peta. */
   private perbaruiPemberiQuest() {
     const state = this.runner.getState();
     const scene =
       state.sceneIndex >= 0
         ? (state.chapter?.scenes[state.sceneIndex] ?? null)
         : null;
-    this.pemberiQuest = pilihPemberiQuest(scene, this.room.npcs);
+    this.pemberiQuest = pilihPemberiQuest(scene, VILLAGE.npcs);
   }
 
   /**
-   * Bangun ruangan dari data map scene aktif: satu gambar peta penuh (ADR 0012)
-   * atau lantai + dinding tileSprite, sprite prop dan NPC, lalu collider dari
-   * objek yang sama yang digambar. `look` masih dipakai untuk musik; latar
-   * pemandangan hanya di layar judul/hasil (world-design.md § Lampiran aset
-   * latar).
-   */
-  private pasangRuangan(state: ReturnType<StoryRunner["getState"]>) {
-    const sceneId =
-      state.sceneIndex >= 0
-        ? (state.chapter?.scenes[state.sceneIndex]?.id ?? null)
-        : null;
-    // Lebar internal mengikuti rasio layar. Ruangan yang lebih sempit dari
-    // viewport menyisakan area kosong dan dinding kanan "hilang", jadi ruangan
-    // dilebarkan minimal selebar layar (dinding keliling ikut menyesuaikan).
-    this.room = roomForScene(
-      sceneId,
-      this.story,
-      Math.ceil(this.scale.width / TILE_SIZE),
-    );
-    this.roomData = resolveRoomData(sceneId);
-    this.roomAktif = this.room.roomId;
-
-    // Dunia fisika mengikuti ukuran map, bukan layar — kalau tidak, pemain
-    // terjepit di kotak tak terlihat 640×360 dan "melompat" ke tepi bawah.
-    this.physics.world.setBounds(0, 0, this.room.width, this.room.height);
-
-    this.hancurkanRuang();
-    this.renderRuang();
-
-    this.pasangKamera();
-  }
-
-  /**
-   * Kamera per ruangan (world-design.md § Kamera): batas = ukuran map, ikuti
-   * pemain dengan dead zone 8×6 tile dan lerp 0.12 bila map lebih luas dari
-   * layar; ruangan seukuran layar dikunci ke tengah.
+   * Kamera desa (world-design.md § Kamera): batas = ukuran peta, ikuti pemain
+   * dengan dead zone 128×96 px dan lerp 0.12. Peta desa selalu lebih luas dari
+   * layar, tetapi aturan "lock" tetap dipakai supaya peta kecil kelak tenang.
    */
   private pasangKamera() {
     const cam = this.cameras.main;
-    cam.setBounds(0, 0, this.room.width, this.room.height);
+    cam.setBounds(0, 0, VILLAGE.width, VILLAGE.height);
 
-    if (kameraMode(this.roomData) === "follow" && this.player) {
+    if (kameraMode(VILLAGE) === "follow" && this.player) {
       cam.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
       const zona = deadzonePx();
       cam.setDeadzone(zona.width, zona.height);
     } else {
       cam.stopFollow();
     }
-    cam.centerOn(this.room.width / 2, this.room.height / 2);
-  }
-
-  private hancurkanRuang() {
-    for (const object of this.ruanganObjects) object.destroy();
-    this.ruanganObjects = [];
-    this.propSprites.clear();
-    this.npcSprites.clear();
-    this.colliderRuangan?.destroy();
-    this.colliderRuangan = undefined;
-    this.wallBodies?.destroy();
-    this.wallBodies = undefined;
-  }
-
-  /** Gambar peta/lantai/dinding/prop/NPC dari data, lalu bangun collider-nya. */
-  private renderRuang() {
-    const room = this.room;
-
-    // Ruangan bergambar penuh (ADR 0012): satu gambar jadi lantai sekaligus
-    // dekorasi, jadi lantai tileSprite, dinding, dan prop dilewati. Collider
-    // dan NPC tetap dibangun dari data.
-    const peta = room.mapImage;
-
-    if (peta && this.textures.exists(peta)) {
-      this.ruanganObjects.push(
-        this.add.image(0, 0, peta).setOrigin(0).setDepth(DEPTH_LANTAI),
-      );
-    } else {
-      // Lantai: satu tileSprite penuh; fallback warna bila tile gagal dimuat.
-      if (this.textures.exists(room.floorTile)) {
-        this.ruanganObjects.push(
-          this.add
-            .tileSprite(0, 0, room.width, room.height, room.floorTile)
-            .setOrigin(0)
-            .setDepth(DEPTH_LANTAI),
-        );
-      } else {
-        this.ruanganObjects.push(
-          this.add
-            .rectangle(
-              room.width / 2,
-              room.height / 2,
-              room.width,
-              room.height,
-              room.floorColor,
-            )
-            .setDepth(DEPTH_LANTAI),
-        );
-      }
-
-      // Dinding digambar dari `room.walls` (sudah dilebarkan selebar layar),
-      // bukan dari `roomData.objects` — kalau tidak, dinding kanan tetap di
-      // posisi lama dan menyisakan celah di tepi viewport.
-      for (const wall of room.walls) {
-        const visual = this.textures.exists(room.wallTile)
-          ? this.add
-              .tileSprite(
-                wall.x,
-                wall.y,
-                wall.width,
-                wall.height,
-                room.wallTile,
-              )
-              .setOrigin(0)
-          : this.add.rectangle(
-              wall.x + wall.width / 2,
-              wall.y + wall.height / 2,
-              wall.width,
-              wall.height,
-              room.wallColor,
-            );
-        this.ruanganObjects.push(visual.setDepth(DEPTH_DINDING));
-      }
-
-      // Prop dari data hanya digambar di jalur tile, bukan di peta bergambar.
-      for (const object of this.roomData.objects) {
-        if (object.kind === "prop") this.renderProp(object);
-      }
-    }
-
-    // NPC selalu sprite, di jalur tile maupun peta bergambar.
-    for (const object of this.roomData.objects) {
-      if (object.kind === "npc") this.renderNpc(object);
-    }
-
-    // Collider dari data yang sama dengan gambar (ADR 0010).
-    this.wallBodies = this.physics.add.staticGroup();
-    for (const solid of room.solids) {
-      const rect = this.add.rectangle(
-        solid.x + solid.width / 2,
-        solid.y + solid.height / 2,
-        solid.width,
-        solid.height,
-        room.wallColor,
-        0,
-      );
-      this.physics.add.existing(rect, true);
-      this.wallBodies.add(rect);
-      this.ruanganObjects.push(rect);
-    }
-    if (this.player) {
-      this.colliderRuangan = this.physics.add.collider(
-        this.player,
-        this.wallBodies,
-      );
-    }
-  }
-
-  /** Prop digambar berjangkar di kaki; depth mengikuti dasar objek. */
-  private renderProp(object: RoomObject) {
-    const width = object.tileW * TILE_SIZE;
-    const height = object.tileH * TILE_SIZE;
-    const x = object.tileX * TILE_SIZE + width / 2;
-    const bottom = object.tileY * TILE_SIZE + height;
-    const id = object.id ?? "prop_default";
-    const key = this.textures.exists(id) ? id : "prop_default";
-
-    if (this.textures.exists(key)) {
-      const sprite = this.add
-        .sprite(x, bottom, key)
-        .setOrigin(0.5, 1)
-        .setDepth(bottom);
-      this.ruanganObjects.push(sprite);
-      this.propSprites.set(id, sprite);
-    } else {
-      const rect = this.add
-        .rectangle(x, bottom - height / 2, width, height, this.room.wallColor)
-        .setDepth(bottom);
-      this.ruanganObjects.push(rect);
-    }
-  }
-
-  /** NPC dari cast; digambar di kaki tile yang ditentukan data map. */
-  private renderNpc(object: RoomObject) {
-    const npc = this.room.npcs.find((entry) => entry.id === (object.id ?? ""));
-    const id = npc?.id ?? object.id;
-    if (!npc || !id) return;
-
-    const karakter = this.story.cast.find((member) => member.id === id);
-    const spriteId = karakter?.spriteId ?? DEFAULT_CHARACTER_ID;
-    const key = this.textures.exists(spriteId)
-      ? spriteId
-      : DEFAULT_CHARACTER_ID;
-
-    const sprite = this.add
-      .sprite(npc.x, npc.y + npc.height / 2, key, 0)
-      .setOrigin(0.5, 1)
-      .setDepth(npc.y + npc.height / 2);
-    this.npcSprites.set(id, sprite);
-    this.ruanganObjects.push(sprite);
-    this.mainkanIdle(sprite, key);
+    cam.centerOn(VILLAGE.width / 2, VILLAGE.height / 2);
   }
 
   private putarMusik(musicId: string) {
@@ -875,16 +766,16 @@ export class GameScene extends Phaser.Scene {
     this.sound.play(assetId, { volume: SFX_VOLUME * this.volumeSfx });
   }
 
-  /**
-   * `BaseSound` tidak menjanjikan `setVolume` (NoAudioSound tidak punya),
-   * jadi panggil hanya bila implementasinya tersedia.
-   */
   /** Volume musik efektif: nilai pengguna × faktor dasar (jeda menurunkan). */
   private terapkanVolume() {
     const faktor = this.volumeSedangJeda ? MUSIC_VOLUME_PAUSED : MUSIC_VOLUME;
     this.aturVolumeMusik(faktor * this.volumeMusik);
   }
 
+  /**
+   * `BaseSound` tidak menjanjikan `setVolume` (NoAudioSound tidak punya),
+   * jadi panggil hanya bila implementasinya tersedia.
+   */
   private aturVolumeMusik(volume: number) {
     const musik = this.music as
       | (Phaser.Sound.BaseSound & {
@@ -917,84 +808,11 @@ export class GameScene extends Phaser.Scene {
     return entry?.portraitPath ? `${entry.id}:portrait` : null;
   }
 
-  /** Animasi idle 2 frame (2 fps) + jalan 2 frame per arah (6 fps). */
-  private buatAnimasiKarakter() {
-    const ids = new Set<string>([DEFAULT_CHARACTER_ID]);
-    for (const karakter of this.story.cast) ids.add(karakter.spriteId);
-
-    for (const id of ids) {
-      if (!this.textures.exists(id)) continue;
-
-      const idle = `idle-${id}`;
-      if (!this.anims.exists(idle)) {
-        this.anims.create({
-          key: idle,
-          frames: this.anims.generateFrameNumbers(id, {
-            start: FRAME_ANIMASI.idle.start,
-            end: FRAME_ANIMASI.idle.end,
-          }),
-          frameRate: 2,
-          repeat: -1,
-        });
-      }
-
-      const arahJalan = [
-        "down",
-        "up",
-        "left",
-        "right",
-        "down-left",
-        "down-right",
-        "up-left",
-        "up-right",
-      ] as const;
-      for (const arah of arahJalan) {
-        const key = `jalan-${id}-${arah}`;
-        if (this.anims.exists(key)) continue;
-        const [start, end] = FRAME_ANIMASI.jalan[arah];
-        this.anims.create({
-          key,
-          frames: this.anims.generateFrameNumbers(id, { start, end }),
-          frameRate: 6,
-          repeat: -1,
-        });
-      }
-    }
-  }
-
-  private mainkanIdle(sprite: Phaser.GameObjects.Sprite, spriteId: string) {
-    const key = `idle-${spriteId}`;
-    // ignoreIfPlaying: tanpa ini idle direstart tiap frame dan terlihat macet.
-    if (this.anims.exists(key)) sprite.play(key, true);
-  }
-
-  /**
-   * Animasi pemain sesuai arah gerak (world-design.md § Sprite karakter):
-   * bergerak → animasi jalan arah itu; berhenti → arah `down` kembali ke idle,
-   * arah lain membeku di frame diam supaya tidak berbalik ke depan.
-   */
-  private perbaruiAnimasi(arah: ArahGerak | null) {
-    const sprite = this.player;
-    if (!sprite || !this.spritePemainId) return;
-
-    if (!arah) {
-      if (this.arahTerakhir === "down") {
-        this.mainkanIdle(sprite, this.spritePemainId);
-      } else {
-        sprite.anims.stop();
-        sprite.setFrame(FRAME_ANIMASI.diam[this.arahTerakhir]);
-      }
-      return;
-    }
-
-    this.arahTerakhir = arah;
-    const key = `jalan-${this.spritePemainId}-${arah}`;
-    if (this.anims.exists(key)) sprite.play(key, true);
-  }
-
   private kembalikanPemain() {
     if (!this.player) return;
-    this.player.setPosition(this.room.spawn.x, this.room.spawn.y);
-    (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
+    this.player.setPosition(SPAWN_PEMAIN.x, SPAWN_PEMAIN.y);
+    this.arahTerakhir = "down";
+    this.player.setFrame(FRAME_ARAH[this.arahTerakhir]);
+    this.player.setDepth(this.player.y);
   }
 }

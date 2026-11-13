@@ -430,17 +430,17 @@ describe("scoreStory pada cerita contoh", () => {
     const answers = EXAMPLE.challenges.map(correctAnswerFor);
     const result = scoreStory(EXAMPLE, answers);
 
-    expect(result.totalChallenges).toBe(6);
-    expect(result.totalPoints).toBe(70);
-    expect(result.earnedPoints).toBe(70);
-    expect(result.correctCount).toBe(6);
+    expect(result.totalChallenges).toBe(9);
+    expect(result.totalPoints).toBe(140);
+    expect(result.earnedPoints).toBe(140);
+    expect(result.correctCount).toBe(9);
     expect(result.weakConcepts).toEqual([]);
   });
 
   it("mengumpulkan weakConcepts unik dari jawaban salah", () => {
     const answers = EXAMPLE.challenges.map(correctAnswerFor);
     const first = challengeById("chl_01_01");
-    const second = challengeById("chl_01_02");
+    const second = challengeById("chl_02_01");
 
     answers[0] = {
       challengeId: first.id,
@@ -454,16 +454,16 @@ describe("scoreStory pada cerita contoh", () => {
     };
 
     const result = scoreStory(EXAMPLE, answers);
-    expect(result.correctCount).toBe(4);
-    expect(result.earnedPoints).toBe(50);
-    expect(result.weakConcepts).toEqual(["Evaporasi"]);
+    expect(result.correctCount).toBe(7);
+    expect(result.earnedPoints).toBe(120);
+    expect(result.weakConcepts).toEqual(["Perbandingan", "Pecahan"]);
   });
 
   it("tantangan yang belum dijawab tidak dihitung benar atau lemah", () => {
     const result = scoreStory(EXAMPLE, []);
 
-    expect(result.totalChallenges).toBe(6);
-    expect(result.totalPoints).toBe(70);
+    expect(result.totalChallenges).toBe(9);
+    expect(result.totalPoints).toBe(140);
     expect(result.earnedPoints).toBe(0);
     expect(result.correctCount).toBe(0);
     expect(result.weakConcepts).toEqual([]);
@@ -486,7 +486,7 @@ describe("scoreStory pada cerita contoh", () => {
 
     expect(result.correctCount).toBe(0);
     expect(result.earnedPoints).toBe(0);
-    expect(result.weakConcepts).toEqual(["Evaporasi"]);
+    expect(result.weakConcepts).toEqual(["Perbandingan"]);
   });
 
   it("deterministik dan tidak bergantung urutan jawaban", () => {
@@ -519,9 +519,11 @@ describe("aggregateByConcept", () => {
   it("menghitung benar/total per konsep", () => {
     const answers = EXAMPLE.challenges.map(correctAnswerFor);
     expect(aggregateByConcept(EXAMPLE, answers)).toEqual([
-      { conceptTag: "Evaporasi", correct: 2, total: 2 },
-      { conceptTag: "Kondensasi", correct: 2, total: 2 },
-      { conceptTag: "Infiltrasi", correct: 2, total: 2 },
+      { conceptTag: "Perbandingan", correct: 1, total: 1 },
+      { conceptTag: "Pecahan", correct: 2, total: 2 },
+      { conceptTag: "Persentase", correct: 2, total: 2 },
+      { conceptTag: "Rata-rata", correct: 2, total: 2 },
+      { conceptTag: "Diagram data", correct: 2, total: 2 },
     ]);
   });
 
@@ -530,15 +532,17 @@ describe("aggregateByConcept", () => {
     const scores = aggregateByConcept(EXAMPLE, [
       {
         challengeId: challenge.id,
-        type: "ordering",
-        order: ["itm_awan", "itm_titik", "itm_dingin", "itm_naik"],
+        type: "true_false",
+        answer: !(challenge.type === "true_false" && challenge.correctAnswer),
       },
     ]);
 
     expect(scores).toEqual([
-      { conceptTag: "Evaporasi", correct: 0, total: 2 },
-      { conceptTag: "Kondensasi", correct: 0, total: 2 },
-      { conceptTag: "Infiltrasi", correct: 0, total: 2 },
+      { conceptTag: "Perbandingan", correct: 0, total: 1 },
+      { conceptTag: "Pecahan", correct: 0, total: 2 },
+      { conceptTag: "Persentase", correct: 0, total: 2 },
+      { conceptTag: "Rata-rata", correct: 0, total: 2 },
+      { conceptTag: "Diagram data", correct: 0, total: 2 },
     ]);
   });
 
@@ -566,6 +570,6 @@ describe("kemurnian", () => {
 
     expect(JSON.stringify(story)).toBe(beforeStory);
     expect(JSON.stringify(answers)).toBe(beforeAnswers);
-    expect(result.earnedPoints).toBe(70);
+    expect(result.earnedPoints).toBe(140);
   });
 });

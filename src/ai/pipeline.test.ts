@@ -162,9 +162,9 @@ describe("jalur bahagia", () => {
     const result = await run(happy());
 
     expect(result.story.assetUsage).toEqual({
-      backgrounds: ["bg_classroom_day", "bg_schoolyard_day"],
-      music: ["bgm_adventure", "bgm_ending", "bgm_school_calm"],
-      sprites: ["char_nara", "char_pak_bima", "char_tirta"],
+      backgrounds: ["bg_default"],
+      music: ["bgm_default"],
+      sprites: ["char_mc", "char_npc_1", "char_npc_10"],
     });
 
     for (const list of Object.values(result.story.assetUsage)) {

@@ -426,13 +426,16 @@ const formatAsset = (id: string, kind: string): string => {
 };
 
 const assetList = (assets: AssetManifest, kind: string, title: string) => {
-  const ids = [
+  const semua = [
     ...new Set(
-      assets
-        .filter((asset) => asset.kind === kind && !isDefaultAsset(asset.id))
-        .map((asset) => asset.id),
+      assets.filter((asset) => asset.kind === kind).map((asset) => asset.id),
     ),
   ];
+  const bukanDefault = semua.filter((id) => !isDefaultAsset(id));
+  // Jenis yang hanya punya aset default (mis. background dan musik sekarang)
+  // tetap harus menawarkan aset itu; kalau tidak, model tidak punya pilihan
+  // sama sekali. Jenis yang punya pilihan lain tetap menyembunyikan fallback.
+  const ids = bukanDefault.length > 0 ? bukanDefault : semua;
 
   const lines = ids.map((id) => formatAsset(id, kind));
   return `${title}\n${lines.length > 0 ? lines.join("\n") : "- (tidak ada)"}`;
