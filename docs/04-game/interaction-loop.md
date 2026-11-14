@@ -156,10 +156,10 @@ Aturan input:
 ## Alur tantangan
 
 ```text
-1. Phaser kirim { type: "challenge", challengeId }
-2. React menampilkan panel di atas dialog (dialog tetap terlihat, typewriter
-   dibekukan):
-   - prompt
+1. Phaser mengetik soal lewat textbox (tanpa complete) lalu kirim
+   { type: "challenge", challengeId } — potret pembicara soal tetap terlihat.
+2. Selama soal diketik, React menahan pilihan jawaban. Setelah `waiting`
+   textbox true, panel di atas dialog menampilkan:
    - opsi/statement/item/input
    - tombol "Jawab" (disabled sampai ada pilihan)
 3. Siswa memilih → tombol aktif

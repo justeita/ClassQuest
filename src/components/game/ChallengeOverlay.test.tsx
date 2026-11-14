@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ChallengeView } from "@/game/challengeView";
@@ -589,5 +595,89 @@ describe("ChallengeOverlay — panel di atas dialog", () => {
       type: "ordering",
       order: [tampil[1], tampil[0], tampil[2]],
     });
+  });
+});
+
+describe("ChallengeOverlay — soal diketik dulu, animasi jawaban", () => {
+  it("menahan opsi, hint, dan pintasan sampai soal selesai diketik", () => {
+    const view: ChallengeView = {
+      ...orderingView,
+      hints: ["Ingat urutan energi."],
+    };
+    const props = { view, graded: null, onSubmit: vi.fn(), onResolve: vi.fn() };
+
+    const { rerender } = render(<ChallengeOverlay {...props} siap={false} />);
+
+    // Soal masih diketik: belum ada daftar jawaban, tombol hint, atau chip
+    // pintasan keyboard.
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /lihat hint/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Pilih/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Tantangan")).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+
+    rerender(<ChallengeOverlay {...props} siap />);
+
+    expect(screen.getByRole("list")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /lihat hint/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Pilih/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Tantangan")).toHaveAttribute(
+      "aria-busy",
+      "false",
+    );
+  });
+
+  it("menganimasikan area jawaban masuk saat soal siap", () => {
+    renderOverlay(orderingView);
+
+    // Daftar jawaban berada di dalam pembungkus beranimasi masuk.
+    expect(
+      screen.getByRole("list").closest(".animate-challenge-masuk"),
+    ).not.toBeNull();
+  });
+
+  it("menahan area jawaban sebentar lalu melepasnya setelah dinilai", () => {
+    vi.useFakeTimers();
+    try {
+      const props = {
+        view: orderingView,
+        onSubmit: vi.fn(),
+        onResolve: vi.fn(),
+      };
+      const { rerender } = render(
+        <ChallengeOverlay {...props} graded={null} siap />,
+      );
+      expect(screen.getByRole("list")).toBeInTheDocument();
+
+      rerender(
+        <ChallengeOverlay
+          {...props}
+          graded={{ correct: true, explanation: "Benar." }}
+          siap
+        />,
+      );
+
+      // Masih di DOM, tetapi sudah beranimasi keluar; kartu umpan balik masuk.
+      expect(
+        screen.getByRole("list").closest(".animate-challenge-keluar"),
+      ).not.toBeNull();
+      expect(screen.getByText("Tepat.")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(220);
+      });
+
+      // Setelah animasi selesai, area jawaban benar-benar dilepas.
+      expect(screen.queryByRole("list")).not.toBeInTheDocument();
+      expect(screen.getByText("Tepat.")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

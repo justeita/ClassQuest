@@ -539,6 +539,34 @@ export function GameCanvas({
   const dialogTerlihat = Boolean(dialog?.visible) && !tantangan;
 
   /**
+   * Teks soal lengkap persis seperti yang ditampilkan `GameScene.bukaTantangan`.
+   * Dipakai untuk mencocokkan dialog yang sedang diketik dengan soal aktif.
+   */
+  const teksSoal = tantangan
+    ? tantangan.type === "true_false" && tantangan.statement
+      ? `${tantangan.prompt}\n"${tantangan.statement}"`
+      : tantangan.prompt
+    : "";
+
+  /**
+   * Dialog soal yang sedang diketik. Scene menampilkan teks soal lewat
+   * `textbox.show` tepat sebelum event `challenge`, jadi `dialog.text` adalah
+   * awalan (prefix) dari teks soal selama mesin tik berjalan. Bila scene tidak
+   * mengirim dialog soal (mis. event `challenge` datang sendiri), nilainya
+   * `null` dan overlay langsung tampil penuh.
+   */
+  const dialogSoal =
+    tantangan && dialog?.visible && teksSoal.startsWith(dialog.text)
+      ? dialog
+      : null;
+
+  /**
+   * Pilihan jawaban baru boleh tampil setelah soal selesai diketik. Ini yang
+   * membuat pertanyaan dulu mengetik, baru jawabannya muncul.
+   */
+  const soalSiap = dialogSoal ? dialogSoal.waiting : true;
+
+  /**
    * Konteks tombol aksi sentuh: "Bicara" saat pemain di zona NPC, `null` saat
    * belum ada warga di jangkauan. Tidak ada lagi mode "Lanjut": kontrol sentuh
    * disembunyikan selama dialog (ADR 0027), dan lanjut dialog dilakukan dengan
@@ -684,21 +712,22 @@ export function GameCanvas({
                     ? {
                         visible: true,
                         name:
+                          dialogSoal?.name ??
                           dialog?.name ??
                           story.cast.find((c) => c.role === "mentor")?.name ??
                           "Tantangan",
-                        text:
-                          tantangan.type === "true_false" && tantangan.statement
-                            ? `${tantangan.prompt}
-"${tantangan.statement}"`
-                            : tantangan.prompt,
+                        // Selama mengetik, pakai potongan dari textbox; bila
+                        // scene tidak mengirim dialog soal, tampilkan teks
+                        // lengkap supaya soal tidak kosong.
+                        text: dialogSoal ? dialogSoal.text : teksSoal,
+                        // Indikator "lanjut" tidak pernah tampil selama soal:
+                        // dialog dibekukan sampai siswa menjawab.
                         waiting: false,
-                        // Saat soal belum dijawab, sembunyikan kedua potret
-                        // supaya tidak menutupi pilihan jawaban; setelah
-                        // dinilai, tampilkan lagi untuk umpan balik
-                        // senang/marah (yang non-pembicara tetap meredup).
-                        portrait: hasil ? (dialog?.portrait ?? null) : null,
-                        pendamping: hasil ? (dialog?.pendamping ?? null) : null,
+                        // Potret pembicara soal tetap tampil — panel jawaban
+                        // sengaja duduk di kanan atas agar sisi kiri (potret
+                        // NPC) tetap terlihat (ADR 0038).
+                        portrait: (dialogSoal ?? dialog)?.portrait ?? null,
+                        pendamping: (dialogSoal ?? dialog)?.pendamping ?? null,
                       }
                     : (dialog ?? {
                         visible: false,
@@ -735,6 +764,7 @@ export function GameCanvas({
               <ChallengeOverlay
                 view={tantangan}
                 graded={hasil}
+                siap={soalSiap}
                 onSubmit={kirimJawaban}
                 onResolve={lanjut}
               />

@@ -989,7 +989,7 @@ describe("GameShell — soal di atas dialog", () => {
     expect(screen.queryByText("▼")).not.toBeInTheDocument();
   });
 
-  it("menyembunyikan potret selama soal dan menampilkannya lagi setelah dinilai", async () => {
+  it("menampilkan potret pembicara soal selama soal diketik", async () => {
     await mainkan();
     bus.emit({
       type: "dialogue",
@@ -1008,17 +1008,65 @@ describe("GameShell — soal di atas dialog", () => {
 
     bus.emit({ type: "challenge", view: challenge });
     await screen.findByLabelText("Tantangan");
-    // Soal belum dijawab: potret disembunyikan supaya tidak menutupi pilihan.
-    expect(screen.queryByAltText("Potret Bu Ratna")).not.toBeInTheDocument();
+    // Potret tetap tampil selama soal: panel jawaban sengaja duduk di kanan
+    // atas agar sisi kiri (potret NPC) tetap terlihat (ADR 0038).
+    expect(screen.getByAltText("Potret Bu Ratna")).toBeInTheDocument();
+  });
 
+  it("menunggu soal selesai diketik sebelum menampilkan pilihan jawaban", async () => {
+    await mainkan();
+    const potret = {
+      src: "/assets/portrait/npc_1/neutral.png",
+      alt: "Potret Bu Ratna",
+    };
+    // Scene mengirim dialog soal lewat `textbox.show` sebelum event challenge:
+    // selama diketik, `text` baru sepotong dan `waiting` masih false.
     bus.emit({
-      type: "graded",
-      challengeId: "chl_01_01",
-      correct: true,
-      explanation: "Benar.",
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Uap air naik",
+        waiting: false,
+        portrait: potret,
+      },
     });
-    // Setelah dinilai, potret tampil lagi untuk umpan balik senang/marah.
-    expect(await screen.findByAltText("Potret Bu Ratna")).toBeInTheDocument();
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    // Soal masih diketik: pilihan jawaban belum boleh muncul.
+    expect(
+      screen.queryByRole("button", { name: /\bbenar$/i }),
+    ).not.toBeInTheDocument();
+    // Potret pembicara soal sudah terlihat lebih dulu.
+    expect(screen.getByAltText("Potret Bu Ratna")).toBeInTheDocument();
+
+    // Textbox menuntaskan ketikan (`waiting` true): pilihan jawaban menyusul.
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: 'Uap air naik karena lebih ringan.\n"Uap air lebih ringan daripada air cair."',
+        waiting: true,
+        portrait: potret,
+      },
+    });
+    expect(
+      await screen.findByRole("button", { name: /\bbenar$/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("langsung menampilkan pilihan jawaban bila soal tidak diketik dialog", async () => {
+    await mainkan();
+    // Event challenge bisa datang tanpa dialog soal (mis. ujian/event khusus);
+    // overlay harus langsung siap supaya soal tidak tersangkut.
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    expect(
+      await screen.findByRole("button", { name: /\bbenar$/i }),
+    ).toBeInTheDocument();
   });
 
   it("umpan balik tetap tampil walau potret soal berubah setelah dinilai", async () => {

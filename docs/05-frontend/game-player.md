@@ -314,6 +314,9 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
 ![Panel tantangan di atas dialog](../assets/challenge-overlay.svg)
 
 - Teks soal/pertanyaan ditampilkan langsung di dalam `DialogueBox` NPC, bukan elemen tambahan di atasnya.
+- Soal lebih dulu **diketik mesin tik** di kotak dialog: teks `prompt` (plus `"statement"` untuk `true_false`) muncul bertahap. Selama mengetik, pilihan jawaban, hint, dan chip pintasan belum tampil; `ChallengeOverlay` menerima prop `siap` yang bernilai `false` sampai textbox menandai `waiting`. Bila event `challenge` datang tanpa dialog soal, `siap` dianggap `true` agar soal tidak tersangkut.
+- Potret pembicara soal tetap terlihat selama soal diketik dan dijawab; panel jawaban duduk di kanan atas sehingga sisi kiri potret tidak tertutup.
+- Area jawaban (opsi, hint, tombol, chip pintasan) **beranimasi masuk** setelah soal selesai diketik dan **beranimasi keluar** saat jawaban dinilai, lalu kartu umpan balik masuk (ADR 0038). Semua animasi hanya memakai `opacity`/`transform` dan dimatikan saat `prefers-reduced-motion: reduce`.
 - Yang melayang di atas dialog HANYA pilihan jawabannya:
   - Opsi pendek (seperti "1", "2", "4"): ditata 1 baris horizontal di kanan atas dialog.
   - Opsi teks panjang: ditata bertumpuk vertikal di kanan atas dialog; lebar seluruh box seragam mengikuti opsi terpanjang.
@@ -325,7 +328,7 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
 - Konsistensi visual HCI dengan DialogueBox (ADR 0030, ADR 0031):
   - Kotak jawaban, kartu matriks, kartu umpan balik, tombol aksi, dan petunjuk pintasan memakai **token kotak dialog** yang sama (`gayaDialog.ts`): latar gelap `#0b120e`/95, bingkai tipis aksen oranye `#E8A87C`, sudut membulat (`rounded-lg`), teks krem terang `#F7F4EC`, aksen oranye `#E8A87C`, flat tanpa drop shadow.
   - Keadaan terpilih memakai `KOTAK_DIALOG_AKTIF` (bingkai oranye penuh, latar sedikit terangkat); keadaan diam memakai `KOTAK_DIALOG` + hover. Dipilih dengan percabangan agar tidak menumpuk kelas warna yang bentrok.
-  - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar; bingkai kartu berwarna status (`#6F9B7A` benar, `#C9A227` belum tepat).
+  - Setelah dijawab (`graded`), pilihan box jawaban menyingkir dengan animasi keluar lalu hanya kartu umpan balik yang muncul agar tidak memicu scrollbar; bingkai kartu berwarna status (`#6F9B7A` benar, `#C9A227` belum tepat).
   - Ukuran huruf dan line-height opsi dan penjelasan umpan balik proporsional dan nyaman dibaca (`ukuranHuruf(13.5, 12, 20)` & `lineHeight: 1.3`).
   - Penunjuk pilihan aktif adalah **tangan menunjuk (glove) pixel-art SVG** yang digambar sendiri (bukan glyph font atau emoji) di **luar kotak** — kiri untuk daftar, atas untuk kartu, dan di depan input `short_answer`. Telapak krem `#F7F4EC` dengan outline gelap `#0b120e` dan bayangan abu di pergelangan serta tepi bawah, jadi tetap jelas di atas dunia terang maupun kotak gelap; ujung jari menghadap kotak pilihan. Ukurannya dibatasi `clamp(15px, …, 22px)` mengikuti lebar kanvas supaya cukup besar untuk terbaca tetapi tidak menabrak margin panel; saat tidak aktif ia `opacity-0` agar tata letak tidak bergeser.
   - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya dan memakai aksen oranye `#E8A87C`.

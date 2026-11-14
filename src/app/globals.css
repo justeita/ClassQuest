@@ -35,6 +35,11 @@
     both;
   /* Potret tenggelam kembali ke balik panel saat dialog ditutup. */
   --animate-potret-keluar: potret-keluar 0.22s ease-in both;
+  /* Area jawaban tantangan muncul setelah soal selesai diketik. */
+  --animate-challenge-masuk: challenge-masuk 0.24s
+    cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  /* Area jawaban menyingkir saat jawaban dinilai / kartu umpan balik masuk. */
+  --animate-challenge-keluar: challenge-keluar 0.18s ease-in both;
 
   /* --- Portal guru (desain dari `guru.html`, lihat src/app/guru) --- */
   --color-brand-50: #f0f7ff;
@@ -275,6 +280,32 @@
   }
 }
 
+/* Area jawaban tantangan (opsi, tombol, hint, chip pintasan) muncul dengan
+   sedikit terangkat setelah soal selesai diketik, lalu menyingkir ke bawah saat
+   jawaban dinilai dan kartu umpan balik menggantikannya. Hanya `opacity` dan
+   `transform` yang berubah supaya ringan dan tidak menggeser tata letak. */
+@keyframes challenge-masuk {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes challenge-keluar {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+
 /*
  * Panel tantangan duduk di atas dialog, bukan menutupi seluruh layar
  * (docs/05-frontend/game-player.md § Challenge). Nilai `--challenge-*` diisi
@@ -309,7 +340,9 @@
   .animate-crt-masuk,
   .animate-crt-keluar,
   .animate-potret-masuk,
-  .animate-potret-keluar {
+  .animate-potret-keluar,
+  .animate-challenge-masuk,
+  .animate-challenge-keluar {
     animation: none;
   }
 }

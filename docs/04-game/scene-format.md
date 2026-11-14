@@ -175,9 +175,10 @@ bebas bergerak.
 > meredup, begitu pula sebaliknya, dan sorot itu bertahan selama sesi dialog.
 > Potret MC hanya menemani dialog di scene yang memang memberi giliran bicara
 > kepada MC (`src/game/potret.ts`); dialog antar-NPC dan obrolan singkat dengan
-> NPC non-quest (ADR 0016) tampil tanpa potret MC. Selama soal belum dijawab,
-> kedua potret disembunyikan; setelah dinilai keduanya tampil lagi untuk umpan
-> balik senang/marah.
+> NPC non-quest (ADR 0016) tampil tanpa potret MC. Selama soal, potret pembicara
+> soal tetap terlihat — panel jawaban duduk di kanan atas agar sisi kiri tidak
+> tertutup; setelah dinilai potretnya berganti untuk umpan balik senang/marah
+> (ADR 0038).
 >
 > Panel dan potret punya animasi buka/tutup: panel menyala seperti TV tabung
 > dari garis tipis di tengah dan menutup kembali ke tengah, sedangkan potret
@@ -258,10 +259,15 @@ terjadi sebelum beat pertama scene.
 
 - Panel tantangan muncul **di atas dialog**, bukan sebagai jendela tengah yang
   menutupi seluruh layar. Tidak ada lapisan gelap penuh.
-- Dialog **dipause**, bukan ditutup: baris terakhir tetap terlihat sebagai
-  konteks soal, dan typewriter dibekukan selama fase `challenge`.
-- Soal memakai potret pembicara terakhir. Setelah jawaban dinilai, potretnya
-  berganti: benar → `happy`, salah → `angry`.
+- Soal **diketik mesin tik** dulu di kotak dialog: teks `prompt` (ditambah
+  `"statement"` untuk `true_false`) tampil bertahap seperti dialog biasa. Scene
+  memanggil `textbox.show` **tanpa** `complete()`, dan satu tekanan
+  Space/Enter menuntaskan ketikannya. Pilihan jawaban, hint, dan chip pintasan
+  baru muncul setelah ketikan tuntas (`waiting` textbox menjadi `true`).
+- Dialog **tidak ditutup**: baris soal tetap terlihat sebagai konteks, termasuk
+  potret pembicara soal selama soal (panel jawaban duduk di kanan atas agar
+  sisi kiri potret tidak tertutup). Setelah dinilai, potretnya berganti:
+  benar → `happy`, salah → `angry`.
 - Isi soal yang panjang digulir di dalam panel; tombol aksi menempel di bawah.
 - Event `challenge` dikirim ke React dengan `challengeId`.
 - Phaser menunggu perintah `resolve_challenge` sebelum lanjut.
@@ -281,6 +287,12 @@ terjadi sebelum beat pertama scene.
   mode percepat, atau volume SFX nol.
 - Klik/Spasi saat mengetik → tampilkan seluruh teks (bukan lanjut beat).
 - Klik/Spasi saat selesai → lanjut beat.
+- Bunyi lanjut/selesai dialog memakai sampel `sfx_type` yang sama dengan blip
+  ketik, hanya lebih pelan (volume 0,5×) dan lebih rendah (rate 0,78×), jadi
+  satu keluarga bunyi. `sfx_click` tetap untuk aksi UI (mis. mulai percepat).
+- Soal tantangan ikut diketik. Selama fase `challenge`, typewriter tetap
+  di-`tick` dan satu tekanan menuntaskan ketikan, tetapi tidak memajukan beat;
+  pilihan jawaban menunggu `waiting` textbox (lihat § `challenge`).
 - Teks di-`setText` utuh, bukan per karakter dengan `Text` baru; gunakan counter
   dan `slice(0, n)` — cukup untuk 240 karakter.
 

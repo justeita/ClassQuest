@@ -87,6 +87,18 @@ const KETIK_JEDA_MS = 60;
 const KETIK_RATE2 = 1.06;
 
 /**
+ * Bunyi "lanjut dialog" memakai sampel mesin tik yang sama, bukan `sfx_click`.
+ *
+ * Klik lama punya dua nada tinggi yang terdengar lebih keras daripada teks yang
+ * baru selesai diketik. Dengan nada diturunkan (`LANJUT_RATE`) dan volume
+ * dikurangi (`LANJUT_VOLUME`), bunyi lanjut tetap satu keluarga dengan blip
+ * ketik: pendek, lembut, dan tidak mengejutkan saat pemain menekan Space
+ * berkali-kali.
+ */
+const LANJUT_RATE = 0.78;
+const LANJUT_VOLUME = 0.5;
+
+/**
  * Jeda antar-langkah input lanjut. Satu tekanan = satu beat; jeda ini menjaga
  * ketukan ganda atau tombol yang tidak sengaja tertekan dua kali tidak
  * melompati dua beat sekaligus.
@@ -387,11 +399,13 @@ export class GameScene extends Phaser.Scene {
     if (phase === "explore") {
       this.updateExplore(delta);
     } else if (phase === "challenge") {
-      // Tantangan membekukan typewriter dan input lanjut: dialog terakhir tetap
-      // terlihat di belakang panel soal (docs/04-game/scene-format.md § challenge).
-      // Ketukan Space/Enter selama soal dibuang — mis. spasi saat mengetik
-      // jawaban atau Enter saat submit — agar tidak melompat satu beat setelah
-      // dijawab.
+      // Soal diketik seperti dialog biasa; pilihan jawaban menyusul setelah
+      // teksnya tuntas (`ChallengeOverlay` menunggu `waiting` dari textbox).
+      // Ketukan Space/Enter selama soal tidak menggerakkan cerita — paling
+      // banyak menyelesaikan ketikan — lalu dibuang supaya tidak melompat satu
+      // beat setelah dijawab (docs/04-game/scene-format.md § challenge).
+      this.textbox?.tick(delta);
+      this.checkLanjutKeys();
       this.lanjut?.bersihkan();
     } else {
       this.textbox?.tick(delta);
@@ -857,15 +871,23 @@ export class GameScene extends Phaser.Scene {
     // Detour konsekuensi: satu tekanan menyelesaikan ketikan atau maju satu
     // beat detour. Runner belum bergerak, jadi aturan tantangan tidak berlaku.
     if (this.detour !== null) {
-      this.mainkanSfx("sfx_click");
+      this.lanjutSfx();
       this.lanjutDetour();
       return;
     }
 
-    // Saat challenge, input dialog diabaikan — overlay React yang memegang kendali.
-    if (this.runner.getState().phase === "challenge") return;
+    // Saat challenge, cerita tidak boleh bergerak — overlay React yang memegang
+    // kendali. Satu tekanan hanya boleh menuntaskan ketikan soal agar pilihan
+    // jawaban segera muncul tanpa menunggu.
+    if (this.runner.getState().phase === "challenge") {
+      if (this.textbox?.isTyping()) {
+        this.lanjutSfx();
+        this.textbox.complete();
+      }
+      return;
+    }
 
-    this.mainkanSfx("sfx_click");
+    this.lanjutSfx();
     if (this.textbox?.isTyping()) {
       this.textbox.complete();
       return;
@@ -1210,7 +1232,9 @@ export class GameScene extends Phaser.Scene {
       portrait: this.potretUntuk(speakerId),
       pendamping: this.potretLawan(speakerId),
     });
-    this.textbox?.complete();
+    // Sengaja **tanpa** `complete()`: soal ikut diketik mesin tik seperti
+    // dialog lain, dan pilihan jawaban baru muncul setelah teksnya tuntas
+    // (GameCanvas menunggu `waiting` dari textbox).
 
     const view = buildChallengeView(challenge);
     this.bus.emit({
@@ -1460,11 +1484,27 @@ export class GameScene extends Phaser.Scene {
   /**
    * @param rate Pengali kecepatan/tinggi nada (1 = asli). Mekanisme `sfx_type`
    *   memakainya untuk blip kedua yang sedikit lebih tinggi.
+   * @param volumeScale Pengali volume khusus efek ini (1 = volume SFX penuh).
+   *   Dipakai bunyi lanjut dialog supaya lebih pelan daripada blip ketik.
    */
-  private mainkanSfx(assetId: string, rate = 1) {
+  private mainkanSfx(assetId: string, rate = 1, volumeScale = 1) {
     if (!this.cache.audio.exists(assetId)) return;
     if (this.volumeSfx <= 0) return;
-    this.sound.play(assetId, { volume: SFX_VOLUME * this.volumeSfx, rate });
+    this.sound.play(assetId, {
+      volume: SFX_VOLUME * this.volumeSfx * volumeScale,
+      rate,
+    });
+  }
+
+  /**
+   * Bunyi satu langkah dialog (selesaikan ketikan atau lanjut beat).
+   *
+   * Memakai `sfx_type` yang sama dengan blip mesin tik, hanya lebih pelan dan
+   * lebih rendah. Klik dua nada `sfx_click` tetap dipakai untuk aksi UI seperti
+   * memulai percepat, tetapi tidak lagi untuk memajukan dialog.
+   */
+  private lanjutSfx() {
+    this.mainkanSfx("sfx_type", LANJUT_RATE, LANJUT_VOLUME);
   }
 
   /**
