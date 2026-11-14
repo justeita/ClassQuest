@@ -30,10 +30,22 @@ export function createGame(parent: HTMLElement, story: Story): GameHandle {
   };
   window.addEventListener("resize", aturUkuran);
 
+  /**
+   * Tata letak sentuh mengubah ukuran kontainer tanpa memicu `resize` jendela
+   * (mis. panggung game menyusut saat dek kontrol muncul di bawahnya).
+   * `ResizeObserver` menangkap itu, jadi kanvas selalu pas dengan bingkainya.
+   */
+  const pengamatUkuran =
+    typeof ResizeObserver === "undefined"
+      ? undefined
+      : new ResizeObserver(() => aturUkuran());
+  pengamatUkuran?.observe(parent);
+
   return {
     bus,
     destroy() {
       window.removeEventListener("resize", aturUkuran);
+      pengamatUkuran?.disconnect();
       game.destroy(true);
     },
   };

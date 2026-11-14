@@ -3,6 +3,7 @@ import type { Answer, PlayResult } from "@/story/scoring";
 import type { ChallengeView } from "./challengeView";
 import type { QuestState } from "./questLog";
 import type { PortraitView } from "./textbox";
+import type { ArahGerak } from "./world/karakter";
 
 /**
  * Bridge Phaser ↔ React sesuai docs/04-game/engine.md:
@@ -15,7 +16,7 @@ import type { PortraitView } from "./textbox";
 /**
  * Isi kotak dialog. Panel, potret, nama, dan teks semuanya dirender DOM
  * (`DialogueBox.tsx`) supaya tajam; Phaser hanya memegang state typewriter
- * (ADR 0007 + ADR 0020).
+ * (ADR 0007 + ADR 0023).
  */
 export type DialogueView = {
   visible: boolean;
@@ -83,6 +84,17 @@ export type GameEvent =
   | { type: "markers"; markers: NpcMarker[] }
   | { type: "nametags"; plates: NpcNameplate[] }
   | { type: "challenge"; view: ChallengeView }
+  /**
+   * Konsekuensi jawaban salah sedang diputar (beat `onWrong.detour`).
+   *
+   * Dikirim sebagai event tersendiri, bukan disimpulkan React dari `dialogue`:
+   * dialog soal tantangan juga tiba sebagai `dialogue`, dan saat dinilai scene
+   * mengganti potret lewat `setPortrait` (satu lagi `dialogue`). Menutup overlay
+   * pada tiap `dialogue` karena itu menghapus kartu umpan balik dan menyangkutkan
+   * dialog di fase challenge. `aktif: true` saat detour mulai, `false` saat soal
+   * dibuka ulang (event `challenge` menyusul).
+   */
+  | { type: "detour"; aktif: boolean }
   | {
       type: "graded";
       challengeId: string;
@@ -113,6 +125,17 @@ export type GameCommand =
   | { type: "resolve_challenge"; challengeId: string; correct: boolean }
   /** Satu langkah dialog: selesaikan ketikan atau lanjut beat berikutnya. */
   | { type: "advance" }
+  /**
+   * Arah gerak dari joystick layar sentuh; `null` saat tongkat dilepas. Sama
+   * artinya dengan tombol gerak yang sedang ditekan, jadi aturan gerak dan
+   * animasi tetap satu jalur (`GameScene.gerakkanPemain`).
+   */
+  | { type: "move"; arah: ArahGerak | null }
+  /**
+   * Tombol aksi sentuh saat fase explore: sama dengan menekan Space/Enter di
+   * dekat NPC — memicu dialog pemberi quest atau obrolan singkat.
+   */
+  | { type: "interact" }
   /**
    * Tahan untuk mempercepat beat dialog/narasi scene ala time-lapse; lepas
    * untuk kembali ke tempo normal. Berhenti sendiri di beat soal, transisi,

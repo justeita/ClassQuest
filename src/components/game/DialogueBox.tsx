@@ -19,6 +19,12 @@ type DialogueBoxProps = {
   view: DialogueView;
   /** Klik panel = satu langkah dialog (selesaikan ketikan atau lanjut beat). */
   onAdvance: () => void;
+  /**
+   * Perkecil ukuran teks panel. Dipakai di layar potret ponsel: kanvas
+   * 16:9 sempit sehingga kotak dialog hanya setinggi ±65 px, jadi huruf yang
+   * sama terasa terlalu besar dan cepat melimpah.
+   */
+  kecil?: boolean;
 };
 
 type PortraitSlotProps = {
@@ -116,14 +122,14 @@ function PortraitSlot({ portrait, bicara, menutup }: PortraitSlotProps) {
 
 /**
  * Kotak dialog lengkap di lapisan DOM: panel gelap membulat, potret, nama, dan
- * teks (ADR 0007 + ADR 0020). Canvas game hanya 640×360 dan di-upscale dengan
+ * teks (ADR 0007 + ADR 0023). Canvas game hanya 640×360 dan di-upscale dengan
  * `image-rendering: pixelated`, jadi panel digambar React sebagai kotak CSS —
  * bukan lagi gambar `ui_textbox` — supaya sudut membulat dan warnanya tajam di
  * resolusi layar asli. Potret anime juga dirender browser, tidak ikut bergerigi.
  *
- * Bentuk panel mengikuti referensi gaya Persona: kotak navy gelap membulat tanpa
- * bingkai pixel, nama pembicara teal dengan huruf pixel kapital, isi dialog
- * putih. Dua potret berdiri **di atas** panel dengan dasar menempel tepi
+ * Bentuk panel mengikuti referensi gaya Persona: kotak hijau-gelap membulat
+ * tanpa bingkai pixel, nama pembicara oranye dengan huruf pixel kapital, isi
+ * dialog krem terang. Dua potret berdiri **di atas** panel dengan dasar menempel tepi
  * atasnya: NPC di pojok kiri, MC dicerminkan di pojok kanan. Pembicara menyala
  * dan lawan bicaranya meredup, jadi giliran bicara selalu terbaca. Posisi
  * memakai persen dari `TEXTBOX`/`PORTRAIT`; ukuran huruf dan padding memakai
@@ -134,7 +140,11 @@ function PortraitSlot({ portrait, bicara, menutup }: PortraitSlotProps) {
  * ter-mount sampai animasi tutup selesai — `GameCanvas` menahan view terakhir
  * walau `visible` sudah false.
  */
-export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
+export function DialogueBox({
+  view,
+  onAdvance,
+  kecil = false,
+}: DialogueBoxProps) {
   // View terakhir yang terlihat. State dialog dikosongkan begitu `visible` jadi
   // false (`textbox.ts`), jadi isi terakhir ini yang dipertahankan selama
   // animasi tutup.
@@ -235,12 +245,12 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
           menutup ? "animate-crt-keluar" : "animate-crt-masuk"
         }`}
       >
-        {/* Panel dialog: kotak navy gelap membulat tanpa bingkai pixel (gaya
+        {/* Panel dialog: kotak hijau-gelap membulat tanpa bingkai pixel (gaya
             Persona). Digambar CSS, bukan `ui_textbox.png`, supaya sudut dan
             warnanya tajam di resolusi layar asli. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-10 border border-white/5 bg-[#0f172b]/95"
+          className="pointer-events-none absolute inset-0 z-10 border border-[#E8A87C]/20 bg-[#0b120e]/95"
           style={{ borderRadius: cqw(TEXTBOX.radius) }}
         />
 
@@ -254,9 +264,11 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
         >
           {tampil.name && (
             <p
-              className="font-pixel font-bold uppercase text-[#55D0A5]"
+              className="font-pixel font-bold uppercase text-[#E8A87C]"
               style={{
-                fontSize: ukuranHuruf(15, 11, 22),
+                fontSize: kecil
+                  ? ukuranHuruf(15, 9, 18)
+                  : ukuranHuruf(15, 11, 22),
                 letterSpacing: "0.14em",
                 lineHeight: 1.15,
               }}
@@ -267,10 +279,12 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
 
           <p
             aria-live="polite"
-            className="break-words whitespace-pre-wrap text-[#EFF2F7]"
+            className="break-words whitespace-pre-wrap text-[#F7F4EC]"
             style={{
               marginTop: cqw(4),
-              fontSize: ukuranHuruf(19, 16, 30),
+              fontSize: kecil
+                ? ukuranHuruf(19, 12, 26)
+                : ukuranHuruf(19, 16, 30),
               lineHeight: 1.34,
             }}
           >
@@ -281,7 +295,7 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
           {tampil.waiting && (
             <span
               aria-hidden="true"
-              className="absolute bottom-2.5 right-4 animate-pulse select-none text-[#55D0A5] motion-reduce:animate-none"
+              className="absolute bottom-2.5 right-4 animate-pulse select-none text-[#E8A87C] motion-reduce:animate-none"
               style={{ fontSize: ukuranHuruf(16, 14, 24) }}
             >
               ▼

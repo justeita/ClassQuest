@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Pixelify_Sans } from "next/font/google";
 import localFont from "next/font/local";
 
@@ -54,6 +54,18 @@ export const metadata: Metadata = {
   },
   description:
     "ClassQuest mengubah materi pelajaran yang diunggah guru menjadi game pixel 2D bercerita, supaya siswa belajar lewat alur cerita dan tantangan.",
+};
+
+/**
+ * `viewportFit: "cover"` membuat halaman memakai seluruh layar ponsel —
+ * termasuk bagian di balik notch dan bar sistem. Tanpa ini, `env(safe-area-inset-*)`
+ * selalu bernilai nol dan padding aman di `.area-game` tidak ada gunanya.
+ * `themeColor` disamakan dengan latar game supaya bilah alamat dan status iOS
+ * menyatu dengan kanvas, bukan muncul sebagai garis putih.
+ */
+export const viewport: Viewport = {
+  themeColor: "#0b120e",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

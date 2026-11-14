@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DialogueBox } from "./DialogueBox";
 import type { DialogueView } from "@/game/gameBus";
-import { PORTRAIT, cqw } from "@/game/layout";
+import { PORTRAIT, cqw, ukuranHuruf } from "@/game/layout";
 
 // `globals` tidak aktif di vitest.config.mjs, jadi RTL tidak membersihkan DOM
 // sendiri di antara tes.
@@ -255,5 +255,27 @@ describe("DialogueBox", () => {
 
     const gambar = screen.getByAltText("Potret Leonhardt");
     expect(gambar.parentElement?.className).toContain("animate-potret-masuk");
+  });
+
+  it("mengecilkan nama dan teks dialog saat varian kecil dipakai", () => {
+    const { rerender } = render(
+      <DialogueBox view={bicara} onAdvance={() => {}} />,
+    );
+    expect(screen.getByText(/Air di bumi/).style.fontSize).toBe(
+      ukuranHuruf(19, 16, 30),
+    );
+    expect(screen.getByText("Leonhardt").style.fontSize).toBe(
+      ukuranHuruf(15, 11, 22),
+    );
+
+    // Layar potret ponsel: kanvas 16:9 sempit, jadi dialog diperkecil supaya
+    // teks tidak cepat melimpah dari kotaknya.
+    rerender(<DialogueBox view={bicara} onAdvance={() => {}} kecil />);
+    expect(screen.getByText(/Air di bumi/).style.fontSize).toBe(
+      ukuranHuruf(19, 12, 26),
+    );
+    expect(screen.getByText("Leonhardt").style.fontSize).toBe(
+      ukuranHuruf(15, 9, 18),
+    );
   });
 });

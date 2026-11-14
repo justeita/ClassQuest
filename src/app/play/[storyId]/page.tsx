@@ -43,8 +43,10 @@ export default async function PlayPage(props: PageProps<"/play/[storyId]">) {
   return (
     // Game memakai hampir seluruh viewport, tetapi diberi bingkai tipis:
     // margin kecil di tepi membuatnya terasa seperti jendela permainan, bukan
-    // kanvas yang menempel mentah ke pojok peramban.
-    <main className="h-dvh w-full overflow-hidden bg-[#0b120e] p-2 sm:p-4 lg:p-6">
+    // kanvas yang menempel mentah ke pojok peramban. `.area-game` menambah
+    // safe-area di atas margin itu supaya HUD dan tombol sentuh tidak tertutup
+    // notch/bar sistem di ponsel (lihat globals.css).
+    <main className="area-game h-dvh w-full overflow-hidden bg-[#0b120e]">
       <h1 className="sr-only">{entry.story.meta.title}</h1>
       <div className="h-full w-full overflow-hidden rounded-lg bg-[#14201a] ring-1 ring-white/10 sm:rounded-xl">
         <GameShell

@@ -339,6 +339,25 @@ img {
   -webkit-touch-callout: none;
 }
 
+/*
+ * Tombol dan tautan memakai `touch-action: manipulation`.
+ *
+ * Di Android, ketukan pada elemen dengan `touch-action` bawaan (`auto`) ditahan
+ * sebentar untuk menunggu kemungkinan ketuk-dua-kali zoom. Ketukan kedua yang
+ * cepat dianggap awal zoom, sehingga kliknya batal — gejala klasik "tombolnya
+ * tidak bisa ditekan". `manipulation` mematikan zoom ketuk-dua-kali itu saja
+ * (gulir dan cubit-zoom tetap jalan), jadi tombol menu langsung merespons.
+ */
+button,
+a,
+input,
+select,
+textarea,
+label,
+[role="button"] {
+  touch-action: manipulation;
+}
+
 /* Garis kecepatan ala Persona 3 Reload (SpeedLines.tsx): tumpukan garis
    horizontal di tepi atas/bawah kanvas yang bergerak cepat selama mode
    percepat aktif, memudar ke arah tengah layar.
@@ -399,6 +418,79 @@ img {
   to {
     transform: translate3d(0, 9px, 0);
   }
+}
+
+/* Bingkai halaman permainan: penuh layar dengan padding aman.
+ *
+ * Padding basisnya membesar mengikuti breakpoint Tailwind (`p-2`/`sm:p-4`/
+ * `lg:p-6`), lalu tiap sisi diambil nilai terbesar dengan
+ * `env(safe-area-inset-*)`. Di ponsel, inset itu menjaga HUD dan tombol
+ * sentuh agar tidak tertutup notch atau bar sistem; di desktop nilainya nol
+ * sehingga sama dengan padding biasa. `viewport-fit=cover` di
+ * `src/app/layout.tsx` yang mengisi inset tersebut.
+ */
+.area-game {
+  --area-game-pad: 0.5rem;
+  padding: max(var(--area-game-pad), env(safe-area-inset-top))
+    max(var(--area-game-pad), env(safe-area-inset-right))
+    max(var(--area-game-pad), env(safe-area-inset-bottom))
+    max(var(--area-game-pad), env(safe-area-inset-left));
+  /* Main game tidak pernah memantulkan-scroll: tarikan ke bawah justru
+     membatalkan gerakan tongkat di ponsel. */
+  overscroll-behavior: none;
+  /* Ruang game penuh tombol: matikan zoom ketuk-dua-kali supaya tiap ketukan
+     langsung jadi klik (tongkat tetap `touch-none` sendiri di TouchControls). */
+  touch-action: manipulation;
+}
+
+@media (min-width: 640px) {
+  .area-game {
+    --area-game-pad: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .area-game {
+    --area-game-pad: 1.5rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+ * Scrollbar bertema game
+ *
+ * Area gulir di UI game (buku catatan, menu jeda) memakai scrollbar ini alih-alih
+ * scrollbar bawaan peramban: jalurnya gelap `#0b120e` dan ibu jarinya oranye
+ * `#E8A87C`, senada HUD, dialog, dan kotak penanda quest. `scrollbar-width` /
+ * `scrollbar-color` menangani Firefox, sedangkan `::-webkit-scrollbar*`
+ * menangani Chromium, Safari, dan Edge.
+ * ------------------------------------------------------------------------ */
+.scrollbar-tema {
+  scrollbar-width: thin;
+  scrollbar-color: #e8a87c #0b120e;
+}
+
+.scrollbar-tema::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-tema::-webkit-scrollbar-track {
+  background: #0b120e;
+  border-radius: 9999px;
+}
+
+.scrollbar-tema::-webkit-scrollbar-thumb {
+  background: #e8a87c;
+  border: 2px solid #0b120e;
+  border-radius: 9999px;
+}
+
+.scrollbar-tema::-webkit-scrollbar-thumb:hover {
+  background: #f0b98f;
+}
+
+.scrollbar-tema::-webkit-scrollbar-corner {
+  background: #0b120e;
 }
 
 /* --------------------------------------------------------------------------

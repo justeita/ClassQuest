@@ -188,7 +188,7 @@ bukan dunia terbuka:
 - Pemain spawn di titik tetap saat masuk ruangan baru (atau saat "Ulangi
   chapter"), lalu bergerak 4 arah dengan collision sederhana (arcade physics,
   gravity 0).
-- NPC/objek interaksi punya zona 30 px; saat pemain berada di dalamnya, kotak
+- NPC/objek interaksi punya zona 44 px; saat pemain berada di dalamnya, kotak
   `Space` bergaya seperti penanda `!` muncul dan memicu deretan beat
   dialog/tantangan pada NPC pemberi quest. Pada pemberi quest kotak itu menjadi
   satu paket dengan `!` (naik-turun bersama) dan meluncur keluar darinya; pada

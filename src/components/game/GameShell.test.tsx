@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -724,34 +725,10 @@ describe("GameShell — tombol percepat", () => {
     lepasBerhenti();
   });
 
-  it("hint tahan Tab muncul selama dialog dan berganti status saat mempercepat", async () => {
-    await mainkan();
-
-    expect(
-      screen.queryByText(/tahan untuk mempercepat/i),
-    ).not.toBeInTheDocument();
-
-    bus.emit({ type: "dialogue", view: dialog });
-    expect(
-      await screen.findByText(/tahan untuk mempercepat/i),
-    ).toBeInTheDocument();
-
-    bus.emit({ type: "skipping", aktif: true });
-    expect(await screen.findByText(/mempercepat/i)).toBeInTheDocument();
-    expect(
-      screen.queryByText(/tahan untuk mempercepat/i),
-    ).not.toBeInTheDocument();
-
-    bus.emit({ type: "skipping", aktif: false });
-    expect(
-      await screen.findByText(/tahan untuk mempercepat/i),
-    ).toBeInTheDocument();
-  });
-
   it("garis kecepatan memudar masuk saat mempercepat dan keluar saat berhenti", async () => {
     await mainkan();
     bus.emit({ type: "dialogue", view: dialog });
-    await screen.findByText(/tahan untuk mempercepat/i);
+    await screen.findByRole("button", { name: /percepat/i });
 
     // Selama fase dialog garis tetap terpasang tapi tak terlihat, supaya
     // masuk/keluarnya memudar halus alih-alih muncul-hilang mendadak.
@@ -764,19 +741,6 @@ describe("GameShell — tombol percepat", () => {
 
     bus.emit({ type: "skipping", aktif: false });
     await vi.waitFor(() => expect(garis).toHaveClass("opacity-0"));
-  });
-
-  it("hint disembunyikan saat soal tampil", async () => {
-    await mainkan();
-    bus.emit({ type: "dialogue", view: dialog });
-    await screen.findByText(/tahan untuk mempercepat/i);
-
-    bus.emit({ type: "challenge", view: challenge });
-    await screen.findByLabelText("Tantangan");
-
-    expect(
-      screen.queryByText(/tahan untuk mempercepat/i),
-    ).not.toBeInTheDocument();
   });
 
   it("tombol B membuka buku catatan meski data quest sudah terisi", async () => {
@@ -878,6 +842,83 @@ describe("GameShell — soal di atas dialog", () => {
     expect(await screen.findByAltText("Potret Bu Ratna")).toBeInTheDocument();
   });
 
+  it("umpan balik tetap tampil walau potret soal berubah setelah dinilai", async () => {
+    await mainkan();
+    // Alur nyata `GameScene.bukaTantangan`: dialog soal (prompt) dikirim lebih
+    // dulu, baru overlay tantangan. Urutan ini penting dan sudah benar.
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Pak Wira",
+        text: "Resep kue pisang memakai 3 bagian tepung dan 2 bagian gula.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    // Saat dinilai, scene mengganti potret pembicara lewat `textbox.setPortrait`
+    // — yang menembak event `dialogue` yang sama. Regresi: event itu dulu
+    // menutup overlay, sehingga kartu umpan balik tidak pernah muncul dan
+    // dialog tersangkut di fase challenge.
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Pak Wira",
+        text: "Resep kue pisang memakai 3 bagian tepung dan 2 bagian gula.",
+        waiting: true,
+        portrait: {
+          src: "/assets/portrait/npc_10/happy.png",
+          alt: "Potret Pak Wira",
+        },
+      },
+    });
+    bus.emit({
+      type: "graded",
+      challengeId: "chl_01_01",
+      correct: true,
+      explanation: "Benar.",
+    });
+
+    expect(await screen.findByText("Tepat.")).toBeInTheDocument();
+    // Potret balikan scene tetap dipakai overlay untuk umpan balik.
+    expect(screen.getByAltText("Potret Pak Wira")).toBeInTheDocument();
+  });
+
+  it("overlay menutup saat detour diputar dan terbuka lagi saat soal diulang", async () => {
+    await mainkan();
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    // Detour menutup overlay supaya narasi/dialognya terlihat.
+    bus.emit({ type: "detour", aktif: true });
+    await vi.waitFor(() =>
+      expect(screen.queryByLabelText("Tantangan")).not.toBeInTheDocument(),
+    );
+
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Pak Wira",
+        text: "Coba hitung ulang perlahan.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+    expect(
+      await screen.findByText("Coba hitung ulang perlahan."),
+    ).toBeInTheDocument();
+
+    // Soal yang sama dibuka ulang setelah detour selesai.
+    bus.emit({ type: "detour", aktif: false });
+    bus.emit({ type: "challenge", view: challenge });
+    expect(await screen.findByLabelText("Tantangan")).toBeInTheDocument();
+  });
+
   it("fokus kembali ke area game setelah tantangan ditutup", async () => {
     await mainkan();
     bus.emit({ type: "challenge", view: challenge });
@@ -896,5 +937,203 @@ describe("GameShell — soal di atas dialog", () => {
         screen.getByRole("region", { name: "Area permainan ClassQuest" }),
       ).toHaveFocus(),
     );
+  });
+});
+
+describe("GameShell — kontrol sentuh", () => {
+  /**
+   * jsdom tidak punya `window.matchMedia`. Palsukan agar perangkat terbaca
+   * sebagai ponsel: penunjuk utama kasar dan tidak bisa hover. Pola ini sama
+   * dengan yang dibaca `useSentuh.ts`.
+   */
+  function pasangMedia({ potret = false } = {}) {
+    const asli = window.matchMedia;
+    window.matchMedia = ((query: string) => {
+      const matches =
+        query.includes("pointer: coarse") ||
+        query.includes("hover: none") ||
+        (potret && query.includes("orientation: portrait"));
+      return {
+        matches,
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      } as unknown as MediaQueryList;
+    }) as typeof window.matchMedia;
+    return () => {
+      window.matchMedia = asli;
+    };
+  }
+
+  let pulihkanMedia: () => void;
+
+  beforeEach(() => {
+    pulihkanMedia = pasangMedia();
+  });
+
+  afterEach(() => pulihkanMedia());
+
+  it("menampilkan joystick dan tombol aksi di perangkat sentuh", async () => {
+    await mainkan();
+
+    expect(
+      screen.getByRole("group", { name: "Tongkat gerak" }),
+    ).toBeInTheDocument();
+  });
+
+  it("tombol aksi bicara di zona NPC, lalu kontrol hilang saat dialog", async () => {
+    await mainkan();
+    const bicara = vi.fn();
+    const lepasBicara = bus.onCommand("interact", bicara);
+
+    bus.emit({
+      type: "prompt",
+      hint: { text: "Space", x: 320, y: 180, menempel: false },
+    });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Bicara dengan warga" }),
+    );
+    expect(bicara).toHaveBeenCalledTimes(1);
+
+    // Selama dialog joystick dan tombol aksi disembunyikan (ADR 0027); lanjut
+    // dialog lewat mengetuk kotak dialog, bukan tombol.
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Halo.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+    await vi.waitFor(() =>
+      expect(
+        screen.queryByRole("group", { name: "Tongkat gerak" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: "Bicara dengan warga" }),
+    ).not.toBeInTheDocument();
+
+    lepasBicara();
+  });
+
+  it("tongkat mengirim arah gerak lewat bus", async () => {
+    await mainkan();
+    const gerak = vi.fn();
+    const lepas = bus.onCommand("move", gerak);
+
+    fireEvent.pointerDown(
+      screen.getByRole("group", { name: "Tongkat gerak" }),
+      {
+        pointerId: 1,
+        clientX: 52,
+        clientY: 0,
+      },
+    );
+
+    expect(gerak).toHaveBeenCalledWith({ type: "move", arah: "right" });
+    lepas();
+  });
+
+  it("keycap papan tombol tidak tampil di perangkat sentuh", async () => {
+    await mainkan();
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Pak Bima",
+        text: "Genangan itu tadi pagi masih penuh.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+
+    const tombol = await screen.findByRole("button", { name: /percepat/i });
+    expect(tombol).not.toHaveTextContent("Tab");
+  });
+
+  it("memindahkan tombol HUD ke bar bawah kanvas saat layar potret", async () => {
+    pulihkanMedia();
+    pulihkanMedia = pasangMedia({ potret: true });
+    await mainkan();
+
+    // Tombol Quest baru muncul setelah event quest pertama.
+    bus.emit({
+      type: "quest",
+      view: {
+        chapterNumber: 1,
+        chapterTotal: 3,
+        chapterTitle: "Air dan Udara",
+        sceneTitle: "Pagi di Kampung",
+        activeQuestId: "sc_01_01",
+        quests: [],
+      },
+    });
+
+    const bar = document.querySelector('[data-hud="bawah"]');
+    expect(bar).not.toBeNull();
+    const dalam = within(bar as HTMLElement);
+
+    // Semua tombol HUD pindah ke bar statis di luar kanvas: Quest, Musik,
+    // Catatan, Jeda, dan tombol layar penuh.
+    const musik = dalam.getByRole("button", { name: /musik/i });
+    expect(dalam.getByRole("button", { name: /quest/i })).toBeInTheDocument();
+    expect(
+      dalam.getByRole("button", { name: /^catatan$/i }),
+    ).toBeInTheDocument();
+    expect(dalam.getByRole("button", { name: /^jeda$/i })).toBeInTheDocument();
+
+    // Desain HUD disatukan dengan kotak dialog: gelap dengan teks krem terang,
+    // sama seperti varian overlay (ADR 0029).
+    expect(musik.className).toContain("bg-[#0b120e]/95");
+    expect(musik.className).toContain("text-[#F7F4EC]");
+  });
+
+  it("menampilkan tombol Percepat di bar bawah saat dialog di layar potret", async () => {
+    pulihkanMedia();
+    pulihkanMedia = pasangMedia({ potret: true });
+    await mainkan();
+
+    expect(document.querySelector('[data-hud="bawah"]')).not.toHaveTextContent(
+      /percepat/i,
+    );
+
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Halo.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+
+    const bar = document.querySelector('[data-hud="bawah"]') as HTMLElement;
+    expect(
+      within(bar).getByRole("button", { name: /percepat/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("tetap memakai HUD overlay saat lanskap", async () => {
+    await mainkan();
+
+    expect(document.querySelector('[data-hud="bawah"]')).toBeNull();
+    expect(screen.getByRole("button", { name: /musik/i })).toBeInTheDocument();
+  });
+
+  it("kontrol sentuh tidak tampil di desktop", async () => {
+    pulihkanMedia();
+    await mainkan();
+
+    expect(
+      screen.queryByRole("group", { name: "Tongkat gerak" }),
+    ).not.toBeInTheDocument();
   });
 });

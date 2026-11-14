@@ -22,8 +22,13 @@ describe("findNpcInZone", () => {
 
   it("radius keluar lebih besar memberi histeresis", () => {
     const keluar = ZONA_RADIUS + ZONA_HISTERESIS;
-    expect(findNpcInZone(npcs, 100 + keluar, 100, keluar)).toBe("a");
-    expect(findNpcInZone(npcs, 100 + keluar + 1, 100, keluar)).toBeNull();
+    // Satu NPC saja supaya radius masuk/keluar tidak saling tumpang tindih
+    // dengan tetangganya.
+    const satu = [{ id: "a", x: 100, y: 100 }];
+
+    expect(findNpcInZone(satu, 100 + ZONA_RADIUS + 1, 100)).toBeNull();
+    expect(findNpcInZone(satu, 100 + ZONA_RADIUS + 1, 100, keluar)).toBe("a");
+    expect(findNpcInZone(satu, 100 + keluar + 1, 100, keluar)).toBeNull();
   });
 
   it("memilih NPC terdekat bila dua-duanya di dalam radius", () => {

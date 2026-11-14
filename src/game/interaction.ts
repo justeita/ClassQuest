@@ -12,21 +12,21 @@ import type { WorldNpc } from "./world/types";
  */
 
 /**
- * Jarak zona interaksi: 30 px dari titik kaki pemain ke titik kaki NPC.
+ * Jarak zona interaksi: 44 px dari titik kaki pemain ke titik kaki NPC.
  *
- * Dinaikkan dari 24 px supaya pemain tidak perlu menempel persis ke sprite
- * sebelum `Space` mau bekerja. Angkanya tetap di bawah satu lebar ubin
- * (16 px) dikali dua, jadi dua NPC berdekatan tidak saling rebutan zona —
- * yang diambil tetap yang terdekat.
+ * Awalnya 24 px, lalu 30 px; pemain di ponsel masih mengeluh harus menempel
+ * persis ke sprite sebelum tombol "Bicara"/`Space` mau bekerja. 44 px memberi
+ * ruang nyaman tanpa membuat dua NPC berdekatan saling rebutan — yang diambil
+ * tetap yang terdekat.
  */
-export const ZONA_RADIUS = 30;
+export const ZONA_RADIUS = 44;
 
 /**
  * Jarak tambahan sebelum kotak `Space` hilang lagi.
  *
- * Tanpa histeresis, pemain yang berdiri tepat di batas 30 px membuat kotak
+ * Tanpa histeresis, pemain yang berdiri tepat di batas 44 px membuat kotak
  * berkedip: satu frame di dalam zona, frame berikutnya di luar. Kotak baru
- * hilang setelah jaraknya melewati 38 px, jadi tampil-hilangnya tenang.
+ * hilang setelah jaraknya melewati 52 px, jadi tampil-hilangnya tenang.
  */
 export const ZONA_HISTERESIS = 8;
 

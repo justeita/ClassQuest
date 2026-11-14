@@ -60,7 +60,7 @@ semua nilai di bawah dinyatakan dalam piksel.
 | Portrait dialog       | 64×64 px                                                     |
 | Kecepatan pemain      | 180 px/detik                                                 |
 | Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki                  |
-| Zona interaksi NPC    | 30 px masuk / 38 px keluar (histeresis 8 px)                 |
+| Zona interaksi NPC    | 44 px masuk / 52 px keluar (histeresis 8 px)                 |
 | Dead zone kamera      | 128×96 px di tengah layar                                    |
 | Zoom kamera           | 0,8 — bingkai 640×360 menampilkan 800×450 px dunia           |
 
@@ -252,7 +252,7 @@ Font monospace sistem yang dulu dipakai (`textbox.ts`, `interaction.ts`) tidak
 cocok dengan pixel art dan, lebih penting, teks yang digambar di canvas 640×360
 selalu bergerigi setelah upscale `image-rendering: pixelated`.
 
-Keputusan (ADR 0007, diperluas ADR 0020): **teks permainan pindah ke DOM**.
+Keputusan (ADR 0007, diperluas ADR 0023): **teks permainan pindah ke DOM**.
 
 - Panel, potret, nama, isi dialog, dan indikator "lanjut" dirender React
   (`DialogueBox.tsx`). Panel bukan lagi gambar `ui_textbox`, melainkan kotak CSS

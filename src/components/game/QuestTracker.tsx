@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Keycap } from "@/components/game/Keycap";
+import { kelasTombolHud, type LetakHud } from "@/components/game/gayaHud";
 import { ukuranHuruf } from "@/game/layout";
 import type { QuestState, QuestStatus } from "@/game/questLog";
 
@@ -15,6 +16,8 @@ type QuestTrackerProps = {
   onToggle?: () => void;
   /** Callback untuk menutup buku catatan quest. */
   onTutup?: () => void;
+  /** `overlay`: tombol di pojok kanvas. `bar`: tombol statis untuk bar bawah. */
+  letak?: LetakHud;
 };
 
 const IKON: Record<QuestStatus, string> = {
@@ -43,6 +46,7 @@ export function QuestTracker({
   terbuka: terbukaProp,
   onToggle,
   onTutup,
+  letak = "overlay",
 }: QuestTrackerProps) {
   const [terbukaInternal, setTerbukaInternal] = useState(false);
   const isControlled = terbukaProp !== undefined;
@@ -87,25 +91,33 @@ export function QuestTracker({
 
   if (!view) return null;
 
+  const tombolQuest = (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.currentTarget.blur();
+        handleToggle();
+      }}
+      aria-expanded={terbuka}
+      aria-label="Buka buku catatan quest"
+      aria-keyshortcuts="q"
+      className={kelasTombolHud(letak)}
+    >
+      <Keycap>Q</Keycap>
+      Quest
+    </button>
+  );
+
   return (
     <aside aria-label="Daftar quest" className="font-game">
-      {/* Tombol ringkas di kiri atas untuk membuka buku quest (gaya serasi tombol HUD) */}
-      <div className="pointer-events-auto absolute left-2 top-2 z-20 font-game text-base leading-tight text-[#F7F4EC]">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.currentTarget.blur();
-            handleToggle();
-          }}
-          aria-expanded={terbuka}
-          aria-label="Buka buku catatan quest"
-          aria-keyshortcuts="q"
-          className="flex items-center gap-1.5 border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]"
-        >
-          <Keycap>Q</Keycap>
-          Quest
-        </button>
-      </div>
+      {/* Tombol ringkas untuk membuka buku quest (gaya serasi tombol HUD). */}
+      {letak === "bar" ? (
+        tombolQuest
+      ) : (
+        <div className="pointer-events-auto absolute left-2 top-2 z-20 font-game text-base leading-tight text-[#F7F4EC]">
+          {tombolQuest}
+        </div>
+      )}
 
       {/* Jendela Buku Terbuka Minecraft Note / Journal */}
       <div

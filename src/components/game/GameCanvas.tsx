@@ -16,9 +16,13 @@ import { NpcHintLayer } from "@/components/game/NpcHintLayer";
 import { QuestToast } from "@/components/game/QuestToast";
 import { QuestTracker } from "@/components/game/QuestTracker";
 import { Hud } from "@/components/game/HUD";
-import { SkipHint } from "@/components/game/SkipHint";
 import { SpeedLines } from "@/components/game/SpeedLines";
 import { PauseMenu } from "@/components/game/PauseMenu";
+import {
+  TouchControls,
+  type AksiSentuh,
+} from "@/components/game/TouchControls";
+import { useLayarPotret, useSentuh } from "@/components/game/useSentuh";
 import {
   bacaPengaturanAudio,
   simpanPengaturanAudio,
@@ -34,6 +38,7 @@ import {
 import type { DialogueView, GameBus } from "@/game/gameBus";
 import type { QuestState } from "@/game/questLog";
 import type { GameHandle } from "@/game/types";
+import type { ArahGerak } from "@/game/world/karakter";
 import type { Story } from "@/story/schema";
 import type { Answer, PlayResult } from "@/story/scoring";
 
@@ -75,8 +80,19 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [bingkai, setBingkai] = useState({ x: 0, y: 0, w: 0, h: 0 });
   const [jeda, setJeda] = useState(false);
   const [bukuQuest, setBukuQuest] = useState(false);
-  /** Time-lapse lewati sedang berjalan; memicu hint status. */
+  /** Time-lapse lewati sedang berjalan; memicu garis kecepatan. */
   const [sedangLewati, setSedangLewati] = useState(false);
+  /** Pemain berada di zona NPC: tombol aksi sentuh jadi "Bicara". */
+  const [promptAktif, setPromptAktif] = useState(false);
+  /** Perangkat sentuh dan orientasi layar menentukan tata letak kontrol. */
+  const sentuh = useSentuh();
+  const layarPotret = useLayarPotret();
+  /**
+   * Layar potret sentuh: tombol HUD dipindah ke bar bawah di luar kanvas
+   * (layar 16:9 sempit, HUD di dalamnya menutupi dunia), dan teks dialog
+   * diperkecil supaya tidak melimpah dari kotaknya.
+   */
+  const hudBawah = sentuh && layarPotret;
   /** Pengaturan audio pengguna; persist di localStorage, dibaca saat mount. */
   const [audio, setAudio] = useState<PengaturanAudio>(() =>
     bacaPengaturanAudio(
@@ -215,24 +231,35 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         lepas.push(
           game.bus.on("dialogue", ({ view }) => {
             setDialog(view);
-
+          }),
+        );
+        lepas.push(
+          game.bus.on("detour", ({ aktif }) => {
             // Detour konsekuensi jawaban salah diputar lewat renderer dialog
             // yang sama (story-schema.md). Overlay tantangan harus menutup
-            // supaya detour terlihat; tidak ada event baru untuk ini.
+            // supaya detour terlihat; soal dibuka ulang oleh event `challenge`
+            // yang menyusul.
             //
-            // Aman untuk alur biasa: prompt tantangan juga tampil sebagai
-            // `dialogue`, tetapi event-nya dikirim **sebelum** `challenge`
-            // sehingga setTantangan(null) di sini langsung ditimpa view soal
-            // pada batch yang sama.
-            if (view.visible) {
-              setTantangan(null);
-              setHasil(null);
-            }
+            // Penutupan overlay **tidak** boleh mengandalkan event `dialogue`:
+            // dialog soal tantangan juga tiba sebagai `dialogue`, dan saat
+            // dinilai scene mengganti potret lewat `setPortrait` (satu lagi
+            // `dialogue`). Dulu keduanya ikut menutup overlay, sehingga kartu
+            // umpan balik hilang dan dialog tersangkut di fase challenge.
+            if (!aktif) return;
+            setTantangan(null);
+            setHasil(null);
           }),
         );
         lepas.push(
           game.bus.on("skipping", ({ aktif }) => {
             setSedangLewati(aktif);
+          }),
+        );
+        // Tombol aksi sentuh mengikuti zona NPC, jadi layar cukup tahu ada
+        // atau tidak ada prompt — bukan posisinya (itu urusan `NpcHintLayer`).
+        lepas.push(
+          game.bus.on("prompt", ({ hint }) => {
+            setPromptAktif(hint !== null);
           }),
         );
       })
@@ -444,6 +471,22 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   /** Lewati hanya berlaku saat dialog/narasi tampil dan tidak ada soal. */
   const dialogTerlihat = Boolean(dialog?.visible) && !tantangan;
 
+  /**
+   * Konteks tombol aksi sentuh: "Bicara" saat pemain di zona NPC, `null` saat
+   * belum ada warga di jangkauan. Tidak ada lagi mode "Lanjut": kontrol sentuh
+   * disembunyikan selama dialog (ADR 0027), dan lanjut dialog dilakukan dengan
+   * mengetuk kotak dialognya.
+   */
+  const aksiSentuh: AksiSentuh = promptAktif ? "bicara" : null;
+
+  const kirimGerak = useCallback((arah: ArahGerak | null) => {
+    busRef.current?.send({ type: "move", arah });
+  }, []);
+
+  const kirimAksiSentuh = useCallback(() => {
+    busRef.current?.send({ type: "interact" });
+  }, []);
+
   /** Ala Persona 3 Reload: tahan untuk mempercepat, lepas untuk berhenti. */
   const mulaiLewatiDialog = useCallback(() => {
     busRef.current?.send({ type: "skip_start" });
@@ -496,11 +539,22 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   ]);
 
   return (
-    <div className="relative h-full w-full" style={{ containerType: "size" }}>
+    <div
+      className={`h-full w-full touch-manipulation select-none ${
+        sentuh ? "relative flex flex-col" : "relative"
+      }`}
+      style={{ containerType: "size" }}
+    >
       <div
         ref={containerRef}
         tabIndex={-1}
-        className="relative h-full w-full focus:outline-none"
+        className={`relative focus:outline-none ${
+          sentuh
+            ? layarPotret
+              ? "w-full shrink-0 aspect-video"
+              : "min-h-0 flex-1"
+            : "h-full w-full"
+        }`}
         role="region"
         aria-label="Area permainan ClassQuest"
       >
@@ -528,7 +582,6 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
             />
             {!jeda && !tantangan && <ChapterCard view={kartuChapter} />}
             {!jeda && !tantangan && <QuestToast title={toastQuest} />}
-            {!jeda && dialogTerlihat && <SkipHint berjalan={sedangLewati} />}
             {!jeda && dialogTerlihat && <SpeedLines aktif={sedangLewati} />}
             {/* DialogueBox tetap ter-render selama masih ada dialog/tantangan
                 terakhir: setelah `visible` jadi false ia masih perlu sekali
@@ -566,10 +619,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
                       })
                 }
                 onAdvance={lanjutDialog}
+                kecil={hudBawah}
               />
             )}
 
-            {!jeda && (
+            {!jeda && !hudBawah && (
               <Hud
                 musikAktif={audio.music > 0}
                 onToggleMusik={() =>
@@ -594,7 +648,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
                 onResolve={lanjut}
               />
             )}
-            {!jeda && (
+            {!jeda && !hudBawah && (
               <QuestTracker
                 view={quest}
                 terbuka={bukuQuest}
@@ -605,6 +659,42 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           </div>
         }
       </div>
+      {hudBawah && !jeda && (
+        <div
+          data-hud="bawah"
+          className="flex shrink-0 flex-wrap items-center justify-center gap-1.5 border-t border-[#3D4B41] bg-[#0b120e] px-2 py-2 font-game text-sm"
+        >
+          <QuestTracker
+            letak="bar"
+            view={quest}
+            terbuka={bukuQuest}
+            onToggle={() => setBukuQuest((sebelum) => !sebelum)}
+            onTutup={() => setBukuQuest(false)}
+          />
+          <Hud
+            letak="bar"
+            musikAktif={audio.music > 0}
+            onToggleMusik={() => ubahAudio("music", audio.music > 0 ? 0 : 1)}
+            onBukaLog={() => {
+              setBukuLog(true);
+              busRef.current?.send({ type: "freeze" });
+            }}
+            onMulaiLewati={mulaiLewatiDialog}
+            onHentikanLewati={hentikanLewatiDialog}
+            tampilLewati={dialogTerlihat}
+            onJeda={bukaJeda}
+            tombolJedaRef={tombolJedaRef}
+          />
+        </div>
+      )}
+      {sentuh && !jeda && !tantangan && !dialogTerlihat && (
+        <TouchControls
+          mode={layarPotret ? "dek" : "mengapung"}
+          onMove={kirimGerak}
+          onAksi={kirimAksiSentuh}
+          aksi={aksiSentuh}
+        />
+      )}
       {bukuLog && (
         <DialogueLog
           entriDialog={entriLog}
