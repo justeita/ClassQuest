@@ -194,6 +194,10 @@ export function ChallengeOverlay({
    *   • `Enter` atau `Spasi` langsung melanjutkan dialog
    */
   function tanganiOpsi(event: React.KeyboardEvent<HTMLElement>) {
+    // Auto-repeat saat tombol ditahan tidak boleh memilih/mengirim berulang.
+    // Satu tekanan fisik = satu aksi; untuk aksi berikutnya harus lepas & tekan.
+    if (event.repeat) return;
+
     const targetTag = (event.target as HTMLElement).tagName;
     const isInput = targetTag === "INPUT";
 
@@ -530,6 +534,7 @@ export function ChallengeOverlay({
                     onChange={(event) => setTeks(event.target.value)}
                     onKeyDown={(event) => {
                       event.stopPropagation();
+                      if (event.repeat) return;
                       if (event.key === "Enter" && bisaJawab) {
                         event.preventDefault();
                         kirimJawabanManual();
@@ -595,8 +600,12 @@ export function ChallengeOverlay({
               role="button"
               tabIndex={0}
               onKeyDown={(event) => {
+                if (event.repeat) return;
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
+                  // Hentikan gelembung ke handler panel: satu tekanan cukup
+                  // sekali resolve, bukan dua kali.
+                  event.stopPropagation();
                   onResolve();
                 }
               }}

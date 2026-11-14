@@ -132,6 +132,9 @@ Aturan input:
   `Enter` dibaca dari event `keydown`, bukan `isDown` per frame: ketukan yang
   lepas sebelum frame berikutnya tetap terbaca, sementara tombol yang ditahan
   tidak menambah beat — pemain harus lepas lalu menekan lagi (pola seperti OMORI).
+- **Auto-repeat diabaikan di overlay tantangan.** `keydown` berulang dari tombol
+  yang ditahan tidak memilih/mengirim jawaban atau melanjutkan kartu umpan balik;
+  satu tekanan fisik = satu aksi, sama seperti dialog.
 - Saat `explore`, gerak bebas; saat `dialog`/`challenge`, input gerak **terkunci**.
 - Saat `challenge`, input dialog **diabaikan**.
 - Saat transisi/fade, input diabaikan sampai selesai.

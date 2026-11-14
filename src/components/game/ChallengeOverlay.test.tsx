@@ -329,6 +329,67 @@ describe("ChallengeOverlay — panel di atas dialog", () => {
     expect(onResolve).toHaveBeenCalledTimes(1);
   });
 
+  it("auto-repeat Spasi tidak mengirim jawaban berulang", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_01_03",
+      type: "multiple_choice",
+      options: [
+        { id: "opt_a", text: "Menguap" },
+        { id: "opt_b", text: "Membeku" },
+      ],
+    });
+    const panel = screen.getByLabelText("Tantangan");
+
+    // Tombol ditahan: auto-repeat datang sebagai `repeat: true` dan harus
+    // diabaikan supaya tidak memilih/mengirim berkali-kali.
+    fireEvent.keyDown(panel, { key: " ", repeat: true });
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    // Tekanan fisik baru tetap diterima, lalu repeat berikutnya diabaikan.
+    fireEvent.keyDown(panel, { key: " " });
+    fireEvent.keyDown(panel, { key: " ", repeat: true });
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("auto-repeat Spasi saat sudah dinilai tidak memanggil onResolve berulang", () => {
+    const { onResolve } = renderOverlay(
+      {
+        ...dasar,
+        id: "chl_01_04",
+        type: "multiple_choice",
+        options: [{ id: "opt_a", text: "Menguap" }],
+      },
+      { graded: { correct: true, explanation: "Benar." } },
+    );
+    const panel = screen.getByLabelText("Tantangan");
+
+    fireEvent.keyDown(panel, { key: " ", repeat: true });
+    expect(onResolve).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(panel, { key: " " });
+    expect(onResolve).toHaveBeenCalledTimes(1);
+  });
+
+  it("satu Spasi di kartu umpan balik hanya resolve sekali", () => {
+    const { onResolve } = renderOverlay(
+      {
+        ...dasar,
+        id: "chl_01_05",
+        type: "multiple_choice",
+        options: [{ id: "opt_a", text: "Menguap" }],
+      },
+      { graded: { correct: true, explanation: "Benar." } },
+    );
+
+    // Kartu umpan balik ada di dalam panel; tanpa stopPropagation satu tekanan
+    // akan memanggil onResolve dua kali (kartu + handler panel).
+    fireEvent.keyDown(screen.getByRole("button", { name: /^lanjut$/i }), {
+      key: " ",
+    });
+    expect(onResolve).toHaveBeenCalledTimes(1);
+  });
+
   it("hover kursor mouse memindahkan sorotan opsi dialog RPG", () => {
     renderOverlay({
       ...dasar,
