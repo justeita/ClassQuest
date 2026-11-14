@@ -56,10 +56,40 @@ dan `assemble()` memakai roster yang sama, jadi nama tidak bisa berubah lewat
 keluaran model.
 
 Deskripsi yang dikirim ke model dibatasi 160 karakter per tokoh. Detail visual
-yang lebih kaya (rambut, outfit, pengait jubah, sifat) didokumentasikan di
-[`../07-assets/cast-bible.md`](../07-assets/cast-bible.md) untuk manusia, **bukan**
-untuk prompt. Kalau satu ciri wajib muncul di cerita, ciri itu harus masuk ke
-`description` di `src/story/cast.ts`.
+yang lebih kaya (rambut, outfit, pengait jubah) didokumentasikan di
+[`../07-assets/cast-bible.md`](../07-assets/cast-bible.md) untuk manusia. Yang
+tetap sampai ke prompt tanpa mengubah schema adalah peta prompt-only di
+`src/story/cast.ts`: `CAST_TRAITS` (sifat) dan `CAST_VOICE` (cara bicara), di
+samping `CAST_EXPERTISE` dan `CAST_PLACES` (lihat
+[ADR 0038](../09-decisions/0038-profil-tokoh-untuk-prompt.md)). Blok `CAST`
+mengirimnya sebagai baris `penampilan`, `sifat`, `bicara`, `keahlian`, dan
+`lokasi` per tokoh.
+
+Aturan narasi yang menyertainya: saat tokoh pertama kali muncul di sebuah
+chapter, narasi menyebut **satu** ciri yang terlihat di sprite (topi jerami
+Marlow, helm perak Leonhardt, kacamata Elias). Dialog mengikuti `sifat` dan
+`bicara`, jadi Marlow tetap pendek dan santai sementara Elias tetap rinci.
+
+## Latar dunia
+
+Seluruh cerita terjadi di **satu peta desa** — Desa Sukamaju. Ini bukan pilihan
+gaya, melainkan fakta runtime: `GameScene` membangun `world_map_village` sekali
+dan tidak pernah mengganti latar saat chapter berganti
+([`../04-game/scene-format.md`](../04-game/scene-format.md)). Karena itu:
+
+- System prompt punya blok `TEMPAT DAN WAKTU`, dan pesan pengguna punya blok
+  `DUNIA` (lihat [ADR 0037](../09-decisions/0037-latar-dunia-desa-di-prompt.md)).
+- Ruangan di dalam gedung (kelas, koridor, laboratorium, kantor, aula) **tidak
+  boleh** dipakai sebagai latar, dan kata "kelas", "papan tulis", "bel sekolah",
+  serta "halaman sekolah" dilarang muncul.
+- Belajar terjadi di luar: bangku alun-alun, tepi jembatan, kebun, halaman
+  rumah, atau sambil berjalan di jalan utama.
+- Adegan "guru menulis di papan tulis" diganti dengan tokoh yang menunjukkan
+  benda nyata: daun, air sumur, biji, keranjang ikan, batu di tepi sungai.
+- Perpindahan tempat harus disebut di narasi sebelum adegan berpindah.
+
+`backgroundId` tetap ada di schema demi layar judul/hasil, tetapi model tidak
+memakainya untuk "mengganti latar".
 
 ## Pemilihan pembicara
 
@@ -87,6 +117,37 @@ Ini aturan prompt, bukan jaminan. Model masih bisa salah memilih pembicara,
 terutama bila materi mencampur banyak domain. Yang bisa diperiksa manusia:
 `speakerId` di setiap dialog harus masuk akal untuk topiknya, bukan hanya ada di
 cast.
+
+### Sebaran pembicara
+
+Keahlian memilih **siapa yang menjelaskan inti konsep**, bukan siapa satu-satunya
+yang boleh bicara. Materi pelajaran umum mudah membuat model menyerahkan semua
+dialog ke Edric; hasilnya cerita terasa seperti monolog satu NPC dan tokoh lain
+tidak pernah muncul. `story-v13` menambahkan blok `SEBARAN PEMBICARA` untuk
+mencegahnya (lihat [ADR 0036](../09-decisions/0036-sebaran-pembicara.md)):
+
+- Setiap chapter memakai minimal tiga tokoh berbeda: Kael dan minimal dua NPC.
+- Satu NPC tidak memegang lebih dari separuh beat dialog chapter.
+- Dialog NPC tersebar di beberapa scene, bukan menumpuk di scene pertama.
+- Sepanjang cerita minimal empat NPC berbeda bicara (lima bila ada empat chapter
+  atau lebih), selama tempat dan keahliannya cocok.
+- Pipeline mengirim `usedSpeakers` — NPC yang sudah bicara di chapter sebelumnya
+  — ke prompt chapter berikutnya supaya giliran pembicara bergilir.
+
+Sama seperti pemilihan pembicara, ini aturan prompt. Validator hanya memberi
+peringatan `W_SINGLE_SPEAKER` bila satu chapter memakai satu NPC, atau satu NPC
+memegang lebih dari 70% dialog NPC di chapter itu. Guru tetap bisa memperbaiki
+distribusinya di editor.
+
+Contoh distribusi sehat untuk chapter lima scene:
+
+| Scene | Pembicara           |
+| ----- | ------------------- |
+| 1     | Kael, Edric         |
+| 2     | Kael, Marlow        |
+| 3     | Kael, Edric, Marlow |
+| 4     | Kael, Clara         |
+| 5     | Kael, Edric, Clara  |
 
 ## Penempatan tokoh
 
@@ -117,6 +178,11 @@ Aturan yang dikirim ke model:
 - Satu chapter tidak menempatkan tokoh di dua tempat tanpa perjalanan yang
   disebutkan.
 - `continuity.characterStates[].location` memakai nama tempat dari blok `LOKASI`.
+
+Lokasi yang tidak cocok dengan tempat mana pun di blok `LOKASI` memicu
+peringatan `W_LOCATION_UNKNOWN` dari validator. Peringatan itu khusus untuk
+ruangan yang tidak ada di peta desa (mis. "di depan kelas"): game tidak bisa
+menampilkannya.
 
 Kesalahan yang paling sering terjadi dan dicegah eksplisit: Marlow di alun-alun
 (padahal di jembatan), Clara di air mancur (padahal di kolam timur), dan Edric
@@ -328,6 +394,8 @@ Ketegangan hanya boleh berasal dari **rasa ingin tahu**, bukan ancaman.
 - [ ] Nama, peran, dan penampilan tokoh sesuai blok `CAST`; tidak ada nama baru.
 - [ ] Setiap tokoh muncul di tempatnya menurut blok `LOKASI`; tidak ada tempat
       yang ditukar atau dikarang.
+- [ ] Dialog tiap chapter tersebar: minimal dua NPC (plus pemain), dan tidak ada
+      satu NPC yang memegang seluruh dialog.
 - [ ] Setiap tantangan bisa dijawab dari cerita.
 - [ ] Tidak ada beat > 240 karakter.
 - [ ] Cerita ditutup, tidak menggantung tanpa alasan.
@@ -347,3 +415,4 @@ Ketegangan hanya boleh berasal dari **rasa ingin tahu**, bukan ancaman.
 | Tokoh muncul di tempat salah   | Peta dan tata letak tidak dikirim         | Kirim blok `LOKASI` + aturan penempatan      |
 | Aset karangan                  | Daftar aset tidak dikirim/terlalu panjang | Kirim hanya aset relevan + validasi ketat    |
 | Cerita menggantung             | Tidak ada instruksi menutup               | Wajibkan penutupan `openThreads`             |
+| Dialog hanya milik satu NPC    | Semua konsep diserahkan ke mentor         | Sebar dialog: dua NPC per chapter + giliran  |

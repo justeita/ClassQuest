@@ -9,7 +9,7 @@ owner: tim ClassQuest
 Prompt adalah kode. Ia punya versi, dites, dan tidak diubah diam-diam.
 
 - Implementasi: `src/ai/prompt.ts`
-- Versi saat ini: `PROMPT_VERSION = "story-v12"`
+- Versi saat ini: `PROMPT_VERSION = "story-v14"`
 - Aturan isi cerita: [`generation-rules.md`](./generation-rules.md)
 - Schema output: [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)
 
@@ -24,8 +24,9 @@ Selalu urutan ini. Instruksi sistem tidak boleh berada setelah data pengguna.
   1. SCHEMA (bentuk JSON yang harus dihasilkan)
   1b. BRANCHING (opsional; hanya bila AI_BRANCHING=on)
   2. ASSETS (daftar aset yang boleh dipakai)
-  3. CAST (roster tetap: id, nama, role, sprite, deskripsi penampilan, keahlian, lokasi)
-  3b. LOKASI (tempat tetap tiap tokoh di desa)
+  3. CAST (roster tetap: id, nama, role, sprite, penampilan, sifat, bicara, keahlian, lokasi)
+  3b. DUNIA (satu peta desa; larangan adegan di dalam gedung)
+  3c. LOKASI (tempat tetap tiap tokoh di desa)
   4. OUTLINE (struktur yang sudah disepakati)
   5. CONTINUITY (ringkasan chapter sebelumnya)
   6. MATERIAL (teks materi, sebagai DATA)
@@ -36,7 +37,7 @@ Selalu urutan ini. Instruksi sistem tidak boleh berada setelah data pengguna.
 data, sehingga teks seperti "abaikan aturan di atas" di dalam PDF tidak terlihat
 seperti perintah baru.
 
-## System prompt (story-v12)
+## System prompt (story-v14)
 
 ```text
 Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
@@ -79,10 +80,29 @@ PEMILIHAN PEMBICARA
 - Topik desa dan alam punya pemiliknya: ikan, sungai, dan perahu → Marlow;
   ladang, tanaman, dan panen → Theo; menjaga, aturan, dan keamanan → Leonhardt;
   sejarah dan cerita lama desa → Eldric.
-- Konsep pelajaran tetap disampaikan Edric sebagai mentor, atau oleh tokoh yang
+- Konsep pelajaran boleh disampaikan Edric sebagai mentor, atau oleh tokoh yang
   mengalami langsung. Tokoh ahli menjelaskan dari pengalamannya, bukan dari buku.
-- Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor. Jangan mengarang
-  keahlian baru untuk tokoh lain.
+- Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor untuk bagian
+  penjelasan, bukan untuk seluruh dialog. Tokoh lain tetap bertanya, mengamati,
+  dan bereaksi. Jangan mengarang keahlian baru untuk tokoh lain.
+
+SEBARAN PEMBICARA
+- Keahlian memilih siapa yang menjelaskan inti konsep, bukan siapa satu-satunya
+  yang boleh bicara. Mentor tidak boleh memegang seluruh percakapan.
+- Setiap chapter memakai dialog dari minimal tiga tokoh berbeda: Kael dan
+  minimal dua NPC. Chapter dengan lima scene atau lebih sebaiknya memakai tiga
+  sampai empat NPC.
+- Satu NPC tidak boleh memegang lebih dari separuh beat dialog chapter. Sesudah
+  mentor menjelaskan, beri tokoh lain giliran bertanya, menyanggah, atau
+  menambahkan pengalaman mereka.
+- Sebar dialog NPC ke beberapa scene; jangan menumpuk semua percakapan di scene
+  pertama lalu sisanya narasi.
+- Jangan memakai NPC yang sama sebagai satu-satunya lawan bicara di semua
+  chapter. Sepanjang cerita, minimal empat NPC berbeda mendapat dialog (lima
+  bila ada empat chapter atau lebih), selama tempat dan keahliannya cocok.
+- Jangan memaksa tokoh muncul hanya untuk memenuhi jumlah. Kalau adegan memang
+  paling masuk akal untuk dua NPC, pakai dua NPC berbeda dan pastikan keduanya
+  benar-benar bicara.
 
 PENEMPATAN TOKOH
 - Setiap tokoh punya tempat tetap di desa; lihat blok LOKASI. Adegan terjadi di
@@ -217,6 +237,36 @@ alun-alun padahal sprite-nya di jembatan sungai. Tempat berasal dari
 `CAST_PLACES` di `src/story/cast.ts` dan sudah dicocokkan dengan koordinat NPC di
 `src/game/world/village.json`. Tidak ada perubahan schema.
 
+`story-v13` menambahkan blok `SEBARAN PEMBICARA` dan mengubah dua butir
+`PEMILIHAN PEMBICARA` (lihat
+[ADR 0036](../09-decisions/0036-sebaran-pembicara.md)). Tujuannya: materi
+pelajaran umum cenderung menumpuk seluruh dialog pada mentor, sehingga cerita
+terasa seperti monolog satu NPC. Aturan barunya: setiap chapter memakai minimal
+tiga tokoh berbeda (Kael + dua NPC), satu NPC tidak memegang lebih dari separuh
+dialog, dan pembicara bergiliran antar chapter. Prompt chapter menerima
+`usedSpeakers` dari pipeline dan menyebut nama NPC yang sudah bicara di `TASK`.
+Tidak ada perubahan schema; cerita lama tetap valid, dan validator hanya
+memberi peringatan `W_SINGLE_SPEAKER`.
+
+`story-v14` menambahkan dua blok yang mengunci latar dan memperkaya profil
+tokoh (lihat [ADR 0037](../09-decisions/0037-latar-dunia-desa-di-prompt.md) dan
+[ADR 0038](../09-decisions/0038-profil-tokoh-untuk-prompt.md)):
+
+- **System prompt `TEMPAT DAN WAKTU`** menyatakan bahwa seluruh cerita terjadi
+  di Desa Sukamaju, mendaftar tempat yang ada di peta, dan melarang ruangan di
+  dalam gedung beserta kata "kelas", "papan tulis", "bel sekolah", dan
+  "halaman sekolah".
+- **Blok `DUNIA`** dikirim di pesan pengguna setelah `CAST` dan sebelum
+  `LOKASI`, menegaskan satu peta dan larangan adegan di dalam gedung.
+- **Blok `CAST` menjadi multi-baris** dengan kolom `penampilan`, `sifat`,
+  `bicara`, `keahlian`, `lokasi`, dan `obrolan`. `CAST_TRAITS` dan `CAST_VOICE`
+  tetap data prompt-only di `src/story/cast.ts`.
+- **`continuity.characterStates[].location` wajib** memakai nama tempat dari
+  `LOKASI`; validator memberi peringatan `W_LOCATION_UNKNOWN` untuk lokasi di
+  luar peta desa.
+
+Tidak ada perubahan schema cerita.
+
 ## Blok schema di prompt
 
 Ada dua panggilan berbeda, dan masing-masing mengirim schema yang berbeda. Jangan
@@ -327,16 +377,28 @@ Sumbernya `src/story/cast.ts`; jangan menyalin nama ke prompt builder.
 CAST
 Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role,
 spriteId, description, dan smallTalk dari daftar ini. ...
-Kolom keahlian dan lokasi hanya untuk menyusun adegan; jangan disalin ke keluaran JSON.
+Kolom sifat, bicara, keahlian, dan lokasi hanya untuk menyusun adegan; jangan disalin ke keluaran JSON.
 
-- char_mc | Kael | role: player | sprite: char_mc | deskripsi: Pemuda bersyal biru ... | keahlian: murid akademi; mengamati dan bertanya, bukan ahli topik | lokasi: berjalan bebas mengikuti cerita
-- char_npc_10 | Edric | role: mentor | sprite: char_npc_10 | deskripsi: Tetua desa ... | keahlian: penasihat desa; pengetahuan umum, kebijaksanaan, adat, memimpin | lokasi: halaman depan rumah beratap merah, dekat pot bunga
-- char_npc_7 | Marlow | role: npc | sprite: char_npc_7 | deskripsi: Pemancing bertopi jerami ... | keahlian: ikan, sungai, memancing, perahu, arus | lokasi: jembatan kayu di atas sungai
+- char_mc | Kael | role: player | sprite: char_mc
+  penampilan: Pemuda berjubah biru navy ...; tenang, pendiam, sederhana, penuh rasa ingin tahu.
+  sifat: tenang, pendiam, sederhana, penuh rasa ingin tahu
+  bicara: kalimat pendek, banyak bertanya, jarang berpendapat panjang
+  keahlian: murid akademi; mengamati dan bertanya, bukan ahli topik
+  lokasi: berjalan bebas mengikuti cerita
+- char_npc_10 | Edric | role: mentor | sprite: char_npc_10
+  penampilan: Tetua desa berambut putih keperakan ...
+  sifat: bijaksana, tenang, berwibawa, menimbang sebelum memutuskan
+  bicara: tenang dan runtut, menimbang dua sisi sebelum menyimpulkan
+  keahlian: penasihat desa; pengetahuan umum, kebijaksanaan, adat, memimpin
+  lokasi: halaman depan rumah beratap merah, dekat pot bunga
+  obrolan: "Desa ini tumbuh karena warganya saling mendengar. ..."
 ```
 
 Deskripsi **wajib** ikut karena menyebut ciri yang terlihat di sprite (topi,
 kacamata, jubah, tongkat). Tanpa itu model bisa menulis aksi yang tidak cocok
-dengan gambar. Pipeline tetap menimpa `outline.cast` dengan roster ini sebelum
+dengan gambar. Aturan `SUARA DAN ROLEPLAY` meminta narasi menyebut satu ciri
+sprite saat tokoh pertama muncul, dan dialog mengikuti kolom `sifat` serta
+`bicara`. Pipeline tetap menimpa `outline.cast` dengan roster ini sebelum
 validasi, jadi model tidak bisa mengganti nama walaupun mengabaikan instruksi.
 
 Kolom `keahlian` berasal dari `CAST_EXPERTISE` (`src/story/cast.ts`), bukan dari
@@ -344,9 +406,31 @@ schema cerita. Isinya menandai siapa yang berhak menjelaskan apa, supaya model
 tidak memilih pembicara hanya karena deskripsinya terdengar pintar. Kolom ini
 hanya untuk pemilihan pembicara; model dilarang menyalinnya ke JSON.
 
+## Blok dunia di prompt
+
+Blok `DUNIA` dikirim setelah `CAST` dan sebelum `LOKASI`, di prompt outline
+**dan** chapter. Isinya menegaskan bahwa game punya satu peta desa dan
+melarang adegan di dalam gedung:
+
+```text
+DUNIA
+Latar permainan adalah SATU peta desa (Desa Sukamaju) yang digambar utuh. ...
+Tempat yang boleh muncul di cerita hanya tempat yang ada di blok LOKASI dan
+daftar di bawah. Jangan mengarang ruangan baru.
+- berjalan bebas mengikuti cerita
+- alun-alun utama, di bangku kiri bawah air mancur
+...
+Adegan di dalam gedung (kelas, koridor, laboratorium, kantor) tidak bisa
+digambar oleh game ini: jangan menulisnya.
+```
+
+Alasannya ada di [`../04-game/scene-format.md`](../04-game/scene-format.md):
+`backgroundId` tidak mengganti latar di dalam game, karena latar runtime selalu
+peta desa. Lihat [ADR 0037](../09-decisions/0037-latar-dunia-desa-di-prompt.md).
+
 ## Blok lokasi di prompt
 
-Blok `LOKASI` dikirim tepat setelah `CAST`, di prompt outline **dan** chapter.
+Blok `LOKASI` dikirim tepat setelah `DUNIA`, di prompt outline **dan** chapter.
 Sumbernya `CAST_PLACES` di `src/story/cast.ts`; `locationOf()` dipakai bersama
 oleh kolom `lokasi` di blok `CAST`.
 

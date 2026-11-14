@@ -199,6 +199,22 @@ dibatasi 120 karakter oleh schema (dijaga lapis struktural, bukan
 | `W_GAP_RECORDED`            | `source.gaps` tidak kosong                                         | Cek materi                     |
 | `W_DIALOGUE_NO_EXPRESSION`  | Ada dialog (termasuk `detour`) tanpa `expression` di chapter itu   | Isi emosi supaya potret hidup  |
 | `W_TEXT_VARIANT_FLAG_UNSET` | Varian `when.flag` membaca flag yang belum di-set (khusus chapter) | Pastikan flag diset lebih dulu |
+| `W_SINGLE_SPEAKER`          | Dialog NPC hanya dipegang satu tokoh (atau tidak ada)              | Bagikan ke tokoh lain          |
+| `W_LOCATION_UNKNOWN`        | `continuity.characterStates[].location` di luar tempat desa        | Ganti ke tempat dari `LOKASI`  |
+
+`W_SINGLE_SPEAKER` muncul untuk satu chapter bila tidak ada dialog NPC sama
+sekali, bila seluruh dialog NPC dipegang satu tokoh, atau bila satu tokoh
+memegang lebih dari 70% dialog NPC sementara chapter itu punya minimal empat
+dialog NPC. Dialog pemain (`role: "player"`) tidak ikut dihitung, dan `detour`
+jawaban salah ikut dihitung karena juga dilihat siswa. Seperti warning lain, ia
+**tidak memblokir** publish.
+
+`W_LOCATION_UNKNOWN` muncul bila `continuity.characterStates[].location` tidak
+menyebut tempat mana pun dari blok `LOKASI` (`isKnownPlace()` di
+`src/story/cast.ts`). Ini menandai latar yang tidak bisa digambar game — game
+hanya punya satu peta desa, jadi "di depan kelas" atau "halaman sekolah" tidak
+punya padanan visual. Perbandingan longgar: label utuh, potongan label, dan
+alias pendek seperti "kolam timur" atau "jembatan" tetap diterima.
 
 ## Kebijakan repair
 
