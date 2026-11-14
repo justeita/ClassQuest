@@ -557,8 +557,8 @@ export function GameCanvas({
   }, []);
 
   // Pintasan Tab: sama dengan menahan tombol "Percepat" di HUD. Tab diambil
-  // alih hanya selama fase dialog; di luar itu Tab dipakai jebakan fokus di
-  // bawah supaya fokus tidak keluar ke bilah peramban.
+  // alih hanya selama fase dialog; di luar itu Tab ditahan (dimatikan) oleh
+  // efek di bawah supaya fokus tidak pindah ke tombol HUD.
   useEffect(() => {
     if (!dialogTerlihat) return;
 
@@ -598,23 +598,16 @@ export function GameCanvas({
     hentikanLewatiDialog,
   ]);
 
-  // Jebakan fokus area permainan: saat bermain tanpa dialog, `Tab`/`Shift+Tab`
-  // berputar di kontrol dalam area (HUD, buku quest) dan kembali ke kanvas bila
-  // tidak ada kontrol — jadi fokus tidak pernah lompat ke bilah peramban.
+  // Tab dimatikan selama bermain: `Space`/`Enter` adalah tombol bicara, jadi
+  // Tab tidak boleh memindahkan fokus ke tombol HUD — kalau tidak, `Space`
+  // berikutnya mengaktifkan tombol HUD yang baru terpilih, bukan memulai dialog
+  // warga. Tab hidup kembali saat dialog (pintasan "Percepat" di efek atas) dan
+  // di menu jeda/buku yang memang butuh navigasi papan ketik.
   //
-  // Dilepas saat dialog (Tab = "Percepat") dan saat overlay tantangan/jeda/buku
-  // terbuka, karena panel-panel itu memegang fokusnya sendiri. `Ctrl+Tab` dan
-  // `Alt+Tab` tetap milik peramban (lihat `fokusPermainan.ts`).
+  // Saat soal, panel tantangan memegang fokusnya sendiri: cukup tahan Tab tanpa
+  // menarik fokus keluar dari panel (navigasi opsi pakai tombol angka/panah).
   useEffect(() => {
-    if (
-      !aktif ||
-      !siapMain ||
-      dialogTerlihat ||
-      jeda ||
-      bukuLog ||
-      bukuQuest ||
-      tantangan
-    ) {
+    if (!aktif || !siapMain || dialogTerlihat || jeda || bukuLog || bukuQuest) {
       return;
     }
 
@@ -622,7 +615,7 @@ export function GameCanvas({
     if (!wadah) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      tangkapTab(event, wadah);
+      tangkapTab(event, tantangan ? null : wadah);
     };
 
     window.addEventListener("keydown", onKeyDown);

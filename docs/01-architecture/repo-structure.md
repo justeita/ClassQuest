@@ -128,8 +128,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/demoStory.ts`                                   | ya   | Akses cerita demo untuk halaman siswa dan dev                  |
 | `src/game/fixture`                                        | ya   | Cerita demo untuk pengembangan frontend game                   |
 | `src/components/game/GameCanvas.tsx`                      | ya   | Host Phaser + overlay tantangan di React                       |
-| `src/components/game/fokusPermainan.ts`                   | ya   | Jebakan Tab di area permainan (fokus tidak keluar halaman)     |
-| `src/components/game/fokusPermainan.test.ts`              | ya   | Tes putaran fokus, modifier peramban, dan fallback kanvas      |
+| `src/components/game/fokusPermainan.ts`                   | ya   | Menahan Tab saat bermain (fokus tidak pindah ke tombol HUD)    |
+| `src/components/game/fokusPermainan.test.ts`              | ya   | Tes penahanan Tab, modifier peramban, dan tarik fokus          |
 | `src/components/game/LoadingScreen.tsx`                   | ya   | Layar muat DOM: progres aset, batal, dan jalan keluar gagal    |
 | `src/components/game/LoadingScreen.test.tsx`              | ya   | Tes layar muat: tak tentu, persen, pudar, gagal, batal         |
 | `src/components/game/DialogueBox.tsx`                     | ya   | Panel dialog + potret berekspresi (DOM, ADR 0023)              |

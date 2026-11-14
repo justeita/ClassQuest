@@ -724,7 +724,7 @@ describe("GameShell — tombol percepat", () => {
     const lepasMulai = bus.onCommand("skip_start", mulai);
     const lepasBerhenti = bus.onCommand("skip_stop", berhenti);
 
-    // Belum ada dialog: Tab bukan "Percepat" (jatah jebakan fokus gameplay).
+    // Belum ada dialog: Tab dimatikan (bukan "Percepat").
     fireEvent.keyDown(window, { key: "Tab" });
     expect(mulai).not.toHaveBeenCalled();
 
@@ -748,32 +748,40 @@ describe("GameShell — tombol percepat", () => {
     lepasBerhenti();
   });
 
-  it("Tab berputar di kontrol area permainan, tidak keluar ke peramban", async () => {
+  it("Tab dimatikan saat eksplorasi: fokus tidak pindah ke tombol HUD", async () => {
     await mainkan();
     const area = screen.getByRole("region", {
       name: "Area permainan ClassQuest",
     });
+    const tombolMusik = screen.getByRole("button", { name: /musik/i });
 
     // Fokus awal dipasang di area permainan saat Phaser dibuat.
     expect(area).toHaveFocus();
 
-    // Tab diambil alih dan memindahkan fokus ke kontrol pertama di dalam area.
-    expect(fireEvent.keyDown(area, { key: "Tab" })).toBe(false);
-    expect(area.contains(document.activeElement)).toBe(true);
-    expect(document.activeElement).not.toBe(area);
-
-    // Shift+Tab berjalan mundur dan tetap di dalam area.
-    const sebelumMundur = document.activeElement!;
-    expect(
-      fireEvent.keyDown(sebelumMundur, { key: "Tab", shiftKey: true }),
-    ).toBe(false);
-    expect(area.contains(document.activeElement)).toBe(true);
-
-    // Beberapa putaran penuh: fokus tidak pernah lepas ke body/peramban.
-    for (let putaran = 0; putaran < 12; putaran += 1) {
+    // Tab dicegah dan fokus tetap di area permainan, bukan tombol HUD. Ini
+    // menjaga `Space` (tombol bicara) tetap memulai dialog warga alih-alih
+    // mengaktifkan tombol HUD yang sempat terpilih Tab.
+    for (let putaran = 0; putaran < 6; putaran += 1) {
       expect(fireEvent.keyDown(window, { key: "Tab" })).toBe(false);
-      expect(area.contains(document.activeElement)).toBe(true);
+      expect(document.activeElement).toBe(area);
+      expect(tombolMusik).not.toHaveFocus();
     }
+
+    // Fokus yang sempat nyangkut di tombol HUD ditarik kembali ke area.
+    tombolMusik.focus();
+    expect(tombolMusik).toHaveFocus();
+    expect(fireEvent.keyDown(tombolMusik, { key: "Tab" })).toBe(false);
+    expect(document.activeElement).toBe(area);
+  });
+
+  it("Tab dimatikan saat soal: fokus tetap di panel tantangan", async () => {
+    await mainkan();
+    bus.emit({ type: "challenge", view: challenge });
+    const panel = await screen.findByLabelText("Tantangan");
+    expect(panel).toHaveFocus();
+
+    expect(fireEvent.keyDown(window, { key: "Tab" })).toBe(false);
+    expect(document.activeElement).toBe(panel);
   });
 
   it("Ctrl+Tab dan Alt+Tab tetap milik peramban", async () => {

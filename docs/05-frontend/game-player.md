@@ -138,9 +138,9 @@ di dalam `GameCanvas`: `loading` = progres aset belum penuh atau scene pertama
 belum siap, `ready` = event `ready` sudah datang dan layar muat sedang memudar.
 Selama overlay itu masih menutup layar, shortcut papan ketik `GameCanvas` (Esc,
 Q, B) sengaja mati — tidak ada permainan yang bisa dijedakan, dan Tab harus bisa
-keluar dari tombol "Batal". Setelah `ready`, jebakan fokus aktif: `Tab`/
-`Shift+Tab` berputar di kontrol dalam area permainan supaya fokus tidak lompat ke
-bilah peramban. `QuestTracker` menerima daftar quest lewat event
+keluar dari tombol "Batal". Setelah `ready`, `Tab`/`Shift+Tab` dimatikan dan
+fokus ditarik kembali ke area permainan supaya tidak pindah ke tombol HUD maupun
+lompat ke bilah peramban. `QuestTracker` menerima daftar quest lewat event
 `quest` dari Phaser, diturunkan dari scene dan status runner — bukan ditebak dari
 DOM.
 
@@ -166,7 +166,7 @@ dari guru langsung melihat judul cerita, bukan menu.
   label versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas.
 - Keyboard-first: `↑`/`↓` (atau `W`/`S`) memindahkan sorotan dan memindahkan
   fokus DOM, `Home`/`End` ke ujung daftar, `Enter`/`Space` menjalankan pilihan.
-  `Tab` tidak diambil alih di layar menu ini; jebakan fokus baru aktif di dalam
+  `Tab` tidak diambil alih di layar menu ini; penahanan `Tab` baru aktif di dalam
   permainan. Selama dialog terbuka, panah tidak menggerakkan menu karena fokus
   milik dialog.
 - `Mulai` menyerahkan kontrol ke `GameShell`, yang masih menampilkan layar judul
@@ -283,7 +283,8 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   kotak `Space` diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda tetap
   menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
   tantangan, atau menu jeda.
-- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog. Pola
+- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog; `Tab` sendiri
+  juga hanya hidup di fase itu (saat eksplorasi dan soal `Tab` dimatikan). Pola
   tahan-tombol ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju
   seperti time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
   (`SpeedLines`); dilepas, tempo kembali normal. Soal tidak bisa dilewati —

@@ -46,13 +46,16 @@ Aturan:
 
 - Urutan fokus logis: prompt → opsi → tombol jawab → feedback → lanjut.
 - Jangan memasang `tabindex` positif.
-- **Fokus tidak boleh keluar dari area permainan saat bermain.** `Tab`/
-  `Shift+Tab` berputar di kontrol dalam area game (HUD, buku quest) dan kembali
-  ke kanvas bila tidak ada kontrol, sehingga fokus tidak lompat ke bilah peramban.
-  Jebakan ini lokal: hanya berlaku saat fokus ada di area permainan (atau belum di
-  mana pun), dan `Ctrl+Tab`/`Alt+Tab` tetap milik peramban. Selama fase `dialog`,
-  `Tab` dipakai untuk "Percepat" dan diambil alih (`preventDefault`). Saat soal,
-  panel tantangan mengurus fokusnya sendiri.
+- **`Tab` dimatikan selama bermain.** Saat eksplorasi dan saat soal, `Tab`/
+  `Shift+Tab` dicegah (`preventDefault`) dan fokus ditarik kembali ke area
+  permainan, jadi fokus tidak pindah ke tombol HUD maupun lompat ke bilah
+  peramban. Alasannya: tombol bicara ke warga adalah `Space`/`Enter`, sehingga
+  tombol HUD tidak boleh terpilih lebih dulu — kalau tidak, `Space` berikutnya
+  justru mengaktifkan tombol HUD itu, bukan memulai dialog. `Ctrl+Tab`/`Alt+Tab`
+  tetap milik peramban. Saat soal, panel tantangan memegang fokusnya sendiri,
+  jadi `Tab` cukup ditahan tanpa menarik fokus keluar dari panel.
+- `Tab` baru hidup kembali saat `dialog` (pintasan "Percepat" — lihat tabel) dan
+  di menu jeda/buku yang memang butuh navigasi papan ketik biasa.
 - Saat panel tantangan muncul, fokus pindah ke panel itu sendiri (`tabIndex={-1}`).
 - Saat panel ditutup, fokus kembali ke area permainan (canvas), bukan hilang ke
   `body`.
