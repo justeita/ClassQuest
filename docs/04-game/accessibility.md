@@ -78,8 +78,9 @@ Aturan:
   pad tetap menahan tongkat sampai diangkat — tidak "nyangkut".
 - Label yang menyebut tombol fisik (`Space`, keycap `Tab`/`B`/`Esc`) diganti atau
   disembunyikan di perangkat sentuh: menyebut tombol yang tidak ada itu menyesatkan.
-- Tombol aksi nonverbal saat tidak ada yang bisa dilakukan (`disabled`), jadi tidak
-  ada aksi "hantu" yang bisa ditekan.
+- Tombol aksi nonverbal tanpa sasaran tampil redup tetapi tetap bisa ditekan (ADR
+  0023); menekannya memunculkan pesan `role="status"` "Dekati warga untuk bicara"
+  alih-alih command "hantu".
 - `touch-action: manipulation` dipasang pada tombol/tautan dan `.area-game` supaya
   ketukan di Android langsung jadi klik, bukan tertahan menunggu zoom ketuk-dua
   kali. Tombol "Layar penuh" tetap tombol biasa: bisa difokuskan dan diaktifkan

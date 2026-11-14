@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { batasiStik, arahDariStik } from "@/game/arahSentuh";
 import type { ArahGerak } from "@/game/world/karakter";
@@ -18,7 +18,7 @@ type TouchControlsProps = {
   onMove: (arah: ArahGerak | null) => void;
   /** Tombol besar ditekan: bicara ke NPC atau lanjut dialog. */
   onAksi: () => void;
-  /** Konteks tombol besar; `null` menyembunyikan label aksi. */
+  /** Konteks tombol besar; `null` berarti belum ada sasaran di sekitar pemain. */
   aksi: AksiSentuh | null;
 };
 
@@ -27,8 +27,14 @@ const RADIUS = 52;
 /** Sisi kotak sentuh pad; lebih besar dari tongkat supaya mudah dijangkau jempol. */
 const PAD = 136;
 
+/** Lama pesan "dekati warga" tampil setelah tombol tanpa sasaran ditekan (ms). */
+const DURASI_PESAN = 2200;
+
 const KELAS_BUTTON =
-  "pointer-events-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#E8A87C] bg-[#0b120e]/85 font-game text-lg uppercase tracking-wide text-[#F7F4EC] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)] active:bg-[#1c2a22] disabled:border-[#3D4B41] disabled:text-[#6b7a70] disabled:opacity-70";
+  "pointer-events-auto flex h-20 w-20 items-center justify-center rounded-full border-2 bg-[#0b120e]/85 font-game text-lg uppercase tracking-wide shadow-[2px_2px_0_0_rgba(0,0,0,0.45)] active:bg-[#1c2a22]";
+/** Ada sasaran: tombol menyala. Belum ada sasaran: redup, tetapi tetap bisa ditekan. */
+const KELAS_SIAP = "border-[#E8A87C] text-[#F7F4EC]";
+const KELAS_REDUP = "border-[#3D4B41] text-[#8FA396]";
 
 /**
  * Kontrol layar sentuh: satu tongkat 8 arah dan satu tombol besar kontekstual.
@@ -37,6 +43,11 @@ const KELAS_BUTTON =
  * `movement.ts`, jadi kecepatan, tabrakan, dan animasi tidak punya jalur kedua.
  * Tombol besar mengikuti konteks — "Bicara" saat pemain di zona NPC,
  * "Lanjut" saat dialog menunggu — supaya pemain tidak perlu menebak.
+ *
+ * Tanpa sasaran tombolnya **tidak dimatikan** (ADR 0023): di ponsel tombol mati
+ * tanpa penjelasan bikin bingung. Tombolnya tampil redup, tetap bisa ditekan,
+ * dan menampilkan pesan singkat "dekati warga" — command `interact`/`advance`
+ * baru dikirim saat memang ada sasaran.
  *
  * Pad memakai pointer events + `setPointerCapture`, jadi jempol yang menggeser
  * keluar kotak tetap menahan tongkat sampai diangkat (tanpa "nyangkut").
@@ -50,6 +61,17 @@ export function TouchControls({
   const padRef = useRef<HTMLDivElement>(null);
   const aktifRef = useRef(false);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
+  /** Pesan "dekati warga" sedang tampil setelah tombol tanpa sasaran ditekan. */
+  const [pesan, setPesan] = useState(false);
+  const timerPesan = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Timer pesan dibersihkan saat kontrol dilepas (mis. pindah layar).
+  useEffect(
+    () => () => {
+      if (timerPesan.current !== null) clearTimeout(timerPesan.current);
+    },
+    [],
+  );
 
   function perbarui(e: React.PointerEvent<HTMLDivElement>) {
     const pad = padRef.current;
@@ -82,6 +104,24 @@ export function TouchControls({
     onMove(null);
   }
 
+  /**
+   * Tombol besar ditekan. Tanpa sasaran ia hanya memunculkan pesan: lebih baik
+   * memberi tahu pemain untuk mendekati warga daripada mengirim command yang
+   * tidak melakukan apa-apa.
+   */
+  function tekanAksi() {
+    if (aksi !== null) {
+      onAksi();
+      return;
+    }
+    setPesan(true);
+    if (timerPesan.current !== null) clearTimeout(timerPesan.current);
+    timerPesan.current = setTimeout(() => {
+      timerPesan.current = null;
+      setPesan(false);
+    }, DURASI_PESAN);
+  }
+
   const tongkat = (
     <div
       ref={padRef}
@@ -107,22 +147,31 @@ export function TouchControls({
   );
 
   const tombol = (
-    <button
-      type="button"
-      data-kontrol="aksi"
-      disabled={aksi === null}
-      onClick={onAksi}
-      aria-label={
-        aksi === "lanjut"
-          ? "Lanjut dialog"
-          : aksi === "bicara"
-            ? "Bicara dengan warga"
-            : "Tidak ada yang bisa dilakukan"
-      }
-      className={KELAS_BUTTON}
-    >
-      {aksi === "lanjut" ? "Lanjut" : aksi === "bicara" ? "Bicara" : "·"}
-    </button>
+    <div className="relative">
+      {pesan && aksi === null && (
+        <p
+          role="status"
+          className="absolute right-0 bottom-full mb-2 w-max max-w-[11rem] rounded-md border border-[#F7F4EC]/30 bg-[#0b120e]/95 px-2.5 py-1 text-center font-game text-xs text-[#F7F4EC]"
+        >
+          Dekati warga untuk bicara
+        </p>
+      )}
+      <button
+        type="button"
+        data-kontrol="aksi"
+        onClick={tekanAksi}
+        aria-label={
+          aksi === "lanjut"
+            ? "Lanjut dialog"
+            : aksi === "bicara"
+              ? "Bicara dengan warga"
+              : "Cari warga di sekitar"
+        }
+        className={`${KELAS_BUTTON} ${aksi === null ? KELAS_REDUP : KELAS_SIAP}`}
+      >
+        {aksi === "lanjut" ? "Lanjut" : aksi === "bicara" ? "Bicara" : "·"}
+      </button>
+    </div>
   );
 
   if (mode === "dek") {

@@ -288,7 +288,9 @@ dengan papan tombol, bukan jalur gerak kedua:
 - **Tombol aksi** (`interact` / `advance`): satu tombol besar yang labelnya
   mengikuti konteks. Di dekat NPC jadi "Bicara" (`interact`, sama dengan
   `Space`/`Enter`); saat dialog menunggu jadi "Lanjut" (`advance`). Saat tidak ada
-  yang bisa dilakukan tombolnya mati.
+  yang bisa dilakukan tombolnya **tampil redup tetapi tetap bisa ditekan** (ADR
+  0023): menekannya hanya memunculkan pesan singkat "Dekati warga untuk bicara",
+  dan command `interact`/`advance` tidak dikirim.
 - Selama soal, kontrol gerak disembunyikan; pilihan jawaban punya tombolnya
   sendiri di DOM.
 - Label prompt `Space` berganti jadi "Sentuh" dan semua keycap keyboard

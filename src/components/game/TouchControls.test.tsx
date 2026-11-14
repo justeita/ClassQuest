@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { TouchControls } from "./TouchControls";
@@ -85,20 +91,55 @@ describe("TouchControls — tongkat", () => {
 });
 
 describe("TouchControls — tombol aksi", () => {
-  it("mati dan tanpa label aksi saat belum ada yang bisa dilakukan", () => {
+  it("tetap bisa ditekan tapi menampilkan pesan saat belum ada sasaran", () => {
+    const onAksi = vi.fn();
     render(
       <TouchControls
         mode="dek"
         onMove={() => {}}
-        onAksi={() => {}}
+        onAksi={onAksi}
         aksi={null}
       />,
     );
 
     const tombol = screen.getByRole("button", {
-      name: "Tidak ada yang bisa dilakukan",
+      name: "Cari warga di sekitar",
     });
-    expect(tombol).toBeDisabled();
+    expect(tombol).toBeEnabled();
+    expect(screen.queryByRole("status")).toBeNull();
+
+    fireEvent.click(tombol);
+
+    expect(onAksi).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Dekati warga untuk bicara",
+    );
+  });
+
+  it("menyembunyikan pesan tanpa sasaran setelah beberapa saat", () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <TouchControls
+          mode="dek"
+          onMove={() => {}}
+          onAksi={() => {}}
+          aksi={null}
+        />,
+      );
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Cari warga di sekitar" }),
+      );
+      expect(screen.getByRole("status")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(2200);
+      });
+      expect(screen.queryByRole("status")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("bertuliskan Bicara dan memicunya saat pemain di zona NPC", () => {
