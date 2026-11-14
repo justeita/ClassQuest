@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -208,6 +208,7 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0017-anggaran-pipeline-per-unit.md`](./09-decisions/0017-anggaran-pipeline-per-unit.md)                   | stable | Anggaran pipeline per unit dan reasoning dimatikan           |
 | [`09-decisions/0018-plafon-output-thinking.md`](./09-decisions/0018-plafon-output-thinking.md)                           | stable | Plafon output, batas outline, dan reasoning default mati     |
 | [`09-decisions/0019-branching-konsekuensi-jawaban-salah.md`](./09-decisions/0019-branching-konsekuensi-jawaban-salah.md) | stable | Percabangan sebagai konsekuensi jawaban salah                |
+| [`09-decisions/0020-kutipan-jawaban-siswa-di-dialog.md`](./09-decisions/0020-kutipan-jawaban-siswa-di-dialog.md)         | stable | Kutipan jawaban siswa lewat token `{{jawaban}}`              |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                                         | draft  | Urutan kerja dan pembagian tugas                             |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                                               | draft  | Naskah demo 3 menit + sketsa layar                           |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                                     | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal     |

@@ -54,10 +54,13 @@ Di pipeline nyata, putaran itu terjadi dua tingkat:
 1. **Per chapter** — `validateChapter(draft, { outline, planned })` setelah tiap
    panggilan generate. Ini memeriksa scene/beat, id, `speakerId`, `challengeId`,
    dan batas teks untuk chapter itu saja. Termasuk dua aturan **khusus chapter**:
-   `E_ONWRONG_WITHOUT_ATTEMPTS` (error; `onWrong` tanpa `maxAttempts` 2–3) dan
-   `W_TEXT_VARIANT_FLAG_UNSET` (warning; `textVariants` membaca flag yang belum
-   di-set di beat sebelumnya). Keduanya tidak dijalankan `validateStory` — lihat
+   `E_ONWRONG_WITHOUT_ATTEMPTS` (error; `retryQuestions` tanpa `maxAttempts` 2–3)
+   dan `W_TEXT_VARIANT_FLAG_UNSET` (warning; `textVariants` membaca flag yang
+   belum di-set di beat sebelumnya). Keduanya tidak dijalankan `validateStory` —
+   lihat
    [`../02-data-model/validation-rules.md`](../02-data-model/validation-rules.md#aturan-khusus-chapter).
+   Sebaliknya `E_JAWABAN_WITHOUT_CHALLENGE` (`{{jawaban}}` sebelum tantangan
+   pertama) hanya muncul di `validateStory`, karena butuh urutan seluruh cerita.
 2. **Sekali di akhir** — `validateStory(story)` setelah semua chapter digabung.
    Ini yang memeriksa aturan tingkat cerita (3–6 chapter, `assetUsage`).
 
@@ -119,19 +122,20 @@ Aturan:
 
 ## Klasifikasi kegagalan
 
-| Jenis                     | Bisa repair? | Tindakan                                      |
-| ------------------------- | ------------ | --------------------------------------------- |
-| JSON tidak bisa diparse   | Tidak        | Generate ulang chapter (1x)                   |
-| Field wajib hilang        | Ya           | Repair                                        |
-| Teks terlalu panjang      | Ya           | Repair                                        |
-| Id aset tidak dikenal     | Ya           | Repair                                        |
-| Speaker tidak dikenal     | Ya           | Repair                                        |
-| Chapter tanpa tantangan   | Ya           | Repair                                        |
-| Tantangan yatim           | Ya           | Repair                                        |
-| `onWrong` tanpa percobaan | Ya           | Repair chapter (`E_ONWRONG_WITHOUT_ATTEMPTS`) |
-| Tidak ada teks dari PDF   | Tidak        | Job `failed`, minta guru ganti PDF            |
-| Timeout provider          | Tidak        | Retry jaringan, lalu fallback                 |
-| Provider menolak (safety) | Tidak        | Fallback + catat alasan                       |
+| Jenis                            | Bisa repair? | Tindakan                                              |
+| -------------------------------- | ------------ | ----------------------------------------------------- |
+| JSON tidak bisa diparse          | Tidak        | Generate ulang chapter (1x)                           |
+| Field wajib hilang               | Ya           | Repair                                                |
+| Teks terlalu panjang             | Ya           | Repair                                                |
+| Id aset tidak dikenal            | Ya           | Repair                                                |
+| Speaker tidak dikenal            | Ya           | Repair                                                |
+| Chapter tanpa tantangan          | Ya           | Repair                                                |
+| Tantangan yatim                  | Ya           | Repair                                                |
+| `retryQuestions` tanpa percobaan | Ya           | Repair chapter (`E_ONWRONG_WITHOUT_ATTEMPTS`)         |
+| `{{jawaban}}` sebelum soal       | Ya           | Repair chapter/cerita (`E_JAWABAN_WITHOUT_CHALLENGE`) |
+| Tidak ada teks dari PDF          | Tidak        | Job `failed`, minta guru ganti PDF                    |
+| Timeout provider                 | Tidak        | Retry jaringan, lalu fallback                         |
+| Provider menolak (safety)        | Tidak        | Fallback + catat alasan                               |
 
 ## Anggaran
 

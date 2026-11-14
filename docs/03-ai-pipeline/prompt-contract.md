@@ -9,7 +9,7 @@ owner: tim ClassQuest
 Prompt adalah kode. Ia punya versi, dites, dan tidak diubah diam-diam.
 
 - Implementasi: `src/ai/prompt.ts`
-- Versi saat ini: `PROMPT_VERSION = "story-v5"`
+- Versi saat ini: `PROMPT_VERSION = "story-v6"`
 - Aturan isi cerita: [`generation-rules.md`](./generation-rules.md)
 - Schema output: [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)
 
@@ -110,6 +110,11 @@ dari model. Prompt tetap meminta model menyalin cast, tetapi pipeline menimpa
 Tujuannya: cerita dari PDF mana pun tetap menampilkan tokoh desa yang sama, dan
 deskripsi penampilan (mis. "nenek bertongkat") membuat aksi/dialog cocok dengan
 sprite.
+
+`story-v6` **tidak mengubah blok system prompt**. Yang berubah hanya blok
+`BRANCHING` (opsional): model kini diajari mengutip jawaban salah lewat
+`{{jawaban}}` dan boleh memakai `onWrong` berisi `setFlags` saja, tanpa
+percobaan ulang (lihat [ADR 0020](../09-decisions/0020-kutipan-jawaban-siswa-di-dialog.md)).
 
 ## Blok schema di prompt
 
@@ -244,14 +249,19 @@ prompt kembali **persis** seperti sebelum fitur ini — dikunci
 
 Isinya mengajari model menulis konsekuensi jawaban salah, bukan pilihan dialog:
 
-- Tidak semua challenge perlu `onWrong`; cukup 1–2 per chapter.
-- `onWrong` selalu bersama `maxAttempts` 2 atau 3.
-- `retryQuestions` berjumlah `maxAttempts - 1`, menanyakan soal yang **sama**
-  (konsep, jawaban benar, dan opsi tidak berubah) dengan kata-kata berbeda.
+- Setiap challenge boleh punya `onWrong`; yang dibatasi 1–2 per chapter adalah
+  `detour`.
+- `onWrong.setFlags` menandai "pernah salah" dan menyala di **setiap** jawaban
+  salah. `onWrong` boleh berisi `setFlags` saja, tanpa `maxAttempts`.
+- `retryQuestions` hanya bila `maxAttempts` 2 atau 3, berjumlah
+  `maxAttempts - 1`, menanyakan soal yang **sama** (konsep, jawaban benar, dan
+  opsi tidak berubah) dengan kata-kata berbeda.
 - `detour` 1–2 beat (maksimal 3) narasi/dialog, hanya speaker dari cast, tanpa
   beat challenge, dan tidak menyebut jawaban.
-- Flag id `flg_[a-z0-9_]+`, maksimal 2 flag per cerita, id konsisten lintas
-  chapter (blok menyebutkan id yang sudah dipakai chapter sebelumnya).
+- Dialog/narasi setelah soal mengutip jawaban salah lewat `{{jawaban}}` (maks
+  120 karakter), memakai flag tantangan itu sendiri.
+- Flag id `flg_[a-z0-9_]+`, satu flag per tantangan, id konsisten lintas chapter
+  (blok menyebutkan id yang sudah dipakai chapter sebelumnya).
 - `textVariants` hanya merujuk flag yang sudah di-set di beat sebelumnya.
 
 Blok ini tidak mengubah blok `SCHEMA CHAPTER`: draft chapter tetap

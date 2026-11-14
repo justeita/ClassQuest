@@ -152,12 +152,21 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_01_01"
+              "challengeId": "chl_01_01",
+              "onWrong": {
+                "setFlags": { "flg_salah_tinta": true }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_1",
-              "text": "Benar, sembilan cangkir tinta biru butuh enam cangkir tinta emas. Kau sudah paham perbandingan."
+              "text": "Benar, sembilan cangkir tinta biru butuh enam cangkir tinta emas. Kau sudah paham perbandingan.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_tinta", "is": true },
+                  "text": "Kau menjawab {{jawaban}}. Tidak apa-apa. Sembilan cangkir tinta biru tetap butuh enam cangkir tinta emas."
+                }
+              ]
             },
             {
               "type": "narration",
@@ -203,6 +212,7 @@
               "challengeId": "chl_02_01",
               "maxAttempts": 2,
               "onWrong": {
+                "setFlags": { "flg_salah_petak": true },
                 "retryQuestions": [
                   "Coba lagi. Dua per empat itu sama saja dengan berapa bagian dari seluruh ladang?"
                 ],
@@ -214,7 +224,7 @@
                   {
                     "type": "dialogue",
                     "speakerId": "char_npc_9",
-                    "text": "Tidak apa-apa, pelan-pelan saja. Ladangnya tidak akan lari ke mana."
+                    "text": "Kau menjawab {{jawaban}}. Tidak apa-apa, pelan-pelan saja. Ladangnya tidak akan lari ke mana."
                   }
                 ]
               }
@@ -222,12 +232,24 @@
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Dua dari empat petak sama saja dengan setengah dari seluruh ladang."
+              "text": "Dua dari empat petak sama saja dengan setengah dari seluruh ladang.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_petak", "is": true },
+                  "text": "Aku tadi menjawab {{jawaban}}. Padahal dua dari empat petak memang sama dengan setengah ladang."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Tepat! Berarti setiap petak kebagian sama banyak. Aku suka cara berpikirmu."
+              "text": "Tepat! Berarti setiap petak kebagian sama banyak. Aku suka cara berpikirmu.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_petak", "is": true },
+                  "text": "Sekarang sudah jelas. Setiap petak kebagian sama banyak, kan?"
+                }
+              ]
             }
           ]
         },
@@ -247,12 +269,21 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_02_02"
+              "challengeId": "chl_02_02",
+              "onWrong": {
+                "setFlags": { "flg_salah_patok": true }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Bagus! Mulai dari yang paling kecil, lalu ke yang paling besar."
+              "text": "Bagus! Mulai dari yang paling kecil, lalu ke yang paling besar.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_patok", "is": true },
+                  "text": "Kau menyusunnya {{jawaban}}. Belum tepat, tapi tidak apa-apa. Mulai dari yang paling kecil, lalu ke yang paling besar."
+                }
+              ]
             },
             {
               "type": "narration",
@@ -295,17 +326,32 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_03_01"
+              "challengeId": "chl_03_01",
+              "onWrong": {
+                "setFlags": { "flg_salah_persen": true }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Dua puluh persen. Cukup besar untuk membantu warga."
+              "text": "Dua puluh persen. Cukup besar untuk membantu warga.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_persen", "is": true },
+                  "text": "Aku tadi menjawab {{jawaban}}. Setelah dihitung ulang, ternyata dua puluh persen."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_5",
-              "text": "Bagus sekali. Angka yang jujur membuat pembagian terasa adil untuk semua."
+              "text": "Bagus sekali. Angka yang jujur membuat pembagian terasa adil untuk semua.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_persen", "is": true },
+                  "text": "Tidak apa-apa. Sekarang angkanya sudah benar, dan pembagian tetap adil untuk semua."
+                }
+              ]
             }
           ]
         },
@@ -325,12 +371,21 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_03_02"
+              "challengeId": "chl_03_02",
+              "onWrong": {
+                "setFlags": { "flg_salah_harga": true }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Berarti harganya turun dua ribu, jadi enam ribu rupiah."
+              "text": "Berarti harganya turun dua ribu, jadi enam ribu rupiah.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_harga", "is": true },
+                  "text": "Aku tadi menjawab {{jawaban}}. Harga setelah potongan ternyata enam ribu rupiah."
+                }
+              ]
             },
             {
               "type": "narration",
@@ -339,7 +394,13 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_6",
-              "text": "Hitunganmu cepat sekali. Papan harga jadi jelas dan tidak ada yang bertanya-tanya."
+              "text": "Hitunganmu cepat sekali. Papan harga jadi jelas dan tidak ada yang bertanya-tanya.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_harga", "is": true },
+                  "text": "Sekarang papannya sudah benar. Tidak ada lagi yang bertanya-tanya soal harga."
+                }
+              ]
             }
           ]
         }
@@ -373,17 +434,32 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_04_01"
+              "challengeId": "chl_04_01",
+              "onWrong": {
+                "setFlags": { "flg_salah_rata": true }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Jumlahnya dua puluh delapan. Dibagi empat, rata-ratanya tujuh kilogram."
+              "text": "Jumlahnya dua puluh delapan. Dibagi empat, rata-ratanya tujuh kilogram.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_rata", "is": true },
+                  "text": "Aku tadi menjawab {{jawaban}}. Setelah dijumlah, rata-ratanya tujuh kilogram."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Tepat sekali! Aku jadi tahu berapa yang biasanya masuk setiap hari."
+              "text": "Tepat sekali! Aku jadi tahu berapa yang biasanya masuk setiap hari.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_rata", "is": true },
+                  "text": "Tidak apa-apa. Sekarang aku tahu berapa yang biasanya masuk setiap hari."
+                }
+              ]
             }
           ]
         },
@@ -407,17 +483,32 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_04_02"
+              "challengeId": "chl_04_02",
+              "onWrong": {
+                "setFlags": { "flg_salah_lereng": true }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Totalnya enam puluh kilogram. Dibagi lima petak, rata-ratanya dua belas kilogram."
+              "text": "Totalnya enam puluh kilogram. Dibagi lima petak, rata-ratanya dua belas kilogram.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_lereng", "is": true },
+                  "text": "Aku tadi menjawab {{jawaban}}. Totalnya enam puluh, jadi rata-ratanya dua belas kilogram."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_8",
-              "text": "Terima kasih! Laporan kita jadi rapi dan bisa dipercaya."
+              "text": "Terima kasih! Laporan kita jadi rapi dan bisa dipercaya.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_lereng", "is": true },
+                  "text": "Tidak masalah. Sekarang laporannya rapi dan bisa dipercaya."
+                }
+              ]
             }
           ]
         }
@@ -451,17 +542,32 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_05_01"
+              "challengeId": "chl_05_01",
+              "onWrong": {
+                "setFlags": { "flg_salah_diagram": true }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Kalau diurutkan dari yang paling sedikit: kacang, jagung, ubi, lalu padi."
+              "text": "Kalau diurutkan dari yang paling sedikit: kacang, jagung, ubi, lalu padi.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_diagram", "is": true },
+                  "text": "Aku tadi menyusunnya {{jawaban}}. Yang benar: kacang, jagung, ubi, lalu padi."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_3",
-              "text": "Sekarang diagramnya mudah dibaca. Warga tidak perlu menebak-nebak."
+              "text": "Sekarang diagramnya mudah dibaca. Warga tidak perlu menebak-nebak.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_diagram", "is": true },
+                  "text": "Sekarang sudah benar. Warga tidak perlu menebak-nebak lagi."
+                }
+              ]
             }
           ]
         },
@@ -480,17 +586,32 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_05_02"
+              "challengeId": "chl_05_02",
+              "onWrong": {
+                "setFlags": { "flg_salah_selisih": true }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Selisih padi dan kacang dua puluh lima kilogram, Edric."
+              "text": "Selisih padi dan kacang dua puluh lima kilogram, Edric.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_selisih", "is": true },
+                  "text": "Aku tadi menjawab {{jawaban}}. Selisihnya ternyata dua puluh lima kilogram, Edric."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_10",
-              "text": "Benar. Angka yang jujur membuat cerita desa kita bisa dipercaya."
+              "text": "Benar. Angka yang jujur membuat cerita desa kita bisa dipercaya.",
+              "textVariants": [
+                {
+                  "when": { "flag": "flg_salah_selisih", "is": true },
+                  "text": "Tidak apa-apa. Angka yang jujur tetap membuat cerita desa kita bisa dipercaya."
+                }
+              ]
             },
             {
               "type": "narration",
@@ -651,6 +772,17 @@
       ],
       "correctOptionId": "opt_a"
     }
+  ],
+  "flags": [
+    { "id": "flg_salah_tinta", "default": false },
+    { "id": "flg_salah_petak", "default": false },
+    { "id": "flg_salah_patok", "default": false },
+    { "id": "flg_salah_persen", "default": false },
+    { "id": "flg_salah_harga", "default": false },
+    { "id": "flg_salah_rata", "default": false },
+    { "id": "flg_salah_lereng", "default": false },
+    { "id": "flg_salah_diagram", "default": false },
+    { "id": "flg_salah_selisih", "default": false }
   ],
   "assetUsage": {
     "backgrounds": ["bg_default"],

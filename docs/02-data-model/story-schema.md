@@ -230,14 +230,19 @@ dan berperilaku seperti v1.0 biasa (`maxAttempts` efektif 1).
 
 - `maxAttempts` — jumlah percobaan menjawab, 1–3. Default 1.
 - `onWrong` — dijalankan setelah jawaban salah:
+  - `setFlags` — menyalakan/mematikan flag cerita **pada setiap jawaban salah**,
+    termasuk percobaan terakhir yang tidak punya soal ulang. Artinya flag
+    berbunyi "pernah salah". Setiap id flag harus dideklarasikan di top-level
+    [`flags`](#flags).
   - `detour` — maksimal **3 beat** `narration`/`dialogue` yang ditampilkan
     sebelum soal yang sama ditanyakan ulang. Detour **tidak boleh** berisi
     `challenge`.
-  - `setFlags` — menyalakan/mematikan flag cerita. Setiap id flag harus
-    dideklarasikan di top-level [`flags`](#flags).
   - `retryQuestions` — teks soal pengganti untuk percobaan berikutnya. Jumlahnya
     **harus tepat** `maxAttempts - 1`; percobaan ke-_n_ memakai
     `retryQuestions[n - 1]`.
+- `onWrong` boleh berisi `setFlags` saja, tanpa `retryQuestions` dan tanpa
+  `maxAttempts`. Bentuk itu dipakai untuk bereaksi pada jawaban salah tanpa
+  mengulang soal; `retryQuestions` baru menuntut `maxAttempts` 2 atau 3.
 - Retry **hanya** mengganti teks soal. `options` dan `correctOptionId` (atau
   `correctAnswer`/`correctOrder`/`acceptedAnswers`) tidak berubah, jadi jawaban
   benar tetap sama di semua percobaan.
@@ -264,10 +269,52 @@ Contoh:
       {
         "type": "dialogue",
         "speakerId": "char_npc_1",
-        "text": "Tidak apa-apa, kita hitung pelan-pelan lagi."
+        "text": "Kau menjawab {{jawaban}}. Tidak apa-apa, kita hitung pelan-pelan lagi."
       }
     ]
   }
+}
+```
+
+#### Mengutip jawaban siswa (`{{jawaban}}`)
+
+Teks narasi/dialog boleh memuat token `{{jawaban}}`. Saat dimainkan, token itu
+diganti jawaban salah **terakhir** siswa dalam bentuk yang bisa dibaca:
+
+| Tipe tantangan    | Isi pengganti                              | Contoh                    |
+| ----------------- | ------------------------------------------ | ------------------------- |
+| `multiple_choice` | teks opsi yang dipilih                     | `4 cangkir`               |
+| `true_false`      | `Benar` atau `Salah`                       | `Salah`                   |
+| `ordering`        | teks item sesuai urutan siswa, dipisah `→` | `1/4 bagian → 1/2 bagian` |
+| `short_answer`    | teks yang diketik siswa, spasi dirapikan   | `dua belas`               |
+
+Aturan:
+
+- Token berlaku di `narration.text`, `dialogue.text`,
+  `dialogue.textVariants[].text`, dan semua beat `onWrong.detour`. Token
+  **tidak** berlaku di `prompt`, `explanation`, `hints`, atau `retryQuestions`
+  karena teks itu dirender overlay tantangan, bukan kotak dialog.
+- Jawaban dipotong maksimal **60 code point** lalu diakhiri `…` supaya kotak
+  dialog tidak meluber. Teks yang memuat token sebaiknya ≤ 120 karakter.
+- Token harus muncul setelah minimal satu beat `challenge`; kalau tidak, tidak
+  ada jawaban yang bisa dikutip (`E_JAWABAN_WITHOUT_CHALLENGE`).
+- Token selalu berarti jawaban salah **terakhir**, jadi varian salah sebaiknya
+  memakai flag yang dinyalakan tantangan tepat sebelumnya. Satu flag per
+  tantangan menghindari kalimat yang mengutip jawaban soal lain.
+
+Contoh dialog reaksi (dipakai pada beat setelah `challenge`):
+
+```json
+{
+  "type": "dialogue",
+  "speakerId": "char_npc_1",
+  "text": "Benar, sembilan cangkir tinta biru butuh enam cangkir tinta emas.",
+  "textVariants": [
+    {
+      "when": { "flag": "flg_salah_tinta", "is": true },
+      "text": "Kau menjawab {{jawaban}}. Tidak apa-apa. Sembilan cangkir biru tetap butuh enam cangkir emas."
+    }
+  ]
 }
 ```
 
@@ -331,6 +378,9 @@ type Flag = {
 - Setiap id yang muncul di `onWrong.setFlags` atau `textVariants[].when.flag`
   harus dideklarasikan di sini (`E_FLAG_UNDECLARED`).
 - Id flag harus unik (`E_DUPLICATE_ID`).
+- Flag yang dinyalakan `onWrong.setFlags` menyala pada **setiap** jawaban salah
+  dan tidak pernah dimatikan otomatis. Artinya flag berarti "pernah salah",
+  bukan "sedang salah".
 
 ### `scoring`
 
@@ -425,23 +475,24 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
 
 ## Aturan yang tidak boleh dilanggar
 
-| Aturan                                      | Kode error                  |
-| ------------------------------------------- | --------------------------- |
-| `schemaVersion` harus `"1.0"`               | `E_SCHEMA_VERSION`          |
-| 3–6 chapter                                 | `E_CHAPTER_COUNT`           |
-| 2–6 scene per chapter                       | `E_SCENE_COUNT`             |
-| 3–10 beat per scene                         | `E_BEAT_COUNT`              |
-| Tiap chapter minimal 1 beat `challenge`     | `E_CHAPTER_NO_CHALLENGE`    |
-| Tiap tantangan dirujuk minimal satu kali    | `E_ORPHAN_CHALLENGE`        |
-| Tiap tantangan dirujuk maksimal satu kali   | `E_DUPLICATE_CHALLENGE_REF` |
-| Tidak ada `assetId` di luar manifest        | `E_UNKNOWN_ASSET`           |
-| Tidak ada `speakerId` di luar `cast`        | `E_UNKNOWN_SPEAKER`         |
-| `concept`/`conceptTag` ∈ `source.concepts`  | `E_UNKNOWN_CONCEPT`         |
-| Semua id unik                               | `E_DUPLICATE_ID`            |
-| Teks tidak melebihi batas                   | `E_TEXT_TOO_LONG`           |
-| Flag di `setFlags`/`textVariants` terdaftar | `E_FLAG_UNDECLARED`         |
-| `retryQuestions` = `maxAttempts` − 1        | `E_RETRY_COUNT`             |
-| Detour maksimal 3 beat tanpa challenge      | `E_DETOUR_TOO_LONG`         |
+| Aturan                                      | Kode error                    |
+| ------------------------------------------- | ----------------------------- |
+| `schemaVersion` harus `"1.0"`               | `E_SCHEMA_VERSION`            |
+| 3–6 chapter                                 | `E_CHAPTER_COUNT`             |
+| 2–6 scene per chapter                       | `E_SCENE_COUNT`               |
+| 3–10 beat per scene                         | `E_BEAT_COUNT`                |
+| Tiap chapter minimal 1 beat `challenge`     | `E_CHAPTER_NO_CHALLENGE`      |
+| Tiap tantangan dirujuk minimal satu kali    | `E_ORPHAN_CHALLENGE`          |
+| Tiap tantangan dirujuk maksimal satu kali   | `E_DUPLICATE_CHALLENGE_REF`   |
+| Tidak ada `assetId` di luar manifest        | `E_UNKNOWN_ASSET`             |
+| Tidak ada `speakerId` di luar `cast`        | `E_UNKNOWN_SPEAKER`           |
+| `concept`/`conceptTag` ∈ `source.concepts`  | `E_UNKNOWN_CONCEPT`           |
+| Semua id unik                               | `E_DUPLICATE_ID`              |
+| Teks tidak melebihi batas                   | `E_TEXT_TOO_LONG`             |
+| Flag di `setFlags`/`textVariants` terdaftar | `E_FLAG_UNDECLARED`           |
+| `retryQuestions` = `maxAttempts` − 1        | `E_RETRY_COUNT`               |
+| Detour maksimal 3 beat tanpa challenge      | `E_DETOUR_TOO_LONG`           |
+| `{{jawaban}}` setelah ada beat `challenge`  | `E_JAWABAN_WITHOUT_CHALLENGE` |
 
 Daftar lengkap + contoh pesan: [`validation-rules.md`](./validation-rules.md).
 

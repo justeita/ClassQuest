@@ -700,8 +700,8 @@ const checkChapterSemantics = (
  * schema (`story.schema.json`) sehingga kesalahan bentuk muncul sebagai
  * `E_SCHEMA` sebelum sampai ke sini — termasuk format id flag yang salah
  * (`propertyNames`/`pattern`). Fungsi ini memeriksa aturan yang butuh konteks
- * urutan beat: `onWrong` tanpa `maxAttempts` yang cukup, jumlah soal ulang,
- * panjang detour, dan flag `textVariants` yang belum di-set.
+ * urutan beat: `retryQuestions` tanpa `maxAttempts` yang cukup, jumlah soal
+ * ulang, panjang detour, dan flag `textVariants` yang belum di-set.
  *
  * Error yang dilaporkan memicu repair di level chapter; warning
  * `W_TEXT_VARIANT_FLAG_UNSET` tidak memblokir.
@@ -760,13 +760,16 @@ const checkChapterBranching = (
 
       if (!onWrong) return;
 
-      if (maxAttempts < 2) {
+      // `onWrong` boleh hanya berisi `setFlags` (reaksi salah tanpa soal ulang),
+      // jadi syarat `maxAttempts` 2/3 hanya berlaku bila ada soal ulang.
+      const adaSoalUlang = (onWrong.retryQuestions?.length ?? 0) > 0;
+      if (adaSoalUlang && maxAttempts < 2) {
         report(
           errorIssue(
             "E_ONWRONG_WITHOUT_ATTEMPTS",
             `${beatPath}.maxAttempts`,
-            `Tantangan "${beat.challengeId}" memakai onWrong tanpa maxAttempts 2 atau 3.`,
-            `Beri tantangan "${beat.challengeId}" maxAttempts 2 atau 3, atau hapus onWrong.`,
+            `Tantangan "${beat.challengeId}" memakai retryQuestions tanpa maxAttempts 2 atau 3.`,
+            `Beri tantangan "${beat.challengeId}" maxAttempts 2 atau 3, atau hapus retryQuestions.`,
           ),
         );
       }

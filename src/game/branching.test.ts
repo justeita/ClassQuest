@@ -8,9 +8,11 @@ import {
   applyFlags,
   BranchingRun,
   initialFlags,
+  JAWABAN_TOKEN,
   maxAttemptsOf,
   planWrong,
   resolveDialogueText,
+  substituteJawaban,
 } from "./branching";
 
 const branchingStory = branchingJson as unknown as Story;
@@ -128,6 +130,54 @@ describe("resolveDialogueText", () => {
   });
 });
 
+describe("substituteJawaban", () => {
+  it("mengganti semua {{jawaban}} dengan jawaban siswa", () => {
+    expect(
+      substituteJawaban(
+        "Kau menjawab {{jawaban}}. Betulkah {{jawaban}}?",
+        "empat",
+      ),
+    ).toBe("Kau menjawab empat. Betulkah empat?");
+  });
+
+  it("membuang token dan merapikan spasi bila belum ada jawaban salah", () => {
+    expect(substituteJawaban("Kau menjawab {{jawaban}} tadi.", null)).toBe(
+      "Kau menjawab tadi.",
+    );
+    expect(substituteJawaban("Kau menjawab {{jawaban}}.", undefined)).toBe(
+      "Kau menjawab.",
+    );
+    expect(substituteJawaban("{{jawaban}}", "")).toBe("");
+  });
+
+  it("tidak mengubah teks tanpa token", () => {
+    expect(substituteJawaban("Teks biasa.", "empat")).toBe("Teks biasa.");
+  });
+});
+
+describe("resolveDialogueText dengan jawaban", () => {
+  it("varian salah mengutip jawaban siswa", () => {
+    const dialog: DialogueBeat = {
+      type: "dialogue",
+      speakerId: "char_npc_1",
+      text: "Teks utama.",
+      textVariants: [
+        {
+          when: { flag: "flg_salah_hitung", is: true },
+          text: `Kau menjawab ${JAWABAN_TOKEN}.`,
+        },
+      ],
+    };
+
+    expect(
+      resolveDialogueText(dialog, { flg_salah_hitung: true }, "4 cangkir"),
+    ).toBe("Kau menjawab 4 cangkir.");
+    expect(
+      resolveDialogueText(dialog, { flg_salah_hitung: false }, "4 cangkir"),
+    ).toBe("Teks utama.");
+  });
+});
+
 describe("maxAttemptsOf", () => {
   it("memakai maxAttempts beat bila ada", () => {
     expect(maxAttemptsOf(challengeBeatOf(branchingStory, "chl_01_01"))).toBe(2);
@@ -220,6 +270,44 @@ describe("BranchingRun", () => {
     expect(kedua.isCorrect).toBe(true);
     expect(kedua.retry).toBeNull();
     expect(kedua.attempts).toBe(2);
+  });
+
+  it("menyimpan jawaban salah terakhir untuk {{jawaban}}", () => {
+    const run = new BranchingRun(branchingStory);
+    expect(run.jawabanSalahTerakhir()).toBeNull();
+
+    run.grade(challengeBeatOf(branchingStory, "chl_01_01"), false, "4 cangkir");
+    expect(run.jawabanSalahTerakhir()).toBe("4 cangkir");
+
+    run.grade(
+      challengeBeatOf(branchingStory, "chl_01_01"),
+      false,
+      "12 cangkir",
+    );
+    expect(run.jawabanSalahTerakhir()).toBe("12 cangkir");
+
+    // Jawaban benar tidak menghapus catatan salah terakhir.
+    run.grade(challengeBeatOf(branchingStory, "chl_01_01"), true, "6 cangkir");
+    expect(run.jawabanSalahTerakhir()).toBe("12 cangkir");
+  });
+
+  it("menyalakan setFlags juga pada jawaban salah terakhir tanpa soal ulang", () => {
+    // ADR 0020: onWrong boleh hanya berisi setFlags, jadi dialog sesudahnya bisa
+    // mengakui kesalahan walau tantangan tidak punya percobaan ulang.
+    const sekali: ChallengeBeat = {
+      type: "challenge",
+      challengeId: "chl_sekali",
+      onWrong: { setFlags: { flg_salah_hitung: true } },
+    };
+    const run = new BranchingRun(branchingStory);
+
+    const hasil = run.grade(sekali, false, "4 cangkir");
+
+    expect(hasil.retry).toBeNull();
+    expect(hasil.attempts).toBe(1);
+    expect(hasil.flags.flg_salah_hitung).toBe(true);
+    expect(run.flags().flg_salah_hitung).toBe(true);
+    expect(run.jawabanSalahTerakhir()).toBe("4 cangkir");
   });
 
   it("menghitung percobaan per challenge, bukan global", () => {

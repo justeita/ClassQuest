@@ -560,8 +560,8 @@ describe("repair", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("parameter generasi", () => {
-  it("memakai PROMPT_VERSION story-v5", () => {
-    expect(PROMPT_VERSION).toBe("story-v5");
+  it("memakai PROMPT_VERSION story-v6", () => {
+    expect(PROMPT_VERSION).toBe("story-v6");
   });
 
   it("BATAS OUTLINE menyebut batas konsep dan enum role", () => {

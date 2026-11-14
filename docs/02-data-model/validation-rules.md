@@ -116,14 +116,17 @@ type ValidationResult = {
 
 Semua field di bawah ini opsional. Aturan hanya berlaku bila field dipakai.
 
-| Kode                         | Arti                                                       | Hint untuk AI                                                       |
-| ---------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| `E_RETRY_COUNT`              | `retryQuestions` ≠ `maxAttempts` − 1                       | "Isi `retryQuestions` tepat `maxAttempts` − 1 entri."               |
-| `E_FLAG_UNDECLARED`          | Flag dipakai tanpa dideklarasikan di `flags`               | "Tambahkan flag `{id}` ke `flags` atau ganti dengan flag yang ada." |
-| `E_DETOUR_TOO_LONG`          | `onWrong.detour` lebih dari 3 beat                         | "Pendekkan detour menjadi maksimal 3 beat narasi/dialog."           |
-| `E_ONWRONG_WITHOUT_ATTEMPTS` | `onWrong` dipakai tanpa `maxAttempts` 2–3 (khusus chapter) | "Beri `maxAttempts` 2 atau 3, atau hapus `onWrong`."                |
+| Kode                          | Arti                                                              | Hint untuk AI                                                       |
+| ----------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `E_RETRY_COUNT`               | `retryQuestions` ≠ `maxAttempts` − 1                              | "Isi `retryQuestions` tepat `maxAttempts` − 1 entri."               |
+| `E_FLAG_UNDECLARED`           | Flag dipakai tanpa dideklarasikan di `flags`                      | "Tambahkan flag `{id}` ke `flags` atau ganti dengan flag yang ada." |
+| `E_DETOUR_TOO_LONG`           | `onWrong.detour` lebih dari 3 beat                                | "Pendekkan detour menjadi maksimal 3 beat narasi/dialog."           |
+| `E_ONWRONG_WITHOUT_ATTEMPTS`  | `retryQuestions` dipakai tanpa `maxAttempts` 2–3 (khusus chapter) | "Beri `maxAttempts` 2 atau 3, atau hapus `retryQuestions`."         |
+| `E_JAWABAN_WITHOUT_CHALLENGE` | `{{jawaban}}` muncul sebelum beat `challenge` pertama             | "Pindahkan teks setelah beat challenge, atau hapus `{{jawaban}}`."  |
 
 `maxAttempts` default 1, jadi tantangan tanpa `onWrong` tidak butuh
+`retryQuestions`. `onWrong` boleh berisi `setFlags` saja (reaksi salah tanpa
+soal ulang, ADR 0020); yang menuntut `maxAttempts` 2–3 hanyalah
 `retryQuestions`. Retry hanya mengganti teks soal; opsi dan jawaban benar tidak
 berubah. Tantangan di dalam `detour` ditolak lapis struktural (`E_SCHEMA`)
 karena schema hanya mengizinkan beat `narration`/`dialogue` di sana.
@@ -134,16 +137,18 @@ Dua kode di bawah hanya muncul dari `validateChapter`
 (`src/story/validate-parts.ts`), yang memeriksa draft satu chapter setelah tiap
 panggilan generate — bukan dari `validateStory`:
 
-- `E_ONWRONG_WITHOUT_ATTEMPTS` (error) — `onWrong` dipakai tanpa `maxAttempts`
-  2 atau 3. Memicu repair di level chapter.
+- `E_ONWRONG_WITHOUT_ATTEMPTS` (error) — `retryQuestions` dipakai tanpa
+  `maxAttempts` 2 atau 3. Memicu repair di level chapter.
 - `W_TEXT_VARIANT_FLAG_UNSET` (warning) — `textVariants` membaca flag yang belum
   di-set di beat sebelumnya. Tidak memblokir.
 
-**Batasan yang diketahui:** `validateStory` **tidak** menandai `onWrong` yang
-dipakai tanpa `maxAttempts` 2–3. Cerita hasil sunting tangan yang memakai
-`onWrong` tanpa `maxAttempts` bisa lolos validator penuh; hanya `validateChapter`
-yang menangkapnya lewat `E_ONWRONG_WITHOUT_ATTEMPTS`. Pipeline tidak terpengaruh
-karena chapter sudah divalidasi lebih dulu.
+**Batasan yang diketahui:** `validateStory` **tidak** menandai `retryQuestions`
+yang dipakai tanpa `maxAttempts` 2–3. Cerita hasil sunting tangan yang memakai
+`retryQuestions` tanpa `maxAttempts` bisa lolos validator penuh; hanya
+`validateChapter` yang menangkapnya lewat `E_ONWRONG_WITHOUT_ATTEMPTS`. Pipeline
+tidak terpengaruh karena chapter sudah divalidasi lebih dulu.
+`E_JAWABAN_WITHOUT_CHALLENGE` sebaliknya hanya ada di `validateStory`, karena
+urutan beat lintas chapter baru diketahui saat cerita lengkap.
 
 ### Batas teks
 
@@ -167,6 +172,10 @@ Batas ini bukan selera: textbox game hanya muat ~180 karakter per halaman pada
 resolusi 640×360 dengan teks 14 px. Beat yang lebih panjang ditampilkan
 sebagai dua halaman, dan batas keras 240 karakter memastikan tidak pernah lebih
 dari itu (lihat [`../04-game/scene-format.md`](../04-game/scene-format.md#peta-visual)).
+
+Teks yang memuat `{{jawaban}}` tetap dibatasi 240 oleh schema, tetapi jawaban
+siswa menambah sampai 60 karakter saat berjalan. Karena itu teks bervariabel
+sebaiknya ≤ 120 karakter supaya tetap satu halaman.
 
 ## Kode warning
 

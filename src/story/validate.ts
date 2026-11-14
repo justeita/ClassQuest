@@ -64,9 +64,12 @@ export const ERROR_CODES = [
   "E_RETRY_COUNT",
   "E_FLAG_UNDECLARED",
   "E_DETOUR_TOO_LONG",
-  // Hanya muncul dari `validateChapter` (validate-parts.ts): `onWrong` wajib
-  // bersama `maxAttempts` 2 atau 3. Validator cerita penuh tidak memeriksanya
-  // lagi karena pipeline sudah menolak chapter ini lebih dulu.
+  // `{{jawaban}}` dipakai sebelum ada tantangan, jadi tidak ada jawaban yang
+  // bisa dikutip. Hanya diperiksa validator cerita penuh.
+  "E_JAWABAN_WITHOUT_CHALLENGE",
+  // Hanya muncul dari `validateChapter` (validate-parts.ts): `retryQuestions`
+  // wajib bersama `maxAttempts` 2 atau 3. Validator cerita penuh tidak
+  // memeriksanya lagi karena pipeline sudah menolak chapter ini lebih dulu.
   "E_ONWRONG_WITHOUT_ATTEMPTS",
   // Tidak ada di tabel dokumen (lihat laporan tugas): dibutuhkan oleh opsi
   // `pageCount`, jadi sengaja diekspor supaya konsumen bisa membedakannya.
@@ -1046,13 +1049,22 @@ const checkChallengeRules = (story: Story, report: ErrorCollector) => {
 };
 
 /**
+ * Token jawaban siswa. Harus sama dengan `JAWABAN_TOKEN` di
+ * `src/game/branching.ts`; lapisan `story` sengaja tidak mengimpor `game`.
+ */
+const JAWABAN_TOKEN = "{{jawaban}}";
+
+/**
  * Aturan percabangan "konsekuensi jawaban salah" (opsional, semuanya aditif
  * terhadap kontrak v1.0). Struktur `onWrong` sendiri sudah dijaga schema;
  * fungsi ini memeriksa hal yang butuh konteks seluruh cerita: deklarasi flag,
- * jumlah teks soal ulang, dan panjang detour.
+ * jumlah teks soal ulang, panjang detour, dan penempatan `{{jawaban}}`.
  */
 const checkBranchingRules = (story: Story, report: ErrorCollector) => {
   const declaredFlags = new Set((story.flags ?? []).map((flag) => flag.id));
+  // `{{jawaban}}` hanya bisa diisi setelah ada tantangan yang bisa dijawab
+  // salah. Urutannya lintas chapter, jadi penanda ini dibawa sepanjang cerita.
+  let adaTantangan = false;
 
   const rejectUndeclaredFlag = (flagId: string, path: string) => {
     if (declaredFlags.has(flagId)) return;
@@ -1066,13 +1078,36 @@ const checkBranchingRules = (story: Story, report: ErrorCollector) => {
     );
   };
 
+  const rejectEarlyJawaban = (text: string, path: string) => {
+    if (adaTantangan) return;
+    if (!text.includes(JAWABAN_TOKEN)) return;
+    report(
+      errorIssue(
+        "E_JAWABAN_WITHOUT_CHALLENGE",
+        path,
+        `Teks memakai ${JAWABAN_TOKEN} sebelum ada tantangan, jadi belum ada jawaban yang bisa dikutip.`,
+        `Pindahkan teks ini setelah beat challenge, atau hapus ${JAWABAN_TOKEN}.`,
+      ),
+    );
+  };
+
   story.chapters.forEach((chapter, chapterIndex) => {
     chapter.scenes.forEach((scene, sceneIndex) => {
       scene.beats.forEach((beat, beatIndex) => {
         const beatPath = `chapters[${chapterIndex}].scenes[${sceneIndex}].beats[${beatIndex}]`;
 
+        if (beat.type === "narration") {
+          rejectEarlyJawaban(beat.text, `${beatPath}.text`);
+          return;
+        }
+
         if (beat.type === "dialogue") {
+          rejectEarlyJawaban(beat.text, `${beatPath}.text`);
           beat.textVariants?.forEach((variant, variantIndex) => {
+            rejectEarlyJawaban(
+              variant.text,
+              `${beatPath}.textVariants[${variantIndex}].text`,
+            );
             rejectUndeclaredFlag(
               variant.when.flag,
               `${beatPath}.textVariants[${variantIndex}].when.flag`,
@@ -1082,6 +1117,10 @@ const checkBranchingRules = (story: Story, report: ErrorCollector) => {
         }
 
         if (beat.type !== "challenge") return;
+
+        // Beat challenge sendiri sudah menjadi sumber jawaban, jadi detour-nya
+        // selalu boleh memakai `{{jawaban}}`.
+        adaTantangan = true;
 
         const maxAttempts = beat.maxAttempts ?? 1;
         const expectedRetries = maxAttempts - 1;

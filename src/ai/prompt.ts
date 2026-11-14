@@ -29,7 +29,7 @@ import type { AssetManifest } from "../story/validate";
 import type { LlmRequest } from "./provider";
 
 /** Versi prompt. Naikkan setiap kali perilaku prompt berubah. */
-export const PROMPT_VERSION = "story-v5";
+export const PROMPT_VERSION = "story-v6";
 
 /**
  * Plafon output per panggilan. Reasoning model bisa memakai 6.000–14.000
@@ -68,6 +68,8 @@ export const MATERIAL_END = "<<<MATERIAL_END>>>";
  *
  * `story-v5` menambahkan aturan cast tetap: nama dan penampilan tokoh tidak
  * boleh diubah model, dan deskripsi penampilan dikirim di blok CAST.
+ * `story-v6` tidak mengubah blok ini; yang berubah hanya blok `BRANCHING`
+ * (kutipan `{{jawaban}}` dan `onWrong` tanpa percobaan ulang, ADR 0020).
  */
 export const SYSTEM_PROMPT = `Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
 Tugasmu mengubah MATERI dari guru menjadi cerita yang bisa dimainkan.
@@ -495,29 +497,29 @@ BATAS CHAPTER
  * default tetap persis seperti sebelum fitur ini ada.
  *
  * Isinya sengaja pendek dan hanya soal konsekuensi jawaban salah: siswa hanya
- * melihat soal ulang dan detour; tidak ada pilihan dialog pemain.
+ * melihat soal ulang, detour, dan dialog yang mengutip jawabannya lewat
+ * `{{jawaban}}`; tidak ada pilihan dialog pemain.
  */
 const SECTION_BRANCHING_RULES = `BRANCHING
-- Tidak semua challenge perlu onWrong; cukup 1-2 challenge per chapter.
-- onWrong selalu bersama maxAttempts 2 atau 3 (tidak boleh 1).
-- retryQuestions berisi maxAttempts - 1 teks dan menanyakan hal yang SAMA:
-  konsep, jawaban benar, dan opsi tidak berubah; hanya kata-katanya berbeda.
-- detour berisi 1-2 beat (maksimal 3) narasi atau dialog; hanya speaker dari
-  cast; tanpa beat challenge.
-- Petunjuk di detour tidak menyebut jawaban, hanya mengarahkan.
-- Flag id berpola flg_[a-z0-9_]+; maksimal 2 flag per cerita.
-- Pakai ulang id flag yang sudah ada; jangan mengarang id baru.
+- Setiap challenge boleh punya onWrong; detour cukup 1-2 challenge per chapter.
+- onWrong.setFlags menandai "pernah salah" dan menyala di SETIAP jawaban salah.
+- onWrong boleh hanya setFlags (tanpa maxAttempts). retryQuestions hanya bila
+  maxAttempts 2 atau 3, berisi maxAttempts - 1 soal SAMA dengan kata lain.
+- detour 1-2 beat (maksimal 3) narasi/dialog, speaker dari cast, tanpa challenge;
+  petunjuknya tidak menyebut jawaban.
+- Dialog/narasi sesudah soal mengutip jawaban salah lewat {{jawaban}}; teksnya
+  maksimal 120 karakter dan memakai flag tantangan itu sendiri.
 - textVariants hanya merujuk flag yang sudah di-set di beat sebelumnya.
-- Field onWrong dan turunannya hanya muncul bila dipakai; jangan menambah
-  field di luar SCHEMA CHAPTER.
+- Flag id flg_[a-z0-9_]+; satu flag per tantangan; pakai ulang id yang ada.
+- Field di luar SCHEMA CHAPTER tidak boleh ditambah.
 
 CONTOH onWrong
-{ "type": "challenge", "challengeId": "chl_x", "maxAttempts": 2,
-  "onWrong": {
-    "setFlags": { "flg_salah": true },
-    "retryQuestions": ["Soal yang sama dengan kata berbeda."],
-    "detour": [{ "type": "narration", "text": "Petunjuk tanpa jawaban." }]
-  } }`;
+{ "type": "challenge", "challengeId": "chl_x",
+  "onWrong": { "setFlags": { "flg_salah_x": true } } }
+CONTOH dialog reaksi
+{ "type": "dialogue", "speakerId": "char_npc_1", "text": "Bagus, jawabanmu tepat.",
+  "textVariants": [{ "when": { "flag": "flg_salah_x", "is": true },
+    "text": "Kau menjawab {{jawaban}}. Ayo hitung sekali lagi." }] }`;
 
 const branchingSection = (usedFlags: readonly string[]): string => {
   const flags =

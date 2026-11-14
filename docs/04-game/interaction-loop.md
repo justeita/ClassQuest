@@ -155,12 +155,17 @@ Aturan input:
 Detail penting:
 
 - **Penilaian terjadi sekali per percobaan.** Jangan menilai ulang saat render.
-- **Soal bisa diulang bila cerita memakai `onWrong`.** Tantangan dengan `onWrong`
-  punya `maxAttempts` 2 atau 3 (lihat
+- **Soal bisa diulang bila cerita memakai `onWrong.retryQuestions`.** Tantangan
+  dengan soal ulang punya `maxAttempts` 2 atau 3 (lihat
   [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md#konsekuensi-jawaban-salah-opsional)).
   Setelah jawaban salah **dan** masih ada percobaan, game memutar `detour`
   (narasi/dialog singkat) lewat kotak dialog yang sama, lalu membuka lagi soal
   yang sama dengan teks `retryQuestions`. Opsi dan jawaban benar tidak berubah.
+- **Cerita mengakui jawaban salah, bukan memaksa benar.** `onWrong.setFlags`
+  menyala pada **setiap** jawaban salah, termasuk percobaan terakhir. Dialog
+  sesudah soal karena itu bisa memakai `textVariants` untuk kalimat yang
+  mengutip jawaban siswa lewat `{{jawaban}}`; `detour` juga boleh memakainya
+  karena flag sudah menyala sebelum detour diputar (ADR 0020).
 - **Penjelasan hanya tampil saat benar atau di percobaan terakhir.** Selama masih
   ada percobaan berikutnya, overlay tidak menampilkan `explanation` supaya soal
   ulang tetap bermakna; game baru mengirim `graded` (beserta penjelasan) untuk

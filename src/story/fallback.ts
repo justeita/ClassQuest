@@ -412,7 +412,9 @@ const buildChapter = (
                       {
                         type: "dialogue",
                         speakerId: mentorId,
-                        text: "Tarik napas dulu. Baca ulang kalimat terakhir yang tadi kusebut.",
+                        // `{{jawaban}}` diisi jawaban salah terakhir (ADR 0020),
+                        // jadi cerita cadangan pun mengakui jawaban siswa.
+                        text: "Kau menjawab {{jawaban}}. Tarik napas dulu, lalu baca ulang kalimat terakhir yang tadi kusebut.",
                       },
                     ],
                   },
@@ -435,7 +437,7 @@ const buildChapter = (
                     {
                       when: { flag: FLAG_SALAH_PAPAN, is: true },
                       text: clip(
-                        `Tidak apa-apa sempat ragu. Kata kunci hari ini tetap ${concept}; sekarang kamu sudah menemukannya sendiri.`,
+                        `Tidak apa-apa sempat menjawab {{jawaban}}. Kata kunci hari ini tetap ${concept}; sekarang kamu sudah menemukannya sendiri.`,
                         240,
                       ),
                     },

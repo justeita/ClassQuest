@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-import { scoreAnswer, type Answer } from "@/story/scoring";
+import { renderAnswer, scoreAnswer, type Answer } from "@/story/scoring";
 import type { DetourBeat, Story } from "@/story/schema";
 
 import { clampVolume } from "../audioSettings";
@@ -31,6 +31,7 @@ import { AnswerLog } from "../answerLog";
 import {
   BranchingRun,
   resolveDialogueText,
+  substituteJawaban,
   type RetryPlan,
 } from "../branching";
 import { buildChallengeView } from "../challengeView";
@@ -737,7 +738,13 @@ export class GameScene extends Phaser.Scene {
     this.kirimQuest();
 
     const hasil = scoreAnswer(challenge, answer);
-    const outcome = this.branching.grade(beat, hasil.isCorrect);
+    // Jawaban salah disimpan sebagai teks supaya dialog berikutnya bisa
+    // mengutipnya lewat `{{jawaban}}` (story-schema.md, ADR 0020).
+    const outcome = this.branching.grade(
+      beat,
+      hasil.isCorrect,
+      renderAnswer(challenge, answer),
+    );
     this.mainkanSfx(hasil.isCorrect ? "sfx_correct" : "sfx_wrong");
 
     // Jawaban salah yang masih punya percobaan: mainkan detour lalu ulangi soal
@@ -795,9 +802,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     let view: BeatView;
+    const jawaban = this.branching.jawabanSalahTerakhir();
     if (beat.type === "dialogue") {
       // Varian teks dipilih dari nilai flag saat ini (story-schema.md).
-      const text = resolveDialogueText(beat, this.branching.flags());
+      const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;
       this.sorotSpeaker(beat.speakerId);
       view = {
@@ -807,7 +815,7 @@ export class GameScene extends Phaser.Scene {
       };
     } else {
       this.sorotSpeaker(null);
-      view = { name: null, text: beat.text };
+      view = { name: null, text: substituteJawaban(beat.text, jawaban) };
     }
     this.textbox?.show(view);
     this.bus?.emit({
@@ -959,8 +967,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     let view: BeatView;
+    const jawaban = this.branching.jawabanSalahTerakhir();
     if (beat.type === "dialogue") {
-      const text = resolveDialogueText(beat, this.branching.flags());
+      const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;
       this.sorotSpeaker(beat.speakerId);
       view = {
@@ -970,7 +979,7 @@ export class GameScene extends Phaser.Scene {
       };
     } else {
       this.sorotSpeaker(null);
-      view = { name: null, text: beat.text };
+      view = { name: null, text: substituteJawaban(beat.text, jawaban) };
     }
 
     this.textbox?.show(view);

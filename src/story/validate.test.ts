@@ -156,6 +156,29 @@ describe("aturan yang dirakit dari cerita contoh", () => {
     );
   });
 
+  it("menolak {{jawaban}} sebelum tantangan pertama", () => {
+    const result = validateVariant((story) => {
+      const beat = story.chapters[0].scenes[0].beats[0];
+      if (beat.type !== "narration") throw new Error("fixture");
+      beat.text = "Kael masih ingat jawabannya tadi: {{jawaban}}.";
+    });
+
+    expect(codes(result.errors)).toEqual(["E_JAWABAN_WITHOUT_CHALLENGE"]);
+    expect(result.errors[0].path).toBe("chapters[0].scenes[0].beats[0].text");
+    expect(result.errors[0].hint).toContain("{{jawaban}}");
+  });
+
+  it("menerima {{jawaban}} pada dialog setelah tantangan", () => {
+    const result = validateVariant((story) => {
+      const beat = story.chapters[0].scenes[1].beats[2];
+      if (beat.type !== "dialogue") throw new Error("fixture");
+      beat.text = "Kau menjawab {{jawaban}}. Coba hitung sekali lagi.";
+    });
+
+    expect(codes(result.errors)).not.toContain("E_JAWABAN_WITHOUT_CHALLENGE");
+    expect(result.ok).toBe(true);
+  });
+
   it("menolak speaker detour yang tidak ada di cast", () => {
     const result = validateVariant((story) => {
       const beat = story.chapters[0].scenes[1].beats[1];
@@ -602,9 +625,13 @@ describe("setiap kode E_* punya fixture", () => {
     // ketika opsi `pageCount` diberikan. Test-nya ada di bagian manifest/pageCount.
     covered.add("E_PAGE_COUNT_MISMATCH");
     // E_ONWRONG_WITHOUT_ATTEMPTS hanya muncul dari `validateChapter`
-    // (validate-parts.test.ts): `onWrong` tanpa `maxAttempts` 2/3. Cerita penuh
-    // tidak memeriksanya lagi karena chapter sudah disaring lebih dulu.
+    // (validate-parts.test.ts): `retryQuestions` tanpa `maxAttempts` 2/3.
+    // Cerita penuh tidak memeriksanya lagi karena chapter sudah disaring lebih
+    // dulu.
     covered.add("E_ONWRONG_WITHOUT_ATTEMPTS");
+    // E_JAWABAN_WITHOUT_CHALLENGE diuji lewat mutasi cerita contoh di atas,
+    // bukan fixture tersendiri.
+    covered.add("E_JAWABAN_WITHOUT_CHALLENGE");
 
     expect(ERROR_CODES.filter((code) => !covered.has(code))).toEqual([]);
   });

@@ -320,8 +320,8 @@ describe("validateChapter — kode error", () => {
       "E_ONWRONG_WITHOUT_ATTEMPTS",
       "chapter.scenes[0].beats[2].maxAttempts",
       (draft) => {
+        // Soal ulang tetap ada, tetapi percobaannya hanya satu: tidak masuk akal.
         delete draft.chapter.scenes[0].beats[2].maxAttempts;
-        delete draft.chapter.scenes[0].beats[2].onWrong.retryQuestions;
       },
     ],
     [
@@ -356,6 +356,22 @@ describe("validateChapter — kode error", () => {
 
     expectIssue(result, "E_JSON_PARSE", "");
     expect(result.errors).toHaveLength(1);
+  });
+
+  it("menerima onWrong yang hanya menyalakan flag (tanpa soal ulang)", () => {
+    // ADR 0020: tantangan maxAttempts 1 boleh bereaksi pada jawaban salah lewat
+    // setFlags saja, supaya dialog sesudahnya bisa mengutip {{jawaban}}.
+    const draft = brokenChapter((value) => {
+      delete value.chapter.scenes[0].beats[2].maxAttempts;
+      delete value.chapter.scenes[0].beats[2].onWrong.retryQuestions;
+      delete value.chapter.scenes[0].beats[2].onWrong.detour;
+    });
+
+    const result = validateChapter(draft, chapterContext());
+
+    expect(codes(result.errors)).not.toContain("E_ONWRONG_WITHOUT_ATTEMPTS");
+    expect(codes(result.errors)).not.toContain("E_RETRY_COUNT");
+    expect(result.ok).toBe(true);
   });
 
   it("menolak format id flag yang salah sebagai E_SCHEMA", () => {

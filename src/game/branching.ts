@@ -45,18 +45,54 @@ export function applyFlags(
 }
 
 /**
+ * Token teks yang diganti jawaban salah terakhir siswa. Kontrak:
+ * `docs/02-data-model/story-schema.md` bagian "Konsekuensi jawaban salah".
+ */
+export const JAWABAN_TOKEN = "{{jawaban}}";
+
+/**
+ * Ganti setiap `{{jawaban}}` dengan jawaban siswa.
+ *
+ * Bila belum ada jawaban salah (mis. cerita yang tidak pernah menjawab salah,
+ * atau token di tempat yang salah), token dibuang dan spasi dirapikan supaya
+ * kalimat tidak menyisakan celah. Validator cerita penuh menolak token sebelum
+ * tantangan pertama (`E_JAWABAN_TANPA_SOAL`), jadi cabang ini hanya jaring
+ * pengaman.
+ */
+export function substituteJawaban(
+  text: string,
+  jawaban?: string | null,
+): string {
+  if (!text.includes(JAWABAN_TOKEN)) return text;
+
+  const nilai = (jawaban ?? "").trim();
+  if (nilai.length > 0) return text.split(JAWABAN_TOKEN).join(nilai);
+
+  return text
+    .split(JAWABAN_TOKEN)
+    .join("")
+    .replace(/[ \t]+([,.;:!?])/g, "$1")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+/**
  * Teks dialog efektif: varian **pertama** yang cocok
  * (`flags[when.flag] === when.is`) menang; bila tidak ada yang cocok, `text`
- * utama yang dipakai. Berlaku juga untuk dialog di dalam `detour`.
+ * utama yang dipakai. `{{jawaban}}` diganti jawaban salah terakhir. Berlaku
+ * juga untuk dialog di dalam `detour`.
  */
 export function resolveDialogueText(
   beat: DialogueBeat,
   flags: FlagState,
+  jawaban?: string | null,
 ): string {
   for (const variant of beat.textVariants ?? []) {
-    if (flags[variant.when.flag] === variant.when.is) return variant.text;
+    if (flags[variant.when.flag] === variant.when.is) {
+      return substituteJawaban(variant.text, jawaban);
+    }
   }
-  return beat.text;
+  return substituteJawaban(beat.text, jawaban);
 }
 
 /** Jumlah percobaan beat tantangan; default 1 (perilaku v1.0 biasa). */
@@ -108,7 +144,7 @@ export type GradeOutcome = {
   attempts: number;
   /** Rencana detour + soal ulang; `null` bila cerita lanjut seperti biasa. */
   retry: RetryPlan | null;
-  /** Flag **setelah** `onWrong.setFlags` diterapkan (hanya saat retry). */
+  /** Flag **setelah** `onWrong.setFlags` diterapkan (setiap jawaban salah). */
   flags: FlagState;
 };
 
@@ -122,6 +158,7 @@ export type GradeOutcome = {
  */
 export class BranchingRun {
   private flagState: FlagState;
+  private jawabanSalah: string | null = null;
   private readonly attempts = new Map<string, number>();
 
   constructor(story: Story) {
@@ -133,6 +170,15 @@ export class BranchingRun {
     return this.flagState;
   }
 
+  /**
+   * Jawaban salah terakhir dalam bentuk teks, untuk `{{jawaban}}`; `null` bila
+   * belum pernah salah. Nilainya diisi `grade()` dari `renderAnswer()`, jadi
+   * modul ini tidak perlu tahu bentuk tantangan.
+   */
+  jawabanSalahTerakhir(): string | null {
+    return this.jawabanSalah;
+  }
+
   /** Jumlah percobaan yang sudah dipakai untuk challenge ini. */
   attemptsFor(challengeId: string): number {
     return this.attempts.get(challengeId) ?? 0;
@@ -142,11 +188,18 @@ export class BranchingRun {
    * Catat satu percobaan jawaban.
    *
    * - Jawaban benar selalu lanjut seperti biasa (`retry: null`).
-   * - Jawaban salah memakai `planWrong()`; `onWrong.setFlags` hanya dinyalakan
-   *   ketika soal memang akan ditanyakan ulang, karena percobaan terakhir
-   *   tidak punya lanjutan yang membaca flag.
+   * - Jawaban salah **selalu** menyalakan `onWrong.setFlags` dan menyimpan
+   *   `answerText` sebagai jawaban salah terakhir, termasuk pada percobaan
+   *   terakhir yang tidak punya lanjutan. Flag berarti "pernah salah", sehingga
+   *   dialog setelah soal bisa memakai `textVariants` untuk mengakui kesalahan
+   *   (ADR 0020).
+   * - `planWrong()` tetap menentukan apakah detour + soal ulang diputar.
    */
-  grade(beat: ChallengeBeat, isCorrect: boolean): GradeOutcome {
+  grade(
+    beat: ChallengeBeat,
+    isCorrect: boolean,
+    answerText?: string | null,
+  ): GradeOutcome {
     const attempts = this.attemptsFor(beat.challengeId) + 1;
     this.attempts.set(beat.challengeId, attempts);
 
@@ -154,21 +207,15 @@ export class BranchingRun {
       return { isCorrect: true, attempts, retry: null, flags: this.flagState };
     }
 
-    const plan = planWrong(beat, attempts);
-    if (plan.kind === "final") {
-      return {
-        isCorrect: false,
-        attempts,
-        retry: null,
-        flags: this.flagState,
-      };
-    }
-
+    const jawaban = answerText?.trim() ?? "";
+    if (jawaban.length > 0) this.jawabanSalah = jawaban;
     this.flagState = applyFlags(this.flagState, beat.onWrong?.setFlags);
+
+    const plan = planWrong(beat, attempts);
     return {
       isCorrect: false,
       attempts,
-      retry: plan.retry,
+      retry: plan.kind === "retry" ? plan.retry : null,
       flags: this.flagState,
     };
   }
