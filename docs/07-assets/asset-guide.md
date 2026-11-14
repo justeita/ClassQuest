@@ -103,14 +103,15 @@ menggambarnya di atas panel dialog dengan dasar menempel tepi atas panel, jadi
 tidak ada bagian potret yang tertutup kotak (ADR 0017). Importer menormalkan
 **tinggi kepala**, bukan tinggi gambar, lalu menyusun semua potret ke kanvas
 456×360 yang identik — wajah tiap karakter tampil sebesar yang sama dan
-rasionya sama. Seluruh potret satu karakter digeser dengan **satu nilai tetap**
-lalu dipotong sedikit di sisi luarnya, jadi karakternya mentok sejajar sisi
-kotak dialog dan tidak melompat sama sekali saat ekspresi berganti. Karakter
+rasionya sama. Seluruh potret satu karakter disusun relatif ke **satu patokan
+yang sama** (tepi kiri kanvas), jadi siluetnya utuh — tidak ada sisi yang
+dipotong — dan tidak melompat sama sekali saat ekspresi berganti. Karakter
 berbadan pendek dinaikkan skalanya sedikit supaya isinya menyentuh tepi bawah
 kanvas, dan tepi bawah yang memudar dipadatkan jadi potongan rata, jadi potret
-tidak tampak melayang di atas kotak. Slot potret di DOM masuk 14 px dari sisi
-panel (sebesar radius sudutnya), sehingga bahu karakter tidak terpotong
-lengkungan sudut. MC
+tidak tampak melayang di atas kotak. Slot potret di DOM digambar 85% dari
+setengah panel supaya tidak mendominasi layar, dan masuk 18 px dari sisi panel
+(radius sudut + 4), sehingga siluet karakter tidak terpotong lengkungan sudut
+dan tidak terlihat mepet ke tepi kotak. MC
 dicerminkan di DOM sehingga rata kiri kanvas menjadi rata kanan slotnya. Berkas
 disimpan dengan filter PNG adaptif (±8 MB untuk 60 berkas) supaya cepat dimuat.
 Karena potret dirender DOM, berkasnya tidak dimuat `PreloadScene`.

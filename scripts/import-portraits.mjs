@@ -45,9 +45,9 @@
  * rambut tidak berhalo gelap. Seluruh potret karakter digeser dengan **satu
  * nilai tetap**: sisi kiri kanvas menjadi patokan bersama, jadi potret tidak
  * bergeser sama sekali saat ekspresi berganti (hanya pose wajahnya yang
- * berubah). `GESER_TEPI` negatif memotong sedikit sisi luar supaya karakternya
- * benar-benar mentok tepi kotak dialog. MC dicerminkan `DialogueBox`, sehingga
- * rata kiri di kanvas menjadi rata kanan di slotnya.
+ * berubah). Nilainya nol — siluet karakter tidak dipotong di sisi luar; jarak
+ * dari kotak dialog diatur slot DOM (`PORTRAIT.inset`). MC dicerminkan
+ * `DialogueBox`, sehingga rata kiri di kanvas menjadi rata kanan di slotnya.
  *
  * Berkas disimpan dengan filter PNG adaptif supaya gradasi halusnya ringkas —
  * potret jadi lebih cepat diunduh tanpa menurunkan mutu.
@@ -111,7 +111,7 @@ const TINGGI_KANVAS = 360;
 /**
  * Lebar kanvas potret hasil. Semua karakter memakai kanvas berukuran sama
  * supaya rasio dan resolusinya identik. Angkanya menjaga rasio `lebar:tinggi`
- * sama persis dengan `PORTRAIT` di `src/game/layout.ts` (304:240) supaya
+ * 456:360 — sama persis dengan `PORTRAIT` di `src/game/layout.ts` — supaya
  * `object-contain` mengisi slot tanpa sisa; berkasnya juga lebih kecil dari
  * kanvas lama (648×512) supaya potret lebih cepat dimuat.
  */
@@ -132,12 +132,14 @@ const MARGIN_ATAS = 28;
 const TINGGI_KEPALA = 188;
 
 /**
- * Geser horizontal tetap semua potret (px kanvas). Nilai ≤ 0 menempelkan sisi
- * kiri potret ke tepi kiri kanvas; negatif memotongnya sedikit supaya karakter
- * benar-benar mentok tepi kotak dialog. Dipakai sama rata untuk semua ekspresi
- * supaya potret tidak melompat saat ekspresi berganti.
+ * Geser horizontal tetap semua potret (px kanvas). Nol berarti tepi kiri bbox
+ * karakter tepat di tepi kiri kanvas: seluruh siluet ikut terlihat, tidak ada
+ * bagian badan yang terpotong. Jarak dari kotak dialog diatur di DOM
+ * (`PORTRAIT.inset`), jadi importer tidak perlu memotong sisi luar. Dipakai
+ * sama rata untuk semua ekspresi supaya potret tidak melompat saat ekspresi
+ * berganti.
  */
-const GESER_TEPI = -16;
+const GESER_TEPI = 0;
 
 /** Ambang alpha untuk menghitung kotak isi (buang bercak hampir transparan). */
 const AMBANG_ALPHA = 16;

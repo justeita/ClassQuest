@@ -61,11 +61,11 @@ function muatPotretKarakter(src: string) {
  * Pembicara menyala dengan glow teal; yang sedang tidak bicara tetap tampil
  * tetapi dibuat gelap, jadi pemain selalu tahu siapa yang bicara.
  *
- * Slotnya masuk `PORTRAIT.inset` px dari sisi panel — sama dengan radius sudut
- * panel. Tanpa jarak itu tepi potret bertumpuk dengan lengkungan sudut: bahu
- * karakter terpotong dan latar menyembul di bawahnya sehingga potret tampak
- * melayang. Dengan jarak ini tepi potret berhenti tepat di titik singgung
- * lengkungan, jadi dasar potret menyambung rata dengan tepi atas panel.
+ * Slotnya masuk `PORTRAIT.inset` px dari sisi panel — sedikit lebih besar dari
+ * radius sudut panel. Tanpa jarak itu tepi potret bertumpuk dengan lengkungan
+ * sudut: bahu karakter terpotong dan latar menyembul di bawahnya sehingga
+ * potret tampak melayang. Dengan jarak ini tepi potret berada di bagian tepi
+ * panel yang lurus, jadi dasarnya menyambung rata dengan tepi atas panel.
  *
  * `overflow-hidden` + animasi masuk yang menggeser ke bawah membuat potret
  * seolah terbit dari balik panel, bukan muncul mendadak; saat menutup, animasi
@@ -202,10 +202,11 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
       {
         /* Dua potret di atas panel: lawan bicara diredupkan lebih dulu, lalu
             pembicara yang menyala. `bottom-full` menaruh dasar keduanya di tepi
-            atas panel; NPC menempel pojok kiri, MC pojok kanan. Lebar slot
-            setengah panel dan isi potret sudah mentok tepi di kanvasnya, jadi
-            karakternya sejajar dengan sisi kotak dialog. Key per sisi menjaga
-            animasi masuk tidak terulang saat ekspresi berganti. */
+            atas panel; NPC di sisi kiri, MC di sisi kanan. Slotnya sedikit
+            lebih kecil dari setengah panel dan masuk sejauh `PORTRAIT.inset`,
+            jadi siluet karakternya tidak terpotong dan tidak mepet lengkungan
+            sudut kotak. Key per sisi menjaga animasi masuk tidak terulang saat
+            ekspresi berganti. */
         tampil.portrait &&
           tampil.pendamping &&
           tampil.pendamping.src !== tampil.portrait.src && (

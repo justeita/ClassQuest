@@ -48,38 +48,47 @@ export const CHALLENGE = {
 } as const;
 
 /**
+ * Faktor ukuran potret terhadap ukuran lama (setengah lebar panel). Potret
+ * setengah panel terasa terlalu besar dan menutupi layar; 0,85 membuat wajah
+ * masih terbaca jelas tetapi tidak mendominasi. Lebar dan tinggi dikalikan
+ * dengan faktor yang sama supaya rasio kanvas importer tetap utuh.
+ */
+const SKALA_POTRET = 0.85;
+
+/**
  * Potret dialog gaya Persona (ADR 0017): tanpa bingkai, gambarnya berdiri **di
  * atas** panel dialog — dasarnya sejajar tepi atas panel, jadi tidak ada bagian
  * potret yang tertutup kotak.
  *
- * Lebarnya **setengah lebar panel**: NPC berpangkal di sisi kiri atas panel,
- * MC (yang dicerminkan) di sisi kanan atas; keduanya menjulur ke tengah tepi
- * atas. Slot berukuran tetap dan gambarnya dirender `object-contain`, jadi
- * potret tetap mengisi persis walau rasio berkasnya meleset sedikit.
+ * NPC berpangkal di sisi kiri atas panel, MC (yang dicerminkan) di sisi kanan
+ * atas; keduanya menjulur ke tengah tepi atas. Slot berukuran tetap dan
+ * gambarnya dirender `object-contain`, jadi potret tetap mengisi persis walau
+ * rasio berkasnya meleset sedikit.
  *
  * `scripts/import-portraits.mjs` menyeragamkan **tinggi kepala** (bukan tinggi
- * gambar), menaruh semua potret di kanvas berukuran sama, dan menggesernya
- * sampai mentok tepi kiri kanvas — jadi wajah semua karakter tampil sebesar
- * yang sama dan potret tidak melompat saat ekspresi berganti. Rasio kanvas
- * importer (456:360) sengaja sama persis dengan slot di sini; MC yang
- * dicerminkan membuat rata kiri kanvas jadi rata kanan slot. Berkas aslinya
- * lebih kecil dari kanvas lama supaya cepat dimuat.
+ * gambar) dan menaruh semua potret di kanvas berukuran sama — jadi wajah semua
+ * karakter tampil sebesar yang sama dan potret tidak melompat saat ekspresi
+ * berganti. Siluet karakter tidak dipotong di sisi luarnya; jarak dari kotak
+ * dialog diatur lewat `inset` di sini. Rasio kanvas importer (456:360) sengaja
+ * sama persis dengan slot di sini; MC yang dicerminkan membuat rata kiri kanvas
+ * jadi rata kanan slot. Berkas aslinya lebih kecil dari kanvas lama supaya
+ * cepat dimuat.
  */
 export const PORTRAIT = {
-  /** Lebar slot potret (px internal) = setengah lebar panel dialog. */
-  width: TEXTBOX.width / 2,
+  /** Lebar slot potret (px internal). */
+  width: (TEXTBOX.width / 2) * SKALA_POTRET,
   /**
-   * Tinggi slot potret (px internal). Menjaga rasio 304:240 yang sama dengan
+   * Tinggi slot potret (px internal). Menjaga rasio 456:360 yang sama dengan
    * kanvas importer, dan cukup memuat kepala beserta bahu di atas panel
    * (panel mulai di `y=240`).
    */
-  height: 240,
+  height: TEXTBOX.y * SKALA_POTRET,
   /**
-   * Jarak potret dari sisi luar panel (px internal). Sama dengan radius sudut
-   * panel: tepi potret berhenti di titik singgung lengkungan sudut, jadi bahu
-   * karakter tidak terpotong sudut dan tidak ada celah latar di bawahnya.
+   * Jarak potret dari sisi luar panel (px internal). Sedikit lebih besar dari
+   * radius sudut panel: tepi potret tidak bertumpuk dengan lengkungan sudut,
+   * jadi bahu karakter tidak terpotong dan tidak terlihat mepet ke tepi kotak.
    */
-  inset: TEXTBOX.radius,
+  inset: TEXTBOX.radius + 4,
 } as const;
 
 /**

@@ -130,15 +130,15 @@ bebas bergerak.
 └──────────────────────────────────────────────────────┘
 ```
 
-| Elemen    | Posisi/ukuran                                                                                                                                                                                                                                                                                                                                                                                           |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`                                                                                                                                                                                                                                                                                                                                       |
-| Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                                                                                                                                                                                                                                                                                                                                                        |
-| Textbox   | 608×104, terpusat horizontal, `y=240`; kotak navy gelap membulat (CSS)                                                                                                                                                                                                                                                                                                                                  |
-| Potret    | Dua slot setengah panel (kanvas 456×360), masing-masing masuk 14 px dari sisi panel (sebesar radius sudut) supaya bahu tidak terpotong lengkungan: NPC di kiri, MC dicerminkan di kanan; pembicara menyala, lawan bicara meredup; dasar menempel tepi atas panel (DOM). Potret MC hanya muncul bila scene memuat giliran MC — dialog antar-NPC dan obrolan singkat NPC non-quest tampil tanpa potret MC |
-| Nama      | Di dalam textbox, baris pertama (DOM)                                                                                                                                                                                                                                                                                                                                                                   |
-| Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)                                                                                                                                                                                                                                                                                                                                          |
-| Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                                                                                                                                                                                                                                                                                                                                                 |
+| Elemen    | Posisi/ukuran                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`                                                                                                                                                                                                                                                                                                                                                               |
+| Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                                                                                                                                                                                                                                                                                                                                                                                |
+| Textbox   | 608×104, terpusat horizontal, `y=240`; kotak navy gelap membulat (CSS)                                                                                                                                                                                                                                                                                                                                                          |
+| Potret    | Dua slot ±85% dari setengah panel (kanvas 456×360), masing-masing masuk 18 px dari sisi panel (radius sudut + 4) supaya siluet tidak terpotong dan tidak mepet lengkungan: NPC di kiri, MC dicerminkan di kanan; pembicara menyala, lawan bicara meredup; dasar menempel tepi atas panel (DOM). Potret MC hanya muncul bila scene memuat giliran MC — dialog antar-NPC dan obrolan singkat NPC non-quest tampil tanpa potret MC |
+| Nama      | Di dalam textbox, baris pertama (DOM)                                                                                                                                                                                                                                                                                                                                                                                           |
+| Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)                                                                                                                                                                                                                                                                                                                                                                  |
+| Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                                                                                                                                                                                                                                                                                                                                                                         |
 
 > **Semua di DOM (ADR 0007 + ADR 0017).** Phaser hanya memegang state typewriter
 > (`textbox.ts`); panel, potret, nama, isi dialog, dan indikator "lanjut" dirender
@@ -153,15 +153,16 @@ bebas bergerak.
 > Potret memakai **tinggi kepala** sebagai acuan skala (bukan tinggi gambar),
 > jadi wajah semua karakter tampil sebesar yang sama walau pembingkaian sumber
 > aslinya berbeda (`scripts/import-portraits.mjs`). Semua potret satu karakter
-> digeser dengan satu nilai tetap lalu dipotong sedikit di sisi luarnya,
-> sehingga karakternya mentok sejajar sisi kotak dialog dan tidak melompat saat
-> ekspresi berganti. Karakter berbadan pendek dinaikkan skalanya sedikit supaya
-> isinya menyentuh tepi bawah kanvas, dan tepi bawah yang tadinya memudar
-> dipadatkan jadi potongan rata — jadi badan benar-benar berhenti di tepi atas
-> kotak, tanpa selaput transparan yang membuat potret tampak melayang. Slot
-> potret sendiri masuk `PORTRAIT.inset` px dari sisi panel, sama dengan radius
-> sudut panel, supaya bahu tidak terpotong lengkungan sudut dan tepi potret
-> berhenti tepat di titik singgungnya. Kanvasnya 456×360 dan disimpan dengan
+> disusun relatif ke satu patokan (tepi kiri kanvas), sehingga siluetnya utuh
+> — tidak ada sisi yang dipotong — dan tidak melompat saat ekspresi berganti.
+> Karakter berbadan pendek dinaikkan skalanya sedikit supaya isinya menyentuh
+> tepi bawah kanvas, dan tepi bawah yang tadinya memudar dipadatkan jadi
+> potongan rata — jadi badan benar-benar berhenti di tepi atas kotak, tanpa
+> selaput transparan yang membuat potret tampak melayang. Slot potret digambar
+> 85% dari setengah panel (supaya tidak mendominasi layar) dan masuk
+> `PORTRAIT.inset` px dari sisi panel, sedikit lebih besar dari radius sudut,
+> supaya siluet tidak terpotong lengkungan dan tidak terlihat mepet ke tepi
+> kotak. Kanvasnya 456×360 dan disimpan dengan
 > filter PNG adaptif supaya cepat dimuat. Saat satu pihak bicara, potretnya
 > menyala dan potret
 > lawan bicara tetap tampil tetapi diredupkan; giliran MC membuat potret NPC
