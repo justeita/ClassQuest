@@ -49,7 +49,9 @@ Kami memilih **A**.
    halaman game terbuka.
 2. Fungsi permintaan dipindah ke `src/game/layarPenuh.ts` dan dipakai bersama
    tombol "Layar penuh"; urutan layar penuh → kunci lanskap tetap best-effort,
-   masing-masing dengan penanganan gagalnya sendiri.
+   masing-masing dengan penanganan gagalnya sendiri. Bila halaman sudah penuh
+   (mis. siswa kembali ke halaman utama lalu menekan pintu siswa lagi),
+   permintaan layar penuh dilewati tetapi kunci lanskap tetap dipasang ulang.
 3. Klik dengan tombol pengubah dilewati supaya tab baru tetap wajar.
 4. Bila peramban tidak mendukung (`document.fullscreenEnabled` palsu), permintaan
    dilewati; tidak ada tombol mati maupun pesan error.

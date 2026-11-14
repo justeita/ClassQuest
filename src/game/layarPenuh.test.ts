@@ -84,13 +84,13 @@ describe("masukLayarPenuhLanskap", () => {
     expect(lock).toHaveBeenCalledWith("landscape");
   });
 
-  it("tidak meminta apa pun bila sudah layar penuh", async () => {
+  it("mengunci lanskap tanpa meminta ulang bila sudah layar penuh", async () => {
     const { doc, requestFullscreen } = dokumenTiruan({ sudahPenuh: true });
     const { orientation, lock } = orientasiTiruan();
 
-    await expect(masukLayarPenuhLanskap(doc, orientation)).resolves.toBe(false);
+    await expect(masukLayarPenuhLanskap(doc, orientation)).resolves.toBe(true);
     expect(requestFullscreen).not.toHaveBeenCalled();
-    expect(lock).not.toHaveBeenCalled();
+    expect(lock).toHaveBeenCalledWith("landscape");
   });
 
   it("tidak meminta apa pun bila peramban tidak mendukung", async () => {
