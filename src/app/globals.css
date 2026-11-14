@@ -455,6 +455,42 @@ label,
   }
 }
 
+/* Menu jeda di layar pendek.
+ *
+ * Lanskap ponsel hanya menyisakan sekitar 250–320 px tinggi untuk area game,
+ * sedangkan kartu satu kolom lebih tinggi dari itu sehingga tombol "Keluar"
+ * butuh gulir. Di bawah 30rem isi kartu dibagi dua kolom: pengaturan suara di
+ * kiri, tombol aksi di kanan. Ambang ini kena di lanskap ponsel (tinggi
+ * viewport ±320–430 px), tetapi tidak mengubah tampilan potret atau desktop.
+ * Gulir di wadahnya tetap ada hanya sebagai jaring pengaman tinggi ekstrem.
+ */
+@media (max-height: 30rem) {
+  .menu-jeda {
+    max-width: 30rem;
+  }
+
+  .menu-jeda-isi {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 11rem);
+    align-items: start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .menu-jeda-kepala {
+    grid-column: 1 / -1;
+  }
+
+  .menu-jeda-suara,
+  .menu-jeda-aksi {
+    margin-top: 0;
+  }
+
+  .menu-jeda-catatan {
+    margin-top: 0.375rem;
+  }
+}
+
 /* --------------------------------------------------------------------------
  * Scrollbar bertema game
  *

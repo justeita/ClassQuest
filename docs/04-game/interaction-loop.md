@@ -286,6 +286,9 @@ Isi:
 - Pengaturan suara: slider **Musik** dan **Efek suara** terpisah (0–100%, step 5) + tombol mute per baris
 - Keluar (kembali ke halaman awal)
 
+Di lanskap ponsel yang pendek, isi menu dibagi dua kolom (pengaturan suara di
+kiri, aksi di kanan) supaya semua pilihan terlihat tanpa menggulir (ADR 0036).
+
 Saat menu terbuka: game pause, musik **volume turun** (bukan berhenti), input
 dialog diabaikan. Nilai tersimpan di `localStorage`
 (`classquest:settings:v1`) dan dipakai lagi saat game dibuat. Mute musik tidak

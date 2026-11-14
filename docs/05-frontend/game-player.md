@@ -365,10 +365,11 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
 
 - Lanjut, ulangi chapter, pengaturan suara (slider Musik dan Efek suara
   terpisah + tombol mute per baris), keluar.
-- Tampil sebagai satu **kartu gelap membulat** dengan garis aksen oranye; area
-  luarnya bisa digulir dan memakai **scrollbar bertema** (`scrollbar-tema`),
-  jadi di layar ponsel pendek menu tetap terjangkau tanpa scrollbar bawaan
-  peramban (ADR 0031).
+- Tampil sebagai satu **kartu gelap membulat** dengan garis aksen oranye. Di
+  lanskap ponsel yang pendek isinya pindah ke dua kolom — pengaturan suara di
+  kiri, tombol aksi di kanan — sehingga semua pilihan muat tanpa gulir. Wadah
+  menu tetap memakai `overflow-y-auto` dan **scrollbar bertema**
+  (`scrollbar-tema`) hanya sebagai cadangan untuk tinggi ekstrem (ADR 0036).
 - Game di-pause (`scene.pause()`), input dialog berhenti.
 - Musik tidak dihentikan, hanya dikecilkan (volume 0,35 → 0,12) agar jeda tidak
   terasa memutus suasana; volume kembali saat lanjut atau ulangi chapter.
