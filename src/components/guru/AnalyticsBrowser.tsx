@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
 import type {
+  AnalyticsStudentRow,
   ClassroomAnalytics,
   ClassroomDetail,
   StoryListItem,
@@ -18,13 +19,16 @@ type AnalyticsBrowserProps = {
   classes: ClassroomDetail[];
   /** Cerita milik guru; hanya `published` yang punya hasil main. */
   stories: StoryListItem[];
-  /** Kelas yang dipilih lewat `?kelas=` (sudah divalidasi server). */
+  /** Kelas yang dipilih lewat `?kelas=` (sudah divalidasi server); `null` = semua. */
   selectedClassroomId: string | null;
-  /** Game yang dipilih lewat `?storyId=` (sudah divalidasi server). */
+  /** Game yang dipilih lewat `?storyId=` (sudah divalidasi server); `null` = semua. */
   selectedStoryId: string | null;
-  /** Hasil agregat; `null` bila salah satu pilihan belum lengkap. */
+  /** Hasil agregat; sudah dihitung server untuk filter yang berlaku. */
   analytics: ClassroomAnalytics | null;
 };
+
+/** Baris tabel + penanda bahwa baris ini milik siswa terdaftar kelas. */
+type Baris = AnalyticsStudentRow & { terdaftar: boolean };
 
 /**
  * Halaman `/guru/analitik`: pilih kelas → pilih game → lihat poin dan
@@ -33,6 +37,12 @@ type AnalyticsBrowserProps = {
  * Pilihan disimpan di query string (`?kelas=&storyId=`) supaya tautan bisa
  * dibagikan/di-bookmark dan server bisa menghitung agregatnya. Perubahan
  * pilihan memakai `router.replace`, jadi tidak menumpuk riwayat browser.
+ *
+ * Kedua pilihan **opsional**: tanpa filter, halaman langsung menampilkan
+ * agregat semua kelas × semua game terbit. Pilihan kosong ("Semua kelas",
+ * "Semua game") sama saja dengan parameter yang tidak ada. Karena itu, saat
+ * tidak difilter, tabel menambah kolom Kelas dan Game agar asal setiap baris
+ * tidak ambigu.
  *
  * Daftar siswa yang belum bermain **tetap ditampilkan** (poin 0) supaya guru
  * bisa melihat siapa yang belum mengerjakan, bukan hanya yang sudah.
@@ -46,9 +56,6 @@ export function AnalyticsBrowser({
 }: AnalyticsBrowserProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const activeClass =
-    classes.find((item) => item.id === selectedClassroomId) ?? null;
 
   const classOptions = useMemo(
     () =>
@@ -74,19 +81,46 @@ export function AnalyticsBrowser({
 
   function pilih(next: { kelas?: string; storyId?: string }) {
     const params = new URLSearchParams(searchParams?.toString() ?? "");
-    if (next.kelas !== undefined) params.set("kelas", next.kelas);
-    if (next.storyId !== undefined) params.set("storyId", next.storyId);
-    router.replace(`/guru/analitik?${params.toString()}`);
+    // Nilai kosong dihapus, bukan disimpan sebagai `kelas=`, supaya URL bersih
+    // dan "Semua kelas" tampil sama seperti halaman tanpa parameter.
+    for (const key of ["kelas", "storyId"] as const) {
+      const value = next[key];
+      if (value === undefined) continue;
+      if (value === "") params.delete(key);
+      else params.set(key, value);
+    }
+    const query = params.toString();
+    router.replace(query === "" ? "/guru/analitik" : `/guru/analitik?${query}`);
   }
 
-  /** Siswa terdaftar yang belum pernah bermain, ditambahkan ke akhir tabel. */
-  const semuaBaris = useMemo(() => {
-    if (activeClass === null) return [];
+  /** Filter kelas atau game tidak aktif → kolom Kelas/Game perlu ditampilkan. */
+  const lintasKelas = selectedClassroomId === null;
+  const lintasGame = selectedStoryId === null;
 
-    const rows =
-      analytics === null
-        ? []
-        : analytics.rows.map((row) => ({ ...row, terdaftar: true }));
+  /**
+   * Siswa terdaftar yang belum pernah bermain, ditambahkan ke akhir tabel.
+   *
+   * Hanya masuk akal saat filter menyebut satu kelas dan satu game: di tampilan
+   * gabungan tidak ada satu daftar siswa tunggal untuk dijadikan acuan.
+   */
+  const semuaBaris = useMemo<Baris[]>(() => {
+    const rows: Baris[] = (analytics?.rows ?? []).map((row) => ({
+      ...row,
+      terdaftar: true,
+    }));
+
+    const activeClass =
+      selectedClassroomId === null
+        ? undefined
+        : classes.find((item) => item.id === selectedClassroomId);
+
+    const satuGame =
+      analytics?.stories.length === 1 ? analytics.stories[0] : null;
+    if (activeClass === undefined || satuGame === null) {
+      return [...rows].sort(
+        (a, b) => b.bestPoints - a.bestPoints || a.name.localeCompare(b.name),
+      );
+    }
 
     const sudah = new Set(
       rows
@@ -94,10 +128,10 @@ export function AnalyticsBrowser({
         .filter((id): id is string => id !== null),
     );
 
-    const belum = activeClass.students
+    const belum: Baris[] = activeClass.students
       .filter((student) => !sudah.has(student.id))
       .map((student) => ({
-        key: `student:${student.id}`,
+        key: `${activeClass.id}|${satuGame.id}|student:${student.id}`,
         studentId: student.id,
         name: student.name,
         nis: student.nis,
@@ -106,16 +140,20 @@ export function AnalyticsBrowser({
         latestPoints: 0,
         latestCorrectCount: 0,
         totalCount: analytics?.rows[0]?.totalCount ?? 0,
-        totalPoints: analytics?.totalPoints ?? 0,
-        weakConcepts: [] as string[],
+        totalPoints: analytics?.rows[0]?.totalPoints ?? 0,
+        weakConcepts: [],
         lastPlayedAt: "",
+        classroomId: activeClass.id,
+        classroomName: activeClass.name,
+        storyId: satuGame.id,
+        storyTitle: satuGame.title,
         terdaftar: true,
       }));
 
     return [...rows, ...belum].sort(
       (a, b) => b.bestPoints - a.bestPoints || a.name.localeCompare(b.name),
     );
-  }, [activeClass, analytics]);
+  }, [analytics, classes, selectedClassroomId]);
 
   if (classes.length === 0) {
     return (
@@ -135,6 +173,16 @@ export function AnalyticsBrowser({
     );
   }
 
+  /** Judul panel tabel: sebut filter yang aktif, atau "semua". */
+  const judulTabel = [
+    selectedClassroomId === null
+      ? "Semua kelas"
+      : (analytics?.classrooms[0]?.name ?? "Kelas"),
+    selectedStoryId === null
+      ? "Semua game"
+      : (analytics?.stories[0]?.title ?? "Game"),
+  ].join(" · ");
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-10">
       <Header />
@@ -151,8 +199,8 @@ export function AnalyticsBrowser({
             id="analitik-kelas"
             options={classOptions}
             value={selectedClassroomId ?? ""}
-            onChange={(value) => pilih({ kelas: value, storyId: "" })}
-            placeholder="Pilih kelas…"
+            onChange={(value) => pilih({ kelas: value })}
+            placeholder="Semua kelas"
             icon={<i className="fa-solid fa-users" aria-hidden />}
           />
         </div>
@@ -169,9 +217,7 @@ export function AnalyticsBrowser({
             value={selectedStoryId ?? ""}
             onChange={(value) => pilih({ storyId: value })}
             placeholder={
-              storyOptions.length === 0
-                ? "Belum ada game terbit"
-                : "Pilih game…"
+              storyOptions.length === 0 ? "Belum ada game terbit" : "Semua game"
             }
             disabled={storyOptions.length === 0}
             icon={<i className="fa-solid fa-gamepad" aria-hidden />}
@@ -179,29 +225,17 @@ export function AnalyticsBrowser({
         </div>
       </div>
 
-      {selectedClassroomId === null ? (
+      {analytics === null ? (
         <Empty
-          icon="fa-chart-simple"
-          title="Pilih kelas dan game"
-          body="Analytics menampilkan poin dan konsep yang sering salah dari hasil main siswa di kelas yang dipilih."
+          icon="fa-triangle-exclamation"
+          title="Data tidak ditemukan"
+          body="Kelas atau game ini tidak tersedia. Muat ulang halaman lalu pilih lagi."
         />
       ) : storyOptions.length === 0 ? (
         <Empty
           icon="fa-gamepad"
           title="Belum ada game terbit"
           body="Bagikan materi dulu agar hasil main siswa tercatat."
-        />
-      ) : selectedStoryId === null ? (
-        <Empty
-          icon="fa-chart-simple"
-          title="Pilih game"
-          body="Setelah game dipilih, daftar siswa beserta poin dan kesalahannya muncul di sini."
-        />
-      ) : analytics === null ? (
-        <Empty
-          icon="fa-triangle-exclamation"
-          title="Data tidak ditemukan"
-          body="Kelas atau game ini tidak tersedia. Muat ulang halaman lalu pilih lagi."
         />
       ) : (
         <>
@@ -220,7 +254,11 @@ export function AnalyticsBrowser({
             />
             <StatCard
               label="Rata-rata poin"
-              value={`${analytics.averageBestPoints} / ${analytics.totalPoints}`}
+              value={
+                lintasGame
+                  ? analytics.averageBestPoints
+                  : `${analytics.averageBestPoints} / ${semuaBaris[0]?.totalPoints ?? 0}`
+              }
               icon="fa-star"
               tone="amber"
             />
@@ -238,21 +276,23 @@ export function AnalyticsBrowser({
             <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-slate-100 px-5 py-4">
               <div>
                 <h3 className="font-heading text-sm font-bold text-slate-900">
-                  {analytics.classroom.name} · {analytics.storyTitle}
+                  {judulTabel}
                 </h3>
                 <p className="mt-0.5 text-[11px] text-slate-500">
-                  Poin terbaik per siswa, dihitung dari semua percobaan.
+                  {lintasKelas || lintasGame
+                    ? "Poin terbaik per siswa di tiap kelas dan game, dihitung dari semua percobaan. Persempit dengan memilih kelas atau game."
+                    : "Poin terbaik per siswa, dihitung dari semua percobaan."}
                 </p>
               </div>
               <span className="rounded-full border border-slate-200 px-2.5 py-0.5 font-pixel text-[10px] text-slate-500">
-                {analytics.classroom.code}
+                {analytics.rows.length} baris
               </span>
             </div>
 
             {semuaBaris.length === 0 ? (
               <p className="px-5 py-10 text-center text-[11px] text-slate-500">
-                Belum ada siswa di kelas ini. Tambahkan siswa di halaman My
-                Classes, lalu bagikan tautan game ke kelas.
+                Belum ada hasil main. Bagikan tautan game ke kelas agar poin dan
+                konsep yang sering salah mulai tercatat di sini.
               </p>
             ) : (
               <div className="overflow-x-auto">
@@ -262,6 +302,16 @@ export function AnalyticsBrowser({
                       <th scope="col" className="px-5 py-2.5 font-bold">
                         Siswa
                       </th>
+                      {lintasKelas ? (
+                        <th scope="col" className="px-3 py-2.5 font-bold">
+                          Kelas
+                        </th>
+                      ) : null}
+                      {lintasGame ? (
+                        <th scope="col" className="px-3 py-2.5 font-bold">
+                          Game
+                        </th>
+                      ) : null}
                       <th scope="col" className="px-3 py-2.5 font-bold">
                         Poin terbaik
                       </th>
@@ -293,6 +343,16 @@ export function AnalyticsBrowser({
                             </p>
                           ) : null}
                         </td>
+                        {lintasKelas ? (
+                          <td className="px-3 py-3 text-slate-600">
+                            {row.classroomName ?? "-"}
+                          </td>
+                        ) : null}
+                        {lintasGame ? (
+                          <td className="px-3 py-3 text-slate-600">
+                            {row.storyTitle}
+                          </td>
+                        ) : null}
                         <td className="px-3 py-3">
                           <span
                             className={`font-pixel text-xs font-bold ${
@@ -339,7 +399,7 @@ export function AnalyticsBrowser({
                               {row.weakConcepts.map((concept) => (
                                 <span
                                   key={concept}
-                                  className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
+                                  className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
                                 >
                                   {concept}
                                 </span>

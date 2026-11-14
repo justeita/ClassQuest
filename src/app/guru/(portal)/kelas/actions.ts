@@ -59,6 +59,8 @@ export type AddStudentActionInput = {
   classroomId: string;
   name: string;
   nis: string;
+  /** NISN opsional; kosong = tidak diisi. */
+  nisn?: string;
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -117,6 +119,7 @@ export async function addStudent(
       classroomId: input.classroomId,
       name: toText(input.name),
       nis: toText(input.nis),
+      nisn: toText(input.nisn),
     });
 
     if (result.ok) revalidateClassPaths();
