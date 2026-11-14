@@ -42,7 +42,7 @@ import { createPdfExtractError } from "@/server/pdf/errors";
 import { validateStory } from "@/story/validate";
 import { toAssetManifest } from "@/assets/manifest";
 
-import { runJob, type RunJobInput } from "./run";
+import { runJob, updateStage, type RunJobInput } from "./run";
 
 const STORY_ID = "st_job_test";
 const JOB_ID = "job_test";
@@ -190,9 +190,15 @@ describe("runJob — jalur sukses", () => {
       statement: Parameters<Client["execute"]>[0],
     ) => {
       const record = statement as unknown as { sql?: string; args?: unknown[] };
-      if (record.sql?.includes("update jobs set stage")) {
+      if (record.sql?.includes("set stage = ?")) {
         const args = record.args ?? [];
         seen.push({ stage: String(args[0]), progress: Number(args[1]) });
+      }
+      if (
+        record.sql?.includes("update jobs") &&
+        record.sql.includes("set stage = 'done'")
+      ) {
+        seen.push({ stage: "done", progress: STAGE_PROGRESS.done });
       }
       return original(statement);
     }) as Client["execute"]);
@@ -211,6 +217,84 @@ describe("runJob — jalur sukses", () => {
       );
     }
     expect(seen.some((event) => event.stage === "saving")).toBe(true);
+  });
+
+  it("menahan tulisan progres yang datang terlambat agar tidak menimpa done", async () => {
+    const original = db.execute.bind(db);
+
+    // Tiru database jarak jauh: update tahap `validating` baru dieksekusi
+    // setelah job ditandai `done`, seperti request yang saling menyusul.
+    const spy = vi.spyOn(db, "execute").mockImplementation((async (
+      statement: Parameters<Client["execute"]>[0],
+    ) => {
+      const record = statement as unknown as { sql?: string; args?: unknown[] };
+
+      if (
+        record.sql?.includes("set stage = ?") &&
+        record.args?.[0] === "validating"
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+
+      return original(statement);
+    }) as Client["execute"]);
+
+    await runJob(input(), { db, provider: happyProvider() });
+    spy.mockRestore();
+
+    const job = await jobRow();
+    expect(job.stage).toBe("done");
+    expect(Number(job.progress)).toBe(100);
+  });
+
+  it("menolak tulisan tahap lama setelah job selesai", async () => {
+    await runJob(input(), { db, provider: happyProvider() });
+
+    // Request `validating` yang baru sampai sekarang tidak boleh menurunkan
+    // status akhir yang sudah tersimpan.
+    await updateStage(db, JOB_ID, "validating");
+
+    const job = await jobRow();
+    expect(job.stage).toBe("done");
+    expect(Number(job.progress)).toBe(100);
+  });
+
+  it("tidak menandai job done sebelum versi cerita tersimpan", async () => {
+    const original = db.execute.bind(db);
+    const snapshots: { versions: number; status: string }[] = [];
+
+    const spy = vi.spyOn(db, "execute").mockImplementation((async (
+      statement: Parameters<Client["execute"]>[0],
+    ) => {
+      const record = statement as unknown as { sql?: string; args?: unknown[] };
+      const sql = record.sql ?? "";
+      const isDoneWrite =
+        sql.includes("update jobs") &&
+        (sql.includes("set stage = 'done'") || record.args?.[0] === "done");
+
+      if (isDoneWrite) {
+        const versions = await original({
+          sql: "select count(*) as total from story_versions where story_id = ?",
+          args: [STORY_ID],
+        });
+        const story = await original({
+          sql: "select status from stories where id = ?",
+          args: [STORY_ID],
+        });
+        snapshots.push({
+          versions: Number(versions.rows[0]?.total ?? 0),
+          status: String(story.rows[0]?.status ?? ""),
+        });
+      }
+
+      return original(statement);
+    }) as Client["execute"]);
+
+    await runJob(input(), { db, provider: happyProvider() });
+    spy.mockRestore();
+
+    // Hanya satu tulisan `done`, dan saat itu versinya sudah ada.
+    expect(snapshots).toEqual([{ versions: 1, status: "draft" }]);
   });
 
   it("meneruskan tone ke generateStory (masuk ke prompt dan meta cerita)", async () => {
@@ -290,7 +374,7 @@ describe("runJob — fallback dan error tak terduga", () => {
       fallbackReason?: string | null;
       diagnostics?: unknown;
     };
-    expect(log.promptVersion).toBe("story-v6");
+    expect(log.promptVersion).toBe("story-v8");
     expect(log.fallbackReason).not.toBeNull();
     expect(Array.isArray(log.diagnostics)).toBe(true);
 

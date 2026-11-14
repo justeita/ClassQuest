@@ -108,6 +108,7 @@ export function GenerationProgress({
     const startedAt = Date.now();
     let timer: ReturnType<typeof setTimeout> | null = null;
     let cancelled = false;
+    let terminalSeen = false;
 
     function stop() {
       cancelled = true;
@@ -145,9 +146,17 @@ export function GenerationProgress({
           }
 
           if (payload.stage === "done" || payload.stage === "failed") {
-            stop();
-            router.refresh();
-            return;
+            // `router.refresh()` bisa tiba sebelum halaman melihat status cerita
+            // yang baru (halaman masih merender kartu ini karena status story
+            // masih `processing`). Kalau polling langsung berhenti di sini,
+            // kartu berhenti selamanya di langkah terakhir walaupun cerita sudah
+            // tersimpan. Jadi: refresh sekali, lalu terus periksa sampai halaman
+            // berhenti merender kartu ini (ringkasan tampil) atau batas waktu
+            // tercapai.
+            if (!terminalSeen) {
+              terminalSeen = true;
+              router.refresh();
+            }
           }
         }
       } catch {
@@ -176,6 +185,7 @@ export function GenerationProgress({
   }, [jobId, router]);
 
   const failed = view.stage === "failed";
+  const finished = view.stage === "done";
   const currentStep = STEP_INDEX[view.stage] ?? 0;
 
   return (
@@ -187,7 +197,11 @@ export function GenerationProgress({
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 font-heading text-base font-bold text-slate-900">
           <i className="fa-solid fa-gears text-brand-600" aria-hidden />
-          {failed ? "Pemrosesan gagal" : "Sedang diproses…"}
+          {failed
+            ? "Pemrosesan gagal"
+            : finished
+              ? "Menyiapkan ringkasan…"
+              : "Sedang diproses…"}
         </h2>
         <span className="font-pixel text-xs font-bold text-slate-500">
           {Math.round(view.progress)}%
@@ -254,7 +268,9 @@ export function GenerationProgress({
       <p className="text-[11px] leading-relaxed text-slate-500">
         {timedOut
           ? "Masih diproses. Boleh ditinggal — buka halaman ini lagi nanti untuk melihat hasilnya."
-          : "Boleh ditinggal; proses tetap berjalan di server. Halaman ini memeriksa status setiap 1,5 detik."}
+          : finished
+            ? "Selesai. Ringkasan cerita sedang dimuat."
+            : "Boleh ditinggal; proses tetap berjalan di server. Halaman ini memeriksa status setiap 1,5 detik."}
       </p>
     </section>
   );

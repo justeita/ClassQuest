@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -170,7 +170,11 @@ stage "failed" → tampilkan alasan
 
 Aturan polling:
 
-- Hentikan polling saat `done`/`failed`.
+- Saat `done`/`failed`: panggil `router.refresh()` **sekali**, lalu terus periksa
+  sampai halaman berhenti merender kartu progres (ringkasan tampil) atau batas
+  waktu habis. Refresh bisa tiba sebelum halaman melihat status cerita yang baru,
+  jadi berhenti tepat di `done` membuat kartu berhenti di langkah terakhir
+  walaupun cerita sudah tersimpan.
 - Hentikan saat tab tidak aktif; lanjutkan saat aktif.
 - Batas waktu total 3 menit, lalu tampilkan "masih diproses, cek lagi nanti".
 - Jangan polling lebih cepat dari 1 detik.

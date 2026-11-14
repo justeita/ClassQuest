@@ -16,8 +16,12 @@ import { GenerationProgress } from "./GenerationProgress";
  */
 const refresh = vi.fn();
 
+// Objek router harus stabil: `useRouter()` di Next mengembalikan referensi yang
+// sama antar-render, dan `GenerationProgress` memakainya sebagai dependency efek.
+const router = { refresh, push: vi.fn(), replace: vi.fn() };
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh, push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => router,
 }));
 
 beforeEach(() => {
@@ -34,6 +38,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("GenerationProgress", () => {
@@ -75,5 +80,39 @@ describe("GenerationProgress", () => {
     expect(screen.getByRole("status").textContent).toContain(
       "Pemrosesan gagal",
     );
+  });
+
+  it("terus memeriksa status setelah done sampai halaman menampilkan ringkasan", async () => {
+    // Regresi: dulu polling berhenti tepat saat `done`. Kalau `router.refresh()`
+    // tiba sebelum halaman melihat status cerita yang baru, kartu progres
+    // berhenti selamanya di langkah terakhir walaupun cerita sudah tersimpan.
+    vi.useFakeTimers();
+
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ stage: "done", progress: 100, version: 1 }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <GenerationProgress
+        jobId="job-3"
+        initialStage="validating"
+        initialProgress={75}
+      />,
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("status").textContent).toContain(
+      "Menyiapkan ringkasan",
+    );
+
+    // Tick berikutnya tetap berjalan (komponen masih terpasang).
+    await vi.advanceTimersByTimeAsync(1600);
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(1);
+
+    // `router.refresh()` tidak dipanggil berulang tiap tick.
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 });

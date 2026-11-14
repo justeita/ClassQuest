@@ -154,15 +154,36 @@ const isoOf = (ms: number): string => new Date(ms).toISOString();
 /* Penulisan status                                                           */
 /* -------------------------------------------------------------------------- */
 
-const updateStage = async (
+/**
+ * Tulis progres job dengan penjaga monoton.
+ *
+ * `progress` hanya boleh naik, dan status akhir (`done`/`failed`) tidak boleh
+ * ditimpa. Penjaga ini ada di SQL, bukan di kode, karena tulisan progres
+ * dikirim lewat jaringan (Turso HTTP) dan **tidak dijamin berurutan**: request
+ * `validating` bisa sampai di database setelah `done`. Tanpa penjaga, baris job
+ * berakhir di `validating` (75%) walaupun cerita sudah tersimpan, dan kartu
+ * progres di `/guru/materi/[storyId]` berhenti selamanya di langkah
+ * "Memeriksa hasil".
+ *
+ * `<=` (bukan `<`) karena `validating` dan `repairing` sama-sama 75.
+ *
+ * Diekspor untuk tes penjaga; bukan bagian dari API publik modul ini.
+ */
+export const updateStage = async (
   db: Client,
   jobId: string,
   stage: JobStage,
   message: string | null = null,
 ): Promise<void> => {
+  const progress = STAGE_PROGRESS[stage];
+
   await db.execute({
-    sql: "update jobs set stage = ?, progress = ?, message = ? where id = ?",
-    args: [stage, STAGE_PROGRESS[stage], message, jobId],
+    sql: `update jobs
+             set stage = ?, progress = ?, message = ?
+           where id = ?
+             and stage not in ('done', 'failed')
+             and progress <= ?`,
+    args: [stage, progress, message, jobId, progress],
   });
 };
 
@@ -214,6 +235,21 @@ export async function runJob(
 
   let db: Client | null = null;
 
+  /**
+   * Antrean penulisan progres. Semua update stage lewat sini supaya tidak ada
+   * dua request yang berjalan bersamaan dan berakhir tidak berurutan.
+   */
+  let progressQueue: Promise<void> = Promise.resolve();
+
+  const flushProgress = async (): Promise<void> => {
+    try {
+      await progressQueue;
+    } catch {
+      // Kegagalan menulis progres tidak menggagalkan job; status akhir tetap
+      // ditulis setelah ini.
+    }
+  };
+
   try {
     db = deps.db ?? (await getReadyDb());
 
@@ -249,10 +285,25 @@ export async function runJob(
       ...(input.tone === undefined ? {} : { tone: input.tone }),
     };
 
+    // Progres ditulis berurutan, bukan fire-and-forget.
+    //
+    // Pipeline memanggil `onProgress` secara sinkron saat berpindah tahap.
+    // Kalau tiap update dilepas tanpa `await`, request ke database bisa saling
+    // menyusul (terutama lewat Turso HTTP), sehingga `validating` bisa mendarat
+    // setelah `done`. Antrean di bawah menjamin urutan; penjaga monoton di
+    // `updateStage()` menjadi jaring pengaman lapis kedua.
     const onProgress = (event: ProgressEvent) => {
-      // Kegagalan menulis progres tidak boleh menggagalkan generasi; status
-      // akhir tetap ditulis di bawah.
-      void updateStage(db as Client, input.jobId, event.stage).catch(() => {});
+      // `done` milik runner, bukan pipeline: pipeline memancarkannya sebelum
+      // versi cerita benar-benar tersimpan. Kalau ditulis di sini, UI berhenti
+      // polling dan me-refresh halaman saat cerita masih `processing`, lalu
+      // kartu progres tidak pernah memeriksa status lagi.
+      if (event.stage === "done") return;
+
+      progressQueue = progressQueue.then(
+        () => updateStage(db as Client, input.jobId, event.stage),
+        () => updateStage(db as Client, input.jobId, event.stage),
+      );
+      return progressQueue.catch(() => {});
     };
 
     const result: GenerateStoryResult = await generateStory({
@@ -263,6 +314,10 @@ export async function runJob(
       branching: aiConfig.branching,
       onProgress,
     });
+
+    // Tunggu antrean progres selesai sebelum status akhir ditulis, supaya
+    // `done` tidak pernah didahului tulisan tahap yang masih di jalan.
+    await flushProgress();
 
     // d. Simpan versi 1 + ubah status story dalam satu transaksi.
     const version = await saveVersion(db, input.storyId, result, now());
@@ -292,6 +347,9 @@ export async function runJob(
     // jangan sampai error itu menjadi unhandled rejection.
     if (db !== null) {
       try {
+        // Tulisan progres yang masih di jalan diselesaikan dulu; kalau tidak,
+        // tulisan itu bisa mendarat setelah `failed` dan menutupi kegagalan.
+        await flushProgress();
         await markFailed(db, input.jobId, input.storyId, errorCode, now());
       } catch {
         // Tidak ada yang bisa dilakukan lagi; job tetap tidak "running" bila

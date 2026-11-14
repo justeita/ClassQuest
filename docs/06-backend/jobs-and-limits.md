@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -66,6 +66,15 @@ Aturan update:
 - Jangan menulis progres setiap beat (boros); cukup per chapter.
 - `finished_at` diisi saat `done`/`failed`.
 - `failed` wajib punya `error_code`.
+- **`done` hanya ditulis setelah versi cerita tersimpan.** Pipeline memancarkan
+  `done` lebih awal (sebelum `story_versions` ditulis); runner mengabaikan
+  pancaran itu dan menulis `done` sendiri di akhir. Kalau tidak, UI berhenti
+  polling dan me-refresh halaman saat cerita masih `processing`.
+- **Update progres berurutan dan monoton.** Tulisan tahap diantrekan satu per
+  satu, dan SQL-nya menolak tahap yang lebih rendah dari progres saat ini serta
+  menolak menimpa `done`/`failed`. Tanpa itu, request `validating` yang datang
+  terlambat bisa menimpa `done` dan kartu progres berhenti di "Memeriksa hasil"
+  walaupun cerita sudah tersimpan.
 
 ### Progress
 
