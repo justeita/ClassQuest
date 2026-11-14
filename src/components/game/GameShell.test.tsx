@@ -878,6 +878,83 @@ describe("GameShell — soal di atas dialog", () => {
     expect(await screen.findByAltText("Potret Bu Ratna")).toBeInTheDocument();
   });
 
+  it("umpan balik tetap tampil walau potret soal berubah setelah dinilai", async () => {
+    await mainkan();
+    // Alur nyata `GameScene.bukaTantangan`: dialog soal (prompt) dikirim lebih
+    // dulu, baru overlay tantangan. Urutan ini penting dan sudah benar.
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Pak Wira",
+        text: "Resep kue pisang memakai 3 bagian tepung dan 2 bagian gula.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    // Saat dinilai, scene mengganti potret pembicara lewat `textbox.setPortrait`
+    // — yang menembak event `dialogue` yang sama. Regresi: event itu dulu
+    // menutup overlay, sehingga kartu umpan balik tidak pernah muncul dan
+    // dialog tersangkut di fase challenge.
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Pak Wira",
+        text: "Resep kue pisang memakai 3 bagian tepung dan 2 bagian gula.",
+        waiting: true,
+        portrait: {
+          src: "/assets/portrait/npc_10/happy.png",
+          alt: "Potret Pak Wira",
+        },
+      },
+    });
+    bus.emit({
+      type: "graded",
+      challengeId: "chl_01_01",
+      correct: true,
+      explanation: "Benar.",
+    });
+
+    expect(await screen.findByText("Tepat.")).toBeInTheDocument();
+    // Potret balikan scene tetap dipakai overlay untuk umpan balik.
+    expect(screen.getByAltText("Potret Pak Wira")).toBeInTheDocument();
+  });
+
+  it("overlay menutup saat detour diputar dan terbuka lagi saat soal diulang", async () => {
+    await mainkan();
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    // Detour menutup overlay supaya narasi/dialognya terlihat.
+    bus.emit({ type: "detour", aktif: true });
+    await vi.waitFor(() =>
+      expect(screen.queryByLabelText("Tantangan")).not.toBeInTheDocument(),
+    );
+
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Pak Wira",
+        text: "Coba hitung ulang perlahan.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+    expect(
+      await screen.findByText("Coba hitung ulang perlahan."),
+    ).toBeInTheDocument();
+
+    // Soal yang sama dibuka ulang setelah detour selesai.
+    bus.emit({ type: "detour", aktif: false });
+    bus.emit({ type: "challenge", view: challenge });
+    expect(await screen.findByLabelText("Tantangan")).toBeInTheDocument();
+  });
+
   it("fokus kembali ke area game setelah tantangan ditutup", async () => {
     await mainkan();
     bus.emit({ type: "challenge", view: challenge });

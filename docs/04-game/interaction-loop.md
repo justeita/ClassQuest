@@ -170,6 +170,11 @@ Detail penting:
   ada percobaan berikutnya, overlay tidak menampilkan `explanation` supaya soal
   ulang tetap bermakna; game baru mengirim `graded` (beserta penjelasan) untuk
   hasil final.
+- **Overlay tidak menutup saat dinilai.** Mengganti potret pembicara jadi
+  senang/marah adalah perubahan tampilan saja; kartu umpan balik tetap di
+  tempatnya sampai siswa menekan "Lanjut". Di luar aksi pemain, overlay hanya
+  ditutup oleh `detour` (soal diulang setelah detour selesai) — bukan oleh
+  sembarang dialog.
 - **Tanpa `onWrong`, perilaku lama berlaku.** `maxAttempts` efektif 1, jadi satu
   kemunculan soal hanya bisa dijawab sekali: overlay menampilkan jawaban benar +
   penjelasan, lalu "Lanjut". Ini yang membuat skor punya arti.

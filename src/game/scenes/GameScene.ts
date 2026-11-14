@@ -1141,6 +1141,11 @@ export class GameScene extends Phaser.Scene {
     };
     this.sembunyikanPetunjuk();
 
+    // Overlay tantangan menutup sendiri lewat event ini supaya detour terlihat.
+    // Tidak boleh mengandalkan `dialogue`: dialog soal tantangan juga memakai
+    // event itu, jadi menutup overlay di sana menghapus umpan balik jawaban.
+    this.bus?.emit({ type: "detour", aktif: true });
+
     if (this.detour.beats.length === 0) {
       this.bukaTantanganUlang();
       return;
@@ -1219,6 +1224,7 @@ export class GameScene extends Phaser.Scene {
     if (!detour) return;
 
     this.detour = null;
+    this.bus?.emit({ type: "detour", aktif: false });
     this.bukaTantangan(detour.challengeId, detour.retryQuestion);
   }
 

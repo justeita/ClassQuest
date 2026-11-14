@@ -84,6 +84,17 @@ export type GameEvent =
   | { type: "markers"; markers: NpcMarker[] }
   | { type: "nametags"; plates: NpcNameplate[] }
   | { type: "challenge"; view: ChallengeView }
+  /**
+   * Konsekuensi jawaban salah sedang diputar (beat `onWrong.detour`).
+   *
+   * Dikirim sebagai event tersendiri, bukan disimpulkan React dari `dialogue`:
+   * dialog soal tantangan juga tiba sebagai `dialogue`, dan saat dinilai scene
+   * mengganti potret lewat `setPortrait` (satu lagi `dialogue`). Menutup overlay
+   * pada tiap `dialogue` karena itu menghapus kartu umpan balik dan menyangkutkan
+   * dialog di fase challenge. `aktif: true` saat detour mulai, `false` saat soal
+   * dibuka ulang (event `challenge` menyusul).
+   */
+  | { type: "detour"; aktif: boolean }
   | {
       type: "graded";
       challengeId: string;

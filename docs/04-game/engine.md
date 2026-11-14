@@ -374,6 +374,7 @@ type GameEvent =
   | { type: "markers"; markers: NpcMarker[] }
   | { type: "nametags"; plates: NpcNameplate[] }
   | { type: "challenge"; view: ChallengeView }
+  | { type: "detour"; aktif: boolean }
   | {
       type: "graded";
       challengeId: string;
@@ -437,6 +438,13 @@ Aturan yang mengikat:
   biasa, lalu membuka ulang tantangan yang sama dengan teks soal ulang. `graded`
   — termasuk `explanation` — hanya dikirim sekali, untuk hasil final (benar atau
   percobaan terakhir).
+- **`detour` menutup overlay, bukan `dialogue`.** Saat detour mulai game mengirim
+  `detour` (`aktif: true`), dan saat soal dibuka ulang `aktif: false` disusul
+  `challenge`. React **tidak** boleh menutup overlay pada setiap `dialogue`:
+  dialog soal tantangan juga tiba sebagai `dialogue`, dan saat dinilai scene
+  mengganti potret pembicara lewat `textbox.setPortrait` — satu lagi `dialogue`.
+  Menutup overlay di sana menghapus kartu umpan balik dan menyangkutkan dialog di
+  fase `challenge` (tidak ada lagi jalan lanjut karena input dialog diabaikan).
 - Selama fase `challenge`, input dialog diabaikan sampai `resolve_challenge`
   diterima. `skip_start`/`skip_stop` memajukan beat bertahap ala tahan-tombol
   Persona (time-lapse 100 ms per beat selama ditahan) dan berhenti di beat soal;

@@ -226,19 +226,23 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         lepas.push(
           game.bus.on("dialogue", ({ view }) => {
             setDialog(view);
-
+          }),
+        );
+        lepas.push(
+          game.bus.on("detour", ({ aktif }) => {
             // Detour konsekuensi jawaban salah diputar lewat renderer dialog
             // yang sama (story-schema.md). Overlay tantangan harus menutup
-            // supaya detour terlihat; tidak ada event baru untuk ini.
+            // supaya detour terlihat; soal dibuka ulang oleh event `challenge`
+            // yang menyusul.
             //
-            // Aman untuk alur biasa: prompt tantangan juga tampil sebagai
-            // `dialogue`, tetapi event-nya dikirim **sebelum** `challenge`
-            // sehingga setTantangan(null) di sini langsung ditimpa view soal
-            // pada batch yang sama.
-            if (view.visible) {
-              setTantangan(null);
-              setHasil(null);
-            }
+            // Penutupan overlay **tidak** boleh mengandalkan event `dialogue`:
+            // dialog soal tantangan juga tiba sebagai `dialogue`, dan saat
+            // dinilai scene mengganti potret lewat `setPortrait` (satu lagi
+            // `dialogue`). Dulu keduanya ikut menutup overlay, sehingga kartu
+            // umpan balik hilang dan dialog tersangkut di fase challenge.
+            if (!aktif) return;
+            setTantangan(null);
+            setHasil(null);
           }),
         );
         lepas.push(
