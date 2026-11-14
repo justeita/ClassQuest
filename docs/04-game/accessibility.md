@@ -128,8 +128,10 @@ bergerigi bersama pixel art.
   teks ikut membesar bersama canvas tetapi tidak pernah turun di bawah `min`.
 - Di layar 1280 px, satu baris dialog setara ~30 px; minimum 13 px berlaku di
   layar sempit.
-- Font yang dipakai adalah **Patrick Hand** (OFL, lokal di `public/fonts/`,
-  dimuat `next/font/local`) — lihat
+- Isi dialog memakai **Patrick Hand** (OFL, lokal di `public/fonts/`, dimuat
+  `next/font/local`); nama pembicara memakai huruf pixel **Pixelify Sans**
+  (`font-pixel`) berwarna teal. Keduanya punya ukuran minimum `clamp()` supaya
+  tetap terbaca di layar sempit — lihat
   [`world-design.md`](./world-design.md#teks-dan-font).
 
 Aturan:

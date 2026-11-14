@@ -532,6 +532,7 @@ describe("GameShell", () => {
         name: "Bu Ratna",
         text: "Air di bumi tidak pernah hilang.",
         waiting: true,
+        portrait: null,
       },
     });
 
@@ -545,13 +546,25 @@ describe("GameShell", () => {
     await mainkan();
     bus.emit({
       type: "dialogue",
-      view: { visible: true, name: null, text: "Hujan turun.", waiting: true },
+      view: {
+        visible: true,
+        name: null,
+        text: "Hujan turun.",
+        waiting: true,
+        portrait: null,
+      },
     });
     await screen.findByText("Hujan turun.");
 
     bus.emit({
       type: "dialogue",
-      view: { visible: false, name: null, text: "", waiting: false },
+      view: {
+        visible: false,
+        name: null,
+        text: "",
+        waiting: false,
+        portrait: null,
+      },
     });
 
     await vi.waitFor(() =>
@@ -578,7 +591,13 @@ describe("GameShell", () => {
     await mainkan();
     bus.emit({
       type: "dialogue",
-      view: { visible: true, name: null, text: "Hujan turun.", waiting: true },
+      view: {
+        visible: true,
+        name: null,
+        text: "Hujan turun.",
+        waiting: true,
+        portrait: null,
+      },
     });
     bus.emit({
       type: "prompt",
@@ -601,6 +620,7 @@ describe("GameShell — tombol percepat", () => {
     name: "Pak Bima",
     text: "Genangan itu tadi pagi masih penuh.",
     waiting: true,
+    portrait: null,
   };
 
   const challenge = {
@@ -644,7 +664,13 @@ describe("GameShell — tombol percepat", () => {
 
     bus.emit({
       type: "dialogue",
-      view: { visible: false, name: null, text: "", waiting: false },
+      view: {
+        visible: false,
+        name: null,
+        text: "",
+        waiting: false,
+        portrait: null,
+      },
     });
 
     await vi.waitFor(() =>
@@ -804,6 +830,7 @@ describe("GameShell — soal di atas dialog", () => {
         name: "Bu Ratna",
         text: "Air di bumi tidak pernah hilang.",
         waiting: true,
+        portrait: null,
       },
     });
     await screen.findByText("Air di bumi tidak pernah hilang.");
@@ -817,6 +844,38 @@ describe("GameShell — soal di atas dialog", () => {
     ).toBeGreaterThan(0);
     // Indikator "lanjut" disembunyikan selama soal, karena dialog dibekukan.
     expect(screen.queryByText("▼")).not.toBeInTheDocument();
+  });
+
+  it("menyembunyikan potret selama soal dan menampilkannya lagi setelah dinilai", async () => {
+    await mainkan();
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Air di bumi tidak pernah hilang.",
+        waiting: true,
+        portrait: {
+          src: "/assets/portrait/npc_1/neutral.png",
+          alt: "Potret Bu Ratna",
+        },
+      },
+    });
+    expect(await screen.findByAltText("Potret Bu Ratna")).toBeInTheDocument();
+
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+    // Soal belum dijawab: potret disembunyikan supaya tidak menutupi pilihan.
+    expect(screen.queryByAltText("Potret Bu Ratna")).not.toBeInTheDocument();
+
+    bus.emit({
+      type: "graded",
+      challengeId: "chl_01_01",
+      correct: true,
+      explanation: "Benar.",
+    });
+    // Setelah dinilai, potret tampil lagi untuk umpan balik senang/marah.
+    expect(await screen.findByAltText("Potret Bu Ratna")).toBeInTheDocument();
   });
 
   it("fokus kembali ke area game setelah tantangan ditutup", async () => {

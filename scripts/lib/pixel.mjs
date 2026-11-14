@@ -368,8 +368,79 @@ function chunk(type, payload) {
   return Buffer.concat([length, body, crc]);
 }
 
-/** Kanvas → buffer PNG (truecolor + alpha, tanpa filter). */
-export function encodePng(canvas) {
+/** Jumlah byte per piksel saat memfilter baris scanline. */
+const BPP = 4;
+
+/** Nilai heuristik filter: jumlah absolut byte sebagai signed 8-bit. */
+function nilaiFilter(buffer) {
+  let jumlah = 0;
+  for (const byte of buffer) jumlah += byte < 128 ? byte : 256 - byte;
+  return jumlah;
+}
+
+/**
+ * Susun ulang tiap baris dengan filter PNG yang paling banyak mengulang nilai
+ * tetangganya (0 none, 1 sub, 2 up, 3 average, 4 paeth). Dipakai potret dengan
+ * gradasi halus; filter 0 saja membuat deflate menyimpan hampir mentah.
+ */
+function filterAdaptif(canvas) {
+  const stride = canvas.width * BPP;
+  const raw = Buffer.alloc((stride + 1) * canvas.height);
+  const sebelumnya = Buffer.alloc(stride);
+  const baris = Buffer.alloc(stride);
+  const kandidat = Buffer.alloc(stride);
+  const terbaik = Buffer.alloc(stride);
+
+  for (let y = 0; y < canvas.height; y += 1) {
+    baris.set(canvas.data.subarray(y * stride, y * stride + stride));
+    let tipeTerbaik = 0;
+    let nilaiTerbaik = Infinity;
+
+    for (let tipe = 0; tipe <= 4; tipe += 1) {
+      for (let i = 0; i < stride; i += 1) {
+        const kiri = i >= BPP ? baris[i - BPP] : 0;
+        const atas = sebelumnya[i];
+        const kiriAtas = i >= BPP ? sebelumnya[i - BPP] : 0;
+        let nilai = baris[i];
+        if (tipe === 1) nilai = (nilai - kiri) & 0xff;
+        else if (tipe === 2) nilai = (nilai - atas) & 0xff;
+        else if (tipe === 3) nilai = (nilai - ((kiri + atas) >> 1)) & 0xff;
+        else if (tipe === 4) {
+          const p = kiri + atas - kiriAtas;
+          const pa = Math.abs(p - kiri);
+          const pb = Math.abs(p - atas);
+          const pc = Math.abs(p - kiriAtas);
+          const prediksi =
+            pa <= pb && pa <= pc ? kiri : pb <= pc ? atas : kiriAtas;
+          nilai = (nilai - prediksi) & 0xff;
+        }
+        kandidat[i] = nilai;
+      }
+      const nilai = nilaiFilter(kandidat);
+      if (nilai < nilaiTerbaik) {
+        nilaiTerbaik = nilai;
+        tipeTerbaik = tipe;
+        terbaik.set(kandidat);
+      }
+    }
+
+    raw[y * (stride + 1)] = tipeTerbaik;
+    terbaik.copy(raw, y * (stride + 1) + 1);
+    sebelumnya.set(baris);
+  }
+
+  return raw;
+}
+
+/**
+ * Kanvas → buffer PNG (truecolor + alpha).
+ *
+ * `filter` bawaan `0` (tiap baris apa adanya) supaya aset pixel art kecil tetap
+ * deterministik dan byte-nya persis seperti sebelumnya. `filter: "adaptive"`
+ * memilih filter PNG per baris — jauh lebih kecil untuk potret bergradasi,
+ * dengan deflate yang sama.
+ */
+export function encodePng(canvas, { filter } = {}) {
   const header = Buffer.alloc(13);
   header.writeUInt32BE(canvas.width, 0);
   header.writeUInt32BE(canvas.height, 4);
@@ -379,14 +450,19 @@ export function encodePng(canvas) {
   header[11] = 0;
   header[12] = 0;
 
-  const stride = canvas.width * 4;
-  const raw = Buffer.alloc((stride + 1) * canvas.height);
-  for (let y = 0; y < canvas.height; y += 1) {
-    raw[y * (stride + 1)] = 0;
-    Buffer.from(canvas.data.buffer, y * stride, stride).copy(
-      raw,
-      y * (stride + 1) + 1,
-    );
+  const stride = canvas.width * BPP;
+  let raw;
+  if (filter === "adaptive") {
+    raw = filterAdaptif(canvas);
+  } else {
+    raw = Buffer.alloc((stride + 1) * canvas.height);
+    for (let y = 0; y < canvas.height; y += 1) {
+      raw[y * (stride + 1)] = 0;
+      Buffer.from(canvas.data.buffer, y * stride, stride).copy(
+        raw,
+        y * (stride + 1) + 1,
+      );
+    }
   }
 
   return Buffer.concat([

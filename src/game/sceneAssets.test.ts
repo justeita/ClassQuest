@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { DEMO_STORY } from "@/game/demoStory";
+import { EXPRESSIONS } from "@/story/expression";
 import type { Chapter, Scene, Story } from "@/story/schema";
 
 import {
@@ -70,7 +71,7 @@ describe("collectStoryAssets", () => {
     );
   });
 
-  it("memuat semua karakter cast, UI, dan SFX runtime", () => {
+  it("memuat semua karakter cast dan SFX runtime", () => {
     expect(ids).toEqual(
       expect.arrayContaining([
         "char_mc",
@@ -83,8 +84,6 @@ describe("collectStoryAssets", () => {
         "char_npc_8",
         "char_npc_9",
         "char_npc_10",
-        "ui_textbox",
-        "ui_portrait_frame",
         "sfx_click",
         "sfx_correct",
         "sfx_wrong",
@@ -100,9 +99,10 @@ describe("collectStoryAssets", () => {
     expect(ids).not.toContain("char_npc_2");
   });
 
-  it("karakter membawa portraitPath dari manifest", () => {
+  it("karakter membawa potret lengkap dari manifest", () => {
     const mc = aset.find((entry) => entry.id === "char_mc");
-    expect(mc?.portraitPath).toBe("/assets/portrait/mc.png");
+    expect(Object.keys(mc?.portraits ?? {})).toHaveLength(EXPRESSIONS.length);
+    expect(mc?.portraits?.happy).toBe("/assets/portrait/mc/happy.png");
   });
 
   it("cerita kosong tetap mendapat aset runtime", () => {
@@ -113,7 +113,7 @@ describe("collectStoryAssets", () => {
       expect.arrayContaining([
         DEFAULT_BACKGROUND_ID,
         DEFAULT_MUSIC_ID,
-        "ui_textbox",
+        "sfx_click",
       ]),
     );
   });

@@ -801,13 +801,18 @@ const checkReferences = (
       scene.beats.forEach((beat, beatIndex) => {
         const beatPath = `${scenePath}.beats[${beatIndex}]`;
 
-        if (beat.type === "dialogue" && !castIds.has(beat.speakerId)) {
+        const speakerId =
+          beat.type === "dialogue" || beat.type === "narration"
+            ? beat.speakerId
+            : undefined;
+
+        if (speakerId !== undefined && !castIds.has(speakerId)) {
           report(
             errorIssue(
               "E_UNKNOWN_SPEAKER",
               `${beatPath}.speakerId`,
-              `Karakter "${beat.speakerId}" tidak ada di daftar cast.`,
-              `"${beat.speakerId}" tidak ada di cast.`,
+              `Karakter "${speakerId}" tidak ada di daftar cast.`,
+              `"${speakerId}" tidak ada di cast.`,
             ),
           );
         }
@@ -1383,13 +1388,23 @@ const normalizeTextVariants = (
 const normalizeDetourBeat = (beat: DetourBeat): DetourBeat => {
   switch (beat.type) {
     case "narration":
-      return { type: "narration", text: tidyText(beat.text) };
+      return {
+        type: "narration",
+        text: tidyText(beat.text),
+        ...(beat.speakerId === undefined ? {} : { speakerId: beat.speakerId }),
+        ...(beat.expression === undefined
+          ? {}
+          : { expression: beat.expression }),
+      };
     case "dialogue": {
       const textVariants = normalizeTextVariants(beat.textVariants);
       return {
         type: "dialogue",
         speakerId: beat.speakerId,
         text: tidyText(beat.text),
+        ...(beat.expression === undefined
+          ? {}
+          : { expression: beat.expression }),
         ...(textVariants === undefined ? {} : { textVariants }),
       };
     }
@@ -1399,13 +1414,23 @@ const normalizeDetourBeat = (beat: DetourBeat): DetourBeat => {
 const normalizeBeat = (beat: Beat): Beat => {
   switch (beat.type) {
     case "narration":
-      return { type: "narration", text: tidyText(beat.text) };
+      return {
+        type: "narration",
+        text: tidyText(beat.text),
+        ...(beat.speakerId === undefined ? {} : { speakerId: beat.speakerId }),
+        ...(beat.expression === undefined
+          ? {}
+          : { expression: beat.expression }),
+      };
     case "dialogue": {
       const textVariants = normalizeTextVariants(beat.textVariants);
       return {
         type: "dialogue",
         speakerId: beat.speakerId,
         text: tidyText(beat.text),
+        ...(beat.expression === undefined
+          ? {}
+          : { expression: beat.expression }),
         ...(textVariants === undefined ? {} : { textVariants }),
       };
     }

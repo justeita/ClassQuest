@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Pixelify_Sans, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { ToastProvider } from "@/components/guru/toast";
 
 /**
  * Font portal guru, dipisah dari font game di root layout supaya halaman siswa
- * tidak ikut mengunduh tiga keluarga tambahan.
+ * tidak ikut mengunduh keluarga tambahan.
  *
  * Desain asalnya memuat Inter, Plus Jakarta Sans, dan Pixelify Sans lewat
  * Google Fonts `<link>`; di sini `next/font` yang menyajikan berkasnya sendiri
- * (tanpa permintaan ke pihak ketiga saat runtime).
+ * (tanpa permintaan ke pihak ketiga saat runtime). Pixelify Sans pindah ke root
+ * karena dipakai juga oleh nama pembicara di game.
  */
 const inter = Inter({
   variable: "--font-inter",
@@ -22,13 +23,6 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin"],
   weight: ["500", "600", "700", "800"],
-  display: "swap",
-});
-
-const pixelify = Pixelify_Sans({
-  variable: "--font-pixelify",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -52,7 +46,7 @@ export const metadata: Metadata = {
 export default function GuruLayout({ children }: { children: ReactNode }) {
   return (
     <div
-      className={`${inter.variable} ${jakarta.variable} ${pixelify.variable} guru-root min-h-screen bg-slate-100 text-slate-800 antialiased`}
+      className={`${inter.variable} ${jakarta.variable} guru-root min-h-screen bg-slate-100 text-slate-800 antialiased`}
     >
       {/* Ikon Font Awesome: desain asal memakai CDN, jadi dipertahankan agar
           tidak perlu menggambar ulang ~80 ikon sebagai SVG. */}

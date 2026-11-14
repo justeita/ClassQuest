@@ -48,21 +48,21 @@ dunia desa **tidak** memakai satuan tile 16×16: editor peta menempel gambar di
 koordinat piksel bebas, dan angka itu disalin apa adanya ke game. Jadi hampir
 semua nilai di bawah dinyatakan dalam piksel.
 
-| Hal                   | Nilai                                                    |
-| --------------------- | -------------------------------------------------------- |
-| Resolusi internal     | 640×360 px                                               |
-| Lebar kanvas          | lebar kontainer ÷ skala, dijepit 640–960 px (tinggi 360) |
-| Skala ke layar        | bulat saat sisa ruang ≤6%, selain itu penuh (mis. 1,83×) |
-| Peta desa             | 2390×1792 px                                             |
-| Sel collision editor  | 7,9667×5,9733 px (peta dibagi rata menjadi grid 300×300) |
-| Frame sprite karakter | 64 px tinggi; lebar per karakter berbeda (34–51 px)      |
-| Tinggi karakter       | 56 px di peta (frame 64 px × skala 0,875)                |
-| Portrait dialog       | 64×64 px                                                 |
-| Kecepatan pemain      | 180 px/detik                                             |
-| Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki              |
-| Zona interaksi NPC    | 30 px masuk / 38 px keluar (histeresis 8 px)             |
-| Dead zone kamera      | 128×96 px di tengah layar                                |
-| Zoom kamera           | 0,8 — bingkai 640×360 menampilkan 800×450 px dunia       |
+| Hal                   | Nilai                                                        |
+| --------------------- | ------------------------------------------------------------ |
+| Resolusi internal     | 640×360 px                                                   |
+| Lebar kanvas          | lebar kontainer ÷ skala, dijepit 640–960 px (tinggi 360)     |
+| Skala ke layar        | bulat saat sisa ruang ≤6%, selain itu penuh (mis. 1,83×)     |
+| Peta desa             | 2390×1792 px                                                 |
+| Sel collision editor  | 7,9667×5,9733 px (peta dibagi rata menjadi grid 300×300)     |
+| Frame sprite karakter | kotak potong per karakter (33–52 px lebar × 61–66 px tinggi) |
+| Tinggi karakter       | 56 px di peta (diskalakan dari tinggi frame)                 |
+| Portrait dialog       | 64×64 px                                                     |
+| Kecepatan pemain      | 180 px/detik                                                 |
+| Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki                  |
+| Zona interaksi NPC    | 30 px masuk / 38 px keluar (histeresis 8 px)                 |
+| Dead zone kamera      | 128×96 px di tengah layar                                    |
+| Zoom kamera           | 0,8 — bingkai 640×360 menampilkan 800×450 px dunia           |
 
 Skala kanvas dihitung `ukuranKanvas()` di `src/game/constants.ts` dengan dua
 mode. Kalau kontainer hampir pas kelipatan tinggi 360 (sisa ≤6%, `SISA_SKALA_MAKS`),
@@ -198,7 +198,8 @@ saat pemain benar-benar melangkah, bukan sepanjang waktu. Nilai ini satu angka d
 `camera.ts`; kalau terasa kurang pas, cukup ubah di situ.
 
 **Objek terskala tetap dibulatkan.** Objek dari editor diskalakan dengan faktor
-pecahan (mis. `house_red` 185×128 digambar 308×212 ≈ 1,66×), dan karakter 0,875×.
+pecahan (mis. `house_red` 185×128 digambar 308×212 ≈ 1,66×), dan karakter
+diskalakan ke tinggi tetap 56 px.
 Phaser hanya membulatkan objek yang "hanya translasi" (`safeAuto`), jadi objek
 terskala diberi `setVertexRoundMode("fullAuto")` di `GameScene`. Tanpa itu objek
 meluncur di sub-piksel sementara peta membulat — sumber getaran yang paling
@@ -206,18 +207,20 @@ terlihat.
 
 ## Sprite karakter
 
-| Hal         | Nilai                                                                    |
-| ----------- | ------------------------------------------------------------------------ |
-| Frame       | 8 frame horizontal, **satu frame per arah** (tanpa animasi jalan)        |
-| Urutan arah | bawah, bawah-kanan, kanan, atas-kanan, atas, atas-kiri, kiri, bawah-kiri |
-| Ukuran      | tinggi selalu 64 px; lebar per karakter 34–51 px                         |
-| Anchor      | Kaki di tengah bawah (`setOrigin(0.5, 1)`)                               |
-| Skala       | 0,875 → tinggi 56 px di peta                                             |
-| Portrait    | 64×64 px, dipotong dari frame menghadap bawah                            |
+| Hal         | Nilai                                                                      |
+| ----------- | -------------------------------------------------------------------------- |
+| Frame       | spritesheet berpetak: 8 baris arah × (idle [+ walk]) kolom                 |
+| Urutan arah | selatan, tenggara, timur, timur laut, utara, barat laut, barat, barat daya |
+| Ukuran      | kotak potong per karakter (33–52 px lebar × 61–66 px tinggi)               |
+| Anchor      | Kaki di tengah bawah (`setOrigin(0.5, 1)`)                                 |
+| Skala       | tinggi diseragamkan ke 56 px di peta                                       |
+| Animasi     | idle selalu berputar; pemain menambah walk saat bergerak                   |
+| Portrait    | 64×64 px, tidak dibuat ulang dari sprite baru                              |
 
-Karena hanya ada satu frame per arah, "animasi" berjalan hanya berganti frame
-saat arah berubah. Saat berhenti, frame terakhir di arah terakhir dipertahankan —
-jangan kembali ke frame menghadap depan untuk arah samping.
+Animasi didaftarkan sekali per karakter di `GameScene` (kunci
+`<id>:<jenis>:<arah>`, `repeat: -1`), dari metadata
+`src/assets/characterFrames.ts`. Arah hadap NPC berubah saat diajak bicara:
+NPC berbalik menghadap titik kaki pemain (`arahKe`).
 
 ## Lampiran aset latar
 
@@ -229,7 +232,7 @@ ditimpa potongan objek dari editor:
 | -------- | ------------------------------------------------------------- | ------------------------------------------- |
 | Peta     | Gambar desa penuh, satu berkas JPEG                           | `world_map_village`                         |
 | Objek    | Rumah, pohon, bunga, bangku, sumur, tiang lampu, pagar, jalan | `world_house_red`, `world_tree_regular_1_1` |
-| Karakter | Sprite 8 arah + portrait untuk `story.cast`                   | `char_mc`, `char_npc_7`                     |
+| Karakter | Sprite 8 arah + potret 6 ekspresi untuk `story.cast`          | `char_mc`, `char_npc_7`                     |
 | Musik    | Satu lagu untuk seluruh permainan                             | `bgm_default`                               |
 
 > Semua entri di atas terdaftar di `src/assets/worldAssets.ts` (dibangkitkan
@@ -249,12 +252,30 @@ Font monospace sistem yang dulu dipakai (`textbox.ts`, `interaction.ts`) tidak
 cocok dengan pixel art dan, lebih penting, teks yang digambar di canvas 640×360
 selalu bergerigi setelah upscale `image-rendering: pixelated`.
 
-Keputusan (ADR 0007): **teks permainan pindah ke DOM**.
+Keputusan (ADR 0007, diperluas ADR 0020): **teks permainan pindah ke DOM**.
 
-- Panel `ui_textbox` dan potret tetap digambar Phaser; nama, isi dialog, dan
-  indikator "lanjut" dirender React (`DialogueBox.tsx`) di atas panel itu.
-  Prompt interaksi `Space` juga DOM (`InteractHint.tsx`).
-- Font: **Patrick Hand** (SIL Open Font License), disimpan lokal di
+- Panel, potret, nama, isi dialog, dan indikator "lanjut" dirender React
+  (`DialogueBox.tsx`). Panel bukan lagi gambar `ui_textbox`, melainkan kotak CSS
+  navy gelap membulat. Potret anime tidak dibungkus bingkai: NPC berdiri di
+  sisi kiri atas panel, MC (dicerminkan) di sisi kanan — dasarnya menempel
+  tepi atas panel, dengan jarak masuk sedikit lebih besar dari radius sudut
+  panel supaya siluetnya tidak terpotong lengkungan — dan berekspresi sesuai
+  field `expression` beat. Importer menormalkan tinggi kepala, menyusun potret
+  relatif ke satu patokan tanpa memotong sisinya, menaikkan skala karakter
+  berbadan pendek supaya isinya menyentuh tepi bawah
+  kanvas, dan memadatkan tepi bawah yang memudar jadi potongan rata; jadi
+  wajah semua karakter sama besar, siluetnya utuh, dan tidak ada
+  potret yang melayang di atas panel. Slotnya digambar 85% dari setengah panel
+  supaya tidak mendominasi layar. Potret MC hanya menemani dialog scene yang
+  memang memuat giliran MC — dialog antar-NPC dan obrolan singkat NPC non-quest
+  tampil tanpanya. Pembicara
+  menyala, lawan bicaranya meredup dan tetap terlihat; selama soal belum dijawab
+  kedua potret disembunyikan. Prompt interaksi `Space` juga DOM
+  (`InteractHint.tsx`).
+- Nama pembicara memakai **Pixelify Sans** (utility `font-pixel`, variabel
+  `--font-pixelify` dipasang di `src/app/layout.tsx`): huruf pixel kapital teal
+  untuk hierarki nama, sedangkan isi dialog tetap Patrick Hand.
+- Font isi game: **Patrick Hand** (SIL Open Font License), disimpan lokal di
   `public/fonts/` (`patrick-hand-latin.woff2`,
   `patrick-hand-latin-ext.woff2`, `OFL.txt`) dan dimuat lewat `next/font/local`
   sebagai variabel `--font-handwriting`.
@@ -268,13 +289,14 @@ Keputusan (ADR 0007): **teks permainan pindah ke DOM**.
   `clamp()` berbasis `cqw` (lihat
   [`accessibility.md`](./accessibility.md#ukuran-teks)).
 
-> Kandidat font pixel bitmap **dibatalkan**: teks bitmap di canvas tetap terkena
-> upscale non-integer. `Patrick Hand` dipilih karena handwriting-nya jelas,
-> punya `latin-ext`, dan lisensinya OFL.
+> Kandidat font pixel bitmap **di canvas** dibatalkan: teks bitmap di canvas
+> tetap terkena upscale non-integer. `Patrick Hand` dipilih untuk isi dialog
+> karena handwriting-nya jelas, punya `latin-ext`, dan lisensinya OFL. Nama
+> pembicara tetap boleh memakai huruf pixel lewat DOM (`font-pixel`), yang tidak
+> bergerigi karena digambar browser pada resolusi layar asli.
 
 ## Yang sengaja tidak dikerjakan
 
-- Animasi jalan lebih dari satu frame per arah; karakter desa statis per arah.
 - Parallax lebih dari satu lapisan latar.
 - Beberapa peta yang tersambung (transisi antar-ruangan): seluruh cerita memakai
   satu peta desa.

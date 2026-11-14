@@ -485,11 +485,13 @@ const buildChapter = (
               `Hari ini kita belajar tentang ${concept}. Kita akan mencari tahu bersama.`,
               240,
             ),
+            expression: "happy",
           },
           {
             type: "dialogue",
             speakerId: playerId,
             text: "Baik, Pak. Aku siap mencatat hal pentingnya.",
+            expression: "happy",
           },
           {
             type: "challenge",
@@ -529,6 +531,7 @@ const buildChapter = (
               `Bagus. Jadi kata kunci hari ini adalah ${concept}.`,
               240,
             ),
+            expression: "happy",
             // Bereaksi pada flag yang dinyalakan jawaban salah di atas. Teks
             // utama tetap dipakai bila siswa menjawab benar pada percobaan
             // pertama (flag masih `false`).
@@ -597,6 +600,7 @@ const buildChapter = (
             type: "dialogue",
             speakerId: playerId,
             text: "Sekarang aku tahu kata kunci yang kita pelajari hari ini.",
+            expression: "happy",
             ...(branching
               ? {
                   textVariants: [

@@ -16,14 +16,14 @@ menerima hasil. Tidak ada Phaser di server, tidak ada `window` saat SSR.
 
 ## Pembagian tanggung jawab
 
-| Bagian                 | Teknologi        | Isi                                             |
-| ---------------------- | ---------------- | ----------------------------------------------- |
-| Dunia, peta, karakter  | Phaser           | Sprite, posisi, urutan gambar (depth), kamera   |
-| Dialog                 | Hybrid           | Panel + portrait Phaser, teks typewriter di DOM |
-| Tantangan              | React DOM        | Form, tombol, input, feedback, aksesibilitas    |
-| HUD, menu, hasil       | React DOM        | Panel quest, jeda, layar hasil                  |
-| State cerita           | TypeScript murni | `StoryRunner` (tanpa Phaser)                    |
-| Persistensi preferensi | `localStorage`   | Pengaturan audio, dibaca React saat mount       |
+| Bagian                 | Teknologi        | Isi                                           |
+| ---------------------- | ---------------- | --------------------------------------------- |
+| Dunia, peta, karakter  | Phaser           | Sprite, posisi, urutan gambar (depth), kamera |
+| Dialog                 | Hybrid           | Panel + potret DOM, state typewriter Phaser   |
+| Tantangan              | React DOM        | Form, tombol, input, feedback, aksesibilitas  |
+| HUD, menu, hasil       | React DOM        | Panel quest, jeda, layar hasil                |
+| State cerita           | TypeScript murni | `StoryRunner` (tanpa Phaser)                  |
+| Persistensi preferensi | `localStorage`   | Pengaturan audio, dibaca React saat mount     |
 
 Alasannya: input teks dan aksesibilitas jauh lebih baik di DOM, sementara dunia
 game butuh render loop. Memaksakan semuanya ke canvas akan memperlambat
@@ -95,7 +95,7 @@ Catatan Phaser 4:
 - `roundPixels` **default `false`** di v4. Tanpa ini, pixel art akan blur/bergetar.
 - Pembulatan per objek memakai `vertexRoundMode`. Default `safeAuto` hanya
   membulatkan objek yang **tidak** diskalakan atau diputar; objek terskala
-  (prop editor ±1,66×, karakter 0,875×) perlu
+  (prop editor ±1,66×, karakter ke tinggi tetap 56 px) perlu
   `setVertexRoundMode("fullAuto")` supaya tidak meluncur di sub-piksel.
 - `setTintFill()` sudah dihapus. Untuk efek highlight, pakai `setTint()` +
   `setTintMode()`.
@@ -236,8 +236,10 @@ ditandai `"use client"` dan diimpor dinamis.
 `GameScene` menjalankan siklus ADR 0008: fase `explore` (dunia dari `VILLAGE`,
 pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()`
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
-(Space/Enter/klik). Teks dialog dikirim ke React sebagai event `dialogue` dan
-dirender `DialogueBox.tsx`; React membalas command `advance`. Prompt interaksi
+(Space/Enter/klik). State dialog dikirim ke React sebagai event `dialogue` dan
+dirender `DialogueBox.tsx` — panel kotak navy gelap membulat, potret
+ber-`expression`, nama, dan teks (ADR 0020); React membalas command `advance`.
+Prompt interaksi
 memakai event `prompt`: kotak `Space` pemberi quest dirender `NpcMarker.tsx`
 (menyatu dengan `!`), sedangkan obrolan singkat dirender `InteractHint.tsx`
 (ADR 0007). Pemberi quest
@@ -349,7 +351,8 @@ Aturan:
 
 - Key di Phaser **sama dengan `assetId`**. Jangan membuat key lain.
 - Spritesheet karakter memakai `frameWidth`/`frameHeight` dari manifest, karena
-  tiap karakter desa punya lebar frame sendiri.
+  tiap karakter desa punya kotak frame sendiri. `GameScene` mendaftarkan
+  animasi idle/walk dari `characterFrames.ts` dan memutarnya per arah hadap.
 - Tanpa penanganan `loaderror` dan tanpa sprite cadangan: `manifest.test.ts`
   menjamin setiap id manifest punya berkasnya.
 - Tampilkan progress yang jujur; jangan freeze tanpa indikator.

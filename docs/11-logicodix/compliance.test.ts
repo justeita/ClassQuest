@@ -130,14 +130,21 @@ describe("kredensial (halaman cetak 15-16)", () => {
     expect(suspicious).toEqual([]);
   });
 
-  it.skipIf(!hasHistory)("tidak ada kredensial di riwayat commit", () => {
-    const history = git("log", "-p", "--all");
-    const found = SECRETS.filter(([, pattern]) => pattern.test(history)).map(
-      ([label]) => label,
-    );
+  // Memindai `git log -p --all` untuk seluruh riwayat. Batas 5 detik bawaan
+  // Vitest terlalu ketat saat tes ini bersaing dengan puluhan file tes lain di
+  // mesin yang sama; assertion-nya tetap sama.
+  it.skipIf(!hasHistory)(
+    "tidak ada kredensial di riwayat commit",
+    { timeout: 30_000 },
+    () => {
+      const history = git("log", "-p", "--all");
+      const found = SECRETS.filter(([, pattern]) => pattern.test(history)).map(
+        ([label]) => label,
+      );
 
-    expect(found).toEqual([]);
-  });
+      expect(found).toEqual([]);
+    },
+  );
 });
 
 describe("riwayat commit (halaman cetak 14-16)", () => {
@@ -206,12 +213,13 @@ describe("riwayat commit (halaman cetak 14-16)", () => {
     expect(wrong).toEqual([]);
   });
 
-  // Memindai `git show --numstat` untuk SELURUH riwayat, jadi durasinya naik
-  // seiring jumlah commit. Beri batas yang cukup agar tidak gagal karena
-  // bersaing dengan 35 file tes lain, bukan karena aturannya dilanggar.
+  // Memindai `git show --numstat` untuk SELURUH riwayat, satu proses per commit,
+  // jadi durasinya naik seiring jumlah commit dan sangat bergantung pada I/O.
+  // Beri batas longgar agar tidak gagal karena bersaing dengan puluhan file tes
+  // lain, bukan karena aturannya dilanggar.
   it.skipIf(!hasHistory)(
     "tidak ada commit berisi seluruh proyek sekaligus",
-    { timeout: 30_000 },
+    { timeout: 120_000 },
     () => {
       const wrong = commits.flatMap((c) => {
         const lines = git("show", "--numstat", "--format=", c.hash)

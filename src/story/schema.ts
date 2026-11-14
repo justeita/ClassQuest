@@ -16,6 +16,8 @@
 
 import { z } from "zod";
 
+import { EXPRESSIONS } from "./expression";
+
 export const STORY_SCHEMA_VERSION = "1.0" as const;
 
 /** Teks dengan batas bawah dan atas, dihitung per code point. */
@@ -134,9 +136,22 @@ export const transitionEffectSchema = z.enum(["fade", "cut"]);
 
 export type TransitionEffect = z.infer<typeof transitionEffectSchema>;
 
+/** Ekspresi potret yang boleh dipakai beat dialog/narasi. */
+export const expressionSchema = z.enum(EXPRESSIONS);
+
+export type Expression = z.infer<typeof expressionSchema>;
+
+/**
+ * Narasi tanpa nama pembicara. `speakerId` opsional hanya untuk memunculkan
+ * potret karakter **tanpa** menampilkan namanya; `expression` mengikuti
+ * `speakerId` (lihat `dependentRequired` di `story.schema.json`, ditegakkan
+ * pada `beatSchema` karena aturan itu melintasi dua field).
+ */
 export const narrationBeatSchema = z.strictObject({
   type: z.literal("narration"),
   text: boundedText(1, 240),
+  speakerId: nonEmptyId.optional(),
+  expression: expressionSchema.optional(),
 });
 
 export const textVariantSchema = z.strictObject({
@@ -153,6 +168,7 @@ export const dialogueBeatSchema = z.strictObject({
   type: z.literal("dialogue"),
   speakerId: nonEmptyId,
   text: boundedText(1, 240),
+  expression: expressionSchema.optional(),
   textVariants: z.array(textVariantSchema).min(1).optional(),
 });
 
@@ -193,12 +209,29 @@ export const transitionBeatSchema = z.strictObject({
   text: boundedText(1, 240).optional(),
 });
 
-export const beatSchema = z.discriminatedUnion("type", [
-  narrationBeatSchema,
-  dialogueBeatSchema,
-  challengeBeatSchema,
-  transitionBeatSchema,
-]);
+export const beatSchema = z
+  .discriminatedUnion("type", [
+    narrationBeatSchema,
+    dialogueBeatSchema,
+    challengeBeatSchema,
+    transitionBeatSchema,
+  ])
+  .superRefine((beat, ctx) => {
+    // JSON Schema memakai `dependentRequired`; zod menegakkannya di sini
+    // karena aturannya melintasi dua field pada beat narration.
+    if (
+      beat.type === "narration" &&
+      beat.expression !== undefined &&
+      beat.speakerId === undefined
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["expression"],
+        message:
+          "Beat narration hanya boleh memakai expression bersama speakerId.",
+      });
+    }
+  });
 
 export type NarrationBeat = z.infer<typeof narrationBeatSchema>;
 export type DialogueBeat = z.infer<typeof dialogueBeatSchema>;

@@ -42,28 +42,36 @@ export function GamePreview() {
           Bab 1 · Perbandingan
         </p>
 
-        {/* Dialog meniru kotak dialog game (ADR 0007): panel gelap, potret di
-            kiri, nama pembicara di atas teks. */}
-        <div className="absolute inset-x-3 bottom-3 flex items-start gap-2.5 rounded-lg border-2 border-slate-900 bg-slate-900/92 p-2.5 sm:inset-x-4 sm:bottom-4 sm:gap-3 sm:p-3">
-          <span className="shrink-0 overflow-hidden rounded border-2 border-slate-700 bg-slate-800">
+        {/* Dialog meniru gaya Persona (ADR 0020): dua potret tanpa bingkai
+            berdiri di **atas** panel, dasarnya menempel tepi atas kotak. NPC
+            yang bicara di kiri menyala; potret MC di kanan dicerminkan dan
+            diredupkan sebagai lawan bicara. */}
+        <div className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
+          <div className="relative">
             <Image
-              src="/assets/portrait/npc_10.png"
-              alt=""
-              width={64}
-              height={64}
-              className="h-10 w-10 sm:h-12 sm:w-12"
-              style={{ imageRendering: "pixelated" }}
+              src="/assets/portrait/mc/neutral.png"
+              alt="Potret Nara"
+              width={456}
+              height={360}
+              className="pointer-events-none absolute bottom-full right-0 h-24 w-[50%] -scale-x-100 object-contain object-bottom brightness-50 sm:h-32"
             />
-          </span>
+            <Image
+              src="/assets/portrait/npc_10/thinking.png"
+              alt="Potret Pak Wira"
+              width={456}
+              height={360}
+              className="pointer-events-none absolute bottom-full left-0 h-24 w-[50%] object-contain object-bottom sm:h-32"
+            />
 
-          <div className="min-w-0">
-            <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-300">
-              Pak Wira
-            </p>
-            <p className="font-game text-[13px] leading-snug text-slate-100 sm:text-sm">
-              Tiga bagian tepung, dua bagian gula. Berapa cangkir gula untuk
-              sembilan cangkir tepung?
-            </p>
+            <div className="relative rounded-xl border border-white/5 bg-slate-900/95 px-3 pb-2.5 pt-2 sm:px-4">
+              <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.14em] text-[#55D0A5]">
+                Pak Wira
+              </p>
+              <p className="font-game text-[13px] leading-snug text-[#EFF2F7] sm:text-sm">
+                Tiga bagian tepung, dua bagian gula. Berapa cangkir gula untuk
+                sembilan cangkir tepung?
+              </p>
+            </div>
           </div>
         </div>
       </div>

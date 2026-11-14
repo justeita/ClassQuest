@@ -32,6 +32,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0017 | [Anggaran pipeline per unit dan reasoning dimatikan](0017-anggaran-pipeline-per-unit.md)             | Accepted     | AI, pipeline          |
 | 0018 | [Plafon output, batas eksplisit outline, dan reasoning default mati](0018-plafon-output-thinking.md) | Accepted     | AI, pipeline          |
 | 0019 | [Percabangan konsekuensi jawaban salah](0019-branching-konsekuensi-jawaban-salah.md)                 | Accepted     | AI, validator, cerita |
+| 0020 | [Potret berekspresi ala Persona](0020-potret-ekspresi-persona.md)                                    | Accepted     | Game, aset, cerita    |
 
 ## Status
 

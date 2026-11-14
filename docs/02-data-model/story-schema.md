@@ -167,11 +167,17 @@ type Scene = {
 
 ```ts
 type Beat =
-  | { type: "narration"; text: string }
+  | {
+      type: "narration";
+      text: string;
+      speakerId?: string;
+      expression?: Expression;
+    }
   | {
       type: "dialogue";
       speakerId: string;
       text: string;
+      expression?: Expression;
       textVariants?: TextVariant[]; // opsional, 1.0 tetap valid tanpanya
     }
   | {
@@ -181,6 +187,9 @@ type Beat =
       onWrong?: OnWrong; // konsekuensi jawaban salah
     }
   | { type: "transition"; effect: "fade" | "cut"; text?: string };
+
+type Expression =
+  "neutral" | "happy" | "sad" | "angry" | "shocked" | "thinking";
 
 type TextVariant = {
   when: { flag: string; is: boolean }; // flag harus ada di top-level flags
@@ -194,27 +203,40 @@ type OnWrong = {
 };
 
 type DetourBeat =
-  | { type: "narration"; text: string }
+  | {
+      type: "narration";
+      text: string;
+      speakerId?: string;
+      expression?: Expression;
+    }
   | {
       type: "dialogue";
       speakerId: string;
       text: string;
+      expression?: Expression;
       textVariants?: TextVariant[];
     };
 ```
 
 Aturan:
 
-| Field         | Aturan                                              |
-| ------------- | --------------------------------------------------- |
-| `text`        | 1–240 karakter. Harus muat di textbox tanpa scroll. |
-| `speakerId`   | Harus ada di `cast`.                                |
-| `challengeId` | Harus ada di `challenges`.                          |
-| `transition`  | Tidak boleh jadi beat terakhir sebuah scene.        |
+| Field         | Aturan                                                      |
+| ------------- | ----------------------------------------------------------- |
+| `text`        | 1–240 karakter. Harus muat di textbox tanpa scroll.         |
+| `speakerId`   | Harus ada di `cast`.                                        |
+| `challengeId` | Harus ada di `challenges`.                                  |
+| `expression`  | Opsional; salah satu dari enam ekspresi, default `neutral`. |
+| `transition`  | Tidak boleh jadi beat terakhir sebuah scene.                |
 
 `narration` = narator tanpa karakter. `dialogue` = karakter berbicara.
-Portrait **tidak** direferensikan di cerita; game mengambilnya dari manifest
-karakter (`portraitPath`).
+
+Potret **tidak** direferensikan lewat path di cerita: game mengambilnya dari
+manifest karakter (`portraits`, satu berkas per ekspresi di
+`public/assets/portrait/<nama>/`). Field `expression` hanya memilih ekspresi
+mana yang ditampilkan. `narration` boleh memunculkan potret **tanpa** nama
+pembicara lewat `speakerId` + `expression`; karena itu `expression` pada
+`narration` wajib disertai `speakerId`. Gaya tampilannya ada di
+[`../04-game/scene-format.md`](../04-game/scene-format.md) dan ADR 0020.
 
 #### Konsekuensi jawaban salah (opsional)
 
@@ -429,6 +451,8 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
 | Tiap tantangan dirujuk maksimal satu kali   | `E_DUPLICATE_CHALLENGE_REF` |
 | Tidak ada `assetId` di luar manifest        | `E_UNKNOWN_ASSET`           |
 | Tidak ada `speakerId` di luar `cast`        | `E_UNKNOWN_SPEAKER`         |
+| `expression` narasi wajib punya `speakerId` | `E_SCHEMA`                  |
+| `expression` ∈ enam ekspresi potret         | `E_SCHEMA`                  |
 | `concept`/`conceptTag` ∈ `source.concepts`  | `E_UNKNOWN_CONCEPT`         |
 | Semua id unik                               | `E_DUPLICATE_ID`            |
 | Teks tidak melebihi batas                   | `E_TEXT_TOO_LONG`           |

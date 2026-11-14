@@ -24,6 +24,17 @@
   --animate-quest-pop: quest-pop 0.2s ease-out both;
   /* Kebalikannya: kotak obrolan singkat memudar & menyusut saat pemain pergi. */
   --animate-quest-pop-out: quest-pop-out 0.2s ease-in both;
+  /* Sorot potret saat pembicara mengetik kalimatnya (gaya Persona). */
+  --animate-portrait-bicara: portrait-bicara 1.8s ease-in-out infinite;
+  /* Panel dialog menyala seperti TV tabung dari garis tipis di tengah. */
+  --animate-crt-masuk: crt-masuk 0.42s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  /* Panel memipih dan mengecil ke tengah saat dialog ditutup. */
+  --animate-crt-keluar: crt-keluar 0.32s cubic-bezier(0.55, 0, 0.75, 0.35) both;
+  /* Potret naik dari balik panel, sedikit tertunda setelah panel menyala. */
+  --animate-potret-masuk: potret-masuk 0.3s cubic-bezier(0.2, 0.9, 0.2, 1) 0.12s
+    both;
+  /* Potret tenggelam kembali ke balik panel saat dialog ditutup. */
+  --animate-potret-keluar: potret-keluar 0.22s ease-in both;
 
   /* --- Portal guru (desain dari `guru.html`, lihat src/app/guru) --- */
   --color-brand-50: #f0f7ff;
@@ -164,6 +175,106 @@
   }
 }
 
+/* Sorot potret di kotak dialog selama sesi dialog: potret pembicara menyala
+   dengan glow teal yang berdenyut lembut, sedangkan potret lawan bicaranya
+   diredupkan. `drop-shadow` mengikuti siluet PNG, jadi yang menyala bentuk
+   karakternya — bukan kotak gambar. */
+@keyframes portrait-bicara {
+  0%,
+  100% {
+    filter: brightness(1.04) drop-shadow(0 0 6px rgb(85 208 165 / 0.35));
+  }
+  50% {
+    filter: brightness(1.12) drop-shadow(0 0 14px rgb(85 208 165 / 0.6));
+  }
+}
+
+/* Panel dialog menyala seperti TV tabung: mulai dari garis horizontal tipis di
+   tengah, meregang ke atas-bawah dengan kilatan terang, lalu mendarat dengan
+   sedikit overshoot. Hanya transform/opacity/filter yang berubah, jadi animasi
+   berjalan di compositor tanpa menggeser tata letak. */
+@keyframes crt-masuk {
+  0% {
+    opacity: 0;
+    transform: scale(0.42, 0.006);
+    filter: brightness(2.4) saturate(0.4);
+  }
+  28% {
+    opacity: 1;
+    transform: scale(0.92, 0.03);
+    filter: brightness(2) saturate(0.6);
+  }
+  52% {
+    opacity: 1;
+    transform: scale(1, 1.05);
+    filter: brightness(1.35) saturate(0.9);
+  }
+  74% {
+    opacity: 1;
+    transform: scale(1, 0.985);
+    filter: brightness(1.08) saturate(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1, 1);
+    filter: brightness(1) saturate(1);
+  }
+}
+
+/* Kebalikannya: panel memipih ke garis tengah lalu mengecil jadi titik terang.
+   `DialogueBox` menahan dirinya di DOM selama durasi ini. */
+@keyframes crt-keluar {
+  0% {
+    opacity: 1;
+    transform: scale(1, 1);
+    filter: brightness(1);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1, 0.55);
+    filter: brightness(1.6);
+  }
+  62% {
+    opacity: 1;
+    transform: scale(0.85, 0.03);
+    filter: brightness(2.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.2, 0.003);
+    filter: brightness(2.6);
+  }
+}
+
+/* Potret terbit dari balik panel: sedikit naik sambil memudar masuk. Slotnya
+   `overflow-hidden`, jadi gerak ke bawah ini terlihat seperti muncul dari tepi
+   atas dialog. */
+@keyframes potret-masuk {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.97);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Saat dialog ditutup, potret tenggelam lagi ke balik panel. */
+@keyframes potret-keluar {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.97);
+  }
+}
+
 /*
  * Panel tantangan duduk di atas dialog, bukan menutupi seluruh layar
  * (docs/05-frontend/game-player.md § Challenge). Nilai `--challenge-*` diisi
@@ -193,7 +304,12 @@
   .animate-quest-slide-in,
   .animate-quest-slide-out,
   .animate-quest-pop,
-  .animate-quest-pop-out {
+  .animate-quest-pop-out,
+  .animate-portrait-bicara,
+  .animate-crt-masuk,
+  .animate-crt-keluar,
+  .animate-potret-masuk,
+  .animate-potret-keluar {
     animation: none;
   }
 }
