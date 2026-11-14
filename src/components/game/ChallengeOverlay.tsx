@@ -273,6 +273,12 @@ export function ChallengeOverlay({
    *   • `Enter` atau `Spasi` langsung melanjutkan dialog
    */
   function tanganiOpsi(event: React.KeyboardEvent<HTMLElement>) {
+    // Selama soal masih diketik, pilihan jawaban belum tampil. Jangan pernah
+    // mengirim jawaban dari sini: biarkan Space/Enter diteruskan ke scene
+    // supaya hanya menuntaskan ketikan dialog lebih dulu. Pilihan baru boleh
+    // dipilih setelah teks soal tampil penuh (`siap`).
+    if (!siap) return;
+
     // Tombol hint dan konfirmasinya memakai perilaku native (Enter/Spasi
     // mengklik tombol). Jangan ikut memilih/mengirim jawaban dari event yang
     // sama saat fokus berada di area hint.

@@ -680,4 +680,37 @@ describe("ChallengeOverlay — soal diketik dulu, animasi jawaban", () => {
       vi.useRealTimers();
     }
   });
+
+  it("Space/Enter/angka saat soal masih diketik tidak mengirim jawaban", () => {
+    const onSubmit = vi.fn();
+    const props = {
+      view: {
+        ...dasar,
+        id: "chl_01_01",
+        type: "multiple_choice" as const,
+        options: [
+          { id: "opt_a", text: "Menguap" },
+          { id: "opt_b", text: "Membeku" },
+        ],
+      },
+      graded: null,
+      onSubmit,
+      onResolve: vi.fn(),
+    };
+
+    const { rerender } = render(<ChallengeOverlay {...props} siap={false} />);
+    const panel = screen.getByLabelText("Tantangan");
+
+    // Tekanan untuk menuntaskan ketikan tidak boleh ikut memilih opsi yang
+    // belum tampil (opsi memang belum ada di DOM).
+    fireEvent.keyDown(panel, { key: " " });
+    fireEvent.keyDown(panel, { key: "Enter" });
+    fireEvent.keyDown(panel, { key: "1" });
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    // Setelah teks soal tuntas, pilihan jawaban muncul dan Space memilihnya.
+    rerender(<ChallengeOverlay {...props} siap />);
+    fireEvent.keyDown(screen.getByLabelText("Tantangan"), { key: " " });
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
 });
