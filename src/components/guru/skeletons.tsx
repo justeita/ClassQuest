@@ -99,6 +99,31 @@ export function MateriDetailSkeleton() {
   );
 }
 
+/**
+ * Kerangka story editor: kepala aksi, pohon chapter, panel isi, panel validasi.
+ * Bentuknya mengikuti tata letak akhir supaya tidak ada lompatan saat editor
+ * asli masuk.
+ */
+export function EditorSkeleton() {
+  return (
+    <div
+      className="mx-auto max-w-7xl space-y-4 pb-10"
+      aria-hidden
+      data-testid="editor-skeleton"
+    >
+      <div className="guru-skeleton h-28 rounded-2xl border-2 border-slate-200" />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[250px_minmax(0,1fr)]">
+        <div className="guru-skeleton h-72 rounded-2xl border-2 border-slate-200" />
+        <div className="space-y-4">
+          <div className="guru-skeleton h-24 rounded-2xl border-2 border-slate-200" />
+          <div className="guru-skeleton h-96 rounded-2xl border-2 border-slate-200" />
+        </div>
+      </div>
+      <div className="guru-skeleton h-28 rounded-2xl border-2 border-slate-200" />
+    </div>
+  );
+}
+
 /** Kerangka daftar kelas: header, dua kartu statistik, dua kartu kelas. */
 export function ClassesSkeleton() {
   return (

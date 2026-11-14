@@ -186,10 +186,21 @@ async function MateriDetailContent({
               version={detail.version}
               hasStory={story !== null}
             />
+
+            {story !== null ? (
+              <Link
+                href={`/guru/materi/${detail.id}/edit`}
+                className="guru-press flex w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-900 bg-white px-4 py-2.5 text-xs font-bold text-slate-900 transition hover:bg-slate-100"
+              >
+                <i className="fa-solid fa-pen-to-square" aria-hidden />
+                <span>Edit cerita</span>
+              </Link>
+            ) : null}
+
             <p className="text-[11px] leading-relaxed text-slate-400">
-              Editor cerita dan preview versi draft belum ada; perubahan isi
-              cerita dilakukan lewat pipeline. Bagikan hanya setelah cerita
-              selesai dibuat.
+              {story !== null
+                ? "Edit cerita membuka editor: perbaiki dialog, soal, dan latar tanpa melihat JSON. Perubahan disimpan sebagai versi draft."
+                : "Bagikan hanya setelah cerita selesai dibuat."}
             </p>
           </div>
 
