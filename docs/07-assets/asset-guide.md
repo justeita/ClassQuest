@@ -100,7 +100,7 @@ Nama folder mengikuti berkas sumber (`mc`, `npc_1`, …), bukan id manifest.
 Manifest karakter memetakan keenamnya lewat `portraits`, dan **semua ekspresi
 wajib ada** untuk setiap karakter. Potret tidak memakai bingkai: `DialogueBox`
 menggambarnya di atas panel dialog dengan dasar menempel tepi atas panel, jadi
-tidak ada bagian potret yang tertutup kotak (ADR 0017). Importer menormalkan
+tidak ada bagian potret yang tertutup kotak (ADR 0020). Importer menormalkan
 **tinggi kepala**, bukan tinggi gambar, lalu menyusun semua potret ke kanvas
 456×360 yang identik — wajah tiap karakter tampil sebesar yang sama dan
 rasionya sama. Seluruh potret satu karakter disusun relatif ke **satu patokan
@@ -145,7 +145,7 @@ Chapter **tidak** berganti lagu: seluruh cerita memakai satu musik.
 | Panel default  | `ui_default`, cadangan bila panel khusus absen   |
 | Format         | PNG dengan transparansi                          |
 
-Sejak ADR 0017 potret tidak memakai bingkai, jadi `ui_portrait_frame` hanya
+Sejak ADR 0020 potret tidak memakai bingkai, jadi `ui_portrait_frame` hanya
 tersimpan sebagai aset lama di manifest.
 
 ## Aturan pixel art

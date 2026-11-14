@@ -307,6 +307,12 @@ export type ChapterValidationOptions = {
   planned: PlannedChapterContext;
   /** Bila kosong, pemeriksaan aset dilewati dan dicatat. */
   manifest?: AssetManifest;
+  /**
+   * Id flag yang sudah di-set chapter sebelumnya. Dipakai warning
+   * `W_TEXT_VARIANT_FLAG_UNSET`: flag yang dibaca `textVariants` tetapi belum
+   * pernah di-set. Default kosong (chapter pertama).
+   */
+  priorFlags?: readonly string[];
 };
 
 /* -------------------------------------------------------------------------- */
@@ -688,6 +694,117 @@ const checkChapterSemantics = (
 };
 
 /**
+ * Aturan percabangan tingkat chapter.
+ *
+ * Bentuk `onWrong`, pola id flag, dan batas `retryQuestions` sudah dijaga
+ * schema (`story.schema.json`) sehingga kesalahan bentuk muncul sebagai
+ * `E_SCHEMA` sebelum sampai ke sini — termasuk format id flag yang salah
+ * (`propertyNames`/`pattern`). Fungsi ini memeriksa aturan yang butuh konteks
+ * urutan beat: `onWrong` tanpa `maxAttempts` yang cukup, jumlah soal ulang,
+ * panjang detour, dan flag `textVariants` yang belum di-set.
+ *
+ * Error yang dilaporkan memicu repair di level chapter; warning
+ * `W_TEXT_VARIANT_FLAG_UNSET` tidak memblokir.
+ */
+const checkChapterBranching = (
+  draft: ChapterDraftValue,
+  priorFlags: readonly string[],
+  report: Collector,
+): ValidationIssue[] => {
+  const warnings: ValidationIssue[] = [];
+  const setFlags = new Set(priorFlags);
+
+  const warnUnsetVariant = (flagId: string, path: string, where: string) => {
+    if (setFlags.has(flagId)) return;
+    const location = where.length > 0 ? ` ${where}` : "";
+    warnings.push(
+      warningIssue(
+        "W_TEXT_VARIANT_FLAG_UNSET",
+        path,
+        `Flag "${flagId}" dibaca textVariants${location} tetapi belum di-set di beat sebelumnya.`,
+      ),
+    );
+  };
+
+  draft.chapter.scenes.forEach((scene, sceneIndex) => {
+    scene.beats.forEach((beat, beatIndex) => {
+      const beatPath = `chapter.scenes[${sceneIndex}].beats[${beatIndex}]`;
+
+      if (beat.type === "dialogue") {
+        beat.textVariants?.forEach((variant, variantIndex) => {
+          warnUnsetVariant(
+            variant.when.flag,
+            `${beatPath}.textVariants[${variantIndex}].when.flag`,
+            "",
+          );
+        });
+        return;
+      }
+
+      if (beat.type !== "challenge") return;
+
+      const maxAttempts = beat.maxAttempts ?? 1;
+      const onWrong = beat.onWrong;
+      const detour = onWrong?.detour ?? [];
+
+      detour.forEach((detourBeat, detourIndex) => {
+        if (detourBeat.type !== "dialogue") return;
+        detourBeat.textVariants?.forEach((variant, variantIndex) => {
+          warnUnsetVariant(
+            variant.when.flag,
+            `${beatPath}.onWrong.detour[${detourIndex}].textVariants[${variantIndex}].when.flag`,
+            "detour",
+          );
+        });
+      });
+
+      if (!onWrong) return;
+
+      if (maxAttempts < 2) {
+        report(
+          errorIssue(
+            "E_ONWRONG_WITHOUT_ATTEMPTS",
+            `${beatPath}.maxAttempts`,
+            `Tantangan "${beat.challengeId}" memakai onWrong tanpa maxAttempts 2 atau 3.`,
+            `Beri tantangan "${beat.challengeId}" maxAttempts 2 atau 3, atau hapus onWrong.`,
+          ),
+        );
+      }
+
+      const expectedRetries = maxAttempts - 1;
+      const retryCount = onWrong.retryQuestions?.length ?? 0;
+      if (retryCount !== expectedRetries) {
+        report(
+          errorIssue(
+            "E_RETRY_COUNT",
+            `${beatPath}.onWrong.retryQuestions`,
+            `Tantangan "${beat.challengeId}" memakai ${maxAttempts} percobaan, jadi butuh ${expectedRetries} teks soal ulang, bukan ${retryCount}.`,
+            `Isi retryQuestions tepat ${expectedRetries} entri.`,
+          ),
+        );
+      }
+
+      if (detour.length > 3) {
+        report(
+          errorIssue(
+            "E_DETOUR_TOO_LONG",
+            `${beatPath}.onWrong.detour`,
+            `Detour tantangan "${beat.challengeId}" berisi ${detour.length} beat, maksimal 3.`,
+            "Pendekkan detour menjadi maksimal 3 beat narasi/dialog.",
+          ),
+        );
+      }
+
+      for (const flagId of Object.keys(onWrong.setFlags ?? {})) {
+        setFlags.add(flagId);
+      }
+    });
+  });
+
+  return warnings;
+};
+
+/**
  * Warning tingkat chapter. Kode dan ambangnya sama dengan `validateStory`,
  * hanya cakupannya satu chapter.
  */
@@ -812,6 +929,7 @@ export function validateChapter(
     outline: options?.outline ?? { concepts: [], cast: [] },
     planned: options?.planned ?? { id: "", concept: "" },
     manifest: options?.manifest,
+    priorFlags: options?.priorFlags ?? [],
   };
 
   const skippedChecks: SkippedCheck[] = context.manifest
@@ -832,6 +950,15 @@ export function validateChapter(
   const draft = value as ChapterDraftValue;
   const errors: ValidationIssue[] = [];
   checkChapterSemantics(draft, context, (item) => errors.push(item));
+  const branchWarnings = checkChapterBranching(
+    draft,
+    context.priorFlags ?? [],
+    (item) => errors.push(item),
+  );
 
-  return resultOf(errors, collectChapterWarnings(draft), skippedChecks);
+  return resultOf(
+    errors,
+    [...collectChapterWarnings(draft), ...branchWarnings],
+    skippedChecks,
+  );
 }

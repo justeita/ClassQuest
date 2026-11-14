@@ -131,6 +131,7 @@ describe("GET /api/stories/[storyId]", () => {
       "cast",
       "challenges",
       "chapters",
+      "flags",
       "meta",
       "schemaVersion",
       "source",

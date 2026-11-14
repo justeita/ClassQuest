@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -19,7 +19,8 @@ freeze 14 November 2026. Batasannya:
 - Next 16.4.5 memakai `cacheComponents` dan `partialPrefetching`; runtime Node.js,
   bukan Edge.
 - Route upload memakai `after()` dan `maxDuration = 300`; pipeline punya deadline
-  120 detik.
+  sendiri yang lebih pendek dari `maxDuration` (lihat
+  [`jobs-and-limits.md`](../06-backend/jobs-and-limits.md)).
 - PDF hanya diproses di memori, tidak disimpan. Yang perlu persisten hanya
   database: cerita, versi, job, hasil main, guru, dan rate limit.
 - Database lokal `file:./local.db` tidak bisa dipakai di platform serverless

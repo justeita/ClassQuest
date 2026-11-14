@@ -236,7 +236,8 @@ export async function runJob(
     });
 
     // c. Pipeline. Provider dari factory berdasarkan config (mock bila kosong).
-    const provider = deps.provider ?? createLlmProvider(loadAiConfig());
+    const aiConfig = loadAiConfig();
+    const provider = deps.provider ?? createLlmProvider(aiConfig);
     const meta: PipelineMeta = {
       id: story.id,
       fileName: story.source_file_name || input.pdf.filename,
@@ -259,21 +260,25 @@ export async function runJob(
       pages: extraction.pages.map((page) => page.text),
       manifest: toAssetManifest(),
       meta,
+      branching: aiConfig.branching,
       onProgress,
     });
 
     // d. Simpan versi 1 + ubah status story dalam satu transaksi.
     const version = await saveVersion(db, input.storyId, result, now());
 
-    // e. Job selesai.
+    // e. Job selesai. Saat fallback, simpan alasannya di `jobs.log` supaya
+    // guru/operator bisa melihat kenapa cerita cadangan yang dipakai (kode
+    // validasi saja, tanpa teks materi).
     await db.execute({
       sql: `update jobs
-            set stage = 'done', progress = ?, message = ?, finished_at = ?
+            set stage = 'done', progress = ?, message = ?, finished_at = ?, log = ?
             where id = ?`,
       args: [
         STAGE_PROGRESS.done,
         result.usedFallback ? "Selesai dengan cerita cadangan" : "Selesai",
         isoOf(now()),
+        result.usedFallback ? JSON.stringify(fallbackLog(result)) : null,
         input.jobId,
       ],
     });
@@ -300,6 +305,21 @@ export async function runJob(
     input.pdf.bytes = new Uint8Array(0);
   }
 }
+
+/**
+ * Isi `jobs.log` saat fallback: alasan + statistik + kode validasi.
+ *
+ * Hanya kode/path dan angka — tidak ada teks materi, nama file, atau isi cerita.
+ * `docs/06-backend/jobs-and-limits.md` memang menaruh log job JSON di kolom ini.
+ */
+const fallbackLog = (result: GenerateStoryResult) => ({
+  promptVersion: PROMPT_VERSION,
+  fallbackReason: result.reason,
+  llmCalls: result.stats.llmCalls,
+  repairs: result.stats.repairs,
+  durationMs: result.stats.durationMs,
+  diagnostics: result.diagnostics,
+});
 
 /**
  * Tulis `story_versions` versi 1 dan ubah status story dalam satu transaksi.

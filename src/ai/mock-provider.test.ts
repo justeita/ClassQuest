@@ -56,6 +56,30 @@ describe("MockProvider — skenario valid", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("fixture Story memuat percabangan: flags dan minimal satu onWrong", async () => {
+    const provider = new MockProvider({ scenario: "valid", stage: "story" });
+    const story = JSON.parse((await provider.complete(request())).text) as {
+      flags?: { id: string; default: boolean }[];
+      chapters: {
+        scenes: { beats: { type: string; onWrong?: unknown }[] }[];
+      }[];
+    };
+
+    expect(story.flags?.map((flag) => flag.id)).toEqual([
+      "flg_salah_cahaya",
+      "flg_salah_gula",
+    ]);
+
+    const onWrong = story.chapters
+      .flatMap((chapter) => chapter.scenes)
+      .flatMap((scene) => scene.beats)
+      .filter(
+        (beat) => beat.type === "challenge" && beat.onWrong !== undefined,
+      );
+
+    expect(onWrong.length).toBeGreaterThanOrEqual(1);
+  });
+
   it("mengembalikan keluaran chapter, bukan Story utuh, untuk tahap chapter", async () => {
     const provider = new MockProvider({ scenario: "valid", stage: "chapter" });
     const response = await provider.complete(request());

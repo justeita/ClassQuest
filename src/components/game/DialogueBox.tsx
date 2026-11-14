@@ -116,7 +116,7 @@ function PortraitSlot({ portrait, bicara, menutup }: PortraitSlotProps) {
 
 /**
  * Kotak dialog lengkap di lapisan DOM: panel gelap membulat, potret, nama, dan
- * teks (ADR 0007 + ADR 0017). Canvas game hanya 640×360 dan di-upscale dengan
+ * teks (ADR 0007 + ADR 0020). Canvas game hanya 640×360 dan di-upscale dengan
  * `image-rendering: pixelated`, jadi panel digambar React sebagai kotak CSS —
  * bukan lagi gambar `ui_textbox` — supaya sudut membulat dan warnanya tajam di
  * resolusi layar asli. Potret anime juga dirender browser, tidak ikut bergerigi.

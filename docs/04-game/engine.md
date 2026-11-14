@@ -238,7 +238,7 @@ pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). State dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx` — panel kotak navy gelap membulat, potret
-ber-`expression`, nama, dan teks (ADR 0017); React membalas command `advance`.
+ber-`expression`, nama, dan teks (ADR 0020); React membalas command `advance`.
 Prompt interaksi
 memakai event `prompt`: kotak `Space` pemberi quest dirender `NpcMarker.tsx`
 (menyatu dengan `!`), sedangkan obrolan singkat dirender `InteractHint.tsx`
@@ -426,8 +426,12 @@ Aturan yang mengikat:
   `correctOptionId`, `correctAnswer`, `correctOrder`, `acceptedAnswers`, atau
   `explanation`. Overlay tidak boleh menerima jawaban.
 - Penilaian dijalankan di sisi game (pemegang `Story`) memakai `scoreAnswer()`
-  dari `src/story/scoring.ts`; hasilnya dikirim sebagai `graded`. Skor memakai
-  percobaan **pertama**; jawaban ulang tidak menimpa.
+  dari `src/story/scoring.ts`; hasilnya dikirim sebagai `graded`.
+- **Jawaban salah yang masih punya percobaan tidak mengirim `graded`.** Game
+  memutar `onWrong.detour` lewat jalur `dialogue`/`log` yang sama dengan beat
+  biasa, lalu membuka ulang tantangan yang sama dengan teks soal ulang. `graded`
+  — termasuk `explanation` — hanya dikirim sekali, untuk hasil final (benar atau
+  percobaan terakhir).
 - Selama fase `challenge`, input dialog diabaikan sampai `resolve_challenge`
   diterima. `skip_start`/`skip_stop` memajukan beat bertahap ala tahan-tombol
   Persona (time-lapse 100 ms per beat selama ditahan) dan berhenti di beat soal;

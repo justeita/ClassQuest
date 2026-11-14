@@ -42,7 +42,7 @@ export function GamePreview() {
           Bab 1 · Perbandingan
         </p>
 
-        {/* Dialog meniru gaya Persona (ADR 0017): dua potret tanpa bingkai
+        {/* Dialog meniru gaya Persona (ADR 0020): dua potret tanpa bingkai
             berdiri di **atas** panel, dasarnya menempel tepi atas kotak. NPC
             yang bicara di kiri menyala; potret MC di kanan dicerminkan dan
             diredupkan sebagai lawan bicara. */}

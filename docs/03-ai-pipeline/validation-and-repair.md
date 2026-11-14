@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -53,7 +53,11 @@ Di pipeline nyata, putaran itu terjadi dua tingkat:
 
 1. **Per chapter** — `validateChapter(draft, { outline, planned })` setelah tiap
    panggilan generate. Ini memeriksa scene/beat, id, `speakerId`, `challengeId`,
-   dan batas teks untuk chapter itu saja.
+   dan batas teks untuk chapter itu saja. Termasuk dua aturan **khusus chapter**:
+   `E_ONWRONG_WITHOUT_ATTEMPTS` (error; `onWrong` tanpa `maxAttempts` 2–3) dan
+   `W_TEXT_VARIANT_FLAG_UNSET` (warning; `textVariants` membaca flag yang belum
+   di-set di beat sebelumnya). Keduanya tidak dijalankan `validateStory` — lihat
+   [`../02-data-model/validation-rules.md`](../02-data-model/validation-rules.md#aturan-khusus-chapter).
 2. **Sekali di akhir** — `validateStory(story)` setelah semua chapter digabung.
    Ini yang memeriksa aturan tingkat cerita (3–6 chapter, `assetUsage`).
 
@@ -69,6 +73,21 @@ menjadi "dan N error serupa lainnya".
 ```text
 Perbaiki JSON berikut. Jangan mengubah bagian yang tidak dilaporkan.
 Jangan menambah fakta baru. Kembalikan JSON lengkap yang valid.
+
+KONTEKS
+Pakai hanya id aset, karakter, dan konsep yang ada di KONTEKS. Jangan mengarang id.
+
+ASSETS
+BACKGROUNDS
+- bg_default | Latar default | ...
+CHARACTERS
+- char_mc | ... | ...
+
+OUTLINE
+{ ...outline lengkap... }
+
+CHAPTER
+id: ch_01; concept: Evaporasi; halaman sumber: 1.
 
 ERRORS
 1. path: chapters[0].scenes[1].beats[2].text
@@ -87,45 +106,57 @@ DRAFT
 Aturan:
 
 - Suhu rendah (0.2), `responseFormat: json`.
-- Jangan pernah mengirim seluruh percakapan sebelumnya; cukup draft + error.
+- Jangan pernah mengirim seluruh percakapan sebelumnya; cukup draft + error +
+  konteks (aset, outline, dan chapter yang diperbaiki).
+- **Konteks wajib untuk repair yang bisa menyentuh rujukan.** Tanpa daftar
+  `ASSETS` dan `OUTLINE`, model tidak tahu id yang sah, sehingga error seperti
+  `E_UNKNOWN_ASSET`, `E_UNKNOWN_SPEAKER`, atau `E_UNKNOWN_CONCEPT` tidak bisa
+  diperbaiki dan loop repair tidak konvergen. Repair tingkat cerita mengirim
+  `ASSETS` + `OUTLINE`; repair tingkat chapter menambah blok `CHAPTER`.
 - Jangan meminta model "memperbaiki semua masalah sekaligus" — spesifik per path.
 - Kalau error struktural (JSON tidak bisa diparse), minta generate ulang chapter
   itu, bukan repair.
 
 ## Klasifikasi kegagalan
 
-| Jenis                     | Bisa repair? | Tindakan                           |
-| ------------------------- | ------------ | ---------------------------------- |
-| JSON tidak bisa diparse   | Tidak        | Generate ulang chapter (1x)        |
-| Field wajib hilang        | Ya           | Repair                             |
-| Teks terlalu panjang      | Ya           | Repair                             |
-| Id aset tidak dikenal     | Ya           | Repair                             |
-| Speaker tidak dikenal     | Ya           | Repair                             |
-| Chapter tanpa tantangan   | Ya           | Repair                             |
-| Tantangan yatim           | Ya           | Repair                             |
-| Tidak ada teks dari PDF   | Tidak        | Job `failed`, minta guru ganti PDF |
-| Timeout provider          | Tidak        | Retry jaringan, lalu fallback      |
-| Provider menolak (safety) | Tidak        | Fallback + catat alasan            |
+| Jenis                     | Bisa repair? | Tindakan                                      |
+| ------------------------- | ------------ | --------------------------------------------- |
+| JSON tidak bisa diparse   | Tidak        | Generate ulang chapter (1x)                   |
+| Field wajib hilang        | Ya           | Repair                                        |
+| Teks terlalu panjang      | Ya           | Repair                                        |
+| Id aset tidak dikenal     | Ya           | Repair                                        |
+| Speaker tidak dikenal     | Ya           | Repair                                        |
+| Chapter tanpa tantangan   | Ya           | Repair                                        |
+| Tantangan yatim           | Ya           | Repair                                        |
+| `onWrong` tanpa percobaan | Ya           | Repair chapter (`E_ONWRONG_WITHOUT_ATTEMPTS`) |
+| Tidak ada teks dari PDF   | Tidak        | Job `failed`, minta guru ganti PDF            |
+| Timeout provider          | Tidak        | Retry jaringan, lalu fallback                 |
+| Provider menolak (safety) | Tidak        | Fallback + catat alasan                       |
 
 ## Anggaran
 
 | Parameter                  | Nilai | Alasan                                                              |
 | -------------------------- | ----- | ------------------------------------------------------------------- |
-| Repair per **cerita**      | 2     | Cukup untuk error mekanis, tidak boros                              |
+| Repair per **chapter**     | 2     | Error mekanis nyata muncul per chapter, bukan per cerita            |
+| Repair per **cerita**      | 2     | Untuk error yang baru terlihat setelah semua chapter digabung       |
 | Generate ulang per chapter | 1     | Untuk kasus JSON rusak; memakai jatah cadangan                      |
-| Total panggilan LLM        | 12    | 1 outline + 1 perbaikan outline + 6 chapter + 2 repair + 2 cadangan |
+| Total panggilan LLM        | 18    | 1 outline + 1 perbaikan outline + 6 chapter + 6 repair + 4 cadangan |
 | Timeout satu panggilan     | 60 s  | Pagar, bukan target                                                 |
-| Anggaran waktu total       | 120 s | Deadline demo; lewat ini → fallback                                 |
-| Output token per panggilan | 4.000 | Cukup untuk 1 chapter                                               |
+| Anggaran waktu total       | 240 s | Deadline; lewat ini → fallback                                      |
+| Output token per panggilan | 8.000 | Cukup untuk reasoning + 1 chapter                                   |
 
-Kalau anggaran habis → fallback. Jangan terus mencoba.
+Kalau anggaran habis → fallback. Jangan terus mencoba. Angka-angka ini dinaikkan
+dari 12/2/120 oleh [ADR 0017](../09-decisions/0017-anggaran-pipeline-per-unit.md).
+Plafon output per panggilan 8.000 dan batas eksplisit `BATAS OUTLINE` datang dari
+[ADR 0018](../09-decisions/0018-plafon-output-thinking.md).
 
 Dua hal yang mudah salah dibaca:
 
-- **Repair dihitung per cerita, bukan per chapter.** Dua repair berarti dua
-  panggilan tambahan untuk seluruh cerita. Kalau satu chapter butuh tiga kali
-  perbaikan, itu sudah melewati anggaran dan hasilnya fallback.
-- **12 panggilan adalah batas atas yang dihitung, bukan rata-rata.** Cerita 3
+- **Repair chapter dihitung per chapter.** Model nyata sering menghasilkan satu
+  error mekanis per chapter (mis. `E_TRANSITION_LAST`); jatah per unit membuat
+  satu chapter yang buruk tidak menghabiskan jatah chapter lain. Repair tingkat
+  cerita tetap punya jatah sendiri (2), terpisah dari jatah chapter.
+- **18 panggilan adalah batas atas yang dihitung, bukan rata-rata.** Cerita 3
   chapter yang lolos sekali jalan hanya memakai 4 panggilan (1 outline + 3
   chapter). Sisa jatah tidak dipakai asal-asalan.
 
@@ -144,8 +175,11 @@ Karakteristik fallback:
 
 - **Deterministik.** Input sama → output sama. Tidak memanggil AI.
 - **Valid.** Lolos validator, dites di CI.
-- **Memakai konsep materi.** Minimal 3 chapter, tiap chapter satu konsep, tiap
-  chapter satu tantangan sederhana.
+- **Memakai konsep materi.** Minimal 3 chapter, tiap chapter satu konsep, dan
+  **dua tantangan sederhana per chapter** (satu per scene). Chapter pertama
+  memberi contoh percabangan: kedua tantangannya memakai `maxAttempts` +
+  `onWrong` (retry + detour) dan menyalakan flag yang dibaca `textVariants` di
+  dialog sesudahnya. Chapter lain tetap tanpa `onWrong`.
 - **Memakai aset default yang ada.**
 - **Jujur.** Guru melihat banner bahwa ini cerita cadangan.
 

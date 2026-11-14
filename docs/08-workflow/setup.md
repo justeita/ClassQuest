@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -45,6 +45,8 @@ AI_API_KEY=
 AI_MODEL=
 AI_BASE_URL=
 AI_TIMEOUT_MS=60000
+# Opsional. "on" = ajari model membuat konsekuensi jawaban salah; kosong = mati.
+AI_BRANCHING=
 
 # Akun guru (penghalang demo): login = username + password,
 # password disimpan sebagai hash scrypt di tabel `teachers`.
@@ -77,6 +79,10 @@ AI_PROVIDER=mock bun dev
 
 Mode ini memakai fixture, sehingga seluruh alur bisa dikembangkan tanpa biaya dan
 tanpa jaringan.
+
+`AI_BRANCHING=on` (opsional) mengajari model membuat konsekuensi jawaban salah
+(soal ulang + detour singkat). Kosong berarti mati, dan prompt kembali persis
+seperti sebelumnya.
 
 ## Deploy (Vercel + Turso)
 

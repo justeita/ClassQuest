@@ -62,7 +62,7 @@ Aturan:
    dirender sebagian, jadi semuanya dimuat sekali di awal.
 2. **Aset cerita** lewat `collectStoryAssets(story)`: background chapter +
    override scene, musik chapter + override scene, dan `spriteId` setiap `cast`.
-   Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0017).
+   Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0020).
 3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `sfx_click`,
    `sfx_page`, `sfx_correct`, `sfx_wrong`). Panel dan potret dialog tidak dimuat
    Phaser.
@@ -140,7 +140,7 @@ bebas bergerak.
 | Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)                                                                                                                                                                                                                                                                                                                                                                  |
 | Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                                                                                                                                                                                                                                                                                                                                                                         |
 
-> **Semua di DOM (ADR 0007 + ADR 0017).** Phaser hanya memegang state typewriter
+> **Semua di DOM (ADR 0007 + ADR 0020).** Phaser hanya memegang state typewriter
 > (`textbox.ts`); panel, potret, nama, isi dialog, dan indikator "lanjut" dirender
 > `DialogueBox.tsx`. Panel **bukan lagi** gambar `ui_textbox`: ia kotak CSS navy
 > gelap membulat (gaya Persona) supaya sudut dan warnanya tajam di resolusi layar
@@ -241,7 +241,7 @@ terjadi sebelum beat pertama scene.
   untuk yang tidak. **Ingat:** `setTintFill()` sudah dihapus di Phaser 4.
 - Potret diambil dari `portraits[expression]` milik karakter; `expression`
   opsional dan default `neutral`. Potret digambar DOM **di atas** panel, dasar
-  sejajar tepi atasnya, tanpa bingkai (ADR 0017).
+  sejajar tepi atasnya, tanpa bingkai (ADR 0020).
 
 ### `challenge`
 

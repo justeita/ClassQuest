@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -54,7 +54,7 @@ sequenceDiagram
     L-->>P: JSON chapter
     P->>P: validasi
     alt ada error
-        P->>L: minta perbaikan (maks 2x per cerita)
+        P->>L: minta perbaikan (maks 2x per chapter)
         L-->>P: JSON perbaikan
     end
     P->>P: simpan versi draft + ubah status ke draft

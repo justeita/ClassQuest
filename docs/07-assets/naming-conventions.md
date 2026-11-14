@@ -65,7 +65,7 @@ Aturan:
 - Nama file **harus** konsisten dengan `id`; test manifest memeriksa ini.
 - Pengecualian: potret memakai folder `<nama>/<ekspresi>.png` di
   `public/assets/portrait/`, dengan `<nama>` mengikuti berkas sumber (`mc`,
-  `npc_1`, …) dan `<ekspresi>` salah satu dari enam ekspresi (ADR 0017).
+  `npc_1`, …) dan `<ekspresi>` salah satu dari enam ekspresi (ADR 0020).
 - Jangan menambahkan suffix versi (`_v2`, `_final`, `_fix`). Ganti isi file, bukan
   namanya.
 - Jangan memakai nama orang nyata untuk karakter. Gunakan nama fiktif.

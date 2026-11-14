@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -48,7 +48,9 @@ MVP dianggap selesai jika alur ini berjalan tanpa intervensi manual:
 - OCR untuk PDF hasil scan (boleh disebut sebagai backlog).
 - AI membuat gambar, musik, suara, atau animasi baru.
 - Voice-over / text-to-speech.
-- Percabangan cerita dinamis (pilihan dialog yang mengubah alur).
+- Percabangan cerita dinamis (pilihan dialog yang mengubah alur). Konsekuensi
+  otomatis dari jawaban salah (soal ulang + detour singkat) bukan bagian dari
+  larangan ini.
 - Editor visual drag-and-drop untuk peta/tilemap.
 - Mobile app native.
 - Internasionalisasi UI (teks UI Indonesia; isi cerita mengikuti materi).

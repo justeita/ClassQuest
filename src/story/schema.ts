@@ -54,6 +54,11 @@ const uniqueStrings = (inner: z.ZodString) =>
 
 const nonEmptyId = z.string().min(1);
 
+/** Pola id flag, sama dengan `$defs.flag.properties.id`. */
+const flagIdSchema = z.string().regex(/^flg_[a-z0-9_]+$/, {
+  message: 'Id flag harus berpola "flg_[a-z0-9_]+".',
+});
+
 export const schemaVersionSchema = z.literal(STORY_SCHEMA_VERSION);
 
 /* -------------------------------------------------------------------------- */
@@ -149,16 +154,53 @@ export const narrationBeatSchema = z.strictObject({
   expression: expressionSchema.optional(),
 });
 
+export const textVariantSchema = z.strictObject({
+  when: z.strictObject({
+    flag: flagIdSchema,
+    is: z.boolean(),
+  }),
+  text: boundedText(1, 240),
+});
+
+export type TextVariant = z.infer<typeof textVariantSchema>;
+
 export const dialogueBeatSchema = z.strictObject({
   type: z.literal("dialogue"),
   speakerId: nonEmptyId,
   text: boundedText(1, 240),
   expression: expressionSchema.optional(),
+  textVariants: z.array(textVariantSchema).min(1).optional(),
 });
+
+/**
+ * Beat yang boleh muncul di `onWrong.detour`: hanya narasi dan dialog.
+ * Sengaja bukan `beatSchema` penuh supaya bentuknya tidak rekursif
+ * (challenge → onWrong → detour → challenge) dan tantangan tidak pernah bisa
+ * muncul di dalam detour.
+ */
+export const detourBeatSchema = z.discriminatedUnion("type", [
+  narrationBeatSchema,
+  dialogueBeatSchema,
+]);
+
+export type DetourBeat = z.infer<typeof detourBeatSchema>;
+
+export const onWrongSchema = z.strictObject({
+  setFlags: z.record(flagIdSchema, z.boolean()).optional(),
+  retryQuestions: z
+    .array(boundedText(5, 300, "Teks soal ulang"))
+    .max(2)
+    .optional(),
+  detour: z.array(detourBeatSchema).optional(),
+});
+
+export type OnWrong = z.infer<typeof onWrongSchema>;
 
 export const challengeBeatSchema = z.strictObject({
   type: z.literal("challenge"),
   challengeId: nonEmptyId,
+  maxAttempts: z.number().int().min(1).max(3).optional(),
+  onWrong: onWrongSchema.optional(),
 });
 
 export const transitionBeatSchema = z.strictObject({
@@ -349,6 +391,23 @@ export const assetUsageSchema = z.strictObject({
 
 export type AssetUsage = z.infer<typeof assetUsageSchema>;
 
+export const flagSchema = z.strictObject({
+  id: flagIdSchema,
+  default: z.boolean(),
+});
+
+export type StoryFlag = z.infer<typeof flagSchema>;
+
+/**
+ * Dasar penilaian. Field opsional ini hanya boleh `firstAttempt`; bila tidak
+ * ada, artinya sama dengan `{ basis: "firstAttempt" }`.
+ */
+export const scoringSchema = z.strictObject({
+  basis: z.literal("firstAttempt"),
+});
+
+export type Scoring = z.infer<typeof scoringSchema>;
+
 export const storySchema = z.strictObject({
   schemaVersion: schemaVersionSchema,
   meta: storyMetaSchema,
@@ -357,6 +416,8 @@ export const storySchema = z.strictObject({
   chapters: z.array(chapterSchema).min(3).max(6),
   challenges: z.array(challengeSchema),
   assetUsage: assetUsageSchema,
+  flags: z.array(flagSchema).optional(),
+  scoring: scoringSchema.optional(),
 });
 
 export type Story = z.infer<typeof storySchema>;

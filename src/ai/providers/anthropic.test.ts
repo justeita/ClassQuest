@@ -30,6 +30,7 @@ const config: AnthropicProviderConfig = {
   model: "model-contoh",
   baseUrl: null,
   timeoutMs: 60_000,
+  branching: false,
 };
 
 const request = {

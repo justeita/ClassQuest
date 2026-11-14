@@ -22,7 +22,25 @@
           },
           {
             "type": "challenge",
-            "challengeId": "chl_01_01"
+            "challengeId": "chl_01_01",
+            "maxAttempts": 2,
+            "onWrong": {
+              "setFlags": { "flg_salah_daun": true },
+              "retryQuestions": [
+                "Coba pikirkan lagi. Sumber energi apa yang tadi disebut membantu daun membuat makanan?"
+              ],
+              "detour": [
+                {
+                  "type": "narration",
+                  "text": "Nara mengerutkan dahi dan mengingat kembali kalimat Pak Bima tentang daun."
+                },
+                {
+                  "type": "dialogue",
+                  "speakerId": "char_npc_10",
+                  "text": "Jangan cepat menyerah. Baca lagi kalimat yang tadi kusebut di depan kelas."
+                }
+              ]
+            }
           }
         ]
       },
@@ -37,7 +55,13 @@
           {
             "type": "dialogue",
             "speakerId": "char_mc",
-            "text": "Jadi cahaya matahari dipakai daun untuk memasak? Bagaimana caranya?"
+            "text": "Jadi cahaya matahari dipakai daun untuk memasak? Bagaimana caranya?",
+            "textVariants": [
+              {
+                "when": { "flag": "flg_salah_daun", "is": true },
+                "text": "Tadi aku sempat salah memilih, tapi sekarang aku paham: cahaya matahari membantu daun memasak. Bagaimana caranya?"
+              }
+            ]
           },
           {
             "type": "narration",

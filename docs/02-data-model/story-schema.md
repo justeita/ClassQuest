@@ -48,6 +48,8 @@ flowchart TD
   S --> CH["chapters<br/>3–6 bab"]
   S --> CL["challenges<br/>daftar soal"]
   S --> AU["assetUsage<br/>yang dipakai (untuk preload)"]
+  S --> F["flags<br/>penanda cerita (opsional)"]
+  S --> SCO["scoring<br/>dasar penilaian (opsional)"]
 
   CH --> SC["scenes<br/>2–6 adegan"]
   SC --> B["beats<br/>3–10 langkah"]
@@ -75,6 +77,8 @@ type Story = {
   chapters: Chapter[];
   challenges: Challenge[];
   assetUsage: AssetUsage;
+  flags?: Flag[];
+  scoring?: Scoring;
 };
 ```
 
@@ -174,12 +178,44 @@ type Beat =
       speakerId: string;
       text: string;
       expression?: Expression;
+      textVariants?: TextVariant[]; // opsional, 1.0 tetap valid tanpanya
     }
-  | { type: "challenge"; challengeId: string }
+  | {
+      type: "challenge";
+      challengeId: string;
+      maxAttempts?: 1 | 2 | 3; // default 1
+      onWrong?: OnWrong; // konsekuensi jawaban salah
+    }
   | { type: "transition"; effect: "fade" | "cut"; text?: string };
 
 type Expression =
   "neutral" | "happy" | "sad" | "angry" | "shocked" | "thinking";
+
+type TextVariant = {
+  when: { flag: string; is: boolean }; // flag harus ada di top-level flags
+  text: string; // 1..240 karakter
+};
+
+type OnWrong = {
+  setFlags?: Record<string, boolean>; // flag harus ada di top-level flags
+  retryQuestions?: string[]; // jumlah = maxAttempts - 1, tiap 5..300 karakter
+  detour?: DetourBeat[]; // maksimal 3 beat, tanpa challenge
+};
+
+type DetourBeat =
+  | {
+      type: "narration";
+      text: string;
+      speakerId?: string;
+      expression?: Expression;
+    }
+  | {
+      type: "dialogue";
+      speakerId: string;
+      text: string;
+      expression?: Expression;
+      textVariants?: TextVariant[];
+    };
 ```
 
 Aturan:
@@ -200,7 +236,55 @@ manifest karakter (`portraits`, satu berkas per ekspresi di
 mana yang ditampilkan. `narration` boleh memunculkan potret **tanpa** nama
 pembicara lewat `speakerId` + `expression`; karena itu `expression` pada
 `narration` wajib disertai `speakerId`. Gaya tampilannya ada di
-[`../04-game/scene-format.md`](../04-game/scene-format.md) dan ADR 0017.
+[`../04-game/scene-format.md`](../04-game/scene-format.md) dan ADR 0020.
+
+#### Konsekuensi jawaban salah (opsional)
+
+Semua field di bawah ini **opsional**. Cerita yang tidak memakainya tetap sah
+dan berperilaku seperti v1.0 biasa (`maxAttempts` efektif 1).
+
+- `maxAttempts` — jumlah percobaan menjawab, 1–3. Default 1.
+- `onWrong` — dijalankan setelah jawaban salah:
+  - `detour` — maksimal **3 beat** `narration`/`dialogue` yang ditampilkan
+    sebelum soal yang sama ditanyakan ulang. Detour **tidak boleh** berisi
+    `challenge`.
+  - `setFlags` — menyalakan/mematikan flag cerita. Setiap id flag harus
+    dideklarasikan di top-level [`flags`](#flags).
+  - `retryQuestions` — teks soal pengganti untuk percobaan berikutnya. Jumlahnya
+    **harus tepat** `maxAttempts - 1`; percobaan ke-_n_ memakai
+    `retryQuestions[n - 1]`.
+- Retry **hanya** mengganti teks soal. `options` dan `correctOptionId` (atau
+  `correctAnswer`/`correctOrder`/`acceptedAnswers`) tidak berubah, jadi jawaban
+  benar tetap sama di semua percobaan.
+- `textVariants` pada beat `dialogue` memilih teks alternatif saat flag cocok:
+  `{ when: { flag, is } }`. Kalau tidak ada varian yang cocok, `text` dipakai.
+
+Contoh:
+
+```json
+{
+  "type": "challenge",
+  "challengeId": "chl_01_01",
+  "maxAttempts": 2,
+  "onWrong": {
+    "setFlags": { "flg_salah_hitung": true },
+    "retryQuestions": [
+      "Coba baca ulang resepnya. Kalau 3 bagian tepung menjadi 9 cangkir, berapa bagian gula?"
+    ],
+    "detour": [
+      {
+        "type": "narration",
+        "text": "Nara mencoret hitungan pertamanya dan menarik napas."
+      },
+      {
+        "type": "dialogue",
+        "speakerId": "char_npc_1",
+        "text": "Tidak apa-apa, kita hitung pelan-pelan lagi."
+      }
+    ]
+  }
+}
+```
 
 ### `challenges`
 
@@ -245,6 +329,36 @@ itu `E_ASSET_USAGE_MISMATCH`.
 
 > SFX tidak muncul di cerita. Suara UI (`sfx_click`, `sfx_correct`, `sfx_wrong`)
 > dimainkan otomatis oleh game, jadi tidak perlu direferensikan AI.
+
+### `flags`
+
+Penanda cerita opsional yang bisa dinyalakan oleh jawaban salah dan dibaca oleh
+`textVariants`.
+
+```ts
+type Flag = {
+  id: string; // pola: flg_[a-z0-9_]+
+  default: boolean; // nilai awal sebelum cerita berjalan
+};
+```
+
+- `flags` boleh tidak ada; artinya cerita tidak memakai flag.
+- Setiap id yang muncul di `onWrong.setFlags` atau `textVariants[].when.flag`
+  harus dideklarasikan di sini (`E_FLAG_UNDECLARED`).
+- Id flag harus unik (`E_DUPLICATE_ID`).
+
+### `scoring`
+
+```ts
+type Scoring = {
+  basis: "firstAttempt";
+};
+```
+
+Menentukan dasar penilaian. Satu-satunya nilai yang didukung saat ini adalah
+`"firstAttempt"`: skor dihitung dari jawaban benar pada percobaan pertama, bukan
+dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
+`{ "basis": "firstAttempt" }`.
 
 ## Contoh minimal
 
@@ -342,6 +456,9 @@ itu `E_ASSET_USAGE_MISMATCH`.
 | `concept`/`conceptTag` ∈ `source.concepts`  | `E_UNKNOWN_CONCEPT`         |
 | Semua id unik                               | `E_DUPLICATE_ID`            |
 | Teks tidak melebihi batas                   | `E_TEXT_TOO_LONG`           |
+| Flag di `setFlags`/`textVariants` terdaftar | `E_FLAG_UNDECLARED`         |
+| `retryQuestions` = `maxAttempts` − 1        | `E_RETRY_COUNT`             |
+| Detour maksimal 3 beat tanpa challenge      | `E_DETOUR_TOO_LONG`         |
 
 Daftar lengkap + contoh pesan: [`validation-rules.md`](./validation-rules.md).
 

@@ -56,7 +56,7 @@ export const CHALLENGE = {
 const SKALA_POTRET = 0.85;
 
 /**
- * Potret dialog gaya Persona (ADR 0017): tanpa bingkai, gambarnya berdiri **di
+ * Potret dialog gaya Persona (ADR 0020): tanpa bingkai, gambarnya berdiri **di
  * atas** panel dialog — dasarnya sejajar tepi atas panel, jadi tidak ada bagian
  * potret yang tertutup kotak.
  *

@@ -1,6 +1,6 @@
 ---
 status: tbd
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -44,6 +44,8 @@ AI_API_KEY=...
 AI_MODEL=...
 AI_BASE_URL=...             # opsional, untuk gateway/self-hosted
 AI_TIMEOUT_MS=60000
+AI_BRANCHING=               # opsional: "on" = konsekuensi jawaban salah; kosong = mati
+AI_DISABLE_THINKING=on      # default "on" untuk model reasoning; kosong = biarkan hidup
 ```
 
 Aturan:
@@ -52,11 +54,23 @@ Aturan:
 - Validasi di `src/server/config.ts` (satu-satunya pembaca env AI, lihat
   [`../01-architecture/repo-structure.md`](../01-architecture/repo-structure.md));
   kalau `AI_PROVIDER` tidak dikenal → gagal saat start, bukan saat demo.
+- `AI_BRANCHING` hanya nilai `"on"` yang menyalakan; kosong, `off`, atau nilai
+  lain mematikan. Saat mati, prompt chapter persis seperti sebelum fitur
+  percabangan ada (`prompt.test.ts`).
+- `AI_DISABLE_THINKING` hanya `"on"` yang menyalakan. Saat menyala, provider
+  `openai-compatible` mengirim `thinking: { type: "disabled" }`. Untuk model
+  reasoning (mis. `deepseek-*`) ini **default yang dipakai**: reasoning memakai
+  25–45 detik per panggilan, sedangkan deadline pipeline 240 detik dan batas
+  fungsi hosting 300 detik
+  ([ADR 0018](../09-decisions/0018-plafon-output-thinking.md)). Kosongkan hanya
+  bila batas fungsi hosting >300 detik (mis. Fluid compute); pipeline sudah
+  menyiapkan plafon 8.000 untuk itu. Parameter ini ekstensi gateway, bukan
+  spesifikasi chat completions; kosongkan bila gateway tidak mengenalnya.
 - Nilai default adalah `mock` — provider nyata belum diputuskan (ADR 0006).
   Jangan menaruh nama provider sungguhan sebagai contoh default, karena itu
   terbaca seperti keputusan.
-- `.env.example` saat ini masih kosong (hanya komentar). Kalau kamu menambah
-  variabel baru, tambahkan juga namanya di sana tanpa nilai.
+- `.env.example` memuat nama semua variabel yang dibaca server, tanpa nilai.
+  Kalau kamu menambah variabel baru, tambahkan juga namanya di sana tanpa nilai.
 
 ## Antarmuka provider
 
@@ -160,7 +174,7 @@ Jangan menampilkan pesan mentah provider ke guru.
 
 ## Batas biaya
 
-- Maksimal 12 panggilan LLM per cerita (lihat
+- Maksimal 18 panggilan LLM per cerita (lihat
   [`validation-and-repair.md`](./validation-and-repair.md)).
 - Batas halaman dan karakter materi (lihat
   [`../06-backend/jobs-and-limits.md`](../06-backend/jobs-and-limits.md)).

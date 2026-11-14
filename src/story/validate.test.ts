@@ -137,6 +137,45 @@ describe("aturan yang dirakit dari cerita contoh", () => {
       expect(codes(result.errors), asset.id).not.toContain("E_UNKNOWN_ASSET");
     }
   });
+
+  it("menolak flag textVariants yang tidak dideklarasikan", () => {
+    const result = validateVariant((story) => {
+      const beat = story.chapters[0].scenes[1].beats[2];
+      if (beat.type !== "dialogue") throw new Error("fixture");
+      beat.textVariants = [
+        {
+          when: { flag: "flg_tak_ada", is: true },
+          text: "Teks alternatif yang cukup panjang.",
+        },
+      ];
+    });
+
+    expect(codes(result.errors)).toEqual(["E_FLAG_UNDECLARED"]);
+    expect(result.errors[0].path).toBe(
+      "chapters[0].scenes[1].beats[2].textVariants[0].when.flag",
+    );
+  });
+
+  it("menolak speaker detour yang tidak ada di cast", () => {
+    const result = validateVariant((story) => {
+      const beat = story.chapters[0].scenes[1].beats[1];
+      if (beat.type !== "challenge") throw new Error("fixture");
+      beat.onWrong = {
+        detour: [
+          {
+            type: "dialogue",
+            speakerId: "char_hantu",
+            text: "Aku tidak ada di daftar cast.",
+          },
+        ],
+      };
+    });
+
+    expect(codes(result.errors)).toEqual(["E_UNKNOWN_SPEAKER"]);
+    expect(result.errors[0].path).toBe(
+      "chapters[0].scenes[1].beats[1].onWrong.detour[0].speakerId",
+    );
+  });
 });
 
 /**
@@ -282,6 +321,38 @@ describe("cerita contoh", () => {
 
     expect(result.ok).toBe(true);
     expect(story).toEqual(example);
+  });
+});
+
+describe("fixture percabangan valid", () => {
+  it("lolos dan mempertahankan field percabangan", () => {
+    const result = validateStory(readFixture("branching"), options);
+
+    expect(result.errors).toEqual([]);
+    expect(result.ok).toBe(true);
+
+    const story = result.story;
+    expect(story?.flags).toEqual([
+      { id: "flg_salah_hitung", default: false },
+      { id: "flg_sudah_dibantu", default: false },
+    ]);
+    expect(story?.scoring).toEqual({ basis: "firstAttempt" });
+
+    const challenge = story?.chapters[0].scenes[1].beats[1];
+    expect(challenge?.type).toBe("challenge");
+    if (challenge?.type !== "challenge") throw new Error("fixture");
+    expect(challenge.maxAttempts).toBe(2);
+    expect(challenge.onWrong?.setFlags).toEqual({
+      flg_salah_hitung: true,
+      flg_sudah_dibantu: true,
+    });
+    expect(challenge.onWrong?.retryQuestions).toHaveLength(1);
+    expect(challenge.onWrong?.detour).toHaveLength(2);
+
+    const dialogue = story?.chapters[0].scenes[1].beats[2];
+    expect(dialogue?.type).toBe("dialogue");
+    if (dialogue?.type !== "dialogue") throw new Error("fixture");
+    expect(dialogue.textVariants).toHaveLength(2);
   });
 });
 
@@ -495,6 +566,21 @@ describe("setiap kode E_* punya fixture", () => {
       code: "E_DUPLICATE_CHALLENGE_REF",
       path: "chapters[0].scenes[1].beats[1].challengeId",
     },
+    {
+      fixture: "retry-count",
+      code: "E_RETRY_COUNT",
+      path: "chapters[0].scenes[1].beats[1].onWrong.retryQuestions",
+    },
+    {
+      fixture: "flag-undeclared",
+      code: "E_FLAG_UNDECLARED",
+      path: "chapters[0].scenes[1].beats[1].onWrong.setFlags.flg_belum_dideklarasikan",
+    },
+    {
+      fixture: "detour-too-long",
+      code: "E_DETOUR_TOO_LONG",
+      path: "chapters[0].scenes[1].beats[1].onWrong.detour",
+    },
   ];
 
   it.each(
@@ -515,6 +601,10 @@ describe("setiap kode E_* punya fixture", () => {
     // E_PAGE_COUNT_MISMATCH tidak bisa jadi cacat fixture: ia hanya muncul
     // ketika opsi `pageCount` diberikan. Test-nya ada di bagian manifest/pageCount.
     covered.add("E_PAGE_COUNT_MISMATCH");
+    // E_ONWRONG_WITHOUT_ATTEMPTS hanya muncul dari `validateChapter`
+    // (validate-parts.test.ts): `onWrong` tanpa `maxAttempts` 2/3. Cerita penuh
+    // tidak memeriksanya lagi karena chapter sudah disaring lebih dulu.
+    covered.add("E_ONWRONG_WITHOUT_ATTEMPTS");
 
     expect(ERROR_CODES.filter((code) => !covered.has(code))).toEqual([]);
   });
@@ -625,7 +715,15 @@ describe("warning", () => {
       codes(validateStory(readFixture("warnings"), options).warnings),
     );
 
-    expect(WARNING_CODES.filter((code) => !fromFixture.has(code))).toEqual([]);
+    // W_TEXT_VARIANT_FLAG_UNSET hanya muncul dari `validateChapter`
+    // (validate-parts.test.ts), bukan dari validator cerita penuh.
+    const chapterOnly = new Set(["W_TEXT_VARIANT_FLAG_UNSET"]);
+
+    expect(
+      WARNING_CODES.filter(
+        (code) => !fromFixture.has(code) && !chapterOnly.has(code),
+      ),
+    ).toEqual([]);
   });
 });
 

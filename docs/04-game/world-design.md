@@ -252,7 +252,7 @@ Font monospace sistem yang dulu dipakai (`textbox.ts`, `interaction.ts`) tidak
 cocok dengan pixel art dan, lebih penting, teks yang digambar di canvas 640×360
 selalu bergerigi setelah upscale `image-rendering: pixelated`.
 
-Keputusan (ADR 0007, diperluas ADR 0017): **teks permainan pindah ke DOM**.
+Keputusan (ADR 0007, diperluas ADR 0020): **teks permainan pindah ke DOM**.
 
 - Panel, potret, nama, isi dialog, dan indikator "lanjut" dirender React
   (`DialogueBox.tsx`). Panel bukan lagi gambar `ui_textbox`, melainkan kotak CSS

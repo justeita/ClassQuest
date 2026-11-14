@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -8,7 +8,7 @@ owner: tim ClassQuest
 
 ## Kenapa butuh job
 
-Generasi cerita memakan 30–120 detik. Itu terlalu lama untuk satu request HTTP
+Generasi cerita memakan 30–240 detik. Itu terlalu lama untuk satu request HTTP
 yang ditunggu browser, dan rawan timeout di platform serverless.
 
 Karena itu: **respons cepat (`202`), pekerjaan berjalan terpisah, UI polling.**
@@ -112,23 +112,26 @@ Nilai awal; ubah hanya dengan memperbarui dokumen ini.
 | Scene per chapter          | 2–6   |                                                     |
 | Beat per scene             | 3–10  |                                                     |
 | Tantangan total            | 3–18  | Target, bukan aturan validator; lihat catatan       |
-| Panggilan LLM per cerita   | 12    | Anggaran keras, termasuk repair dan cadangan        |
-| Repair per **cerita**      | 2     | Bukan per chapter                                   |
+| Panggilan LLM per cerita   | 18    | Anggaran keras, termasuk repair dan cadangan        |
+| Repair per **chapter**     | 2     | Bukan per cerita                                    |
+| Repair per **cerita**      | 2     | Untuk error setelah semua chapter digabung          |
 | Timeout satu panggilan LLM | 60 s  | Satu panggilan yang lewat ini dianggap gagal        |
-| Anggaran waktu total       | 120 s | Deadline; lewat ini berhenti memanggil dan fallback |
-| Output token per panggilan | 4.000 | Cukup untuk 1 chapter                               |
+| Anggaran waktu total       | 240 s | Deadline; lewat ini berhenti memanggil dan fallback |
+| Output token per panggilan | 8.000 | Cukup untuk reasoning + 1 chapter (ADR 0018)        |
 
-Dua baris terakhir sering disalahpahami, jadi dinyatakan eksplisit:
+Dua baris tengah sering disalahpahami, jadi dinyatakan eksplisit:
 
 - **60 s bukan target, tapi pagar.** Satu panggilan yang menggantung lebih dari 60
   detik dibatalkan.
-- **120 s adalah deadline keseluruhan.** Sebelum memulai panggilan baru, pipeline
+- **240 s adalah deadline keseluruhan.** Sebelum memulai panggilan baru, pipeline
   mengecek sisa waktu. Kalau sisa < 30 detik, ia **tidak** memulai panggilan baru
-  dan langsung memakai fallback. Jadi waktu nyata terburuk ≈ 120 + 60 = 180 detik,
-  dan itu masih wajar untuk demo.
-- **12 panggilan** = 1 outline + 1 perbaikan outline + 6 chapter + 2 repair + 2
-  cadangan. Generate ulang chapter (untuk JSON rusak) memakai jatah cadangan itu,
-  bukan jatah tambahan.
+  dan langsung memakai fallback. Jadi waktu nyata terburuk ≈ 240 + 60 = 300 detik.
+  Angka ini dinaikkan dari 120 oleh
+  [ADR 0017](../09-decisions/0017-anggaran-pipeline-per-unit.md).
+- **18 panggilan** = 1 outline + 1 perbaikan outline + 6 chapter + 6 repair
+  chapter + 2 repair cerita + 2 cadangan. Generate ulang chapter (untuk JSON rusak)
+  memakai jatah cadangan itu, bukan jatah tambahan. Repair dihitung per chapter
+  karena model nyata menghasilkan satu error mekanis per chapter.
 
 Tantangan total 3–18 adalah **target**, bukan aturan yang ditegakkan validator
 (tidak ada kode `E_*` untuk total tantangan). Angkanya diturunkan dari pola sehat
@@ -153,7 +156,7 @@ mengikat hanya dua aturan: **tiap chapter minimal 1 beat `challenge`**
 | Halaman > 40           | Tolak; minta guru memilih bagian materi             |
 | Halaman > 15 (≤ 40)    | Proses 15 halaman pertama + catat `source.gaps`     |
 | Karakter > 30.000      | Potong, catat `gaps`, beri tahu guru di UI          |
-| Waktu generasi > 120 s | Fallback + tandai alasan                            |
+| Waktu generasi > 240 s | Fallback + tandai alasan                            |
 | Rate limit             | `429` + `retryAfterSec`                             |
 
 ## Idempotensi dan konkurensi
@@ -175,6 +178,10 @@ Minimal yang dicatat:
 - Kode error terbanyak.
 
 Cukup tabel `jobs.log` (JSON) di MVP; tidak perlu sistem observabilitas penuh.
+Saat fallback, `runJob()` mengisi kolom itu dengan
+`{promptVersion, fallbackReason, llmCalls, repairs, durationMs, diagnostics}`.
+`diagnostics` hanya berisi kode + path validasi (mis.
+`"E_DUPLICATE_ID challenges[3].id"`), tanpa teks materi atau isi cerita.
 
 ## Checklist implementasi
 

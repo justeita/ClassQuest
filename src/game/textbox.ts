@@ -1,7 +1,7 @@
 import { Typewriter } from "./typewriter";
 
 /**
- * State dialog sisi game (docs/04-game/scene-format.md, ADR 0007 + ADR 0017).
+ * State dialog sisi game (docs/04-game/scene-format.md, ADR 0007 + ADR 0020).
  *
  * Modul ini tidak menggambar apa pun: typewriter berjalan di `tick()` scene,
  * lalu potongan teks dan potret dikirim ke React lewat callback. Panel pixel,

@@ -92,7 +92,7 @@ editor, dan game.
 - `portraits` hanya boleh ada untuk kind `character`: satu path per ekspresi
   (`neutral`, `happy`, `sad`, `angry`, `shocked`, `thinking`), semuanya harus
   ada di `public/assets/portrait/<nama>/`. Cerita memilih ekspresi lewat field
-  `expression`, bukan path ([ADR 0017](../09-decisions/0017-potret-ekspresi-persona.md)).
+  `expression`, bukan path ([ADR 0020](../09-decisions/0020-potret-ekspresi-persona.md)).
 - `world` adalah aset sisi game — peta desa dan potongan objeknya. Entri ini
   **tidak** bisa dipilih cerita (`STORY_ASSET_KINDS` tidak memuatnya). Peta
   `world_map_*` memakai `width`/`height` kelipatan 16 agar sejajar grid collider
