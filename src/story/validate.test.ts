@@ -762,8 +762,14 @@ describe("fixture demo game", () => {
     // tidak berubah diam-diam.
     expect(result.ok).toBe(true);
     expect(result.errors).toEqual([]);
+    // Tiga `W_LONG_DIALOGUE_RUN` berasal dari isi fixture (adegan pesta panen
+    // punya lebih dari 6 beat dialog/narasi berturut-turut), bukan dari
+    // validator. Kalau fixture dirapikan, daftar ini ikut menyusut.
     expect(result.warnings.map((warning) => warning.code)).toEqual([
       "W_NO_CHALLENGE_IN_SCENE",
+      "W_LONG_DIALOGUE_RUN",
+      "W_LONG_DIALOGUE_RUN",
+      "W_LONG_DIALOGUE_RUN",
     ]);
   });
 });
