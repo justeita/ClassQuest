@@ -118,6 +118,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/constants.ts`                                   | ya   | Konstanta resolusi tanpa dependensi                            |
 | `src/game/movement.ts`                                    | ya   | Gerak pemain 8 arah + tabrakan grid manual (ADR 0008)          |
 | `src/game/movement.test.ts`                               | ya   | Tes arah gerak dan langkah per sumbu                           |
+| `src/game/advanceInput.ts`                                | ya   | Input lanjut dialog (Space/Enter) tahan ketukan antar-frame    |
+| `src/game/advanceInput.test.ts`                           | ya   | Tes latch ketukan Space/Enter yang lepas sebelum frame         |
 | `src/game/gameBus.ts`                                     | ya   | Bridge bertipe Phaser ↔ React (event + command)                |
 | `src/game/challengeView.ts`                               | ya   | Data tantangan aman untuk overlay (tanpa jawaban)              |
 | `src/game/answerLog.ts`                                   | ya   | Catatan jawaban percobaan pertama + ringkasan hasil            |

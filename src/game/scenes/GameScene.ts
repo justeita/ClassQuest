@@ -5,6 +5,7 @@ import { DEFAULT_EXPRESSION, type Expression } from "@/story/expression";
 import { renderAnswer, scoreAnswer, type Answer } from "@/story/scoring";
 import type { DetourBeat, Story } from "@/story/schema";
 
+import { buatInputLanjut, type AdvanceInput } from "../advanceInput";
 import { clampVolume } from "../audioSettings";
 import { CAMERA_LERP, ZOOM_KAMERA, deadzoneDunia, kameraMode } from "../camera";
 import { DEPTH_LATAR } from "../depth";
@@ -129,7 +130,7 @@ export class GameScene extends Phaser.Scene {
   private readonly story: Story;
   private player?: Phaser.GameObjects.Sprite;
   private keys?: MovementKeys;
-  private lanjutKeys?: Record<"space" | "enter", Phaser.Input.Keyboard.Key>;
+  private lanjut?: AdvanceInput;
   private runner: StoryRunner;
   private castNames: Map<string, string>;
   /** Baris obrolan singkat per karakter (ADR 0016); kosong bila tidak ada. */
@@ -236,10 +237,7 @@ export class GameScene extends Phaser.Scene {
     this.pasangKamera();
 
     this.keys = ambilTombolGerak(this);
-    this.lanjutKeys = this.input.keyboard?.addKeys("space,enter") as Record<
-      "space" | "enter",
-      Phaser.Input.Keyboard.Key
-    >;
+    this.lanjut = buatInputLanjut(this.input.keyboard);
     this.input.keyboard?.disableGlobalCapture();
     this.input.keyboard?.clearCaptures();
     // Teks dan potret dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene
@@ -315,6 +313,7 @@ export class GameScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       this.hentikanLewati();
       this.batalkanJadwalBab();
+      this.lanjut?.lepas();
       this.arahSentuh = null;
     });
   }
@@ -344,9 +343,14 @@ export class GameScene extends Phaser.Scene {
 
     if (phase === "explore") {
       this.updateExplore(delta);
-    } else if (phase !== "challenge") {
+    } else if (phase === "challenge") {
       // Tantangan membekukan typewriter dan input lanjut: dialog terakhir tetap
       // terlihat di belakang panel soal (docs/04-game/scene-format.md § challenge).
+      // Ketukan Space/Enter selama soal dibuang — mis. spasi saat mengetik
+      // jawaban atau Enter saat submit — agar tidak melompat satu beat setelah
+      // dijawab.
+      this.lanjut?.bersihkan();
+    } else {
       this.textbox?.tick(delta);
       this.checkLanjutKeys();
     }
@@ -540,7 +544,7 @@ export class GameScene extends Phaser.Scene {
 
     this.perbaruiPetunjuk(dekat);
 
-    if (dekat && this.lanjutKeysBaruDitekan()) {
+    if (dekat && this.adaInputLanjut()) {
       this.mulaiInteraksiTerdekat();
     }
   }
@@ -782,14 +786,13 @@ export class GameScene extends Phaser.Scene {
 
   /** Space/Enter saat fase beat: selesaikan teks atau lanjut beat. */
   private checkLanjutKeys() {
-    if (!this.lanjutKeysBaruDitekan()) return;
+    if (!this.adaInputLanjut()) return;
     this.onLanjutInput();
   }
 
-  private lanjutKeysBaruDitekan(): boolean {
-    const space = this.lanjutKeys?.space.isDown ?? false;
-    const enter = this.lanjutKeys?.enter.isDown ?? false;
-    return space || enter;
+  /** Ada tekanan Space/Enter segar (event) atau tombol yang masih ditahan. */
+  private adaInputLanjut(): boolean {
+    return this.lanjut?.lanjutDitekan() ?? false;
   }
 
   /** Satu tekanan = satu langkah: mengetik → selesai; menunggu → lanjut. */
