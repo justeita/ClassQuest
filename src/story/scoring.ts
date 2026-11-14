@@ -21,26 +21,35 @@ import type { Challenge, Story } from "./schema";
 /** Poin bawaan saat `challenge.points` tidak diisi. */
 export const DEFAULT_POINTS = 10;
 
-export type MultipleChoiceAnswer = {
+/**
+ * Kolom yang dimiliki semua jawaban.
+ *
+ * `usedHint` menandai siswa membuka hint sebelum menjawab. Poin benar dipotong
+ * menjadi setengah (dibulatkan ke bawah) oleh `scoreAnswer`; jawaban salah
+ * tetap 0. Flag ini ikut terkirim ke server supaya skor yang dihitung ulang di
+ * sana sama dengan yang dilihat siswa saat bermain.
+ */
+type AnswerBase = {
   challengeId: string;
+  usedHint?: boolean;
+};
+
+export type MultipleChoiceAnswer = AnswerBase & {
   type: "multiple_choice";
   selectedId: string;
 };
 
-export type TrueFalseAnswer = {
-  challengeId: string;
+export type TrueFalseAnswer = AnswerBase & {
   type: "true_false";
   answer: boolean;
 };
 
-export type OrderingAnswer = {
-  challengeId: string;
+export type OrderingAnswer = AnswerBase & {
   type: "ordering";
   order: string[];
 };
 
-export type ShortAnswerAnswer = {
-  challengeId: string;
+export type ShortAnswerAnswer = AnswerBase & {
   type: "short_answer";
   text: string;
 };
@@ -171,10 +180,22 @@ const pointsOf = (challenge: Challenge): number =>
   challenge.points ?? DEFAULT_POINTS;
 
 /**
+ * Porsi poin yang tersisa saat siswa memakai hint. Setengah, dibulatkan ke
+ * bawah: 10 → 5, 15 → 7, 20 → 10. Jawaban salah tetap 0, sama seperti tanpa
+ * hint. Aturan ini juga dihitung ulang server dari `answers`, jadi flag
+ * `usedHint` wajib ikut di jawaban mentah.
+ */
+export const HINT_POINT_FACTOR = 0.5;
+
+const pointsSetelahHint = (points: number, usedHint?: boolean): number =>
+  usedHint ? Math.floor(points * HINT_POINT_FACTOR) : points;
+
+/**
  * Nilai satu jawaban dan hitung poinnya.
  *
- * Benar mendapat `points` (default 10), salah mendapat 0. Tidak ada
- * pengurangan untuk mencoba lagi dan tidak ada skor parsial.
+ * Benar mendapat `points` (default 10), atau setengahnya bila siswa memakai
+ * hint; salah mendapat 0. Tidak ada pengurangan untuk mencoba lagi dan tidak
+ * ada skor parsial.
  */
 export function scoreAnswer(
   challenge: Challenge,
@@ -184,7 +205,9 @@ export function scoreAnswer(
   return {
     challengeId: challenge.id,
     isCorrect: correct,
-    pointsAwarded: correct ? pointsOf(challenge) : 0,
+    pointsAwarded: correct
+      ? pointsSetelahHint(pointsOf(challenge), answer.usedHint)
+      : 0,
   };
 }
 

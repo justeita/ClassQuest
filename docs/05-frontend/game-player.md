@@ -138,7 +138,9 @@ di dalam `GameCanvas`: `loading` = progres aset belum penuh atau scene pertama
 belum siap, `ready` = event `ready` sudah datang dan layar muat sedang memudar.
 Selama overlay itu masih menutup layar, shortcut papan ketik `GameCanvas` (Esc,
 Q, B) sengaja mati — tidak ada permainan yang bisa dijedakan, dan Tab harus bisa
-keluar dari tombol "Batal". `QuestTracker` menerima daftar quest lewat event
+keluar dari tombol "Batal". Setelah `ready`, `Tab`/`Shift+Tab` dimatikan dan
+fokus ditarik kembali ke area permainan supaya tidak pindah ke tombol HUD maupun
+lompat ke bilah peramban. `QuestTracker` menerima daftar quest lewat event
 `quest` dari Phaser, diturunkan dari scene dan status runner — bukan ditebak dari
 DOM.
 
@@ -156,16 +158,29 @@ dari guru langsung melihat judul cerita, bukan menu.
 
 - Satu gambar desa utuh (`public/menu/desa.webp`) memenuhi layar. Teks menu
   berdiri **langsung di atas gambar**, di bawah naungan pohon kiri atas, tanpa
-  panel — jadi seluruh desa tetap terlihat. Di layar < 768 px papan teksnya
-  diberi latar gelap transparan sendiri, karena crop gambar menaruh rumah terang
-  di belakang teks.
+  panel — jadi seluruh desa tetap terlihat. Satu lapisan gradien gelap penuh
+  kanvas (dari tepi kiri yang pekat, memudar habis tepat di tepi kanan)
+  menstabilkan keterbacaan teks tanpa meninggalkan garis batas di tengah layar.
 - Isi papan: judul "CLASS QUEST" (serif tebal), garis emas berhiaskan bintang,
-  empat pilihan — `Mulai`, `Pengaturan`, `Kredit`, `Keluar` — petunjuk tombol, dan
-  label versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas.
+  empat pilihan — `Mulai`, `Pengaturan`, `Kredit`, `Keluar` — petunjuk, dan label
+  versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas.
+- Di perangkat sentuh (`useSentuh`) petunjuk tombol keyboard diganti petunjuk
+  sentuh (`Ketuk pilih · ketuk lagi konfirmasi`) dan menu memakai dua langkah:
+  ketukan pertama memindahkan segitiga penunjuk ke pilihan itu, ketukan
+  berikutnya di pilihan yang sama baru menjalankannya. Tanpa jeda ini aksi
+  langsung berjalan (dialog terbuka atau permainan mulai) sehingga penunjuk tak
+  pernah terlihat berpindah. `onFocus`/`onMouseEnter` dilewati di sentuh karena
+  peramban memancarkan keduanya sebelum `click` setelah sebuah ketukan.
+- Di lanskap ponsel (tinggi ≤ 30rem) judul, jarak antar-blok, dan padding papan
+  diperkecil supaya keempat pilihan dan label versi muat tanpa terpotong tepi
+  bawah; tinggi tiap pilihan tetap 44 px agar nyaman disentuh, dan papan boleh
+  digulir sebagai jaring pengaman. Ambang `max-height: 30rem` sama dengan menu
+  jeda (ADR 0036).
 - Keyboard-first: `↑`/`↓` (atau `W`/`S`) memindahkan sorotan dan memindahkan
   fokus DOM, `Home`/`End` ke ujung daftar, `Enter`/`Space` menjalankan pilihan.
-  `Tab` tidak pernah diambil alih. Selama dialog terbuka, panah tidak menggerakkan
-  menu karena fokus milik dialog.
+  `Tab` tidak diambil alih di layar menu ini; penahanan `Tab` baru aktif di dalam
+  permainan. Selama dialog terbuka, panah tidak menggerakkan menu karena fokus
+  milik dialog.
 - `Mulai` menyerahkan kontrol ke `GameShell`, yang masih menampilkan layar judul
   cerita. Tidak ada "Lanjutkan": progres `localStorage` belum ada, jadi menu tidak
   menjanjikan simpanan yang belum pernah dibuat.
@@ -174,7 +189,13 @@ dari guru langsung melihat judul cerita, bukan menu.
   [`../../src/game/audioSettings.ts`](../../src/game/audioSettings.ts). Nilai
   dibaca saat dialog dibuka (bukan saat mount) supaya render server dan client
   tidak berbeda. `Simpan` menutup dialog dan memberi tahu lewat `role="status"`.
-- `Kredit` berisi asal-usul cerita dan lisensi font. `Keluar` membuka konfirmasi
+- `Kredit` berisi asal-usul cerita, daftar tim penyusun (nama, peran, kampus,
+  tautan GitHub), dan lisensi font. Daftarnya ditulis di dalam kode (bukan
+  diambil dari server) dan ditampilkan bertumpuk, bukan tabel empat kolom, agar
+  nama panjang tetap terbaca di panel dialog yang sempit. Bila isinya melebihi
+  tinggi layar, panel digulir dengan **scrollbar bertema** (`scrollbar-tema`),
+  bukan scrollbar bawaan peramban — jalur gelap dengan ibu jari oranye seperti
+  buku catatan dan menu jeda (ADR 0031). `Keluar` membuka konfirmasi
   yang menautkan ke `/` (halaman pemilihan peran) — bukan menutup tab, karena
   `window.close()` tidak diizinkan peramban.
 - Kelopak sakura ditulis dengan nilai tetap (bukan `Math.random()`) agar render
@@ -280,7 +301,8 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   kotak `Space` diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda tetap
   menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
   tantangan, atau menu jeda.
-- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog. Pola
+- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog; `Tab` sendiri
+  juga hanya hidup di fase itu (saat eksplorasi dan soal `Tab` dimatikan). Pola
   tahan-tombol ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju
   seperti time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
   (`SpeedLines`); dilepas, tempo kembali normal. Soal tidak bisa dilewati —
@@ -310,23 +332,28 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
 ![Panel tantangan di atas dialog](../assets/challenge-overlay.svg)
 
 - Teks soal/pertanyaan ditampilkan langsung di dalam `DialogueBox` NPC, bukan elemen tambahan di atasnya.
+- Soal lebih dulu **diketik mesin tik** di kotak dialog: teks `prompt` (plus `"statement"` untuk `true_false`) muncul bertahap. Selama mengetik, pilihan jawaban, hint, dan chip pintasan belum tampil; `ChallengeOverlay` menerima prop `siap` yang bernilai `false` sampai textbox menandai `waiting`. Bila event `challenge` datang tanpa dialog soal, `siap` dianggap `true` agar soal tidak tersangkut.
+- Potret pembicara soal tetap terlihat selama soal diketik dan dijawab; panel jawaban duduk di kanan atas sehingga sisi kiri potret tidak tertutup.
+- Area jawaban (opsi, hint, tombol, chip pintasan) **beranimasi masuk** setelah soal selesai diketik dan **beranimasi keluar** saat jawaban dinilai, lalu kartu umpan balik masuk (ADR 0038). Semua animasi hanya memakai `opacity`/`transform` dan dimatikan saat `prefers-reduced-motion: reduce`.
 - Yang melayang di atas dialog HANYA pilihan jawabannya:
   - Opsi pendek (seperti "1", "2", "4"): ditata 1 baris horizontal di kanan atas dialog.
   - Opsi teks panjang: ditata bertumpuk vertikal di kanan atas dialog; lebar seluruh box seragam mengikuti opsi terpanjang.
   - Persoalan matematika / matriks: ditata sebagai kartu berjejer agar formula terlihat jelas.
-- **Lebar kotak mengikuti isi (fit text), bukan lebar panel.** Opsi pilihan, baris pengurutan, input jawaban singkat, dan tombol `Jawab` dibungkus grup `w-fit` sehingga hanya selebar isinya; pada daftar kolom, semua opsi diseragamkan ke opsi terpanjang (tanpa lebar minimum tetap). Jadi jawaban pendek tidak lagi membentang penuh ke kanan. Baris petunjuk pintasan ditaruh di luar grup agar tidak ikut menentukan lebarnya. (ADR 0030)
+- **Lebar kotak mengikuti isi (fit text), bukan lebar panel.** Opsi pilihan, baris pengurutan, input jawaban singkat, dan tombol `Jawab` dibungkus grup `w-fit` sehingga hanya selebar isinya; pada daftar kolom, semua opsi diseragamkan ke opsi terpanjang (tanpa lebar minimum tetap). Jadi jawaban pendek tidak lagi membentang penuh ke kanan. Baris petunjuk pintasan ditaruh di luar grup agar tidak ikut menentukan lebarnya, lalu diratakan ke kanan bersama grup jawaban dan tombol `Lihat hint`. (ADR 0030)
+  - **Seluruh grup jawaban rata kanan.** Daftar pengurutan dan input jawaban singkat diratakan ke kanan di dalam panel, sehingga tepi kanannya sejajar dengan tepi kanan dialog dan pilihan jawaban tipe lain — bukan menempel di kiri panel.
   - Pada `ordering`, daftar item dan tombol `Jawab` berbagi grup `w-fit` yang sama supaya tepi kanan keduanya rata.
   - Pada `short_answer`, input `size` mengikuti panjang placeholder sehingga teks petunjuk muat tanpa terpotong, dan tombol `Jawab` selebar input.
 - Konsistensi visual HCI dengan DialogueBox (ADR 0030, ADR 0031):
   - Kotak jawaban, kartu matriks, kartu umpan balik, tombol aksi, dan petunjuk pintasan memakai **token kotak dialog** yang sama (`gayaDialog.ts`): latar gelap `#0b120e`/95, bingkai tipis aksen oranye `#E8A87C`, sudut membulat (`rounded-lg`), teks krem terang `#F7F4EC`, aksen oranye `#E8A87C`, flat tanpa drop shadow.
   - Keadaan terpilih memakai `KOTAK_DIALOG_AKTIF` (bingkai oranye penuh, latar sedikit terangkat); keadaan diam memakai `KOTAK_DIALOG` + hover. Dipilih dengan percabangan agar tidak menumpuk kelas warna yang bentrok.
-  - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar; bingkai kartu berwarna status (`#6F9B7A` benar, `#C9A227` belum tepat).
+  - Setelah dijawab (`graded`), pilihan box jawaban menyingkir dengan animasi keluar lalu hanya kartu umpan balik yang muncul agar tidak memicu scrollbar; bingkai kartu berwarna status (`#6F9B7A` benar, `#C9A227` belum tepat).
   - Ukuran huruf dan line-height opsi dan penjelasan umpan balik proporsional dan nyaman dibaca (`ukuranHuruf(13.5, 12, 20)` & `lineHeight: 1.3`).
-  - Penunjuk pilihan aktif adalah **tangan menunjuk (glove) SVG** yang digambar sendiri (bukan glyph font atau emoji) di **luar kotak** — kiri untuk daftar, atas untuk kartu, dan di depan input `short_answer`. Telapak krem `#F7F4EC` dengan outline gelap dan manset oranye `#E8A87C`, jadi tetap jelas di atas dunia terang maupun kotak gelap; saat tidak aktif ia `opacity-0` agar tata letak tidak bergeser.
+  - Penunjuk pilihan aktif adalah **tangan menunjuk (glove) pixel-art SVG** yang digambar sendiri (bukan glyph font atau emoji) di **luar kotak** — kiri untuk daftar, atas untuk kartu, dan di depan input `short_answer`. Telapak krem `#F7F4EC` dengan outline gelap `#0b120e` dan bayangan abu di pergelangan serta tepi bawah, jadi tetap jelas di atas dunia terang maupun kotak gelap; ujung jari menghadap kotak pilihan. Ukurannya dibatasi `clamp(15px, …, 22px)` mengikuti lebar kanvas supaya cukup besar untuk terbaca tetapi tidak menabrak margin panel; saat tidak aktif ia `opacity-0` agar tata letak tidak bergeser.
   - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya dan memakai aksen oranye `#E8A87C`.
+  - Di perangkat sentuh (`useSentuh()`) penunjuk digerakkan oleh ketukan opsi, bukan hover. Ketukan pertama memilih/memindahkan glove, lalu tombol `Jawab` mengonfirmasi; di desktop klik tetap mengirim langsung.
   - Teks petunjuk tombol shortcut (`hints`) memakai latar gelap `#0b120e`/95 dengan teks krem terang `#F7F4EC` untuk keterbacaan tinggi.
 - Segitiga lanjut dialog `▼` diposisikan di **sudut kanan bawah kotak dialog**.
-- Tanpa background kotak pembungkus hitam luar (hanya baris pilihan yang memiliki latar), tanpa tombol jawab/lanjut terpisah. Memilih opsi langsung mengirim respon dialog, dan kartu umpan balik cerita dapat diklik atau ditekan Spasi/Enter untuk lanjut.
+- Tanpa background kotak pembungkus hitam luar (hanya baris pilihan yang memiliki latar). Di desktop, memilih opsi langsung mengirim respon dialog. Di perangkat sentuh, ketukan pertama hanya memindahkan penunjuk (glove) ke opsi itu — pengganti hover yang tidak ada di HP — lalu tombol `Jawab` mengirim, supaya jari yang salah tekan tidak langsung menjawab. Kartu umpan balik cerita dapat diklik atau ditekan Spasi/Enter untuk lanjut.
 - Kontrol keyboard-first meminimalkan ketergantungan mouse/touchpad:
   - `multiple_choice` / `true_false`: angka `1`–`5` langsung memilih & mengirim, panah/WASD menggeser sorotan, `Enter`/`Spasi` memilih.
   - `ordering`: panah atas/bawah atau `W`/`S` memilih baris, panah kiri/kanan atau `A`/`D` menggeser posisi naik/turun, angka `1`–`N` loncat baris, `Enter` mengirim jawaban.
@@ -346,17 +373,25 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   - `short_answer`: satu input teks; `Enter` atau tombol "Jawab" mengirim.
 - Overlay hanya mengirim jawaban mentah. Trim, lowercase, dan pembuangan tanda
   baca akhir dilakukan `src/story/scoring.ts`, bukan di komponen.
-- `hints` tampil sebagai catatan kecil bila ada; jawaban benar tidak pernah ikut
-  ke `ChallengeView`.
+- `hints` tampil sebagai tombol **"Lihat hint"** di bawah pilihan jawaban, bukan
+  catatan yang selalu terbuka. Hint tersembunyi sampai siswa membuka konfirmasi
+  singkat ("Pakai hint? Poin soal ini akan berkurang setengah.") lalu memilih
+  **"Tampilkan hint"**; "Batal" menutup konfirmasi tanpa mengubah apa pun.
+  Setelah dikonfirmasi, teks hint tampil dan jawaban berikutnya membawa
+  `usedHint: true`, sehingga poin benar dipotong setengah (dibulatkan ke bawah,
+  lihat [`../02-data-model/challenge-types.md`](../02-data-model/challenge-types.md#penilaian-dan-skor)).
+  Hint yang dipakai tidak mengubah benar/salah maupun `weakConcepts`.
+- Jawaban benar tidak pernah ikut ke `ChallengeView`.
 
 ### Paused
 
 - Lanjut, ulangi chapter, pengaturan suara (slider Musik dan Efek suara
   terpisah + tombol mute per baris), keluar.
-- Tampil sebagai satu **kartu gelap membulat** dengan garis aksen oranye; area
-  luarnya bisa digulir dan memakai **scrollbar bertema** (`scrollbar-tema`),
-  jadi di layar ponsel pendek menu tetap terjangkau tanpa scrollbar bawaan
-  peramban (ADR 0031).
+- Tampil sebagai satu **kartu gelap membulat** dengan garis aksen oranye. Di
+  lanskap ponsel yang pendek isinya pindah ke dua kolom — pengaturan suara di
+  kiri, tombol aksi di kanan — sehingga semua pilihan muat tanpa gulir. Wadah
+  menu tetap memakai `overflow-y-auto` dan **scrollbar bertema**
+  (`scrollbar-tema`) hanya sebagai cadangan untuk tinggi ekstrem (ADR 0036).
 - Game di-pause (`scene.pause()`), input dialog berhenti.
 - Musik tidak dihentikan, hanya dikecilkan (volume 0,35 → 0,12) agar jeda tidak
   terasa memutus suasana; volume kembali saat lanjut atau ulangi chapter.
@@ -450,6 +485,12 @@ penuh melepas kunci itu lagi. Keduanya best-effort — di Safari iPhone tombolny
 tidak dirender sama sekali, dan bila kunci orientasi ditolak pemain tetap dapat
 layar penuh. Keputusannya di
 [ADR 0025](../09-decisions/0025-layar-penuh-lanskap.md).
+
+Layar penuh juga bisa **langsung diminta dari halaman utama**: kartu "Arena
+Siswa" (`TautanLayarPenuh`) memanggil permintaan yang sama di dalam gestur
+ketukan sebelum berpindah ke `/game`, jadi di ponsel permainan terbuka penuh
+dan mendatar tanpa menekan tombol lagi. Klik dengan tombol pengubah tetap
+membuka tab baru tanpa memaksa layar penuh (ADR 0037).
 
 Semua tombol dan tautan memakai `touch-action: manipulation`, dan akar
 `GameCanvas` `touch-manipulation`, supaya di Android ketukan langsung jadi klik

@@ -425,6 +425,43 @@ describe("poin", () => {
       }).pointsAwarded,
     ).toBe(0);
   });
+
+  it("memotong poin benar menjadi setengah saat memakai hint, dibulatkan ke bawah", () => {
+    const challenge = multipleChoice({ points: 15 });
+    expect(
+      scoreAnswer(challenge, {
+        challengeId: challenge.id,
+        type: "multiple_choice",
+        selectedId: "opt_a",
+        usedHint: true,
+      }).pointsAwarded,
+    ).toBe(7);
+  });
+
+  it("hint tidak memberi poin saat jawaban salah", () => {
+    const challenge = multipleChoice({ points: 25 });
+    expect(
+      scoreAnswer(challenge, {
+        challengeId: challenge.id,
+        type: "multiple_choice",
+        selectedId: "opt_b",
+        usedHint: true,
+      }).pointsAwarded,
+    ).toBe(0);
+  });
+
+  it("hint tidak mengubah benar/salah, hanya poin", () => {
+    const challenge = multipleChoice({ points: 10 });
+    const jawaban = {
+      challengeId: challenge.id,
+      type: "multiple_choice" as const,
+      selectedId: "opt_a",
+      usedHint: true,
+    };
+
+    expect(isCorrect(challenge, jawaban)).toBe(true);
+    expect(scoreAnswer(challenge, jawaban).isCorrect).toBe(true);
+  });
 });
 
 describe("scoreStory pada cerita contoh", () => {
@@ -435,6 +472,25 @@ describe("scoreStory pada cerita contoh", () => {
     expect(result.totalChallenges).toBe(9);
     expect(result.totalPoints).toBe(140);
     expect(result.earnedPoints).toBe(140);
+    expect(result.correctCount).toBe(9);
+    expect(result.weakConcepts).toEqual([]);
+  });
+
+  it("skor cerita memotong poin semua jawaban yang memakai hint", () => {
+    const answers = EXAMPLE.challenges.map((challenge) => ({
+      ...correctAnswerFor(challenge),
+      usedHint: true,
+    }));
+    const result = scoreStory(EXAMPLE, answers);
+    const diharapkan = EXAMPLE.challenges.reduce(
+      (jumlah, challenge) =>
+        jumlah + Math.floor((challenge.points ?? DEFAULT_POINTS) / 2),
+      0,
+    );
+
+    expect(result.earnedPoints).toBe(diharapkan);
+    expect(result.earnedPoints).toBeLessThan(result.totalPoints);
+    // Memakai hint tidak mengubah jumlah benar maupun konsep lemah.
     expect(result.correctCount).toBe(9);
     expect(result.weakConcepts).toEqual([]);
   });

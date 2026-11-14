@@ -138,6 +138,27 @@ describe("savePlayResult", () => {
     ]);
   });
 
+  it("menghitung potongan skor dari jawaban yang memakai hint", async () => {
+    const hinted = allCorrectAnswers().map((answer) => ({
+      ...answer,
+      usedHint: true,
+    }));
+    const result = await savePlayResult(db, {
+      storyId: STORY_ID,
+      result: { answers: hinted },
+    });
+
+    expect(result).toEqual({ ok: true });
+    const row = await storedRow();
+    const expected = scoreStory(story, hinted);
+    expect(Number(row?.earned_points)).toBe(expected.earnedPoints);
+    // Pastikan field `usedHint` tidak dibuang skema server: tanpa potongan,
+    // skor akan sama dengan jawaban tanpa hint.
+    expect(expected.earnedPoints).toBeLessThan(
+      scoreStory(story, allCorrectAnswers()).earnedPoints,
+    );
+  });
+
   it("klien tidak bisa menaikkan skor (field skor ditolak)", async () => {
     const result = await savePlayResult(db, {
       storyId: STORY_ID,

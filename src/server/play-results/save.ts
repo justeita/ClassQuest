@@ -59,21 +59,25 @@ const answerSchema = z.discriminatedUnion("type", [
     type: z.literal("multiple_choice"),
     challengeId: idField,
     selectedId: idField,
+    usedHint: z.boolean().optional(),
   }),
   z.object({
     type: z.literal("true_false"),
     challengeId: idField,
     answer: z.boolean(),
+    usedHint: z.boolean().optional(),
   }),
   z.object({
     type: z.literal("ordering"),
     challengeId: idField,
     order: z.array(idField).max(50),
+    usedHint: z.boolean().optional(),
   }),
   z.object({
     type: z.literal("short_answer"),
     challengeId: idField,
     text: z.string().max(500),
+    usedHint: z.boolean().optional(),
   }),
 ]);
 

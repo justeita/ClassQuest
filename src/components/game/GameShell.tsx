@@ -164,6 +164,7 @@ export function GameShell({
           story={story}
           onFinished={selesai}
           onBatal={batalMain}
+          aktif={layar === "main"}
         />
       )}
       {layar === "hasil" && hasil && (

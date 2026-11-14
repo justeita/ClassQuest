@@ -50,22 +50,28 @@ Aturan:
 - Di dalam game, `GameScene` **hanya** memakai `musicId`. `backgroundId` diabaikan
   karena latar dunia adalah peta desa; `putarMusik()` tetap jatuh ke `bgm_default`
   bila audio yang diminta tidak ikut termuat.
-- Ganti musik hanya bila `musicId` berbeda dari scene sebelumnya. Jangan restart
-  track yang sama.
+- `bgm_default` berarti "musik latar permainan": track pertamanya dipilih **acak
+  sekali per sesi** dari `GAMEPLAY_MUSIC_IDS` (`bgm_default` + `bgm_vellore`,
+  `sceneAssets.ts`), lalu kedua track diputar **bergantian** tiap lagu selesai
+  dan kembali ke pilihan awal. Jadi dua permainan bisa memakai lagu berbeda.
+  Override scene/chapter dengan id lain tetap dihormati dan tetap di-loop.
+- Ganti musik hanya bila track efektif berbeda dari scene sebelumnya. Jangan
+  restart track yang sama.
 
 ## Preload
 
 `PreloadScene` memuat, dalam urutan ini:
 
-1. **Seluruh aset dunia desa** (`WORLD` dari `src/assets/manifest.ts`) — peta,
-   potongan objek, spritesheet karakter, dan musik default. Dunia tidak bisa
-   dirender sebagian, jadi semuanya dimuat sekali di awal.
+1. **Seluruh aset dunia desa** (`WORLD` dari `src/assets/manifest.ts`) — peta dan
+   potongan objek. Dunia tidak bisa dirender sebagian, jadi semuanya dimuat
+   sekali di awal.
 2. **Aset cerita** lewat `collectStoryAssets(story)`: background chapter +
    override scene, musik chapter + override scene, dan `spriteId` setiap `cast`.
    Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0023).
-3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `sfx_click`,
-   `sfx_page`, `sfx_correct`, `sfx_wrong`). Panel dan potret dialog tidak dimuat
-   Phaser.
+3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `bgm_vellore`,
+   `sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`, `sfx_type`). Kedua BGM
+   ikut dimuat karena track awal dipilih acak dan rotasinya memakai keduanya.
+   Panel dan potret dialog tidak dimuat Phaser.
 
 Semua key loader memakai `id` manifest, jadi scene tidak menebak path file.
 `manifest.test.ts` menjamin setiap id punya berkasnya, sehingga `PreloadScene`
@@ -169,9 +175,10 @@ bebas bergerak.
 > meredup, begitu pula sebaliknya, dan sorot itu bertahan selama sesi dialog.
 > Potret MC hanya menemani dialog di scene yang memang memberi giliran bicara
 > kepada MC (`src/game/potret.ts`); dialog antar-NPC dan obrolan singkat dengan
-> NPC non-quest (ADR 0016) tampil tanpa potret MC. Selama soal belum dijawab,
-> kedua potret disembunyikan; setelah dinilai keduanya tampil lagi untuk umpan
-> balik senang/marah.
+> NPC non-quest (ADR 0016) tampil tanpa potret MC. Selama soal, potret pembicara
+> soal tetap terlihat — panel jawaban duduk di kanan atas agar sisi kiri tidak
+> tertutup; setelah dinilai potretnya berganti untuk umpan balik senang/marah
+> (ADR 0038).
 >
 > Panel dan potret punya animasi buka/tutup: panel menyala seperti TV tabung
 > dari garis tipis di tengah dan menutup kembali ke tengah, sedangkan potret
@@ -252,10 +259,15 @@ terjadi sebelum beat pertama scene.
 
 - Panel tantangan muncul **di atas dialog**, bukan sebagai jendela tengah yang
   menutupi seluruh layar. Tidak ada lapisan gelap penuh.
-- Dialog **dipause**, bukan ditutup: baris terakhir tetap terlihat sebagai
-  konteks soal, dan typewriter dibekukan selama fase `challenge`.
-- Soal memakai potret pembicara terakhir. Setelah jawaban dinilai, potretnya
-  berganti: benar → `happy`, salah → `angry`.
+- Soal **diketik mesin tik** dulu di kotak dialog: teks `prompt` (ditambah
+  `"statement"` untuk `true_false`) tampil bertahap seperti dialog biasa. Scene
+  memanggil `textbox.show` **tanpa** `complete()`, dan satu tekanan
+  Space/Enter menuntaskan ketikannya. Pilihan jawaban, hint, dan chip pintasan
+  baru muncul setelah ketikan tuntas (`waiting` textbox menjadi `true`).
+- Dialog **tidak ditutup**: baris soal tetap terlihat sebagai konteks, termasuk
+  potret pembicara soal selama soal (panel jawaban duduk di kanan atas agar
+  sisi kiri potret tidak tertutup). Setelah dinilai, potretnya berganti:
+  benar → `happy`, salah → `angry`.
 - Isi soal yang panjang digulir di dalam panel; tombol aksi menempel di bawah.
 - Event `challenge` dikirim ke React dengan `challengeId`.
 - Phaser menunggu perintah `resolve_challenge` sebelum lanjut.
@@ -270,18 +282,27 @@ terjadi sebelum beat pertama scene.
 ## Typewriter
 
 - Kecepatan 35 karakter/detik (`Typewriter`, default 35; rentang desain 30–40).
+- Tiap karakter baru memicu blip `sfx_type` lewat `TextboxHooks.onKetik`, dengan
+  jeda 60 ms dan nada bergantian agar tidak berdengung. Blip diam saat spasi,
+  mode percepat, atau volume SFX nol.
 - Klik/Spasi saat mengetik → tampilkan seluruh teks (bukan lanjut beat).
 - Klik/Spasi saat selesai → lanjut beat.
+- Bunyi lanjut/selesai dialog memakai sampel `sfx_type` yang sama dengan blip
+  ketik, hanya lebih pelan (volume 0,5×) dan lebih rendah (rate 0,78×), jadi
+  satu keluarga bunyi. `sfx_click` tetap untuk aksi UI (mis. mulai percepat).
+- Soal tantangan ikut diketik. Selama fase `challenge`, typewriter tetap
+  di-`tick` dan satu tekanan menuntaskan ketikan, tetapi tidak memajukan beat;
+  pilihan jawaban menunggu `waiting` textbox (lihat § `challenge`).
 - Teks di-`setText` utuh, bukan per karakter dengan `Text` baru; gunakan counter
   dan `slice(0, n)` — cukup untuk 240 karakter.
 
 ## Perpindahan scene dan chapter
 
-| Peristiwa         | Visual                                                            |
-| ----------------- | ----------------------------------------------------------------- |
-| Scene → scene     | Musik berganti bila `musicId` berubah; NPC pemberi quest berganti |
-| Chapter → chapter | Kartu judul chapter, musik berganti bila perlu                    |
-| Chapter terakhir  | Fade ke layar hasil (React)                                       |
+| Peristiwa         | Visual                                                                |
+| ----------------- | --------------------------------------------------------------------- |
+| Scene → scene     | Musik berganti bila track efektif berubah; NPC pemberi quest berganti |
+| Chapter → chapter | Kartu judul chapter, musik berganti bila perlu                        |
+| Chapter terakhir  | Fade ke layar hasil (React)                                           |
 
 Dunia **tidak** dibangun ulang dan pemain **tidak** dikembalikan ke spawn saat
 scene berganti. Spawn hanya dipakai saat memulai cerita atau saat **"Ulangi
@@ -334,7 +355,7 @@ Chapter 1, scene `sc_01_02` ("Tiga Kali Resep"):
 
 Yang terjadi:
 
-1. Musik chapter tetap `bgm_default` (tidak berganti).
+1. Musik latar sesi bergantian antara dua track, mulai dari pilihan acak saat sesi dimulai.
 2. Dunia desa tidak berubah; pemain tetap di posisi terakhirnya.
 3. Pemberi quest scene ini adalah Edric (`char_npc_10`); dekati dia → `Space`.
 4. Edric tampil, textbox berisi nama + kalimat, dengan potret `thinking`.

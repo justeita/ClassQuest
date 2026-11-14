@@ -10,6 +10,9 @@ owner: tim ClassQuest
 - **Tanggal:** 2026-11-13
 - **Pengambil keputusan:** tim ClassQuest
 - **Menggantikan:** — (memperluas ADR 0007 dan ADR 0016, tidak membatalkannya)
+- **Diperbarui oleh:** [ADR 0038](0038-soal-diketik-lalu-jawaban.md)
+  — potret pembicara soal **tetap tampil** selama soal (tidak lagi
+  disembunyikan); soal diketik lebih dulu, pilihan jawaban menyusul.
 
 ## Konteks
 
@@ -80,9 +83,9 @@ Aturan bentuknya:
   runtime dan tidak dimuat `PreloadScene`.
 - Potret pembicara menyala (glow teal berdenyut) selama sesi dialog, dan potret
   lawan bicara tetap tampil tetapi diredupkan — saat MC bicara, potret NPC
-  meredup, begitu pula sebaliknya. Selama soal belum dijawab, kedua potret
-  disembunyikan supaya tidak menutupi pilihan jawaban; setelah dinilai keduanya
-  tampil lagi untuk umpan balik senang/marah.
+  meredup, begitu pula sebaliknya. Selama soal, potret pembicara soal tetap
+  tampil (panel jawaban duduk di kanan atas agar sisi kiri tidak tertutup);
+  setelah dinilai potretnya berganti untuk umpan balik senang/marah.
 - Potret MC hanya menemani dialog di scene yang memang memberi giliran bicara
   kepada MC (`beats.some(speakerId === id pemain)`, lihat `src/game/potret.ts`).
   Dialog antar-NPC dan obrolan singkat dengan NPC non-quest (ADR 0016) tampil

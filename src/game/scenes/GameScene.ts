@@ -5,6 +5,7 @@ import { DEFAULT_EXPRESSION, type Expression } from "@/story/expression";
 import { renderAnswer, scoreAnswer, type Answer } from "@/story/scoring";
 import type { DetourBeat, Story } from "@/story/schema";
 
+import { buatInputLanjut, type AdvanceInput } from "../advanceInput";
 import { clampVolume } from "../audioSettings";
 import { CAMERA_LERP, ZOOM_KAMERA, deadzoneDunia, kameraMode } from "../camera";
 import { DEPTH_LATAR } from "../depth";
@@ -47,7 +48,13 @@ import type { GameBus, NpcMarker, NpcNameplate, PromptView } from "../gameBus";
 import { npcBisaDiajak, petaObrolan } from "../npcTalk";
 import { sceneMelibatkanPemain } from "../potret";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
-import { assetEntry, resolveSceneLook } from "../sceneAssets";
+import {
+  assetEntry,
+  resolveSceneLook,
+  DEFAULT_MUSIC_ID,
+  musikSesiBerikutnya,
+  pilihMusikAcak,
+} from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
 import {
   ARAH_DARI_BARIS,
@@ -71,8 +78,32 @@ const MUSIC_VOLUME = 0.35;
 const MUSIC_VOLUME_PAUSED = 0.12;
 const SFX_VOLUME = 0.6;
 
-/** Debounce input lanjut agar satu tekanan tidak melewati dua beat. */
-const DEBOUNCE_MS = 150;
+/**
+ * Efek mesin tik saat teks dialog muncul. Blip dibatasi jeda ini supaya putaran
+ * cepat (35 karakter/detik) tidak berubah jadi dengung, dan nada kedua sedikit
+ * lebih tinggi agar terasa bergantian, bukan monoton.
+ */
+const KETIK_JEDA_MS = 60;
+const KETIK_RATE2 = 1.06;
+
+/**
+ * Bunyi "lanjut dialog" memakai sampel mesin tik yang sama, bukan `sfx_click`.
+ *
+ * Klik lama punya dua nada tinggi yang terdengar lebih keras daripada teks yang
+ * baru selesai diketik. Dengan nada diturunkan (`LANJUT_RATE`) dan volume
+ * dikurangi (`LANJUT_VOLUME`), bunyi lanjut tetap satu keluarga dengan blip
+ * ketik: pendek, lembut, dan tidak mengejutkan saat pemain menekan Space
+ * berkali-kali.
+ */
+const LANJUT_RATE = 0.78;
+const LANJUT_VOLUME = 0.5;
+
+/**
+ * Jeda antar-langkah input lanjut. Satu tekanan = satu beat; jeda ini menjaga
+ * ketukan ganda atau tombol yang tidak sengaja tertekan dua kali tidak
+ * melompati dua beat sekaligus.
+ */
+const DEBOUNCE_MS = 250;
 
 /**
  * Jarak antar-beat saat mode lewati berjalan. Cukup cepat untuk terasa seperti
@@ -129,7 +160,7 @@ export class GameScene extends Phaser.Scene {
   private readonly story: Story;
   private player?: Phaser.GameObjects.Sprite;
   private keys?: MovementKeys;
-  private lanjutKeys?: Record<"space" | "enter", Phaser.Input.Keyboard.Key>;
+  private lanjut?: AdvanceInput;
   private runner: StoryRunner;
   private castNames: Map<string, string>;
   /** Baris obrolan singkat per karakter (ADR 0016); kosong bila tidak ada. */
@@ -141,9 +172,22 @@ export class GameScene extends Phaser.Scene {
   private textbox?: Textbox;
   private music?: Phaser.Sound.BaseSound;
   private musicKey: string | null = null;
+  /**
+   * Track musik latar aktif untuk sesi ini. Track pertamanya dipilih acak saat
+   * scene dibuat dari `GAMEPLAY_MUSIC_IDS` (dua BGM); setelah satu track
+   * selesai, `update()` memutar track berikutnya secara bergantian.
+   * Cerita tetap menulis `bgm_default`; `putarMusik()` memakai nilai ini.
+   */
+  private musikSesi = pilihMusikAcak();
+  /** Track sesi baru saja selesai; rotasi dilanjutkan di frame berikutnya. */
+  private musikSesiSelesai = false;
   private volumeMusik = 1;
   private volumeSfx = 1;
   private volumeSedangJeda = false;
+  /** Waktu scene (ms) blip ketik terakhir; pembatas `KETIK_JEDA_MS`. */
+  private ketikTerakhir = -Infinity;
+  /** Blip berikutnya memakai nada kedua (bergantian) agar tidak monoton. */
+  private ketikNadaKedua = false;
   private sceneAktif: string | null = null;
   /** NPC pemegang quest scene aktif; hanya dia yang bisa memicu dialog. */
   private pemberiQuest: string | null = null;
@@ -236,17 +280,19 @@ export class GameScene extends Phaser.Scene {
     this.pasangKamera();
 
     this.keys = ambilTombolGerak(this);
-    this.lanjutKeys = this.input.keyboard?.addKeys("space,enter") as Record<
-      "space" | "enter",
-      Phaser.Input.Keyboard.Key
-    >;
+    this.lanjut = buatInputLanjut(this.input.keyboard);
     this.input.keyboard?.disableGlobalCapture();
     this.input.keyboard?.clearCaptures();
     // Teks dan potret dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene
     // tetap pemegang state typewriter dan mengirim potongannya lewat bus.
-    this.textbox = createTextbox((state) => {
-      this.bus?.emit({ type: "dialogue", view: state });
-    });
+    this.textbox = createTextbox(
+      (state) => {
+        this.bus?.emit({ type: "dialogue", view: state });
+      },
+      // Blip mesin tik disintesis dari kode (`sfx_type`); diputar bergantian
+      // nada oleh `ketikSfx`, bukan tiap karakter mentah.
+      { onKetik: (baru) => this.ketikSfx(baru) },
+    );
 
     this.input.on("pointerdown", () => this.onLanjutInput());
 
@@ -315,11 +361,19 @@ export class GameScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       this.hentikanLewati();
       this.batalkanJadwalBab();
+      this.lanjut?.lepas();
       this.arahSentuh = null;
     });
   }
 
   update(time: number, delta: number) {
+    // Track sesi baru saja selesai: mulai track berikutnya di frame ini, di
+    // luar pembaruan SoundManager (aman untuk stop/destroy lalu `sound.add`).
+    if (this.musikSesiSelesai) {
+      this.musikSesiSelesai = false;
+      this.putarMusik(DEFAULT_MUSIC_ID);
+    }
+
     // Obrolan singkat tidak mengubah posisi cerita: runner tetap di fase
     // `explore`, jadi textbox maju di jalur yang sama seperti dialog biasa.
     if (this.obrolanAktif) {
@@ -344,9 +398,16 @@ export class GameScene extends Phaser.Scene {
 
     if (phase === "explore") {
       this.updateExplore(delta);
-    } else if (phase !== "challenge") {
-      // Tantangan membekukan typewriter dan input lanjut: dialog terakhir tetap
-      // terlihat di belakang panel soal (docs/04-game/scene-format.md § challenge).
+    } else if (phase === "challenge") {
+      // Soal diketik seperti dialog biasa; pilihan jawaban menyusul setelah
+      // teksnya tuntas (`ChallengeOverlay` menunggu `waiting` dari textbox).
+      // Ketukan Space/Enter selama soal tidak menggerakkan cerita — paling
+      // banyak menyelesaikan ketikan — lalu dibuang supaya tidak melompat satu
+      // beat setelah dijawab (docs/04-game/scene-format.md § challenge).
+      this.textbox?.tick(delta);
+      this.checkLanjutKeys();
+      this.lanjut?.bersihkan();
+    } else {
       this.textbox?.tick(delta);
       this.checkLanjutKeys();
     }
@@ -495,6 +556,27 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
+   * Balikkan pemain agar menghadap NPC `npcId`. Dipanggil bersama
+   * `hadapkanKePemain` supaya MC dan lawan bicara saling berhadapan saat
+   * interaksi dimulai, bukan hanya NPC yang menoleh.
+   *
+   * Arah disimpan di `arahTerakhir` supaya `hentikanPemain` (dan frame berikut
+   * setelah dialog ditutup) memakai arah yang sama, bukan arah jalan terakhir.
+   */
+  private hadapkanPemainKeNpc(npcId: string) {
+    const npc = this.npcSprites.get(npcId);
+    const pemain = this.player;
+    if (!npc || !pemain) return;
+    this.arahTerakhir = arahKe(npc.x - pemain.x, npc.y - pemain.y);
+    this.mainkanKarakter(
+      pemain,
+      this.playerSpriteId,
+      "idle",
+      this.arahTerakhir,
+    );
+  }
+
+  /**
    * Hentikan animasi jalan pemain. Interaksi membekukan `updateExplore`, jadi
    * tanpa ini pemain yang menekan Space sambil berjalan akan berjalan di tempat
    * selama dialog/obrolan.
@@ -540,7 +622,10 @@ export class GameScene extends Phaser.Scene {
 
     this.perbaruiPetunjuk(dekat);
 
-    if (dekat && this.lanjutKeysBaruDitekan()) {
+    // Baca latch tiap frame, walau belum dekat warga: tekanan saat jauh tidak
+    // boleh menumpuk lalu tiba-tiba memulai obrolan begitu pemain mendekat.
+    const mauBicara = this.adaInputLanjut();
+    if (dekat && mauBicara) {
       this.mulaiInteraksiTerdekat();
     }
   }
@@ -554,13 +639,14 @@ export class GameScene extends Phaser.Scene {
     const dekat = this.npcZona;
     if (!dekat) return;
 
-    // Debounce yang sama dengan dialog: menahan Space tidak memicu obrolan
-    // berulang tiap frame setelah textbox ditutup.
+    // Jeda yang sama dengan dialog: satu tekanan tidak boleh memicu obrolan
+    // berulang, dan menahan Space tidak memulai obrolan lagi setelah ditutup.
     if (this.time.now - this.lastAdvance < DEBOUNCE_MS) return;
     this.lastAdvance = this.time.now;
 
     if (dekat === this.pemberiQuest) {
       this.hadapkanKePemain(dekat);
+      this.hadapkanPemainKeNpc(dekat);
       this.hentikanPemain();
       this.runner.interact();
       this.presentBeat();
@@ -570,6 +656,7 @@ export class GameScene extends Phaser.Scene {
     const teks = this.obrolan.get(dekat);
     if (teks) {
       this.hadapkanKePemain(dekat);
+      this.hadapkanPemainKeNpc(dekat);
       this.hentikanPemain();
       this.mulaiObrolan(dekat, teks);
     }
@@ -782,17 +869,20 @@ export class GameScene extends Phaser.Scene {
 
   /** Space/Enter saat fase beat: selesaikan teks atau lanjut beat. */
   private checkLanjutKeys() {
-    if (!this.lanjutKeysBaruDitekan()) return;
+    if (!this.adaInputLanjut()) return;
     this.onLanjutInput();
   }
 
-  private lanjutKeysBaruDitekan(): boolean {
-    const space = this.lanjutKeys?.space.isDown ?? false;
-    const enter = this.lanjutKeys?.enter.isDown ?? false;
-    return space || enter;
+  /** Ada tekanan Space/Enter baru sejak pemeriksaan terakhir. */
+  private adaInputLanjut(): boolean {
+    return this.lanjut?.lanjutDitekan() ?? false;
   }
 
-  /** Satu tekanan = satu langkah: mengetik → selesai; menunggu → lanjut. */
+  /**
+   * Satu tekanan = satu langkah: mengetik → selesai; menunggu → lanjut.
+   * Menahan tombol tidak memutar dialog terus-menerus — pemain harus melepas
+   * lalu menekan lagi untuk beat berikutnya.
+   */
   private onLanjutInput() {
     // Selama time-lapse, input manual diabaikan agar tidak melompat dua beat.
     if (this.lewatiDitahan) return;
@@ -804,15 +894,23 @@ export class GameScene extends Phaser.Scene {
     // Detour konsekuensi: satu tekanan menyelesaikan ketikan atau maju satu
     // beat detour. Runner belum bergerak, jadi aturan tantangan tidak berlaku.
     if (this.detour !== null) {
-      this.mainkanSfx("sfx_click");
+      this.lanjutSfx();
       this.lanjutDetour();
       return;
     }
 
-    // Saat challenge, input dialog diabaikan — overlay React yang memegang kendali.
-    if (this.runner.getState().phase === "challenge") return;
+    // Saat challenge, cerita tidak boleh bergerak — overlay React yang memegang
+    // kendali. Satu tekanan hanya boleh menuntaskan ketikan soal agar pilihan
+    // jawaban segera muncul tanpa menunggu.
+    if (this.runner.getState().phase === "challenge") {
+      if (this.textbox?.isTyping()) {
+        this.lanjutSfx();
+        this.textbox.complete();
+      }
+      return;
+    }
 
-    this.mainkanSfx("sfx_click");
+    this.lanjutSfx();
     if (this.textbox?.isTyping()) {
       this.textbox.complete();
       return;
@@ -1157,7 +1255,9 @@ export class GameScene extends Phaser.Scene {
       portrait: this.potretUntuk(speakerId),
       pendamping: this.potretLawan(speakerId),
     });
-    this.textbox?.complete();
+    // Sengaja **tanpa** `complete()`: soal ikut diketik mesin tik seperti
+    // dialog lain, dan pilihan jawaban baru muncul setelah teksnya tuntas
+    // (GameCanvas menunggu `waiting` dari textbox).
 
     const view = buildChallengeView(challenge);
     this.bus.emit({
@@ -1355,35 +1455,115 @@ export class GameScene extends Phaser.Scene {
     cam.centerOn(VILLAGE.width / 2, VILLAGE.height / 2);
   }
 
+  /**
+   * Putar musik latar scene aktif.
+   *
+   * `bgm_default` berarti "musik latar permainan": track aktif diambil dari
+   * rotasi sesi (`musikSesi`) dan berganti ke track berikutnya tiap lagu
+   * selesai (dilanjutkan dari `update`). Override scene/chapter dengan id lain
+   * tetap dihormati dan di-loop seperti sebelumnya; track yang sama tidak
+   * di-restart.
+   */
   private putarMusik(musicId: string) {
-    if (this.musicKey === musicId && this.music?.isPlaying) return;
+    const dariSesi = musicId === DEFAULT_MUSIC_ID;
+    const diminta = dariSesi ? this.musikSesi : musicId;
+    if (this.musicKey === diminta && this.music?.isPlaying) return;
 
     this.music?.stop();
     this.music?.destroy();
     this.music = undefined;
-    this.musicKey = musicId;
+    this.musicKey = diminta;
+    // Musik baru membatalkan rotasi yang mungkin masih tertunda.
+    this.musikSesiSelesai = false;
 
-    const key = this.cache.audio.exists(musicId) ? musicId : "bgm_default";
-    if (!this.cache.audio.exists(key)) return;
+    const key = this.cache.audio.exists(diminta)
+      ? diminta
+      : this.cache.audio.exists(DEFAULT_MUSIC_ID)
+        ? DEFAULT_MUSIC_ID
+        : null;
+    if (key === null) return;
 
     const music = this.sound.add(key, {
-      loop: true,
-      volume: MUSIC_VOLUME,
+      // Track sesi tidak di-loop sendiri: saat selesai, `update` memutar track
+      // berikutnya. Override scene tetap di-loop karena bukan bagian rotasi.
+      loop: !dariSesi,
+      // Pakai volume efektif, bukan dasar: pengaturan pengguna sudah tersimpan
+      // saat scene dibuat, jadi track baru tidak sempat berbunyi penuh dulu.
+      volume: this.volumeMusikEfektif(),
     });
+    if (dariSesi) {
+      music.once(Phaser.Sound.Events.COMPLETE, () => {
+        if (this.music !== music) return;
+        // Geser rotasi sekarang juga supaya pergantian scene di frame yang sama
+        // tidak mengulang track yang baru selesai.
+        this.musikSesi = musikSesiBerikutnya(this.musikSesi);
+        this.musikSesiSelesai = true;
+      });
+    }
     music.play();
     this.music = music;
   }
 
-  private mainkanSfx(assetId: string) {
+  /**
+   * @param rate Pengali kecepatan/tinggi nada (1 = asli). Mekanisme `sfx_type`
+   *   memakainya untuk blip kedua yang sedikit lebih tinggi.
+   * @param volumeScale Pengali volume khusus efek ini (1 = volume SFX penuh).
+   *   Dipakai bunyi lanjut dialog supaya lebih pelan daripada blip ketik.
+   */
+  private mainkanSfx(assetId: string, rate = 1, volumeScale = 1) {
     if (!this.cache.audio.exists(assetId)) return;
     if (this.volumeSfx <= 0) return;
-    this.sound.play(assetId, { volume: SFX_VOLUME * this.volumeSfx });
+    this.sound.play(assetId, {
+      volume: SFX_VOLUME * this.volumeSfx * volumeScale,
+      rate,
+    });
   }
 
-  /** Volume musik efektif: nilai pengguna × faktor dasar (jeda menurunkan). */
-  private terapkanVolume() {
+  /**
+   * Bunyi satu langkah dialog (selesaikan ketikan atau lanjut beat).
+   *
+   * Memakai `sfx_type` yang sama dengan blip mesin tik, hanya lebih pelan dan
+   * lebih rendah. Klik dua nada `sfx_click` tetap dipakai untuk aksi UI seperti
+   * memulai percepat, tetapi tidak lagi untuk memajukan dialog.
+   */
+  private lanjutSfx() {
+    this.mainkanSfx("sfx_type", LANJUT_RATE, LANJUT_VOLUME);
+  }
+
+  /**
+   * Blip mesin tik untuk potongan teks yang baru muncul.
+   *
+   * Spasi/tanda kosong tidak berbunyi, jeda `KETIK_JEDA_MS` mencegah dengung,
+   * dan mode percepat (time-lapse) dibiarkan senyap karena karakter mengalir
+   * terlalu cepat. Nadanya bergantian supaya terdengar hidup.
+   */
+  private ketikSfx(baru: string) {
+    if (this.lewatiDitahan) return;
+    if (baru.trim().length === 0) return;
+    const now = this.time.now;
+    if (now - this.ketikTerakhir < KETIK_JEDA_MS) return;
+    this.ketikTerakhir = now;
+    this.ketikNadaKedua = !this.ketikNadaKedua;
+    this.mainkanSfx("sfx_type", this.ketikNadaKedua ? KETIK_RATE2 : 1);
+  }
+
+  /**
+   * Volume musik yang seharusnya terdengar sekarang.
+   *
+   * Pengaturan pengguna (`volumeMusik`, 0 berarti mati) dikalikan faktor dasar
+   * supaya musik tetap lebih pelan dari efek suara; saat menu jeda terbuka
+   * faktor diturunkan lagi. Dipakai baik saat membuat track baru maupun saat
+   * menerapkan perubahan volume, jadi track yang berganti di tengah sesi tidak
+   * pernah kembali ke volume penuh.
+   */
+  private volumeMusikEfektif(): number {
     const faktor = this.volumeSedangJeda ? MUSIC_VOLUME_PAUSED : MUSIC_VOLUME;
-    this.aturVolumeMusik(faktor * this.volumeMusik);
+    return faktor * this.volumeMusik;
+  }
+
+  /** Terapkan volume musik efektif ke track yang sedang diputar. */
+  private terapkanVolume() {
+    this.aturVolumeMusik(this.volumeMusikEfektif());
   }
 
   /**

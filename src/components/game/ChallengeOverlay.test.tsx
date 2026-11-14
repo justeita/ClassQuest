@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ChallengeView } from "@/game/challengeView";
@@ -200,11 +206,147 @@ describe("ChallengeOverlay — short_answer", () => {
 });
 
 describe("ChallengeOverlay — tipe lain", () => {
-  it("menampilkan petunjuk tanpa membocorkan jawaban", () => {
+  it("menyembunyikan hint sampai siswa mengonfirmasi", () => {
     renderOverlay({ ...orderingView, hints: ["Ingat urutan energi."] });
 
-    expect(screen.getByText("Ingat urutan energi.")).toBeInTheDocument();
+    // Hint belum tampil dan belum membocorkan jawaban.
+    expect(screen.queryByText("Ingat urutan energi.")).not.toBeInTheDocument();
     expect(screen.queryByText(/correctOrder/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /lihat hint/i }));
+    expect(
+      screen.getByText(/Poin soal ini akan berkurang setengah/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Ingat urutan energi.")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /tampilkan hint/i }));
+    expect(screen.getByText("Ingat urutan energi.")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Poin soal ini dipotong setengah/i),
+    ).toBeInTheDocument();
+  });
+
+  it("batal di konfirmasi tetap menyembunyikan hint", () => {
+    const { onSubmit } = renderOverlay({
+      ...orderingView,
+      hints: ["Ingat urutan energi."],
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /lihat hint/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^batal$/i }));
+    expect(screen.queryByText("Ingat urutan energi.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Poin soal ini akan berkurang setengah/i),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+    const dikirim = onSubmit.mock.calls[0]?.[0];
+    expect(dikirim).not.toHaveProperty("usedHint");
+  });
+
+  it("jawaban setelah hint membawa usedHint agar skor dipotong", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_hint",
+      type: "multiple_choice",
+      options: [{ id: "opt_a", text: "Menguap" }],
+      hints: ["Ingat pelajaran tadi."],
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /lihat hint/i }));
+    fireEvent.click(screen.getByRole("button", { name: /tampilkan hint/i }));
+    fireEvent.click(screen.getByRole("button", { name: /menguap$/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_hint",
+      type: "multiple_choice",
+      selectedId: "opt_a",
+      usedHint: true,
+    });
+  });
+
+  it("short_answer setelah hint juga mengirim usedHint", () => {
+    const { onSubmit } = renderOverlay({
+      ...shortAnswerView,
+      hints: ["Bagi bagian dengan keseluruhan."],
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /lihat hint/i }));
+    fireEvent.click(screen.getByRole("button", { name: /tampilkan hint/i }));
+    fireEvent.change(screen.getByLabelText(/tulis jawabanmu/i), {
+      target: { value: "20%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_03_01",
+      type: "short_answer",
+      text: "20%",
+      usedHint: true,
+    });
+  });
+
+  it("Enter di tombol hint tidak ikut mengirim jawaban", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_hint",
+      type: "multiple_choice",
+      options: [
+        { id: "opt_a", text: "Menguap" },
+        { id: "opt_b", text: "Membeku" },
+      ],
+      hints: ["Ingat pelajaran tadi."],
+    });
+
+    const lihat = screen.getByRole("button", { name: /lihat hint/i });
+    fireEvent.keyDown(lihat, { key: "Enter" });
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("daftar urutan diratakan ke kanan mengikuti pilihan jawaban lain", () => {
+    renderOverlay(orderingView);
+    const daftar = screen.getByRole("list");
+    // ol → grup fit-text → wadah rata kanan
+    expect(daftar.parentElement?.parentElement).toHaveClass("justify-end");
+  });
+
+  it("input jawaban singkat diratakan ke kanan", () => {
+    renderOverlay(shortAnswerView);
+    const input = screen.getByLabelText(/tulis jawabanmu/i);
+    // input → bingkai → grup fit-text → wadah rata kanan
+    expect(input.parentElement?.parentElement?.parentElement).toHaveClass(
+      "justify-end",
+    );
+  });
+
+  it("petunjuk pintasan pengurutan sejajar dengan tombol hint", () => {
+    renderOverlay({
+      ...orderingView,
+      hints: ["Ingat urutan energi."],
+    });
+
+    const pintasan = screen.getByText(/Pilih/);
+    const hint = screen.getByRole("button", { name: /lihat hint/i });
+    // Chip pintasan dan tombol hint berbagi satu baris rata kanan, dengan
+    // pintasan tepat di sebelah kiri tombol hint.
+    expect(pintasan.parentElement).toHaveClass("justify-end");
+    expect(pintasan.parentElement).toBe(hint.parentElement);
+    expect(pintasan.nextElementSibling).toBe(hint);
+    expect(hint).toBeEnabled();
+  });
+
+  it("petunjuk Enter jawaban singkat sejajar dengan tombol hint", () => {
+    renderOverlay({
+      ...shortAnswerView,
+      hints: ["Bagi bagian dengan keseluruhan."],
+    });
+
+    const pintasan = screen.getByText(/Kirim Jawaban/);
+    const hint = screen.getByRole("button", { name: /lihat hint/i });
+    expect(pintasan.parentElement).toHaveClass("justify-end");
+    expect(pintasan.parentElement).toBe(hint.parentElement);
+    expect(pintasan.nextElementSibling).toBe(hint);
+    expect(hint).toBeEnabled();
   });
 
   it("keyboard: angka memilih opsi, Enter mengirim", () => {
@@ -329,6 +471,67 @@ describe("ChallengeOverlay — panel di atas dialog", () => {
     expect(onResolve).toHaveBeenCalledTimes(1);
   });
 
+  it("auto-repeat Spasi tidak mengirim jawaban berulang", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_01_03",
+      type: "multiple_choice",
+      options: [
+        { id: "opt_a", text: "Menguap" },
+        { id: "opt_b", text: "Membeku" },
+      ],
+    });
+    const panel = screen.getByLabelText("Tantangan");
+
+    // Tombol ditahan: auto-repeat datang sebagai `repeat: true` dan harus
+    // diabaikan supaya tidak memilih/mengirim berkali-kali.
+    fireEvent.keyDown(panel, { key: " ", repeat: true });
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    // Tekanan fisik baru tetap diterima, lalu repeat berikutnya diabaikan.
+    fireEvent.keyDown(panel, { key: " " });
+    fireEvent.keyDown(panel, { key: " ", repeat: true });
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("auto-repeat Spasi saat sudah dinilai tidak memanggil onResolve berulang", () => {
+    const { onResolve } = renderOverlay(
+      {
+        ...dasar,
+        id: "chl_01_04",
+        type: "multiple_choice",
+        options: [{ id: "opt_a", text: "Menguap" }],
+      },
+      { graded: { correct: true, explanation: "Benar." } },
+    );
+    const panel = screen.getByLabelText("Tantangan");
+
+    fireEvent.keyDown(panel, { key: " ", repeat: true });
+    expect(onResolve).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(panel, { key: " " });
+    expect(onResolve).toHaveBeenCalledTimes(1);
+  });
+
+  it("satu Spasi di kartu umpan balik hanya resolve sekali", () => {
+    const { onResolve } = renderOverlay(
+      {
+        ...dasar,
+        id: "chl_01_05",
+        type: "multiple_choice",
+        options: [{ id: "opt_a", text: "Menguap" }],
+      },
+      { graded: { correct: true, explanation: "Benar." } },
+    );
+
+    // Kartu umpan balik ada di dalam panel; tanpa stopPropagation satu tekanan
+    // akan memanggil onResolve dua kali (kartu + handler panel).
+    fireEvent.keyDown(screen.getByRole("button", { name: /^lanjut$/i }), {
+      key: " ",
+    });
+    expect(onResolve).toHaveBeenCalledTimes(1);
+  });
+
   it("hover kursor mouse memindahkan sorotan opsi dialog RPG", () => {
     renderOverlay({
       ...dasar,
@@ -363,9 +566,18 @@ describe("ChallengeOverlay — panel di atas dialog", () => {
     fireEvent.mouseEnter(tombolA);
 
     // Penunjuk digambar sebagai SVG tangan (bukan glyph font) dan ditandai jelas.
-    const penunjuk = tombolA.parentElement?.querySelector("[data-penunjuk]");
+    const penunjuk =
+      tombolA.parentElement?.querySelector<HTMLElement>("[data-penunjuk]");
     expect(penunjuk).not.toBeNull();
     expect(penunjuk).toHaveAttribute("data-penunjuk", "aktif");
+
+    // Pixel-art glove: tajam, tiga lapis warna (outline/krem/abu), dan ukurannya
+    // dibatasi supaya tidak melewati margin kotak pilihan.
+    const svg = penunjuk?.querySelector("svg");
+    expect(svg).toHaveAttribute("shape-rendering", "crispEdges");
+    expect(svg?.querySelectorAll("path")).toHaveLength(3);
+    expect(penunjuk?.style.width).toContain("clamp(");
+    expect(penunjuk?.style.width).toContain("22px");
   });
 
   it("keyboard ordering: panah/WASD memindah dan menukar item lalu Enter mengirim", () => {
@@ -382,6 +594,205 @@ describe("ChallengeOverlay — panel di atas dialog", () => {
       challengeId: "chl_02_01",
       type: "ordering",
       order: [tampil[1], tampil[0], tampil[2]],
+    });
+  });
+});
+
+describe("ChallengeOverlay — soal diketik dulu, animasi jawaban", () => {
+  it("menahan opsi, hint, dan pintasan sampai soal selesai diketik", () => {
+    const view: ChallengeView = {
+      ...orderingView,
+      hints: ["Ingat urutan energi."],
+    };
+    const props = { view, graded: null, onSubmit: vi.fn(), onResolve: vi.fn() };
+
+    const { rerender } = render(<ChallengeOverlay {...props} siap={false} />);
+
+    // Soal masih diketik: belum ada daftar jawaban, tombol hint, atau chip
+    // pintasan keyboard.
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /lihat hint/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Pilih/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Tantangan")).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+
+    rerender(<ChallengeOverlay {...props} siap />);
+
+    expect(screen.getByRole("list")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /lihat hint/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Pilih/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Tantangan")).toHaveAttribute(
+      "aria-busy",
+      "false",
+    );
+  });
+
+  it("menganimasikan area jawaban masuk saat soal siap", () => {
+    renderOverlay(orderingView);
+
+    // Daftar jawaban berada di dalam pembungkus beranimasi masuk.
+    expect(
+      screen.getByRole("list").closest(".animate-challenge-masuk"),
+    ).not.toBeNull();
+  });
+
+  it("menahan area jawaban sebentar lalu melepasnya setelah dinilai", () => {
+    vi.useFakeTimers();
+    try {
+      const props = {
+        view: orderingView,
+        onSubmit: vi.fn(),
+        onResolve: vi.fn(),
+      };
+      const { rerender } = render(
+        <ChallengeOverlay {...props} graded={null} siap />,
+      );
+      expect(screen.getByRole("list")).toBeInTheDocument();
+
+      rerender(
+        <ChallengeOverlay
+          {...props}
+          graded={{ correct: true, explanation: "Benar." }}
+          siap
+        />,
+      );
+
+      // Masih di DOM, tetapi sudah beranimasi keluar; kartu umpan balik masuk.
+      expect(
+        screen.getByRole("list").closest(".animate-challenge-keluar"),
+      ).not.toBeNull();
+      expect(screen.getByText("Tepat.")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(220);
+      });
+
+      // Setelah animasi selesai, area jawaban benar-benar dilepas.
+      expect(screen.queryByRole("list")).not.toBeInTheDocument();
+      expect(screen.getByText("Tepat.")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("Space/Enter/angka saat soal masih diketik tidak mengirim jawaban", () => {
+    const onSubmit = vi.fn();
+    const props = {
+      view: {
+        ...dasar,
+        id: "chl_01_01",
+        type: "multiple_choice" as const,
+        options: [
+          { id: "opt_a", text: "Menguap" },
+          { id: "opt_b", text: "Membeku" },
+        ],
+      },
+      graded: null,
+      onSubmit,
+      onResolve: vi.fn(),
+    };
+
+    const { rerender } = render(<ChallengeOverlay {...props} siap={false} />);
+    const panel = screen.getByLabelText("Tantangan");
+
+    // Tekanan untuk menuntaskan ketikan tidak boleh ikut memilih opsi yang
+    // belum tampil (opsi memang belum ada di DOM).
+    fireEvent.keyDown(panel, { key: " " });
+    fireEvent.keyDown(panel, { key: "Enter" });
+    fireEvent.keyDown(panel, { key: "1" });
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    // Setelah teks soal tuntas, pilihan jawaban muncul dan Space memilihnya.
+    rerender(<ChallengeOverlay {...props} siap />);
+    fireEvent.keyDown(screen.getByLabelText("Tantangan"), { key: " " });
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("ChallengeOverlay — penunjuk pada perangkat sentuh", () => {
+  /**
+   * jsdom tidak punya `window.matchMedia`. Palsukan agar perangkat terbaca
+   * sebagai ponsel (penunjuk kasar + tidak bisa hover), sama seperti pola
+   * `useSentuh.ts`. Di desktop (tanpa matchMedia) `useSentuh` bernilai false.
+   */
+  function pasangSentuh() {
+    const asli = window.matchMedia;
+    window.matchMedia = ((query: string) =>
+      ({
+        matches:
+          query.includes("pointer: coarse") || query.includes("hover: none"),
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }) as unknown as MediaQueryList) as typeof window.matchMedia;
+    return () => {
+      window.matchMedia = asli;
+    };
+  }
+
+  it("ketukan memindahkan glove tanpa mengirim; jawaban dikirim lewat Jawab", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      const { onSubmit } = renderOverlay({
+        ...dasar,
+        id: "chl_01_01",
+        type: "multiple_choice",
+        options: [
+          { id: "opt_a", text: "Menguap" },
+          { id: "opt_b", text: "Membeku" },
+        ],
+      });
+
+      const tombolB = screen.getByRole("button", { name: /membeku$/i });
+      fireEvent.click(tombolB);
+
+      // Ketukan pertama hanya memindahkan penunjuk (glove) ke opsi; belum ada
+      // jawaban yang terkirim.
+      expect(onSubmit).not.toHaveBeenCalled();
+      expect(tombolB).toHaveAttribute("aria-pressed", "true");
+      const penunjuk =
+        tombolB.parentElement?.querySelector<HTMLElement>("[data-penunjuk]");
+      expect(penunjuk).toHaveAttribute("data-penunjuk", "aktif");
+
+      // Tombol "Jawab" (khusus sentuh) yang mengirim jawaban terpilih.
+      fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+      expect(onSubmit).toHaveBeenCalledWith({
+        challengeId: "chl_01_01",
+        type: "multiple_choice",
+        selectedId: "opt_b",
+      });
+    } finally {
+      pulihkan();
+    }
+  });
+
+  it("di desktop tidak ada tombol Jawab tambahan: klik tetap mengirim langsung", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_01_02",
+      type: "true_false",
+      statement: "Uap air lebih ringan.",
+    });
+
+    expect(
+      screen.queryByRole("button", { name: /^jawab$/i }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /\bsalah$/i }));
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_01_02",
+      type: "true_false",
+      answer: false,
     });
   });
 });

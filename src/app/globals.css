@@ -35,6 +35,11 @@
     both;
   /* Potret tenggelam kembali ke balik panel saat dialog ditutup. */
   --animate-potret-keluar: potret-keluar 0.22s ease-in both;
+  /* Area jawaban tantangan muncul setelah soal selesai diketik. */
+  --animate-challenge-masuk: challenge-masuk 0.24s
+    cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  /* Area jawaban menyingkir saat jawaban dinilai / kartu umpan balik masuk. */
+  --animate-challenge-keluar: challenge-keluar 0.18s ease-in both;
 
   /* --- Portal guru (desain dari `guru.html`, lihat src/app/guru) --- */
   --color-brand-50: #f0f7ff;
@@ -275,6 +280,32 @@
   }
 }
 
+/* Area jawaban tantangan (opsi, tombol, hint, chip pintasan) muncul dengan
+   sedikit terangkat setelah soal selesai diketik, lalu menyingkir ke bawah saat
+   jawaban dinilai dan kartu umpan balik menggantikannya. Hanya `opacity` dan
+   `transform` yang berubah supaya ringan dan tidak menggeser tata letak. */
+@keyframes challenge-masuk {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes challenge-keluar {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+
 /*
  * Panel tantangan duduk di atas dialog, bukan menutupi seluruh layar
  * (docs/05-frontend/game-player.md § Challenge). Nilai `--challenge-*` diisi
@@ -309,7 +340,9 @@
   .animate-crt-masuk,
   .animate-crt-keluar,
   .animate-potret-masuk,
-  .animate-potret-keluar {
+  .animate-potret-keluar,
+  .animate-challenge-masuk,
+  .animate-challenge-keluar {
     animation: none;
   }
 }
@@ -452,6 +485,42 @@ label,
 @media (min-width: 1024px) {
   .area-game {
     --area-game-pad: 1.5rem;
+  }
+}
+
+/* Menu jeda di layar pendek.
+ *
+ * Lanskap ponsel hanya menyisakan sekitar 250–320 px tinggi untuk area game,
+ * sedangkan kartu satu kolom lebih tinggi dari itu sehingga tombol "Keluar"
+ * butuh gulir. Di bawah 30rem isi kartu dibagi dua kolom: pengaturan suara di
+ * kiri, tombol aksi di kanan. Ambang ini kena di lanskap ponsel (tinggi
+ * viewport ±320–430 px), tetapi tidak mengubah tampilan potret atau desktop.
+ * Gulir di wadahnya tetap ada hanya sebagai jaring pengaman tinggi ekstrem.
+ */
+@media (max-height: 30rem) {
+  .menu-jeda {
+    max-width: 30rem;
+  }
+
+  .menu-jeda-isi {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 11rem);
+    align-items: start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .menu-jeda-kepala {
+    grid-column: 1 / -1;
+  }
+
+  .menu-jeda-suara,
+  .menu-jeda-aksi {
+    margin-top: 0;
+  }
+
+  .menu-jeda-catatan {
+    margin-top: 0.375rem;
   }
 }
 
@@ -1136,20 +1205,14 @@ label,
   text-shadow: 0 0 8px rgb(231 196 93 / 0.55);
 }
 
-/* Di layar sempit tidak ada area gelap alami di bawah pohon: gambar desa
-   ter-crop ke tengah, jadi teks akan jatuh di atas rumah yang terang. Papan
-   teksnya sendiri yang diberi latar gelap transparan — di layar lebar latar itu
-   tidak dipakai karena bayangan pohon sudah cukup. */
+/* Papan teks di layar sempit mengambil lebar penuh supaya teks tetap punya
+   ruang. Penggelapan di belakang teks sekarang ditangani satu lapisan gradien
+   penuh kanvas di `Dunia` (MainMenu.tsx); papan tidak lagi membawa gradiennya
+   sendiri karena dua lapisan bertumpuk meninggalkan garis batas di tengah. */
 @media (width < 48rem) {
   .menu-panel {
     width: 100%;
     padding: 1.1rem 1.2rem 1.35rem;
-    background-image: linear-gradient(
-      100deg,
-      rgb(4 18 11 / 0.9) 0%,
-      rgb(4 18 11 / 0.78) 58%,
-      rgb(4 18 11 / 0) 100%
-    );
   }
 }
 
@@ -1207,6 +1270,57 @@ label,
   text-transform: uppercase;
   color: rgb(240 234 217 / 0.72);
   text-shadow: 0 1px 0 rgb(12 26 17 / 0.9);
+}
+
+/* Layar judul di lanskap ponsel.
+ *
+ * Lanskap ponsel hanya menyisakan ±300-430 px tinggi, sedangkan judul besar +
+ * empat pilihan + label versi lebih tinggi dari itu sehingga bagian bawah
+ * (petunjuk/versi) terpotong tepi bawah. Di bawah 30rem — ambang yang sama
+ * dengan menu jeda (ADR 0036) — judul, jarak antar-blok, dan padding papan
+ * diperkecil supaya semuanya muat. Tinggi tiap pilihan tetap 44 px (`min-h-11`)
+ * agar tetap nyaman disentuh, dan `overflow-y-auto` di komponen jadi jaring
+ * pengaman untuk tinggi ekstrem.
+ *
+ * Diletakkan setelah definisi `.menu-panel`/`.menu-item` di atas supaya menang
+ * cascade pada spesifisitas yang sama. */
+@media (max-height: 30rem) {
+  .menu-isi {
+    padding-top: 0.6rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .menu-panel {
+    padding: 0.4rem 1rem 0.5rem;
+  }
+
+  .menu-judul {
+    font-size: 1.4rem;
+  }
+
+  .menu-dekor {
+    margin-top: 0.25rem;
+  }
+
+  .menu-nav {
+    margin-top: 0.5rem;
+  }
+
+  .menu-daftar {
+    gap: 0.125rem;
+  }
+
+  .menu-item {
+    font-size: 0.88rem;
+  }
+
+  .menu-petunjuk {
+    margin-top: 0.35rem;
+  }
+
+  .menu-versi {
+    padding-top: 0.3rem;
+  }
 }
 
 /* Sakura yang berguguran: satu elemen per kelopak, nilainya dari variabel

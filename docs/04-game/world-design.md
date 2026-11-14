@@ -122,7 +122,7 @@ flowchart LR
   C --> D["Cat sel collision (tombol C)"]
   D --> E["Simpan project.json"]
   E --> F["bun run assets:world"]
-  F --> G["public/assets/world/* + char/* + music/default.mp3"]
+  F --> G["public/assets/world/* + char/* + music/{default,vellore}.mp3"]
   F --> H["src/game/world/village.json + src/assets/worldAssets.ts"]
 ```
 
@@ -242,7 +242,7 @@ ditimpa potongan objek dari editor:
 | Peta     | Gambar desa penuh, satu berkas JPEG                           | `world_map_village`                         |
 | Objek    | Rumah, pohon, bunga, bangku, sumur, tiang lampu, pagar, jalan | `world_house_red`, `world_tree_regular_1_1` |
 | Karakter | Sprite 8 arah + potret 6 ekspresi untuk `story.cast`          | `char_mc`, `char_npc_7`                     |
-| Musik    | Satu lagu untuk seluruh permainan                             | `bgm_default`                               |
+| Musik    | Dua lagu bergantian, mulai dari pilihan acak tiap sesi        | `bgm_default`, `bgm_vellore`                |
 
 > Semua entri di atas terdaftar di `src/assets/worldAssets.ts` (dibangkitkan
 > `import-world.mjs`) dan [`../07-assets/inventory.md`](../07-assets/inventory.md).
@@ -250,8 +250,8 @@ ditimpa potongan objek dari editor:
 
 Latar `bg_default` (640×360, PNG) tetap dipakai untuk **layar judul dan layar
 hasil**, karena di sana komposisi yang rapi lebih penting daripada navigasi.
-Sebagian besar berkas aset dunia cukup besar (peta ≈ 3,1 MB, musik ≈ 4,0 MB),
-jadi keduanya di-commit sekali dan tidak dihasilkan ulang saat build.
+Sebagian besar berkas aset dunia cukup besar (peta ≈ 3,1 MB, dua track musik
+≈ 8 MB), jadi keduanya di-commit sekali dan tidak dihasilkan ulang saat build.
 
 Sumber aset dunia ada di [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md).
 

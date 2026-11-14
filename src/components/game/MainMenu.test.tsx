@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -183,6 +189,29 @@ describe("MainMenu", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("Kredit mencantumkan tim penyusun beserta tautan GitHub", () => {
+    render(<MainMenu onMulai={vi.fn()} />);
+
+    fireEvent.click(tombol(/^kredit$/i));
+    const dialog = screen.getByRole("dialog", { name: "Kredit" });
+
+    // Panel yang bisa digulir memakai scrollbar bertema, bukan bawaan peramban.
+    expect(dialog).toHaveClass("scrollbar-tema");
+
+    // Keempat anggota tim tampil dengan nama dan perannya.
+    const daftar = within(dialog);
+    expect(daftar.getByText("Marson Arya Bagas Prasetyo")).toBeInTheDocument();
+    expect(
+      daftar.getByText("Davita Syalom Maria Attira Pandjaitan"),
+    ).toBeInTheDocument();
+    expect(daftar.getAllByText(/Universitas Negeri Surabaya/)).toHaveLength(4);
+
+    // Tautan GitHub terbuka di tab baru dengan alamat yang benar.
+    const tautan = daftar.getByRole("link", { name: "github.com/justeita" });
+    expect(tautan).toHaveAttribute("href", "https://github.com/justeita");
+    expect(tautan).toHaveAttribute("target", "_blank");
+  });
+
   it("Keluar menawarkan jalan kembali ke pemilihan peran, bukan menutup tab", () => {
     render(<MainMenu onMulai={vi.fn()} />);
 
@@ -205,5 +234,96 @@ describe("MainMenu", () => {
     tekan("ArrowDown");
 
     expect(tombol(/^pengaturan$/i)).toHaveAttribute("aria-current", "true");
+  });
+});
+
+describe("MainMenu — di perangkat sentuh", () => {
+  /**
+   * jsdom tidak punya `window.matchMedia`. Palsukan agar perangkat terbaca
+   * sebagai ponsel (penunjuk kasar + tidak bisa hover), sama seperti pola
+   * `useSentuh.ts`; di desktop (tanpa matchMedia) `useSentuh` bernilai false.
+   */
+  function pasangSentuh() {
+    const asli = window.matchMedia;
+    window.matchMedia = ((query: string) =>
+      ({
+        matches:
+          query.includes("pointer: coarse") || query.includes("hover: none"),
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }) as unknown as MediaQueryList) as typeof window.matchMedia;
+    return () => {
+      window.matchMedia = asli;
+    };
+  }
+
+  it("menukar petunjuk keyboard dengan petunjuk sentuh", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      render(<MainMenu onMulai={vi.fn()} />);
+      expect(screen.queryByText(/Enter konfirmasi/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/ketuk lagi konfirmasi/i)).toBeInTheDocument();
+    } finally {
+      pulihkan();
+    }
+  });
+
+  it("tetap menampilkan petunjuk tombol di desktop", () => {
+    render(<MainMenu onMulai={vi.fn()} />);
+    expect(screen.getByText(/Enter konfirmasi/i)).toBeInTheDocument();
+  });
+
+  it("ketukan pertama memindahkan penunjuk tanpa menjalankan aksi", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      render(<MainMenu onMulai={vi.fn()} />);
+
+      fireEvent.click(tombol(/^pengaturan$/i));
+
+      expect(tombol(/^pengaturan$/i)).toHaveAttribute("aria-current", "true");
+      expect(
+        screen.queryByRole("dialog", { name: "Pengaturan" }),
+      ).not.toBeInTheDocument();
+    } finally {
+      pulihkan();
+    }
+  });
+
+  it("ketukan kedua pada pilihan yang sama menjalankannya", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      render(<MainMenu onMulai={vi.fn()} />);
+
+      fireEvent.click(tombol(/^pengaturan$/i));
+      fireEvent.click(tombol(/^pengaturan$/i));
+
+      expect(
+        screen.getByRole("dialog", { name: "Pengaturan" }),
+      ).toBeInTheDocument();
+    } finally {
+      pulihkan();
+    }
+  });
+
+  it("penunjuk pindah ke tiap pilihan yang diketuk", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      render(<MainMenu onMulai={vi.fn()} />);
+
+      fireEvent.click(tombol(/^keluar$/i));
+      expect(tombol(/^keluar$/i)).toHaveAttribute("aria-current", "true");
+      expect(tombol(/^mulai$/i)).toHaveAttribute("aria-current", "false");
+
+      fireEvent.click(tombol(/^mulai$/i));
+      expect(tombol(/^mulai$/i)).toHaveAttribute("aria-current", "true");
+      expect(tombol(/^keluar$/i)).toHaveAttribute("aria-current", "false");
+    } finally {
+      pulihkan();
+    }
   });
 });

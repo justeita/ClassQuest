@@ -27,7 +27,14 @@ import { fileURLToPath } from "node:url";
 import { encodePng } from "./lib/pixel.mjs";
 import { backgroundDefault } from "./lib/scenes.mjs";
 import { defaultPanel, portraitFrame, textboxPanel } from "./lib/ui.mjs";
-import { sfxClick, sfxCorrect, sfxPage, sfxWrong } from "./lib/audio.mjs";
+import {
+  sfxClick,
+  sfxCorrect,
+  sfxPage,
+  sfxType,
+  sfxWrong,
+  toWav,
+} from "./lib/audio.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC = join(ROOT, "public");
@@ -48,6 +55,9 @@ const AUDIO = [
   ["sfx/correct.ogg", sfxCorrect],
   ["sfx/wrong.ogg", sfxWrong],
   ["sfx/page.ogg", sfxPage],
+  // Blip ketik dipakai puluhan kali per detik dan sangat pendek, jadi cukup
+  // ditulis langsung sebagai WAV: tidak perlu ffmpeg, hasilnya tetap kecil.
+  ["sfx/type.wav", sfxType],
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -68,29 +78,17 @@ function writeImage(relativePath, factory) {
   );
 }
 
-/** Float32 mono → WAV 16-bit (dipakai sebagai input ffmpeg). */
-function toWav(samples, sampleRate) {
-  const data = Buffer.alloc(samples.length * 2);
-  for (let i = 0; i < samples.length; i += 1) {
-    const clamped = Math.max(-1, Math.min(1, samples[i]));
-    data.writeInt16LE(Math.round(clamped * 32767), i * 2);
-  }
+/** Float32 mono → WAV 16-bit, ditulis langsung tanpa ffmpeg. */
+function writeWav(relativePath, factory) {
+  const target = join(PUBLIC, "assets", relativePath);
+  mkdirSync(dirname(target), { recursive: true });
 
-  const header = Buffer.alloc(44);
-  header.write("RIFF", 0, "ascii");
-  header.writeUInt32LE(36 + data.length, 4);
-  header.write("WAVE", 8, "ascii");
-  header.write("fmt ", 12, "ascii");
-  header.writeUInt32LE(16, 16);
-  header.writeUInt16LE(1, 20);
-  header.writeUInt16LE(1, 22);
-  header.writeUInt32LE(sampleRate, 24);
-  header.writeUInt32LE(sampleRate * 2, 28);
-  header.writeUInt16LE(2, 32);
-  header.writeUInt16LE(16, 34);
-  header.write("data", 36, "ascii");
-  header.writeUInt32LE(data.length, 40);
-  return Buffer.concat([header, data]);
+  const sampleRate = 44100;
+  const wav = toWav(factory(sampleRate), sampleRate);
+  writeFileSync(target, wav);
+  log(
+    `  audio   ${relativePath.padEnd(30)} ${(wav.length / 1024).toFixed(1)} KB`,
+  );
 }
 
 function ffmpegBinary() {
@@ -110,7 +108,7 @@ function assertFfmpeg() {
   return binary;
 }
 
-function writeAudio(relativePath, factory, binary) {
+function writeOgg(relativePath, factory, binary) {
   const target = join(PUBLIC, "assets", relativePath);
   mkdirSync(dirname(target), { recursive: true });
 
@@ -165,9 +163,16 @@ if (only !== "audio") {
 
 if (only !== "image") {
   log("Audio:");
-  const binary = assertFfmpeg();
+  // WAV ditulis langsung; ffmpeg baru dicek saat ada berkas `.ogg`, supaya SFX
+  // WAV tetap bisa dibuat di mesin tanpa ffmpeg.
+  let binary = "";
   for (const [relativePath, factory] of AUDIO) {
-    writeAudio(relativePath, factory, binary);
+    if (relativePath.endsWith(".wav")) {
+      writeWav(relativePath, factory);
+    } else {
+      if (!binary) binary = assertFfmpeg();
+      writeOgg(relativePath, factory, binary);
+    }
   }
 }
 

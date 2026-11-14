@@ -36,11 +36,11 @@ Aset di `public/assets/` datang dari dua jalur, dan keduanya tidak saling
 menimpa:
 
 1. **Generator repo** — `bun run assets:generate`. Membuat aset generik: latar
-   default `640×360`, panel UI, dan empat efek suara. Gambar digambar tanpa
+   default `640×360`, panel UI, dan lima efek suara. Gambar digambar tanpa
    dependensi di `scripts/lib/`; audio disintesis lalu dienkode ke OGG lewat
-   ffmpeg.
+   ffmpeg, sementara SFX sangat pendek ditulis langsung sebagai WAV.
 2. **Impor paket desa** — `bun run assets:world` (`scripts/import-world.mjs`).
-   Menyalin peta desa, 80 potongan objek, dan satu lagu dari folder paket aset
+   Menyalin peta desa, 80 potongan objek, dan dua lagu dari folder paket aset
    proyek di luar repo (`Asset/assets_classquest`), lalu membangkitkan
    `src/assets/worldAssets.ts` dan `src/game/world/village.json`.
 3. **Impor karakter beranimasi** — `bun run assets:characters`
@@ -195,11 +195,18 @@ Entri di bawah **tidak** boleh dipakai sebagai `backgroundId` cerita.
 
 ## Musik
 
-Satu lagu untuk seluruh permainan; chapter tidak berganti lagu.
+Dua track latar untuk seluruh permainan. Cerita hanya menyebut `bgm_default`;
+game memilih satu track acak dari keduanya setiap sesi dimulai, lalu memutar
+keduanya bergantian tiap lagu selesai dan kembali ke pilihan awal. Jadi tiap
+permainan bisa terdengar berbeda. Chapter **tidak** berganti lagu.
 
-| id            | Label      | Path                        | Tags                                   | Status |
-| ------------- | ---------- | --------------------------- | -------------------------------------- | ------ |
-| `bgm_default` | Musik desa | `/assets/music/default.mp3` | desa, tenang, hangat, pengantar, musik | ready  |
+`bgm_vellore` ditandai `runtime` di manifest: ia tidak ditawarkan ke AI dan tidak
+boleh dirujuk cerita, hanya dipakai sisi game.
+
+| id            | Label         | Path                        | Tags                                     | Status |
+| ------------- | ------------- | --------------------------- | ---------------------------------------- | ------ |
+| `bgm_default` | Musik desa    | `/assets/music/default.mp3` | desa, tenang, hangat, pengantar, musik   | ready  |
+| `bgm_vellore` | Musik Vellore | `/assets/music/vellore.mp3` | vellore, desa, tenang, perjalanan, musik | ready  |
 
 ## SFX
 
@@ -209,6 +216,7 @@ Satu lagu untuk seluruh permainan; chapter tidak berganti lagu.
 | `sfx_correct` | Jawaban benar | `/assets/sfx/correct.ogg` | benar, berhasil, tepat, correct | ready  |
 | `sfx_wrong`   | Jawaban salah | `/assets/sfx/wrong.ogg`   | salah, lembut, keliru, wrong    | ready  |
 | `sfx_page`    | Ganti scene   | `/assets/sfx/page.ogg`    | transisi, halaman, pindah, page | ready  |
+| `sfx_type`    | Ketik dialog  | `/assets/sfx/type.wav`    | ketik, dialog, teks, typewriter | ready  |
 
 ## UI
 
@@ -243,10 +251,10 @@ dimuat `next/font/local` dari `public/fonts/` (ADR 0007).
 | `background` | 1       |
 | `character`  | 10      |
 | `world`      | 81      |
-| `music`      | 1       |
-| `sfx`        | 4       |
+| `music`      | 2       |
+| `sfx`        | 5       |
 | `ui`         | 3       |
-| **Total**    | **100** |
+| **Total**    | **102** |
 
 ## Prioritas bila aset perlu dibuat ulang
 
@@ -260,11 +268,11 @@ Urutan yang disarankan agar game tetap bisa tampil:
 
 ## Sumber dan lisensi
 
-| Kelompok aset                                                              | Sumber                                                                                                                                       | Lisensi      |
-| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| `bg_default`, `ui_*`, `sfx_*`                                              | Dibuat generator repo (`scripts/lib/*.mjs`)                                                                                                  | Milik proyek |
-| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default` | Dibuat tim dengan alat AI generatif, disalin `scripts/import-world.mjs`, `scripts/import-characters.mjs`, dan `scripts/import-portraits.mjs` | Milik proyek |
-| Font Patrick Hand (`public/fonts/`)                                        | Google Fonts                                                                                                                                 | SIL OFL 1.1  |
+| Kelompok aset                                                                             | Sumber                                                                                                                                       | Lisensi      |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| `bg_default`, `ui_*`, `sfx_*`                                                             | Dibuat generator repo (`scripts/lib/*.mjs`)                                                                                                  | Milik proyek |
+| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default`, `bgm_vellore` | Dibuat tim dengan alat AI generatif, disalin `scripts/import-world.mjs`, `scripts/import-characters.mjs`, dan `scripts/import-portraits.mjs` | Milik proyek |
+| Font Patrick Hand (`public/fonts/`)                                                       | Google Fonts                                                                                                                                 | SIL OFL 1.1  |
 
 Aset dunia desa (peta, potongan objek, karakter, potret, dan lagu) **dibuat tim
 sendiri dengan alat AI generatif**, lalu disusun di editor peta

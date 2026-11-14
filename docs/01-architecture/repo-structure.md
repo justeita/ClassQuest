@@ -118,6 +118,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/constants.ts`                                   | ya   | Konstanta resolusi tanpa dependensi                            |
 | `src/game/movement.ts`                                    | ya   | Gerak pemain 8 arah + tabrakan grid manual (ADR 0008)          |
 | `src/game/movement.test.ts`                               | ya   | Tes arah gerak dan langkah per sumbu                           |
+| `src/game/advanceInput.ts`                                | ya   | Input lanjut dialog (Space/Enter) tahan ketukan antar-frame    |
+| `src/game/advanceInput.test.ts`                           | ya   | Tes latch ketukan Space/Enter yang lepas sebelum frame         |
 | `src/game/gameBus.ts`                                     | ya   | Bridge bertipe Phaser ↔ React (event + command)                |
 | `src/game/challengeView.ts`                               | ya   | Data tantangan aman untuk overlay (tanpa jawaban)              |
 | `src/game/answerLog.ts`                                   | ya   | Catatan jawaban percobaan pertama + ringkasan hasil            |
@@ -126,6 +128,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/demoStory.ts`                                   | ya   | Akses cerita demo untuk halaman siswa dan dev                  |
 | `src/game/fixture`                                        | ya   | Cerita demo untuk pengembangan frontend game                   |
 | `src/components/game/GameCanvas.tsx`                      | ya   | Host Phaser + overlay tantangan di React                       |
+| `src/components/game/fokusPermainan.ts`                   | ya   | Menahan Tab saat bermain (fokus tidak pindah ke tombol HUD)    |
+| `src/components/game/fokusPermainan.test.ts`              | ya   | Tes penahanan Tab, modifier peramban, dan tarik fokus          |
 | `src/components/game/LoadingScreen.tsx`                   | ya   | Layar muat DOM: progres aset, batal, dan jalan keluar gagal    |
 | `src/components/game/LoadingScreen.test.tsx`              | ya   | Tes layar muat: tak tentu, persen, pudar, gagal, batal         |
 | `src/components/game/DialogueBox.tsx`                     | ya   | Panel dialog + potret berekspresi (DOM, ADR 0023)              |

@@ -8,6 +8,7 @@ import {
 } from "@/components/game/ChallengeOverlay";
 import { DialogueBox } from "@/components/game/DialogueBox";
 import { DialogueLog } from "@/components/game/DialogueLog";
+import { tangkapTab } from "@/components/game/fokusPermainan";
 import {
   ChapterCard,
   type ChapterCardView,
@@ -53,9 +54,19 @@ type GameCanvasProps = {
   onFinished?: (result: PlayResult, answers: Answer[]) => void;
   /** Tombol "Batal" di layar muat: kembali ke layar sebelum permainan. */
   onBatal: () => void;
+  /**
+   * `GameCanvas` adalah layar yang sedang aktif. Saat layar hasil menutupinya,
+   * jebakan fokus dilepas supaya `Tab` bisa menjangkau tombol-tombol hasil.
+   */
+  aktif?: boolean;
 };
 
-export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
+export function GameCanvas({
+  story,
+  onFinished,
+  onBatal,
+  aktif = true,
+}: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const adaTantangan = useRef(false);
   const gameRef = useRef<GameHandle | null>(null);
@@ -110,6 +121,15 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
       typeof window === "undefined" ? null : window.localStorage,
     ),
   );
+  /**
+   * Salinan terbaru `audio` untuk pendengar `ready`. Event itu didaftarkan
+   * sekali saat game dibuat, jadi closure `audio` akan basi; ref ini membuat
+   * pengaturan yang dikirim selalu yang terakhir.
+   */
+  const audioRef = useRef(audio);
+  useEffect(() => {
+    audioRef.current = audio;
+  }, [audio]);
   /** Pelacak perubahan chapter/quest untuk memicu kartu dan toast sekali. */
   const chapterTerakhir = useRef<number | null>(null);
   const questTerakhir = useRef<string | null>(null);
@@ -194,6 +214,12 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
         lepas.push(
           game.bus.on("ready", () => {
             setSiapMain(true);
+            // Scene mendaftarkan pendengar `set_audio` sebelum mengirim `ready`,
+            // jadi kiriman ini pasti diterima. Tanpa ini pengaturan tersimpan
+            // (mis. musik yang dimatikan) hilang: efek kirim saat mount berjalan
+            // sebelum Phaser selesai dibuat, saat bus masih kosong.
+            const a = audioRef.current;
+            game.bus.send({ type: "set_audio", music: a.music, sfx: a.sfx });
           }),
         );
 
@@ -366,32 +392,24 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
     });
   }, [tantangan, hasil]);
 
-  /** Ubah satu kanal audio, simpan, dan teruskan ke scene. */
+  /** Ubah satu kanal audio: simpan ke storage dan perbarui state. */
   const ubahAudio = useCallback((kanal: "music" | "sfx", volume: number) => {
-    setAudio((sebelum) => {
-      const berikut = simpanPengaturanAudio(
-        { ...sebelum, [kanal]: volume },
-        window.localStorage,
-      );
-      busRef.current?.send({
-        type: "set_audio",
-        music: berikut.music,
-        sfx: berikut.sfx,
-      });
-      return berikut;
-    });
+    const berikut = simpanPengaturanAudio(
+      { ...audioRef.current, [kanal]: volume },
+      window.localStorage,
+    );
+    setAudio(berikut);
   }, []);
 
-  // Kirim pengaturan tersimpan ke scene tepat setelah game dibuat.
+  // Teruskan perubahan volume ke scene. Pengaturan awal tidak lewat sini —
+  // bus belum ada saat mount — melainkan dari pendengar `ready` di atas.
   useEffect(() => {
     busRef.current?.send({
       type: "set_audio",
       music: audio.music,
       sfx: audio.sfx,
     });
-    // Hanya sekali per pembuatan game; perubahan lanjutan lewat ubahAudio.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [audio]);
 
   /** Muat ulang Phaser di layar yang sama setelah gagal dimuat. */
   const cobaLagiMuat = useCallback(() => {
@@ -521,6 +539,34 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
   const dialogTerlihat = Boolean(dialog?.visible) && !tantangan;
 
   /**
+   * Teks soal lengkap persis seperti yang ditampilkan `GameScene.bukaTantangan`.
+   * Dipakai untuk mencocokkan dialog yang sedang diketik dengan soal aktif.
+   */
+  const teksSoal = tantangan
+    ? tantangan.type === "true_false" && tantangan.statement
+      ? `${tantangan.prompt}\n"${tantangan.statement}"`
+      : tantangan.prompt
+    : "";
+
+  /**
+   * Dialog soal yang sedang diketik. Scene menampilkan teks soal lewat
+   * `textbox.show` tepat sebelum event `challenge`, jadi `dialog.text` adalah
+   * awalan (prefix) dari teks soal selama mesin tik berjalan. Bila scene tidak
+   * mengirim dialog soal (mis. event `challenge` datang sendiri), nilainya
+   * `null` dan overlay langsung tampil penuh.
+   */
+  const dialogSoal =
+    tantangan && dialog?.visible && teksSoal.startsWith(dialog.text)
+      ? dialog
+      : null;
+
+  /**
+   * Pilihan jawaban baru boleh tampil setelah soal selesai diketik. Ini yang
+   * membuat pertanyaan dulu mengetik, baru jawabannya muncul.
+   */
+  const soalSiap = dialogSoal ? dialogSoal.waiting : true;
+
+  /**
    * Konteks tombol aksi sentuh: "Bicara" saat pemain di zona NPC, `null` saat
    * belum ada warga di jangkauan. Tidak ada lagi mode "Lanjut": kontrol sentuh
    * disembunyikan selama dialog (ADR 0027), dan lanjut dialog dilakukan dengan
@@ -546,8 +592,8 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
   }, []);
 
   // Pintasan Tab: sama dengan menahan tombol "Percepat" di HUD. Tab diambil
-  // alih hanya selama fase dialog; di luar itu biarkan browser memindahkan
-  // fokus seperti biasa (accessibility.md: jangan menangkap Tab secara global).
+  // alih hanya selama fase dialog; di luar itu Tab ditahan (dimatikan) oleh
+  // efek di bawah supaya fokus tidak pindah ke tombol HUD.
   useEffect(() => {
     if (!dialogTerlihat) return;
 
@@ -586,6 +632,30 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
     mulaiLewatiDialog,
     hentikanLewatiDialog,
   ]);
+
+  // Tab dimatikan selama bermain: `Space`/`Enter` adalah tombol bicara, jadi
+  // Tab tidak boleh memindahkan fokus ke tombol HUD — kalau tidak, `Space`
+  // berikutnya mengaktifkan tombol HUD yang baru terpilih, bukan memulai dialog
+  // warga. Tab hidup kembali saat dialog (pintasan "Percepat" di efek atas) dan
+  // di menu jeda/buku yang memang butuh navigasi papan ketik.
+  //
+  // Saat soal, panel tantangan memegang fokusnya sendiri: cukup tahan Tab tanpa
+  // menarik fokus keluar dari panel (navigasi opsi pakai tombol angka/panah).
+  useEffect(() => {
+    if (!aktif || !siapMain || dialogTerlihat || jeda || bukuLog || bukuQuest) {
+      return;
+    }
+
+    const wadah = containerRef.current;
+    if (!wadah) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      tangkapTab(event, tantangan ? null : wadah);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [aktif, siapMain, dialogTerlihat, jeda, bukuLog, bukuQuest, tantangan]);
 
   return (
     <div
@@ -642,21 +712,22 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
                     ? {
                         visible: true,
                         name:
+                          dialogSoal?.name ??
                           dialog?.name ??
                           story.cast.find((c) => c.role === "mentor")?.name ??
                           "Tantangan",
-                        text:
-                          tantangan.type === "true_false" && tantangan.statement
-                            ? `${tantangan.prompt}
-"${tantangan.statement}"`
-                            : tantangan.prompt,
+                        // Selama mengetik, pakai potongan dari textbox; bila
+                        // scene tidak mengirim dialog soal, tampilkan teks
+                        // lengkap supaya soal tidak kosong.
+                        text: dialogSoal ? dialogSoal.text : teksSoal,
+                        // Indikator "lanjut" tidak pernah tampil selama soal:
+                        // dialog dibekukan sampai siswa menjawab.
                         waiting: false,
-                        // Saat soal belum dijawab, sembunyikan kedua potret
-                        // supaya tidak menutupi pilihan jawaban; setelah
-                        // dinilai, tampilkan lagi untuk umpan balik
-                        // senang/marah (yang non-pembicara tetap meredup).
-                        portrait: hasil ? (dialog?.portrait ?? null) : null,
-                        pendamping: hasil ? (dialog?.pendamping ?? null) : null,
+                        // Potret pembicara soal tetap tampil — panel jawaban
+                        // sengaja duduk di kanan atas agar sisi kiri (potret
+                        // NPC) tetap terlihat (ADR 0038).
+                        portrait: (dialogSoal ?? dialog)?.portrait ?? null,
+                        pendamping: (dialogSoal ?? dialog)?.pendamping ?? null,
                       }
                     : (dialog ?? {
                         visible: false,
@@ -693,6 +764,7 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
               <ChallengeOverlay
                 view={tantangan}
                 graded={hasil}
+                siap={soalSiap}
                 onSubmit={kirimJawaban}
                 onResolve={lanjut}
               />

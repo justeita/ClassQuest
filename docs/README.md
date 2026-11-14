@@ -218,7 +218,7 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0025-layar-penuh-lanskap.md`](./09-decisions/0025-layar-penuh-lanskap.md)                                       | stable | Layar penuh, kunci lanskap, dan ketukan responsif            |
 | [`09-decisions/0026-tombol-aksi-tanpa-sasaran.md`](./09-decisions/0026-tombol-aksi-tanpa-sasaran.md)                           | stable | Tombol aksi sentuh tetap hidup tanpa sasaran                 |
 | [`09-decisions/0027-tombol-bicara-dan-kontrol-saat-dialog.md`](./09-decisions/0027-tombol-bicara-dan-kontrol-saat-dialog.md)   | stable | Tombol Bicara dan kontrol yang hilang saat dialog            |
-| [`09-decisions/0028-jangkauan-interaksi-dan-bar-hud-potret.md`](./09-decisions/0028-jangkauan-interaksi-dan-bar-hud-potret.md) | stable | Jangkauan interaksi, menu jeda bergulir, dan bar HUD potret  |
+| [`09-decisions/0028-jangkauan-interaksi-dan-bar-hud-potret.md`](./09-decisions/0028-jangkauan-interaksi-dan-bar-hud-potret.md) | stable | Jangkauan interaksi, menu jeda, dan bar HUD potret           |
 | [`09-decisions/0029-desain-hud-dan-tombol-bicara.md`](./09-decisions/0029-desain-hud-dan-tombol-bicara.md)                     | stable | Desain HUD seragam dan tombol Bicara menjauh dari tepi       |
 | [`09-decisions/0030-desain-tantangan-seragam-dialog.md`](./09-decisions/0030-desain-tantangan-seragam-dialog.md)               | stable | Desain tantangan seragam dan penunjuk pilihan yang presisi   |
 | [`09-decisions/0031-warna-ui-selaras-penanda-quest.md`](./09-decisions/0031-warna-ui-selaras-penanda-quest.md)                 | stable | Warna UI selaras penanda quest dan penunjuk tangan SVG       |
@@ -226,6 +226,9 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0033-pemilihan-pembicara-keahlian.md`](./09-decisions/0033-pemilihan-pembicara-keahlian.md)                     | stable | Dialog bidang tertentu jatuh ke tokoh yang ahli              |
 | [`09-decisions/0034-mode-permainan.md`](./09-decisions/0034-mode-permainan.md)                                                 | stable | Mode permainan dipilih guru                                  |
 | [`09-decisions/0035-penempatan-tokoh-tetap.md`](./09-decisions/0035-penempatan-tokoh-tetap.md)                                 | stable | Tokoh punya tempat tetap yang sejalan dengan peta desa       |
+| [`09-decisions/0036-menu-jeda-dua-kolom.md`](./09-decisions/0036-menu-jeda-dua-kolom.md)                                       | stable | Menu jeda dua kolom agar muat di lanskap pendek              |
+| [`09-decisions/0037-layar-penuh-pintu-siswa.md`](./09-decisions/0037-layar-penuh-pintu-siswa.md)                               | stable | Layar penuh mendatar langsung dari kartu siswa               |
+| [`09-decisions/0038-soal-diketik-lalu-jawaban.md`](./09-decisions/0038-soal-diketik-lalu-jawaban.md)                           | stable | Soal diketik dulu, lalu pilihan jawaban beranimasi muncul    |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                                               | draft  | Urutan kerja dan pembagian tugas                             |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                                                     | draft  | Naskah demo 3 menit + sketsa layar                           |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                                           | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal     |

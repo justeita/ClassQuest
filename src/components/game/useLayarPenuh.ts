@@ -5,7 +5,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import {
   dukungLayarPenuh,
   layarPenuhAktif,
-  ORIENTASI_PERMAINAN,
+  masukLayarPenuhLanskap,
 } from "@/game/layarPenuh";
 
 /**
@@ -55,17 +55,8 @@ export function useLayarPenuh(): {
         return;
       }
 
-      await document.documentElement.requestFullscreen({
-        navigationUI: "hide",
-      });
-
-      // Kunci mendatar setelah layar penuh. Hanya sebagian peramban
-      // mengizinkannya; kalau ditolak, pemain tetap dapat layar penuh.
-      try {
-        await screen.orientation?.lock?.(ORIENTASI_PERMAINAN);
-      } catch {
-        // Orientasi tidak bisa dikunci — biarkan, arah layar tetap milik pemain.
-      }
+      // Sama dengan yang dipakai tautan siswa di halaman utama.
+      await masukLayarPenuhLanskap();
     } catch {
       // Peramban menolak (izin, bukan dari gestur): biarkan UI seperti semula.
     }
