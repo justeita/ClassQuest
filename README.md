@@ -472,10 +472,9 @@ submission. Endpoint masuk: `POST /api/auth/login` dengan body
 ### Kredensial Akun Demo Guru
 
 | Keterangan | Kredensial |
-|---|---|
-| Username | `guru` |
-| Password | `guru123` |
-
+| ---------- | ---------- |
+| Username   | `guru`     |
+| Password   | `guru123`  |
 
 ### Alur uji cepat (±5 menit)
 
