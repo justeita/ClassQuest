@@ -213,15 +213,17 @@ menyusun cerita, dan guru tetap memegang kendali sebelum siswa melihat hasilnya.
 | Simpan hasil bermain siswa + ringkasan       | ✅ Berjalan | `src/server/play-results`                        |
 | Portal guru: dashboard, materi, kelas        | ✅ Berjalan | Buka `/guru/masuk` setelah `bun run db:seed`     |
 | Kelas dan siswa (buat kelas, tambah siswa)   | ✅ Berjalan | `/guru/kelas`                                    |
+| Editor cerita (dialog dan soal)              | ✅ Berjalan | `/guru/materi/<storyId>/edit`                    |
 
 ### Rencana pengembangan
 
-Yang belum ada di commit ini adalah **editor cerita**
-(`/guru/materi/[storyId]/edit`) dan **preview draft**, dua langkah terakhir dari
-alur "guru meninjau dan mengedit cerita sebelum publish". Urutan pengerjaan ada
-di [docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hackathon-plan.md).
+**Editor cerita** (`/guru/materi/[storyId]/edit`) sudah berjalan: guru mengubah
+dialog dan soal lewat `StoryEditor`, lalu menyimpannya sebagai draft lewat
+`saveStoryDraft`. Yang belum ada adalah **preview draft** (melihat hasil edit
+sebelum publish) dan penyempurnaan deploy. Urutan pengerjaan ada di
+[docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hackathon-plan.md).
 
-- [ ] Editor cerita: guru mengubah dialog dan soal tanpa menyentuh JSON
+- [x] Editor cerita: guru mengubah dialog dan soal tanpa menyentuh JSON
 - [ ] Preview draft: guru melihat hasil edit sebelum dipublish
 - [ ] Penyempurnaan deploy ke Vercel + Turso dan berkas submission
 
@@ -229,7 +231,7 @@ di [docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hackathon-plan.md).
 
 | Ketentuan             | Nilai                                                                             |
 | --------------------- | --------------------------------------------------------------------------------- |
-| Ukuran berkas         | Maksimal 20 MB                                                                    |
+| Ukuran berkas         | Maksimal 4 MB                                                                     |
 | Jenis berkas          | PDF dengan lapisan teks (bukan hasil scan murni)                                  |
 | Teks minimum          | Sekitar 200 karakter                                                              |
 | Halaman yang diproses | Maksimal 40 halaman diekstrak; 15 halaman atau 30.000 karakter pertama dipakai AI |
@@ -376,8 +378,12 @@ AI_API_KEY=
 AI_MODEL=
 AI_BASE_URL=
 AI_TIMEOUT_MS=60000
+# Opsional. Isi "on" agar jawaban salah memicu soal ulang + detour singkat.
+AI_BRANCHING=
+# Untuk model reasoning: "on" mematikan thinking supaya muat deadline pipeline.
+AI_DISABLE_THINKING=
 
-# Akun seed guru dan siswa. Keempatnya wajib diisi; tidak ada akun demo bawaan.
+# Akun seed guru dan siswa. Keempatnya wajib diisi untuk menjalankan seed lokal.
 TEACHER_SEED_USERNAME=
 TEACHER_SEED_PASSWORD=
 STUDENT_SEED_USERNAME=
@@ -407,8 +413,10 @@ Panduan lengkap: [docs/03-ai-pipeline/provider-setup.md](docs/03-ai-pipeline/pro
 </details>
 
 > [!WARNING]
-> Jangan commit `.env.local`. Tidak ada kredensial di repositori ini, dan
-> seluruh rahasia hanya dibaca dari environment variable.
+> Jangan commit `.env.local`. Tidak ada kredensial produksi di repositori ini;
+> seluruh rahasia hanya dibaca dari environment variable. Satu-satunya akun yang
+> sengaja dicantumkan adalah akun demo juri di
+> [Akun Demo dan Panduan Juri](#akun-demo-dan-panduan-juri).
 
 ### Menyiapkan database dan akun
 
@@ -448,7 +456,7 @@ Detail langkah setup dan deploy: [docs/08-workflow/setup.md](docs/08-workflow/se
 | --------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
 | Login selalu gagal                | `TEACHER_SESSION_SECRET` kosong                                    | Isi variabel itu di `.env.local`                               |
 | `db:seed` gagal                   | Salah satu variabel `*_SEED_*` kosong                              | Isi keempat variabel akun seed                                 |
-| Upload PDF ditolak                | PDF hasil scan tanpa lapisan teks, atau > 20 MB                    | Gunakan PDF yang teksnya bisa diseleksi dan ukuran lebih kecil |
+| Upload PDF ditolak                | PDF hasil scan tanpa lapisan teks, atau > 4 MB                     | Gunakan PDF yang teksnya bisa diseleksi dan ukuran lebih kecil |
 | Cerita yang muncul terasa generik | AI gagal atau `AI_PROVIDER=mock`, sehingga cerita cadangan dipakai | Periksa `AI_PROVIDER`, kunci, dan model                        |
 
 ---
@@ -460,13 +468,12 @@ Detail langkah setup dan deploy: [docs/08-workflow/setup.md](docs/08-workflow/se
 Guru masuk dengan **username + sandi**; sandi disimpan sebagai hash scrypt di
 tabel `teachers`. Akun dibuat lewat `bun run db:seed` (lihat
 [`docs/08-workflow/setup.md`](docs/08-workflow/setup.md)) dengan
-`TEACHER_SEED_*` dan `STUDENT_SEED_*` dari environment. Tidak ada akun demo
-bawaan: seed gagal bila variabel itu kosong.
+`TEACHER_SEED_*` dan `STUDENT_SEED_*` dari environment. Seed gagal bila
+variabel itu kosong.
 
-Akun demo untuk juri memakai username dan sandi yang diisi lewat environment saat
-deploy. Sesuai aturan kredensial, nilainya tidak ditulis di repositori;
-kredensial aktif dicantumkan pada kolom **Akun Demonstrasi** di formulir
-submission. Endpoint masuk: `POST /api/auth/login` dengan body
+Akun demo untuk juri diisi lewat environment saat deploy. Kredensial produksi
+tidak ditulis di repositori; akun demo yang dipakai saat penilaian dicantumkan
+di bawah ini. Endpoint masuk: `POST /api/auth/login` dengan body
 `{ "username": "<username>", "password": "<sandi>" }`.
 
 ### Kredensial Akun Demo Guru
@@ -524,19 +531,22 @@ Pipeline generasi cerita sudah berjalan:
 6. Guru meninjau sebelum siswa melihat hasilnya.
 
 Provider dipilih lewat env (`AI_PROVIDER=mock` untuk development tanpa biaya).
-Layanan dan model yang dipakai pada aplikasi live: Weizerouter / Gemini 3.8 Flash
+Aplikasi live memakai `AI_PROVIDER=openai-compatible` lewat gateway router
+(Weizerouter) dengan model Gemini 3.8 Flash. Saat menyetel pipeline, model
+`deepseek-v4.1-flash:free` juga diukur (ADR 0017 dan ADR 0018).
 
-Detail dan keputusan provider ada di
-[docs/11-logicodix/14-ai-dan-atribusi.md](docs/11-logicodix/14-ai-dan-atribusi.md).
+Keputusan provider final dan rincian model ada di
+[docs/11-logicodix/14-ai-dan-atribusi.md](docs/11-logicodix/14-ai-dan-atribusi.md)
+serta [ADR 0006](docs/09-decisions/0006-ai-provider.md).
 
-### AI Yang Dipakai Ketika Membuat Proyek
+### AI yang Dipakai Saat Membuat Proyek
 
-- Deeepseek 4.1 flash
-- Gemini 3.8 flash
+- DeepSeek 4.1 Flash
+- Gemini 3.8 Flash
 - Claude Sonnet 5.5
 - Claude Haiku 5.5
 - GLM 5.3
-- GLM 5.3 flash
+- GLM 5.3 Flash
 - GPT 6 Sol
 - Pixellab AI
 - SpriteLab
@@ -589,16 +599,16 @@ bun run build   # build produksi
 
 ## Kepatuhan terhadap Ketentuan Lomba
 
-| Ketentuan LOGICODIX 2026                                                                                         | Status di repositori                                            |
-| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Produk berbasis Web, berupa MVP yang dapat dijalankan                                                            | ✅ Aplikasi web, dapat dicoba di URL live                       |
-| Memakai satu subtema resmi                                                                                       | ✅ Smart & Fun Education                                        |
-| Kode dan komponen utama dikembangkan selama Hacking Week                                                         | ✅ Riwayat commit berkala, tanpa bulk upload                    |
-| Pesan commit memakai awalan `feat`, `fix`, `docs`, `style`, `refactor`, `chore`                                  | ✅ Dijaga oleh test kepatuhan                                   |
-| Tidak ada kredensial di repositori                                                                               | ✅ Semua lewat environment variable; `.env.example` tanpa nilai |
-| README memuat tim, produk, fitur, teknologi, arsitektur, panduan menjalankan, akun demo, penggunaan AI, atribusi | ✅ Lihat bagian-bagian di atas                                  |
-| Aplikasi dapat diakses lewat browser tanpa biaya bagi juri                                                       | ✅ [classquest.justeita.com](https://classquest.justeita.com)   |
-| Sumber dan atribusi pihak ketiga dicantumkan                                                                     | ✅ Lihat [Atribusi Pihak Ketiga](#atribusi-pihak-ketiga)        |
+| Ketentuan LOGICODIX 2026                                                                                         | Status di repositori                                                                                                           |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Produk berbasis Web, berupa MVP yang dapat dijalankan                                                            | ✅ Aplikasi web, dapat dicoba di URL live                                                                                      |
+| Memakai satu subtema resmi                                                                                       | ✅ Smart & Fun Education                                                                                                       |
+| Kode dan komponen utama dikembangkan selama Hacking Week                                                         | ✅ Riwayat commit berkala, tanpa bulk upload                                                                                   |
+| Pesan commit memakai awalan `feat`, `fix`, `docs`, `style`, `refactor`, `chore`                                  | ✅ Dijaga oleh test kepatuhan                                                                                                  |
+| Tidak ada kredensial produksi di repositori                                                                      | ✅ Rahasia produksi lewat environment variable; akun demo juri sengaja dicantumkan di [Akun Demo](#akun-demo-dan-panduan-juri) |
+| README memuat tim, produk, fitur, teknologi, arsitektur, panduan menjalankan, akun demo, penggunaan AI, atribusi | ✅ Lihat bagian-bagian di atas                                                                                                 |
+| Aplikasi dapat diakses lewat browser tanpa biaya bagi juri                                                       | ✅ [classquest.justeita.com](https://classquest.justeita.com)                                                                  |
+| Sumber dan atribusi pihak ketiga dicantumkan                                                                     | ✅ Lihat [Atribusi Pihak Ketiga](#atribusi-pihak-ketiga)                                                                       |
 
 ---
 
@@ -632,14 +642,19 @@ bun run build   # build produksi
 | unpdf                     | https://github.com/unjs/unpdf     | MIT        |
 | zod                       | https://zod.dev                   | MIT        |
 | Anthropic SDK             | https://github.com/anthropics/sdk | Apache-2.0 |
+| TypeScript                | https://www.typescriptlang.org    | Apache-2.0 |
+| Vitest                    | https://vitest.dev                | MIT        |
+| Ajv                       | https://ajv.js.org                | MIT        |
+| ESLint                    | https://eslint.org                | MIT        |
+| Prettier                  | https://prettier.io               | MIT        |
 | Starter `create-next-app` | https://github.com/vercel/next.js | MIT        |
 
 ### Aset gambar dan audio game
 
-| Aset                                                                           | Sumber                                                                                                      | Lisensi      |
-| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ------------ |
-| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, dan `bgm_default` | Dibuat tim dengan alat AI generatif, diproses `scripts/import-world.mjs` dan `scripts/import-portraits.mjs` | Milik proyek |
-| `bg_default`, `ui_textbox`, `ui_portrait_frame`, `ui_default`, `sfx_*`         | Dibuat generator repo                                                                                       | Milik proyek |
+| Aset                                                                                          | Sumber                                                                                                      | Lisensi      |
+| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------ |
+| Peta desa, objek `world_*`, `char_mc`, `char_npc_*`, potret, `bgm_default`, dan `bgm_vellore` | Dibuat tim dengan alat AI generatif, diproses `scripts/import-world.mjs` dan `scripts/import-portraits.mjs` | Milik proyek |
+| `bg_default`, `ui_textbox`, `ui_portrait_frame`, `ui_default`, `sfx_*`                        | Dibuat generator repo                                                                                       | Milik proyek |
 
 Peta desa, potongan objek, karakter, potret, dan lagu disalin apa adanya dari
 folder paket aset proyek di luar repo oleh `scripts/import-world.mjs` (dan
@@ -652,10 +667,21 @@ paket aset gratis maupun dari game komersial. Rincian per berkas dicatat di
 
 Spritesheet karakter desa memakai gaya delapan arah. Potret dialog memakai gaya
 anime dengan enam ekspresi (`neutral`, `happy`, `sad`, `angry`, `shocked`,
-`thinking`) per karakter, disalin dari paket aset anime proyek. Musik
-`bgm_default` adalah satu lagu berlatar desa yang ikut dalam paket aset proyek.
+`thinking`) per karakter, disalin dari paket aset anime proyek. Dua lagu berlatar
+desa (`bgm_default` dan `bgm_vellore`) ikut dalam paket aset proyek; game memilih
+salah satunya secara acak setiap sesi dimulai, lalu memutar keduanya bergantian.
 
 Font Patrick Hand memakai lisensi SIL OFL 1.1 (`public/fonts/OFL.txt`).
+
+---
+
+## Lisensi dan Penggunaan
+
+Kode sumber ClassQuest disusun untuk keperluan penilaian LOGICODIX 2026. Seluruh
+aset game (gambar, animasi, audio, dan font) adalah milik proyek atau memakai
+lisensi yang dicantumkan di [Atribusi Pihak Ketiga](#atribusi-pihak-ketiga);
+aset tersebut tidak boleh dipakai ulang di luar proyek ini tanpa izin. Pustaka
+pihak ketiga tetap tunduk pada lisensi masing-masing.
 
 ---
 
