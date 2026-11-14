@@ -543,7 +543,6 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
                         text:
                           tantangan.type === "true_false" && tantangan.statement
                             ? `${tantangan.prompt}
-
 "${tantangan.statement}"`
                             : tantangan.prompt,
                         waiting: false,

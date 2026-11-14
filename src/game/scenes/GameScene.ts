@@ -904,9 +904,12 @@ export class GameScene extends Phaser.Scene {
 
     // Soal ulang hanya mengganti teks soal; opsi dan jawaban benar tetap sama.
     const prompt = promptOverride ?? challenge.prompt;
+    // Instruksi dan pernyataan dipisah satu baris saja: panel dialog tingginya
+    // tetap (104 px internal), jadi baris kosong akan mendorong pernyataan ke
+    // tepi bawah kotak.
     const text =
       challenge.type === "true_false" && challenge.statement
-        ? `${prompt}\n\n"${challenge.statement}"`
+        ? `${prompt}\n"${challenge.statement}"`
         : prompt;
 
     this.textbox?.show({
