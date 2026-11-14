@@ -203,6 +203,9 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   - Opsi pendek (seperti "1", "2", "4"): ditata 1 baris horizontal di kanan atas dialog.
   - Opsi teks panjang: ditata bertumpuk vertikal di kanan atas dialog; lebar seluruh box seragam mengikuti opsi terpanjang.
   - Persoalan matematika / matriks: ditata sebagai kartu berjejer agar formula terlihat jelas.
+- **Lebar kotak mengikuti isi (fit text), bukan lebar panel.** Opsi pilihan, baris pengurutan, input jawaban singkat, dan tombol `Jawab` dibungkus grup `w-fit` sehingga hanya selebar isinya; pada daftar kolom, semua opsi diseragamkan ke opsi terpanjang (tanpa lebar minimum tetap). Jadi jawaban pendek tidak lagi membentang penuh ke kanan. Baris petunjuk pintasan ditaruh di luar grup agar tidak ikut menentukan lebarnya. (ADR 0027)
+  - Pada `ordering`, daftar item dan tombol `Jawab` berbagi grup `w-fit` yang sama supaya tepi kanan keduanya rata.
+  - Pada `short_answer`, input `size` mengikuti panjang placeholder sehingga teks petunjuk muat tanpa terpotong, dan tombol `Jawab` selebar input.
 - Konsistensi visual HCI dengan DialogueBox (ADR 0027):
   - Kotak jawaban, kartu matriks, kartu umpan balik, tombol aksi, dan petunjuk pintasan memakai **token kotak dialog** yang sama (`gayaDialog.ts`): latar navy `#0f172b`/95, bingkai tipis putih transparan (`border-white/10`), sudut membulat (`rounded-lg`), teks terang `#EFF2F7`, aksen teal `#55D0A5`, flat tanpa drop shadow.
   - Keadaan terpilih memakai `KOTAK_DIALOG_AKTIF` (bingkai putih lebih terang, latar sedikit terangkat); keadaan diam memakai `KOTAK_DIALOG` + hover. Dipilih dengan percabangan agar tidak menumpuk kelas warna yang bentrok.

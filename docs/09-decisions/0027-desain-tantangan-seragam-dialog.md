@@ -29,6 +29,10 @@ dan menemukan tiga hal:
    yang ukurannya bergantung metrik font dan warnanya gelap di atas dunia yang
    bisa gelap, sehingga sulit dibaca — meleset dari prinsip HCI soal penanda fokus
    yang harus jelas dan presisi.
+4. **Kotak terlalu lebar untuk jawaban pendek.** Karena direntang ke lebar panel,
+   kotak opsi, baris pengurutan, dan input jawaban singkat terlihat panjang
+   walaupun isinya hanya beberapa kata ("1/4 bagian", dll.), sehingga boros ruang
+   dan sulit dipindai.
 
 Batasan yang mengikat:
 
@@ -65,6 +69,12 @@ Kami memilih **A**, dengan aturan:
    (kartu), dan `opacity-0` saat tidak aktif supaya tata letak tidak bergeser.
 4. **Perilaku tidak berubah.** Navigasi keyboard, pengiriman jawaban, penyembunyian
    pilihan setelah dinilai, dan alur lanjut tetap sama; yang berubah hanya tampilan.
+5. **Lebar kotak mengikuti isi (fit text).** Opsi pilihan, baris pengurutan, input
+   jawaban singkat, dan tombol `Jawab` dibungkus grup `w-fit` sehingga hanya selebar
+   isinya; pada daftar kolom, lebar diseragamkan ke opsi terpanjang dan lebar
+   minimum tetap (`min-w-[13rem]`) dibuang. Baris petunjuk pintasan ditaruh di luar
+   grup agar tidak ikut menentukan lebar, jadi jawaban pendek tidak membentang
+   penuh ke kanan.
 
 ## Konsekuensi
 

@@ -408,74 +408,74 @@ export function ChallengeOverlay({
 
           {!graded && view.type === "ordering" && (
             <div className="space-y-2">
-              <ol className="space-y-1.5">
-                {urutan.map((itemId, index) => {
-                  const disorot = sorotUrutan === index;
-                  return (
-                    <li
-                      key={itemId}
-                      onClick={() => setSorotUrutan(index)}
-                      className="relative flex w-full items-center"
-                    >
-                      {/* Segitiga kursor ▶ berada di LUAR kotak di sebelah kiri */}
-                      <Penunjuk aktif={disorot} kelas="mr-2" />
-
-                      {/* Kotak item urutan memakai desain kotak dialog (ADR 0026) */}
-                      <div
-                        className={`flex flex-1 items-center gap-2 px-3 py-1.5 transition-colors select-none ${
-                          disorot
-                            ? KOTAK_DIALOG_AKTIF
-                            : `${KOTAK_DIALOG} ${KOTAK_DIALOG_HOVER}`
-                        }`}
-                        style={{
-                          fontSize: ukuranHuruf(13.5, 12, 20),
-                          lineHeight: 1.3,
-                        }}
+              {/* Kotak item dan tombol Jawab berbagi lebar pas isi (fit text). */}
+              <div className="flex w-fit max-w-full flex-col gap-1.5">
+                <ol className="flex flex-col gap-1.5">
+                  {urutan.map((itemId, index) => {
+                    const disorot = sorotUrutan === index;
+                    return (
+                      <li
+                        key={itemId}
+                        onClick={() => setSorotUrutan(index)}
+                        className="relative flex w-full items-center"
                       >
-                        <span className="w-5 text-center font-bold text-[#55D0A5]">
-                          {index + 1}.
-                        </span>
-                        <span className="flex-1 leading-snug break-words">
-                          {itemById.get(itemId)?.text ?? itemId}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              geser(index, -1);
-                              setSorotUrutan(index - 1);
-                            }}
-                            disabled={graded !== null || index === 0}
-                            aria-label={`Naikkan "${itemById.get(itemId)?.text ?? itemId}"`}
-                            className="rounded border border-white/20 bg-[#16223d] px-2 py-0.5 text-xs text-[#EFF2F7] hover:border-white/40 hover:bg-[#1d2c4a] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-[#55D0A5]"
-                          >
-                            ▲
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              geser(index, 1);
-                              setSorotUrutan(index + 1);
-                            }}
-                            disabled={
-                              graded !== null || index === urutan.length - 1
-                            }
-                            aria-label={`Turunkan "${itemById.get(itemId)?.text ?? itemId}"`}
-                            className="rounded border border-white/20 bg-[#16223d] px-2 py-0.5 text-xs text-[#EFF2F7] hover:border-white/40 hover:bg-[#1d2c4a] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-[#55D0A5]"
-                          >
-                            ▼
-                          </button>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
+                        {/* Segitiga kursor ▶ berada di LUAR kotak di sebelah kiri */}
+                        <Penunjuk aktif={disorot} kelas="mr-2" />
 
-              {/* Baris tombol aksi dan petunjuk shortcut */}
-              <div className="space-y-1.5 pt-0.5">
+                        {/* Kotak item urutan memakai desain kotak dialog (ADR 0026) */}
+                        <div
+                          className={`flex flex-1 items-center gap-2 px-3 py-1.5 transition-colors select-none ${
+                            disorot
+                              ? KOTAK_DIALOG_AKTIF
+                              : `${KOTAK_DIALOG} ${KOTAK_DIALOG_HOVER}`
+                          }`}
+                          style={{
+                            fontSize: ukuranHuruf(13.5, 12, 20),
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          <span className="w-5 text-center font-bold text-[#55D0A5]">
+                            {index + 1}.
+                          </span>
+                          <span className="flex-1 leading-snug break-words">
+                            {itemById.get(itemId)?.text ?? itemId}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                geser(index, -1);
+                                setSorotUrutan(index - 1);
+                              }}
+                              disabled={graded !== null || index === 0}
+                              aria-label={`Naikkan "${itemById.get(itemId)?.text ?? itemId}"`}
+                              className="rounded border border-white/20 bg-[#16223d] px-2 py-0.5 text-xs text-[#EFF2F7] hover:border-white/40 hover:bg-[#1d2c4a] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-[#55D0A5]"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                geser(index, 1);
+                                setSorotUrutan(index + 1);
+                              }}
+                              disabled={
+                                graded !== null || index === urutan.length - 1
+                              }
+                              aria-label={`Turunkan "${itemById.get(itemId)?.text ?? itemId}"`}
+                              className="rounded border border-white/20 bg-[#16223d] px-2 py-0.5 text-xs text-[#EFF2F7] hover:border-white/40 hover:bg-[#1d2c4a] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-[#55D0A5]"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+
                 {/* Tombol Jawab disejajarkan dengan kotak jawaban dengan spacer seimbang */}
                 <div className="flex w-full items-center">
                   <Penunjuk aktif={false} kelas="mr-2" />
@@ -491,57 +491,60 @@ export function ChallengeOverlay({
                     Jawab
                   </button>
                 </div>
+              </div>
 
-                {/* Teks petunjuk berlatar navy dengan font terang agar selalu kontras */}
-                <div className="flex w-full items-center justify-center pt-0.5">
-                  <p
-                    className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-[#0f172b]/95 px-3 py-1 font-medium text-[#EFF2F7]"
-                    style={{
-                      fontSize: ukuranHuruf(12, 11, 15),
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    [↑/↓] Pilih &nbsp; [←/→] Geser &nbsp; [Enter] Jawab
-                  </p>
-                </div>
+              {/* Teks petunjuk berlatar navy dengan font terang agar selalu kontras;
+                  ditaruh di luar grup agar tidak menentukan lebar kotak. */}
+              <div className="flex w-full items-center justify-center pt-0.5">
+                <p
+                  className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-[#0f172b]/95 px-3 py-1 font-medium text-[#EFF2F7]"
+                  style={{
+                    fontSize: ukuranHuruf(12, 11, 15),
+                    lineHeight: 1.2,
+                  }}
+                >
+                  [↑/↓] Pilih &nbsp; [←/→] Geser &nbsp; [Enter] Jawab
+                </p>
               </div>
             </div>
           )}
 
           {!graded && view.type === "short_answer" && (
             <div className="space-y-2">
-              <div className="relative rounded-lg border border-white/25 bg-[#0f172b]/95 focus-within:border-[#55D0A5]">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[#55D0A5]">
-                  &gt;
-                </span>
-                <input
-                  ref={inputRef}
-                  autoFocus
-                  id="jawaban-singkat"
-                  aria-label="Tulis jawabanmu"
-                  type="text"
-                  value={teks}
-                  onChange={(event) => setTeks(event.target.value)}
-                  onKeyDown={(event) => {
-                    event.stopPropagation();
-                    if (event.key === "Enter" && bisaJawab) {
-                      event.preventDefault();
-                      kirimJawabanManual();
-                    }
-                  }}
-                  disabled={graded !== null}
-                  autoComplete="off"
-                  maxLength={60}
-                  placeholder="Ketik jawaban lalu tekan Enter..."
-                  className="w-full bg-transparent py-2 pl-7 pr-3 text-[#EFF2F7] placeholder:text-[#7C8A80] focus:outline-none disabled:opacity-60"
-                  style={{
-                    fontSize: ukuranHuruf(13.5, 12, 20),
-                    lineHeight: 1.3,
-                  }}
-                />
-              </div>
+              {/* Input dan tombol Jawab berbagi lebar pas isi (fit text). */}
+              <div className="flex w-fit max-w-full flex-col gap-1.5">
+                <div className="relative rounded-lg border border-white/25 bg-[#0f172b]/95 focus-within:border-[#55D0A5]">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[#55D0A5]">
+                    &gt;
+                  </span>
+                  <input
+                    ref={inputRef}
+                    autoFocus
+                    id="jawaban-singkat"
+                    aria-label="Tulis jawabanmu"
+                    type="text"
+                    size={32}
+                    value={teks}
+                    onChange={(event) => setTeks(event.target.value)}
+                    onKeyDown={(event) => {
+                      event.stopPropagation();
+                      if (event.key === "Enter" && bisaJawab) {
+                        event.preventDefault();
+                        kirimJawabanManual();
+                      }
+                    }}
+                    disabled={graded !== null}
+                    autoComplete="off"
+                    maxLength={60}
+                    placeholder="Ketik jawaban lalu tekan Enter..."
+                    className="w-full bg-transparent py-2 pl-7 pr-3 text-[#EFF2F7] placeholder:text-[#7C8A80] focus:outline-none disabled:opacity-60"
+                    style={{
+                      fontSize: ukuranHuruf(13.5, 12, 20),
+                      lineHeight: 1.3,
+                    }}
+                  />
+                </div>
 
-              <div className="space-y-1.5 pt-0.5">
                 <button
                   type="button"
                   onClick={kirimJawabanManual}
@@ -554,18 +557,20 @@ export function ChallengeOverlay({
                 >
                   Jawab
                 </button>
-                {/* Teks petunjuk berlatar gelap dengan font putih agar kontras maksimal */}
-                <div className="flex w-full items-center justify-center pt-0.5">
-                  <p
-                    className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-[#0f172b]/95 px-3 py-1 font-medium text-[#EFF2F7]"
-                    style={{
-                      fontSize: ukuranHuruf(12, 11, 15),
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    [Enter] Kirim Jawaban
-                  </p>
-                </div>
+              </div>
+
+              {/* Teks petunjuk berlatar navy dengan font terang agar selalu kontras;
+                  ditaruh di luar grup agar tidak menentukan lebar kotak. */}
+              <div className="flex w-full items-center justify-center pt-0.5">
+                <p
+                  className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-[#0f172b]/95 px-3 py-1 font-medium text-[#EFF2F7]"
+                  style={{
+                    fontSize: ukuranHuruf(12, 11, 15),
+                    lineHeight: 1.2,
+                  }}
+                >
+                  [Enter] Kirim Jawaban
+                </p>
               </div>
             </div>
           )}
@@ -764,7 +769,7 @@ function OpsiList({
   if (mode === "kolom") {
     return (
       <div className="flex w-full flex-col items-end">
-        <ul className="inline-flex w-fit min-w-[13rem] max-w-full flex-col items-stretch gap-2 font-game">
+        <ul className="inline-flex w-fit max-w-full flex-col items-stretch gap-2 font-game">
           {opsi.map((option, index) => {
             const terpilih = pilihan === option.id;
             const disorot = sorot === index;
