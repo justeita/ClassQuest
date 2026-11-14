@@ -469,6 +469,14 @@ kredensial aktif dicantumkan pada kolom **Akun Demonstrasi** di formulir
 submission. Endpoint masuk: `POST /api/auth/login` dengan body
 `{ "username": "<username>", "password": "<sandi>" }`.
 
+### Kredensial Akun Demo Guru
+
+| Keterangan | Kredensial |
+|---|---|
+| Username | `guru` |
+| Password | `guru123` |
+
+
 ### Alur uji cepat (±5 menit)
 
 1. Buka [classquest.justeita.com](https://classquest.justeita.com), lalu masuk
