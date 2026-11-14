@@ -68,10 +68,14 @@ Kami memilih **A**, dengan aturan:
 4. **Teks dialog diperkecil di potret.** Prop `kecil` pada `DialogueBox`
    menurunkan ukuran nama dan teks agar tidak cepat melimpah dari kotak 16:9
    yang sempit.
-5. **Tombol "Percepat" menangkap pointer.** `setPointerCapture` pada
-   `pointerdown` menahan event ke tombol walau jempol bergeser, ditambah
-   `touch-none select-none` dan `preventDefault` menu konteks supaya gestur
-   gulir/tekan-lama tidak membatalkan time-lapse.
+5. **Tombol "Percepat" memantau pelepasan dari `window`.** `pointerup`,
+   `pointercancel`, `touchend`, `touchcancel`, dan `blur` semuanya
+   menghentikan time-lapse, sementara listener `touchmove` non-passive menahan
+   gulir selama tombol ditahan. Peramban ponsel dapat mengubah ketukan-tahan
+   menjadi gestur gulir — memancarkan `pointercancel` dan berhenti mengirim
+   `pointerup` — jadi mengandalkan `pointerup` elemen saja membuat tombol terasa
+   mati. `pointerleave` sengaja tidak dipakai supaya jitter jempol tidak
+   mematikan time-lapse.
 
 ## Konsekuensi
 
@@ -97,10 +101,11 @@ Kami memilih **A**, dengan aturan:
 - `src/components/game/gayaHud.ts` (baru), `HUD.tsx`, `QuestTracker.tsx`,
   `TombolLayarPenuh.tsx`, `DialogueBox.tsx` — prop `letak`/`kecil` dan gaya
   bersama.
+- `src/components/game/TombolPercepat.tsx` (baru) — tahan-lepas lintas peramban.
 - `src/components/game/GameCanvas.tsx` — `hudBawah` dan bar bawah di luar kanvas.
 - `src/components/game/PauseMenu.tsx` — gulir pada layar pendek.
 - `src/components/game/GameShell.test.tsx`, `DialogueBox.test.tsx`,
-  `src/game/interaction.test.ts` — tes perilaku baru.
+  `TombolPercepat.test.tsx`, `src/game/interaction.test.ts` — tes perilaku baru.
 - [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md),
   [`../04-game/accessibility.md`](../04-game/accessibility.md), dan
   [`../05-frontend/game-player.md`](../05-frontend/game-player.md).

@@ -4,6 +4,7 @@ import type { RefObject } from "react";
 
 import { Keycap } from "@/components/game/Keycap";
 import { TombolLayarPenuh } from "@/components/game/TombolLayarPenuh";
+import { TombolPercepat } from "@/components/game/TombolPercepat";
 import { kelasTombolHud, type LetakHud } from "@/components/game/gayaHud";
 
 type HudProps = {
@@ -27,54 +28,6 @@ type HudProps = {
    */
   letak?: LetakHud;
 };
-
-/**
- * Tombol keycap ala Persona 3 Reload: **tahan** untuk mempercepat, lepas untuk
- * berhenti. `onPointerDown` memulai time-lapse; `onPointerUp`/`onPointerLeave`/
- * `onPointerCancel` menghentikannya supaya tidak nyangkut saat kursor geser
- * keluar tombol sambil menekan.
- *
- * Di layar sentuh pointer **ditangkap** (`setPointerCapture`): jempol mudah
- * bergeser beberapa px saat menahan, dan tanpa capture `pointerleave` langsung
- * menghentikan time-lapse — penyebab tombol "Percepat" terasa mati di HP. Tombol
- * juga `touch-none` + menolak menu konteks supaya gestur gulir/tekan-lama tidak
- * membatalkan pointer di tengah jalan.
- */
-function tombolPercepatProps(
-  onMulaiLewati: () => void,
-  onHentikanLewati: () => void,
-) {
-  return {
-    onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-      e.currentTarget.focus();
-      onMulaiLewati();
-    },
-    onPointerUp: (e: React.PointerEvent<HTMLButtonElement>) => {
-      e.currentTarget.releasePointerCapture?.(e.pointerId);
-      onHentikanLewati();
-    },
-    onPointerLeave: () => onHentikanLewati(),
-    onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => {
-      e.currentTarget.releasePointerCapture?.(e.pointerId);
-      onHentikanLewati();
-    },
-    onContextMenu: (e: React.MouseEvent<HTMLButtonElement>) =>
-      e.preventDefault(),
-    onKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => {
-      // Pemain keyboard menahan tombol HUD dengan Enter/Space.
-      if (e.key === "Enter" || e.key === " ") {
-        if (e.repeat) return;
-        e.preventDefault();
-        onMulaiLewati();
-      }
-    },
-    onKeyUp: (e: React.KeyboardEvent<HTMLButtonElement>) => {
-      if (e.key === "Enter" || e.key === " ") onHentikanLewati();
-    },
-  };
-}
 
 /**
  * HUD minimal di atas canvas (docs/05-frontend/game-player.md → Playing):
@@ -102,16 +55,11 @@ export function Hud({
   const isi = (
     <>
       {tampilLewati && (
-        <button
-          type="button"
-          {...tombolPercepatProps(onMulaiLewati, onHentikanLewati)}
-          aria-keyshortcuts="Tab"
-          title="Tahan untuk mempercepat dialog — soal tetap muncul"
-          className={`${kelas} touch-none select-none`}
-        >
-          <Keycap>Tab</Keycap>
-          Percepat
-        </button>
+        <TombolPercepat
+          kelas={kelas}
+          onMulai={onMulaiLewati}
+          onHentikan={onHentikanLewati}
+        />
       )}
       <button
         type="button"

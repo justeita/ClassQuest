@@ -174,8 +174,9 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
   (`SpeedLines`); dilepas, tempo kembali normal. Soal tidak bisa dilewati —
   tombol dan pintasan berhenti di beat tantangan, dan fade transisi tetap
-  diputar. Di perangkat sentuh tombolnya menangkap pointer
-  (`setPointerCapture`), jadi jempol yang bergeser tidak mematikan time-lapse
+  diputar. Di perangkat sentuh tombolnya didengarkan dari `window`
+  (`pointerup`/`pointercancel`/`touchend`/`touchcancel`), supaya peramban ponsel
+  yang mengubah ketukan-tahan jadi gestur gulir tidak mematikannya
   (ADR 0025).
 - Tombol `Catatan` (`B`) membuka buku catatan dua halaman: riwayat dialog
   (dikelompokkan per scene, dengan chip nama pembicara) dan jurnal konsep

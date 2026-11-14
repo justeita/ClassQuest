@@ -94,9 +94,11 @@ Aturan:
   halamannya hitam, jadi tombol memakai gaya **cerah** (kertas terang + teks
   gelap) supaya kontras (ADR 0025). Teks dialog juga diperkecil agar tidak
   melimpah dari kotak 16:9 yang sempit.
-- Tombol "Percepat" di sentuh memakai `setPointerCapture`, jadi jempol yang
-  bergeser di atas tombol tidak memicu `pointerleave` dan mematikan time-lapse
-  di tengah jalan (ADR 0025).
+- Tombol "Percepat" di sentuh memantau pelepasan dari `window`
+  (`pointerup`/`pointercancel`/`touchend`/`touchcancel`/`blur`) dan memakai
+  `touchmove` non-passive selama ditahan, jadi peramban ponsel tidak bisa
+  mengambil alih ketukan-tahan sebagai gestur gulir dan mematikan time-lapse
+  (ADR 0025).
 
 ## Overlay tantangan (DOM)
 
