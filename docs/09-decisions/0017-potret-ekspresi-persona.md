@@ -84,9 +84,9 @@ Aturan bentuknya:
   disembunyikan supaya tidak menutupi pilihan jawaban; setelah dinilai keduanya
   tampil lagi untuk umpan balik senang/marah.
 - Potret MC hanya menemani dialog di scene yang memang memberi giliran bicara
-  kepada MC (`beats.some(speakerId === id pemain)`, lihat `src/game/potret.ts`)
-  atau saat obrolan singkat (ADR 0016). Dialog antar-NPC tampil tanpa potret MC
-  karena pemain tidak sedang menanggapi apa pun.
+  kepada MC (`beats.some(speakerId === id pemain)`, lihat `src/game/potret.ts`).
+  Dialog antar-NPC dan obrolan singkat dengan NPC non-quest (ADR 0016) tampil
+  tanpa potret MC karena pemain tidak sedang menanggapi apa pun.
 - Panel dialog dan potret punya animasi buka/tutup sendiri: panel menyala seperti
   TV tabung dari garis tipis di tengah, potret terbit dari balik panel; saat
   dialog selesai panel memipih kembali ke tengah dan potret tenggelam.
@@ -105,7 +105,9 @@ Alasan:
    gambar) dan menggeser semua potret satu karakter dengan **satu nilai tetap**,
    lalu memotong sedikit sisi luarnya; jadi wajah semua karakter sama besar,
    karakternya mentok sejajar sisi kotak, dan potret tidak melompat saat ekspresi
-   berganti. Itu siluet dialog Persona yang dituju.
+   berganti. Karakter berbadan pendek dinaikkan skalanya sedikit supaya isinya
+   menyentuh tepi bawah kanvas — tidak ada celah transparan yang membuat potret
+   tampak melayang di atas kotak. Itu siluet dialog Persona yang dituju.
 3. Potret disusun ke kanvas 456×360 (rasio sama dengan slot) dan disimpan dengan
    filter PNG adaptif: 60 berkas turun dari ±21 MB ke ±8 MB, jadi potret pertama
    muncul jauh lebih cepat. `DialogueBox` juga memanaskan keenam ekspresi
@@ -178,7 +180,7 @@ Alasan:
 - [`0007-hybrid-ui.md`](0007-hybrid-ui.md) — pembagian Phaser dan DOM
 - [`0009-resolution-and-scale.md`](0009-resolution-and-scale.md) — kanvas
   640×360 dan `pixelated`
-- [`0016-obrolan-singkat-npc.md`](0016-obrolan-singkat-npc.md) — potret di
-  obrolan singkat
+- [`0016-obrolan-singkat-npc.md`](0016-obrolan-singkat-npc.md) — obrolan
+  singkat NPC (tanpa potret MC)
 - [`../07-assets/inventory.md`](../07-assets/inventory.md) — daftar berkas
   potret

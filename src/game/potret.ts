@@ -4,10 +4,9 @@ import type { Scene } from "@/story/schema";
  * Apakah sebuah scene memberi giliran bicara kepada pemain (MC).
  *
  * Potret MC hanya menemani dialog kalau MC memang ikut bicara di scene itu.
- * Dialog antar-NPC yang tidak melibatkan pemain lebih rapi tanpa potret MC —
- * potret itu tidak sedang menanggapi apa pun. Obrolan singkat di luar cerita
- * (ADR 0016) sengaja dikecualikan pemanggilnya: di sana potret MC dipakai agar
- * layar tidak terasa sepi.
+ * Dialog antar-NPC yang tidak melibatkan pemain — dan obrolan singkat dengan
+ * NPC non-quest (ADR 0016) — tampil tanpa potret MC, karena pemain tidak
+ * sedang menanggapi apa pun di situ.
  */
 export function sceneMelibatkanPemain(
   scene: Scene | null | undefined,

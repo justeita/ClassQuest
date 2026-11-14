@@ -1211,15 +1211,16 @@ export class GameScene extends Phaser.Scene {
    * atau NPC terakhir saat MC yang mengambil giliran. Potret ini tetap tampil
    * tetapi diredupkan `DialogueBox`; `null` bila tidak ada pasangan.
    *
-   * MC hanya menemani kalau scene memang punya giliran MC, atau saat obrolan
-   * singkat — dialog antar-NPC tidak perlu potret pemain yang tidak ikut bicara.
+   * MC hanya menemani dialog cerita yang memang punya giliran MC. Dialog
+   * antar-NPC dan obrolan singkat NPC non-quest tampil tanpa potret MC — pemain
+   * tidak sedang menanggapi apa pun di situ.
    */
   private potretLawan(speakerId: string | null): PortraitView | null {
     if (!speakerId) return null;
     if (speakerId === this.playerId) {
       return this.potretUntuk(this.lawanBicaraTerakhir);
     }
-    if (!this.sceneAdaPemain && !this.obrolanAktif) return null;
+    if (this.obrolanAktif || !this.sceneAdaPemain) return null;
     return this.potretUntuk(this.playerId);
   }
 

@@ -105,7 +105,9 @@ tidak ada bagian potret yang tertutup kotak (ADR 0017). Importer menormalkan
 456×360 yang identik — wajah tiap karakter tampil sebesar yang sama dan
 rasionya sama. Seluruh potret satu karakter digeser dengan **satu nilai tetap**
 lalu dipotong sedikit di sisi luarnya, jadi karakternya mentok sejajar sisi
-kotak dialog dan tidak melompat sama sekali saat ekspresi berganti. MC
+kotak dialog dan tidak melompat sama sekali saat ekspresi berganti. Karakter
+berbadan pendek dinaikkan skalanya sedikit supaya isinya menyentuh tepi bawah
+kanvas, jadi potret tidak tampak melayang di atas kotak. MC
 dicerminkan di DOM sehingga rata kiri kanvas menjadi rata kanan slotnya. Berkas
 disimpan dengan filter PNG adaptif (±8 MB untuk 60 berkas) supaya cepat dimuat.
 Karena potret dirender DOM, berkasnya tidak dimuat `PreloadScene`.

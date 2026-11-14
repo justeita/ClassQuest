@@ -259,8 +259,12 @@ Keputusan (ADR 0007, diperluas ADR 0017): **teks permainan pindah ke DOM**.
   navy gelap membulat. Potret anime tidak dibungkus bingkai: NPC berdiri di
   pangkal kiri atas panel, MC (dicerminkan) di pangkal kanan — dasarnya menempel
   tepi atas panel — dan berekspresi sesuai field `expression` beat. Importer
-  menormalkan tinggi kepala dan menggeser potret sampai mentok tepi, jadi wajah
-  semua karakter sama besar dan karakternya sejajar sisi kotak. Pembicara
+  menormalkan tinggi kepala, menggeser potret sampai mentok tepi, dan menaikkan
+  skala karakter berbadan pendek supaya isinya menyentuh tepi bawah kanvas; jadi
+  wajah semua karakter sama besar, karakternya sejajar sisi kotak, dan tidak ada
+  potret yang melayang di atas panel. Potret MC hanya menemani dialog scene yang
+  memang memuat giliran MC — dialog antar-NPC dan obrolan singkat NPC non-quest
+  tampil tanpanya. Pembicara
   menyala, lawan bicaranya meredup dan tetap terlihat; selama soal belum dijawab
   kedua potret disembunyikan. Prompt interaksi `Space` juga DOM
   (`InteractHint.tsx`).

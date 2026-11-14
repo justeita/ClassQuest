@@ -37,7 +37,9 @@
  * (`LEBAR_KANVAS`×`TINGGI_KANVAS`), jadi `object-contain` di slot DOM mengisi
  * persis dan wajah semua karakter tampil sebesar yang sama. Badan yang lebih
  * panjang dari bingkai terpotong rapi di tepi bawah — potret selalu dada ke
- * atas.
+ * atas. Karakter berbadan pendek dinaikkan skalanya sedikit supaya isinya
+ * menyentuh tepi bawah, jadi tidak ada celah transparan yang membuat potret
+ * tampak melayang di atas kotak dialog.
  *
  * Penyekalaan memakai rata-rata kotak berbobot alpha (premultiplied), jadi tepi
  * rambut tidak berhalo gelap. Seluruh potret karakter digeser dengan **satu
@@ -121,9 +123,11 @@ const MARGIN_ATAS = 28;
 /**
  * Tinggi kepala target (px). Sekitar 0,52 dari tinggi kanvas: bingkai memuat
  * kepala plus badan di bawahnya, cukup besar untuk terbaca tetapi tidak
- * menutupi dialog. Karena rasio bbox:tinggi-kepala semua karakter ≥ 1,67, badan
- * selalu mencapai tepi bawah kanvas — tidak ada celah transparan yang membuat
- * potret "melayang".
+ * menutupi dialog.
+ *
+ * Kalau badan sebuah karakter lebih pendek dari sisa kanvas, importer menaikkan
+ * skala karakter itu (lihat `skalaIsi`) sampai isinya menyentuh tepi bawah —
+ * jadi kepala tidak "melayang" di atas kotak dialog.
  */
 const TINGGI_KEPALA = 188;
 
@@ -327,6 +331,28 @@ function susunPotret(image, box, skala, geserKiri) {
   return { width: LEBAR_KANVAS, height: TINGGI_KANVAS, data };
 }
 
+/**
+ * Jarak baris opaque terbawah dari tepi bawah kanvas. Dipakai sebagai pemeriksa
+ * supaya potret tidak "melayang" di atas kotak dialog.
+ */
+function celahBawah(data) {
+  for (let y = TINGGI_KANVAS - 1; y >= 0; y -= 1) {
+    for (let x = 0; x < LEBAR_KANVAS; x += 1) {
+      if (data[(y * LEBAR_KANVAS + x) * 4 + 3] >= AMBANG_ALPHA) {
+        return TINGGI_KANVAS - 1 - y;
+      }
+    }
+  }
+  return TINGGI_KANVAS;
+}
+
+/**
+ * Celah bawah terbesar yang masih diterima (px kanvas). Skala per karakter
+ * memakai median, jadi satu ekspresi bisa tersisa beberapa piksel; ambang ini
+ * menangkap karakter yang benar-benar mengapung tanpa rewel soal selisih kecil.
+ */
+const MAKS_CELAH_BAWAH = 12;
+
 /** Hapus keluaran lama supaya folder sumber yang dihapus tidak menyisakan berkas. */
 rmSync(join(ROOT, "public", "assets", "portrait"), {
   recursive: true,
@@ -349,10 +375,27 @@ for (const { folder, nama, pemain } of PETA) {
 
   // Satu skala per karakter (median antar-ekspresi) supaya ukuran kepala tidak
   // berubah saat ekspresi berganti.
-  const skala = TINGGI_KEPALA / median(ukur.map((entri) => entri.kepala));
+  const skalaKepala = TINGGI_KEPALA / median(ukur.map((entri) => entri.kepala));
+
+  // Isi potret harus menyentuh tepi bawah kanvas: kalau tidak, ada celah
+  // transparan antara badan karakter dan tepi atas kotak dialog sehingga
+  // potret tampak "melayang". Karakter berbadan pendek (kepala + bahu saja)
+  // dinaikkan skalanya sedikit dengan satu faktor yang sama untuk semua
+  // ekspresinya — kepala tetap rata di `MARGIN_ATAS`, dan potret tidak
+  // melompat saat ekspresi berganti.
+  const isiBawah = TINGGI_KANVAS - MARGIN_ATAS;
+  const skalaIsi =
+    isiBawah / median(ukur.map((entri) => entri.box.maxY - entri.box.minY + 1));
+  const skala = Math.max(skalaKepala, skalaIsi);
 
   for (const { ekspresi, image, box } of ukur) {
     const potret = susunPotret(image, box, skala, GESER_TEPI);
+    const celah = celahBawah(potret.data);
+    if (celah > MAKS_CELAH_BAWAH) {
+      throw new Error(
+        `potret melayang: ${nama}/${ekspresi} menyisakan ${celah} px kosong di bawah`,
+      );
+    }
     writeFileSync(
       join(dir, `${ekspresi}.png`),
       Buffer.from(encodePng(potret, { filter: "adaptive" })),
