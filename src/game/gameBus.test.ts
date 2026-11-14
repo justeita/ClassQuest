@@ -117,6 +117,29 @@ describe("buildChallengeView", () => {
     expect(json).not.toContain(challenge.explanation);
   });
 
+  it("multiple_choice mengacak urutan opsi dari urutan cerita", () => {
+    const challenge = challengeBertipe("multiple_choice");
+
+    const view = buildChallengeView(challenge);
+
+    // Demo story selalu menaruh jawaban benar di opsi pertama; urutan itu tidak
+    // boleh sampai ke layar siswa.
+    expect(view.options!.map((option) => option.id)).not.toEqual(
+      challenge.options.map((option) => option.id),
+    );
+    expect([...view.options!.map((option) => option.id)].sort()).toEqual(
+      [...challenge.options.map((option) => option.id)].sort(),
+    );
+  });
+
+  it("multiple_choice stabil untuk soal yang sama", () => {
+    const challenge = challengeBertipe("multiple_choice");
+
+    expect(buildChallengeView(challenge).options).toEqual(
+      buildChallengeView(challenge).options,
+    );
+  });
+
   it("true_false menyertakan pernyataan tanpa jawaban", () => {
     const challenge = challengeBertipe("true_false");
 

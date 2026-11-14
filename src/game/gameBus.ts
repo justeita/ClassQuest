@@ -1,6 +1,7 @@
 import type { Answer, PlayResult } from "@/story/scoring";
 
 import type { ChallengeView } from "./challengeView";
+import type { KursorProgres } from "./progress";
 import type { QuestState } from "./questLog";
 import type { PortraitView } from "./textbox";
 import type { ArahGerak } from "./world/karakter";
@@ -126,6 +127,12 @@ export type GameEvent =
     }
   /** Quest chapter aktif berubah; dipakai panel quest di DOM. */
   | { type: "quest"; view: QuestState }
+  /**
+   * Kursor cerita (bab/scene/beat) dan jawaban percobaan pertama berubah.
+   * React yang menulisnya ke `localStorage` (`src/game/progress.ts`) supaya
+   * scene tidak perlu tahu soal storage; refresh melanjutkan dari scene ini.
+   */
+  | { type: "progress"; view: KursorProgres }
   /** Mode lewati cepat sedang berjalan; dipakai indikator "mempercepat". */
   | { type: "skipping"; aktif: boolean }
   | { type: "error"; code: string };

@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import type { Story } from "@/story/schema";
 
 import type { GameBus } from "./gameBus";
+import type { KursorProgres } from "./progress";
 import { GameScene } from "./scenes/GameScene";
 import { PreloadScene } from "./scenes/PreloadScene";
 
@@ -23,6 +24,7 @@ export function createGameConfig(
   parent: HTMLElement,
   story: Story,
   bus?: GameBus,
+  mulaiDari?: KursorProgres | null,
 ): Phaser.Types.Core.GameConfig {
   const { skala, lebar } = ukuranKanvas(
     parent.clientWidth,
@@ -42,6 +44,9 @@ export function createGameConfig(
       zoom: skala,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [new PreloadScene(story, bus), new GameScene(story, bus)],
+    scene: [
+      new PreloadScene(story, bus),
+      new GameScene(story, bus, mulaiDari ?? null),
+    ],
   };
 }

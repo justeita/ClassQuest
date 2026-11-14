@@ -77,6 +77,20 @@ describe("AnswerLog", () => {
     expect(result.totalChallenges).toBe(DEMO_STORY.challenges.length);
     expect(result.weakConcepts).toEqual([]);
   });
+
+  it("restore mengisi catatan dari progres tanpa menimpa percobaan pertama", () => {
+    const log = new AnswerLog();
+    const challenge = challengePertama();
+    const pertama = jawabanSalah(challenge);
+
+    // Simulasi LANJUTKAN: jawaban tersimpan masuk lagi, lalu siswa menjawab
+    // ulang setelah refresh — skor harus tetap memakai jawaban pertama.
+    log.restore([pertama]);
+    log.record(jawabanBenar(challenge));
+
+    expect(log.all()).toEqual([pertama]);
+    expect(log.result(DEMO_STORY).correctCount).toBe(0);
+  });
 });
 
 /** Jawaban yang pasti salah untuk tipe tantangan apa pun. */

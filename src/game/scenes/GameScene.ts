@@ -46,6 +46,7 @@ import { buildChallengeView } from "../challengeView";
 import type { GameBus, NpcMarker, NpcNameplate, PromptView } from "../gameBus";
 import { npcBisaDiajak, petaObrolan } from "../npcTalk";
 import { sceneMelibatkanPemain } from "../potret";
+import type { KursorProgres } from "../progress";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
 import { assetEntry, resolveSceneLook } from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
@@ -203,11 +204,21 @@ export class GameScene extends Phaser.Scene {
   private obrolanAktif: string | null = null;
   /** Jadwal pembukaan bab berikutnya; dibatalkan saat "Ulangi chapter". */
   private jadwalBab?: Phaser.Time.TimerEvent;
+  /**
+   * Progres yang dilanjutkan (LANJUTKAN). Dibaca sekali di `create()`; `null`
+   * berarti cerita dimulai dari awal.
+   */
+  private readonly mulaiDari: KursorProgres | null;
 
-  constructor(story: Story, bus?: GameBus) {
+  constructor(
+    story: Story,
+    bus?: GameBus,
+    mulaiDari: KursorProgres | null = null,
+  ) {
     super("GameScene");
     this.story = story;
     this.bus = bus;
+    this.mulaiDari = mulaiDari;
     this.runner = new StoryRunner(story);
     this.branching = new BranchingRun(story);
     this.castNames = new Map(
@@ -220,6 +231,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // Lanjutkan dulu sebelum dunia dibangun: pemberi quest dan musik scene
+    // bergantung pada kursor, dan `presentBeat` di akhir `create()` memakai
+    // posisi yang sudah dipulihkan.
+    this.pulihkanProgres();
+
     this.bangunDunia();
 
     const pemain =
@@ -305,10 +321,19 @@ export class GameScene extends Phaser.Scene {
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
 
+    // Progres yang berhenti di akhir bab tidak punya beat untuk ditampilkan;
+    // `presentBeat` yang menjadwalkan bab berikutnya, jadi jalur itu dipakai
+    // juga saat melanjutkan.
+    if (akhirBab(this.runner.getState())) this.presentBeat();
+
     // Scene pertama sudah berdiri lengkap (dunia, pemain, kamera, beat pertama).
     // Layar muat DOM menunggu sinyal ini sebelum memudar — jangan pindahkan ke
     // akhir `PreloadScene`, karena di sana kanvas masih kosong.
     this.bus?.emit({ type: "ready" });
+
+    // Posisi awal sesi ini juga disimpan: siswa yang me-refresh tepat setelah
+    // "Mulai" (sebelum beat pertama selesai) tetap mendapat "Lanjutkan".
+    this.kirimProgres();
 
     // Scene dihancurkan (mis. "Main lagi"): mode lewati dan jadwal bab tidak
     // boleh tertinggal menunjuk scene yang sudah tidak tampil.
@@ -912,6 +937,9 @@ export class GameScene extends Phaser.Scene {
     // Skor memakai percobaan pertama; jawaban ulang tidak menimpa (interaction-loop.md).
     this.answers.record(answer);
     this.kirimQuest();
+    // Jawaban pertama langsung ikut tersimpan: refresh setelah menjawab tidak
+    // boleh membuat soal yang sama dihitung sebagai percobaan baru.
+    this.kirimProgres();
 
     const hasil = scoreAnswer(challenge, answer);
     // Jawaban salah disimpan sebagai teks supaya dialog berikutnya bisa
@@ -970,6 +998,7 @@ export class GameScene extends Phaser.Scene {
   private presentBeat() {
     const state = this.runner.getState();
     this.kirimQuest();
+    this.kirimProgres();
     this.terapkanLook(state);
 
     // Di luar explore tidak ada yang bisa diajak bicara: sembunyikan semua
@@ -1085,6 +1114,37 @@ export class GameScene extends Phaser.Scene {
     this.bus?.emit({ type: "quest", view });
   }
 
+  /**
+   * Kabari React posisi cerita + jawaban percobaan pertama. React yang
+   * menulisnya ke `localStorage` (`src/game/progress.ts`); scene tidak pernah
+   * menyentuh storage, sama seperti pengaturan audio.
+   *
+   * Dipanggil setiap kursor bergerak (beat, jawaban, ulangi chapter) — perubahan
+   * itu mengikuti kecepatan pemain, jadi tidak perlu throttle.
+   */
+  private kirimProgres() {
+    const kursor = this.runner.getKursor();
+    if (!kursor) return;
+    this.bus?.emit({
+      type: "progress",
+      view: { ...kursor, answers: this.answers.all() },
+    });
+  }
+
+  /**
+   * Pulihkan progres tersimpan (LANJUTKAN): kursor ke awal scene tempat beat
+   * terakhir, plus jawaban percobaan pertama supaya skor tidak dihitung ulang.
+   *
+   * `lanjutkanDari` memvalidasi posisi terhadap cerita ini; kursor yang tidak
+   * ada (cerita sudah disunting) membuat cerita tetap di awal, bukan crash.
+   */
+  private pulihkanProgres() {
+    const awal = this.mulaiDari;
+    if (!awal) return;
+    this.answers.restore(awal.answers);
+    this.runner.lanjutkanDari(awal.chapterIndex, awal.sceneIndex);
+  }
+
   /** "Ulangi chapter" dari menu jeda: reset kursor, lalu lanjutkan loop scene. */
   private ulangiChapter() {
     this.hentikanLewati();
@@ -1103,6 +1163,7 @@ export class GameScene extends Phaser.Scene {
     // Dunia tetap seperti semula; hanya titik kaki pemain yang dikembalikan.
     this.kembalikanPemain();
     this.kirimQuest();
+    this.kirimProgres();
     this.terapkanLook(this.runner.getState());
     this.scene.resume();
     this.volumeSedangJeda = false;

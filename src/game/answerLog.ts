@@ -19,6 +19,14 @@ export class AnswerLog {
     this.answers.set(answer.challengeId, answer);
   }
 
+  /**
+   * Isi catatan dari progres tersimpan (LANJUTKAN setelah refresh). Tetap
+   * memakai aturan percobaan pertama: jawaban yang sudah ada tidak ditimpa.
+   */
+  restore(answers: readonly Answer[]): void {
+    for (const answer of answers) this.record(answer);
+  }
+
   has(challengeId: string): boolean {
     return this.answers.has(challengeId);
   }

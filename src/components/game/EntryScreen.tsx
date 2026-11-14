@@ -2,15 +2,21 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
-import type { PlayClassroom, PlayStudent } from "@/server/contracts";
+import type {
+  PlayClassroom,
+  PlayPlayer,
+  PlayStudent,
+} from "@/server/contracts";
 import type { Story } from "@/story/schema";
 
-/** Identitas yang dipilih sebelum cerita dimulai. */
-export type Pemain = {
-  /** `null` bila siswa mengetik nama bebas (tidak ada di daftar kelas). */
-  studentId: string | null;
-  name: string;
-};
+/**
+ * Identitas yang dipilih sebelum cerita dimulai.
+ *
+ * Satu definisi dengan gerbang `/play` (`PlayPlayer` di
+ * `src/server/contracts.ts`): `studentId` kosong berarti siswa mengetik nama
+ * bebas (tidak ada di daftar kelas).
+ */
+export type Pemain = PlayPlayer;
 
 type EntryScreenProps = {
   story: Story;

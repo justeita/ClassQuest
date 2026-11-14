@@ -261,6 +261,113 @@ describe("StoryRunner", () => {
   });
 });
 
+describe("getKursor", () => {
+  it("mengembalikan posisi awal apa adanya", () => {
+    const runner = new StoryRunner(demoStory);
+
+    expect(runner.getKursor()).toEqual({
+      chapterIndex: 0,
+      sceneIndex: 0,
+      beatIndex: -1,
+    });
+  });
+
+  it("mengikuti kursor saat beat, scene, dan bab bergerak", () => {
+    const runner = new StoryRunner(demoStory);
+
+    runner.interact();
+    expect(runner.getKursor()).toEqual({
+      chapterIndex: 0,
+      sceneIndex: 0,
+      beatIndex: 0,
+    });
+
+    for (let i = 0; i < beatsOf(demoStory, 0, 0).length; i += 1) {
+      runner.advance();
+    }
+    expect(runner.getKursor()).toEqual({
+      chapterIndex: 0,
+      sceneIndex: 1,
+      beatIndex: -1,
+    });
+  });
+
+  it("null setelah cerita selesai — tidak ada yang bisa dilanjutkan", () => {
+    const runner = new StoryRunner(demoStory);
+    let guard = 0;
+
+    while (runner.getState().phase !== "done" && guard < 1000) {
+      const phase = runner.getState().phase;
+      if (phase === "challenge") {
+        runner.resolveChallenge();
+      } else if (phase === "explore") {
+        runner.interact();
+      } else {
+        runner.advance();
+      }
+      guard += 1;
+    }
+
+    expect(runner.getState().phase).toBe("done");
+    expect(runner.getKursor()).toBeNull();
+  });
+});
+
+describe("lanjutkanDari", () => {
+  it("membuka awal scene tempat beat terakhir, bukan tengah beat", () => {
+    const runner = new StoryRunner(demoStory);
+
+    // Simulasi refresh di tengah scene kedua bab kedua: kursor yang tersimpan
+    // menunjuk beat ke-2, tetapi resume selalu membuka awal scene (beatIndex -1).
+    expect(runner.lanjutkanDari(1, 0)).toBe(true);
+
+    const state = runner.getState();
+    expect(state.phase).toBe("explore");
+    expect(state.chapterIndex).toBe(1);
+    expect(state.sceneIndex).toBe(0);
+    expect(state.beatIndex).toBe(-1);
+    expect(state.beat).toBeNull();
+    expect(state.chapterNumber).toBe(2);
+
+    // Scene hasil resume bisa diputar penuh dari beat pertama.
+    runner.interact();
+    expect(runner.getState().beat).toEqual(beatsOf(demoStory, 1, 0)[0]);
+  });
+
+  it("sceneIndex -1 melanjutkan di akhir bab sehingga bab berikutnya terbuka", () => {
+    const runner = new StoryRunner(demoStory);
+
+    expect(runner.lanjutkanDari(0, -1)).toBe(true);
+
+    const state = runner.getState();
+    expect(state.phase).toBe("chapter_end");
+    expect(state.chapterNumber).toBe(1);
+    expect(akhirBab(state)).toBe(true);
+
+    runner.advance();
+    expect(runner.getState().chapterNumber).toBe(2);
+    expect(runner.getState().phase).toBe("explore");
+  });
+
+  it("tidak berubah dan mengembalikan false untuk posisi yang tidak ada", () => {
+    const runner = new StoryRunner(demoStory);
+    runner.interact();
+    const sebelum = runner.getState();
+
+    // Bab, scene, dan scene negatif selain -1 semuanya tidak ada di cerita.
+    expect(runner.lanjutkanDari(99, 0)).toBe(false);
+    expect(runner.lanjutkanDari(0, 99)).toBe(false);
+    expect(runner.lanjutkanDari(0, -2)).toBe(false);
+
+    expect(runner.getState()).toEqual(sebelum);
+    expect(runner.getKursor()).toEqual({
+      chapterIndex: 0,
+      sceneIndex: 0,
+      beatIndex: 0,
+    });
+  });
+});
+
 describe("bolehTerusLewati", () => {
   it("false saat explore karena tidak ada beat yang tampil", () => {
     const runner = new StoryRunner(demoStory);
