@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -29,6 +29,7 @@ diakses. Dokumen ini menetapkan batas jujur dan target minimum.
 | Gerak              | Hormati `prefers-reduced-motion`                   |
 | Audio              | Bisa dimatikan; tidak ada informasi hanya di audio |
 | Screen reader      | Overlay tantangan terbaca; canvas diberi label     |
+| Sentuh             | Semua aksi utama bisa diselesaikan tanpa keyboard  |
 
 ## Keyboard
 
@@ -55,6 +56,29 @@ Aturan:
 - **`Esc` tidak bisa dipakai untuk keluar dari soal yang belum dijawab.** Kalau
   overlay belum dijawab, `Esc` diabaikan (atau hanya mengumumkan "jawab dulu").
   Setelah dijawab, `Esc` sama dengan menekan "Lanjut".
+
+## Kontrol sentuh
+
+Setiap aksi yang bisa dilakukan keyboard juga punya jalur sentuh (ADR 0021),
+sehingga siswa di ponsel/tablet tidak ditinggalkan:
+
+| Aksi            | Sentuh                                   |
+| --------------- | ---------------------------------------- |
+| Gerak           | Joystick 8 arah di sudut kiri bawah      |
+| Bicara / Lanjut | Tombol aksi besar di sudut kanan bawah   |
+| Pilih jawaban   | Ketuk opsi / tombol di overlay tantangan |
+| Menu jeda       | Tombol "Jeda" di HUD                     |
+
+Aturan:
+
+- Joystick dan tombol aksi hanya muncul saat perangkat terbaca sentuh
+  (`pointer: coarse` + `hover: none`), jadi tidak menutupi layar desktop.
+- Memakai pointer events + `setPointerCapture`, jadi jari yang menggeser keluar
+  pad tetap menahan tongkat sampai diangkat — tidak "nyangkut".
+- Label yang menyebut tombol fisik (`Space`, keycap `Tab`/`B`/`Esc`) diganti atau
+  disembunyikan di perangkat sentuh: menyebut tombol yang tidak ada itu menyesatkan.
+- Tombol aksi nonverbal saat tidak ada yang bisa dilakukan (`disabled`), jadi tidak
+  ada aksi "hantu" yang bisa ditekan.
 
 ## Overlay tantangan (DOM)
 
@@ -183,6 +207,7 @@ Mitigasi yang mungkin (backlog):
 ## Checklist sebelum demo
 
 - [ ] Seluruh alur bisa diselesaikan hanya dengan keyboard.
+- [ ] Seluruh alur bisa diselesaikan hanya dengan sentuh (ponsel).
 - [ ] Fokus terlihat dan tidak terjebak.
 - [ ] Feedback dibacakan (`aria-live`).
 - [ ] Benar/salah tidak hanya warna.

@@ -898,3 +898,128 @@ describe("GameShell — soal di atas dialog", () => {
     );
   });
 });
+
+describe("GameShell — kontrol sentuh", () => {
+  /**
+   * jsdom tidak punya `window.matchMedia`. Palsukan agar perangkat terbaca
+   * sebagai ponsel: penunjuk utama kasar dan tidak bisa hover. Pola ini sama
+   * dengan yang dibaca `useSentuh.ts`.
+   */
+  function pasangMedia({ potret = false } = {}) {
+    const asli = window.matchMedia;
+    window.matchMedia = ((query: string) => {
+      const matches =
+        query.includes("pointer: coarse") ||
+        query.includes("hover: none") ||
+        (potret && query.includes("orientation: portrait"));
+      return {
+        matches,
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      } as unknown as MediaQueryList;
+    }) as typeof window.matchMedia;
+    return () => {
+      window.matchMedia = asli;
+    };
+  }
+
+  let pulihkanMedia: () => void;
+
+  beforeEach(() => {
+    pulihkanMedia = pasangMedia();
+  });
+
+  afterEach(() => pulihkanMedia());
+
+  it("menampilkan joystick dan tombol aksi di perangkat sentuh", async () => {
+    await mainkan();
+
+    expect(
+      screen.getByRole("group", { name: "Tongkat gerak" }),
+    ).toBeInTheDocument();
+  });
+
+  it("tombol aksi mengikuti konteks: Bicara, lalu Lanjut", async () => {
+    await mainkan();
+    const bicara = vi.fn();
+    const advance = vi.fn();
+    const lepasBicara = bus.onCommand("interact", bicara);
+    const lepasAdvance = bus.onCommand("advance", advance);
+
+    bus.emit({
+      type: "prompt",
+      hint: { text: "Space", x: 320, y: 180, menempel: false },
+    });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Bicara dengan warga" }),
+    );
+    expect(bicara).toHaveBeenCalledTimes(1);
+
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Halo.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Lanjut dialog" }),
+    );
+    expect(advance).toHaveBeenCalledTimes(1);
+
+    lepasBicara();
+    lepasAdvance();
+  });
+
+  it("tongkat mengirim arah gerak lewat bus", async () => {
+    await mainkan();
+    const gerak = vi.fn();
+    const lepas = bus.onCommand("move", gerak);
+
+    fireEvent.pointerDown(
+      screen.getByRole("group", { name: "Tongkat gerak" }),
+      {
+        pointerId: 1,
+        clientX: 52,
+        clientY: 0,
+      },
+    );
+
+    expect(gerak).toHaveBeenCalledWith({ type: "move", arah: "right" });
+    lepas();
+  });
+
+  it("keycap papan tombol tidak tampil di perangkat sentuh", async () => {
+    await mainkan();
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Pak Bima",
+        text: "Genangan itu tadi pagi masih penuh.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+
+    const tombol = await screen.findByRole("button", { name: /percepat/i });
+    expect(tombol).not.toHaveTextContent("Tab");
+  });
+
+  it("kontrol sentuh tidak tampil di desktop", async () => {
+    pulihkanMedia();
+    await mainkan();
+
+    expect(
+      screen.queryByRole("group", { name: "Tongkat gerak" }),
+    ).not.toBeInTheDocument();
+  });
+});

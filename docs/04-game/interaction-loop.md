@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -272,17 +272,36 @@ Browser memblokir audio sebelum interaksi pengguna. Karena itu:
 - Setelah overlay ditutup, fokus kembali ke canvas.
 - Jangan menangkap `Tab` secara global.
 
+## Input sentuh
+
+Perangkat sentuh (ADR 0021) memakai kontrol yang **mengirim command yang sama**
+dengan papan tombol, bukan jalur gerak kedua:
+
+- **Joystick** (`move`): tongkat analog disnap ke salah satu dari delapan
+  `ArahGerak` — sama persis dengan tombol gerak — lalu dijalankan
+  `gerakkanPemain()` yang sama. `null` saat tongkat dilepas berarti berhenti.
+- **Tombol aksi** (`interact` / `advance`): satu tombol besar yang labelnya
+  mengikuti konteks. Di dekat NPC jadi "Bicara" (`interact`, sama dengan
+  `Space`/`Enter`); saat dialog menunggu jadi "Lanjut" (`advance`). Saat tidak ada
+  yang bisa dilakukan tombolnya mati.
+- Selama soal, kontrol gerak disembunyikan; pilihan jawaban punya tombolnya
+  sendiri di DOM.
+- Label prompt `Space` berganti jadi "Sentuh" dan semua keycap keyboard
+  disembunyikan (`Keycap` mengembalikan `null`), karena tidak ada tombol fisik di
+  perangkat itu.
+
 ## Skenario tepi
 
-| Skenario                             | Perilaku yang benar                                                                 |
-| ------------------------------------ | ----------------------------------------------------------------------------------- |
-| Siswa klik cepat 5x                  | Hanya 1 beat maju (debounce)                                                        |
-| Siswa refresh saat tantangan         | Kembali ke awal scene, tantangan muncul lagi; skor tetap pakai percobaan pertama    |
-| Siswa tutup tab, buka besok          | Progres dipulihkan                                                                  |
-| Guru mengedit cerita saat siswa main | Siswa tetap di versi lamanya sampai reload                                          |
-| Dua tab dibuka bersamaan             | Tab terakhir yang menulis progres menang (dokumentasikan, jangan diperbaiki di MVP) |
-| Layar sangat kecil (≤ 360 px)        | Canvas mengecil (FIT) dan teks jadi < 16 px; tampilkan saran putar layar atau zoom  |
-| Orientasi landscape di HP            | Disarankan; portrait menampilkan saran memutar layar                                |
+| Skenario                             | Perilaku yang benar                                                                       |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Siswa klik cepat 5x                  | Hanya 1 beat maju (debounce)                                                              |
+| Siswa refresh saat tantangan         | Kembali ke awal scene, tantangan muncul lagi; skor tetap pakai percobaan pertama          |
+| Siswa tutup tab, buka besok          | Progres dipulihkan                                                                        |
+| Guru mengedit cerita saat siswa main | Siswa tetap di versi lamanya sampai reload                                                |
+| Dua tab dibuka bersamaan             | Tab terakhir yang menulis progres menang (dokumentasikan, jangan diperbaiki di MVP)       |
+| Layar sangat kecil (≤ 360 px)        | Teks ikut `clamp()` (minimum tetap terbaca); di sentuh, kanvas dikunci 16:9 + dek kontrol |
+| HP lanskap                           | Kontrol sentuh mengapung di dalam bingkai kanvas, tidak memakan ruang dunia               |
+| HP potret                            | Panggung 16:9 di atas + dek kontrol di bawah — **tanpa** saran putar layar (ADR 0021)     |
 
 ## Metrik yang dicatat (lokal)
 

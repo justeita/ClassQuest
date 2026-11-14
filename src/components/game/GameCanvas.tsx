@@ -20,6 +20,11 @@ import { SkipHint } from "@/components/game/SkipHint";
 import { SpeedLines } from "@/components/game/SpeedLines";
 import { PauseMenu } from "@/components/game/PauseMenu";
 import {
+  TouchControls,
+  type AksiSentuh,
+} from "@/components/game/TouchControls";
+import { useLayarPotret, useSentuh } from "@/components/game/useSentuh";
+import {
   bacaPengaturanAudio,
   simpanPengaturanAudio,
   type PengaturanAudio,
@@ -34,6 +39,7 @@ import {
 import type { DialogueView, GameBus } from "@/game/gameBus";
 import type { QuestState } from "@/game/questLog";
 import type { GameHandle } from "@/game/types";
+import type { ArahGerak } from "@/game/world/karakter";
 import type { Story } from "@/story/schema";
 import type { Answer, PlayResult } from "@/story/scoring";
 
@@ -77,6 +83,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [bukuQuest, setBukuQuest] = useState(false);
   /** Time-lapse lewati sedang berjalan; memicu hint status. */
   const [sedangLewati, setSedangLewati] = useState(false);
+  /** Pemain berada di zona NPC: tombol aksi sentuh jadi "Bicara". */
+  const [promptAktif, setPromptAktif] = useState(false);
+  /** Perangkat sentuh dan orientasi layar menentukan tata letak kontrol. */
+  const sentuh = useSentuh();
+  const layarPotret = useLayarPotret();
   /** Pengaturan audio pengguna; persist di localStorage, dibaca saat mount. */
   const [audio, setAudio] = useState<PengaturanAudio>(() =>
     bacaPengaturanAudio(
@@ -233,6 +244,13 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         lepas.push(
           game.bus.on("skipping", ({ aktif }) => {
             setSedangLewati(aktif);
+          }),
+        );
+        // Tombol aksi sentuh mengikuti zona NPC, jadi layar cukup tahu ada
+        // atau tidak ada prompt — bukan posisinya (itu urusan `NpcHintLayer`).
+        lepas.push(
+          game.bus.on("prompt", ({ hint }) => {
+            setPromptAktif(hint !== null);
           }),
         );
       })
@@ -444,6 +462,29 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   /** Lewati hanya berlaku saat dialog/narasi tampil dan tidak ada soal. */
   const dialogTerlihat = Boolean(dialog?.visible) && !tantangan;
 
+  /**
+   * Konteks tombol aksi sentuh: "Lanjut" selama dialog, "Bicara" saat pemain di
+   * zona NPC, dan mati saat tidak ada yang bisa dilakukan (atau saat soal, yang
+   * punya tombolnya sendiri).
+   */
+  const aksiSentuh: AksiSentuh | null = tantangan
+    ? null
+    : dialogTerlihat
+      ? "lanjut"
+      : promptAktif
+        ? "bicara"
+        : null;
+
+  const kirimGerak = useCallback((arah: ArahGerak | null) => {
+    busRef.current?.send({ type: "move", arah });
+  }, []);
+
+  const kirimAksiSentuh = useCallback(() => {
+    busRef.current?.send(
+      dialogTerlihat ? { type: "advance" } : { type: "interact" },
+    );
+  }, [dialogTerlihat]);
+
   /** Ala Persona 3 Reload: tahan untuk mempercepat, lepas untuk berhenti. */
   const mulaiLewatiDialog = useCallback(() => {
     busRef.current?.send({ type: "skip_start" });
@@ -496,11 +537,22 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   ]);
 
   return (
-    <div className="relative h-full w-full" style={{ containerType: "size" }}>
+    <div
+      className={`h-full w-full touch-none select-none ${
+        sentuh ? "relative flex flex-col" : "relative"
+      }`}
+      style={{ containerType: "size" }}
+    >
       <div
         ref={containerRef}
         tabIndex={-1}
-        className="relative h-full w-full focus:outline-none"
+        className={`relative focus:outline-none ${
+          sentuh
+            ? layarPotret
+              ? "w-full shrink-0 aspect-video"
+              : "min-h-0 flex-1"
+            : "h-full w-full"
+        }`}
         role="region"
         aria-label="Area permainan ClassQuest"
       >
@@ -606,6 +658,14 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           </div>
         }
       </div>
+      {sentuh && !jeda && !tantangan && (
+        <TouchControls
+          mode={layarPotret ? "dek" : "mengapung"}
+          onMove={kirimGerak}
+          onAksi={kirimAksiSentuh}
+          aksi={aksiSentuh}
+        />
+      )}
       {bukuLog && (
         <DialogueLog
           entriDialog={entriLog}

@@ -401,6 +401,38 @@ img {
   }
 }
 
+/* Bingkai halaman permainan: penuh layar dengan padding aman.
+ *
+ * Padding basisnya membesar mengikuti breakpoint Tailwind (`p-2`/`sm:p-4`/
+ * `lg:p-6`), lalu tiap sisi diambil nilai terbesar dengan
+ * `env(safe-area-inset-*)`. Di ponsel, inset itu menjaga HUD dan tombol
+ * sentuh agar tidak tertutup notch atau bar sistem; di desktop nilainya nol
+ * sehingga sama dengan padding biasa. `viewport-fit=cover` di
+ * `src/app/layout.tsx` yang mengisi inset tersebut.
+ */
+.area-game {
+  --area-game-pad: 0.5rem;
+  padding: max(var(--area-game-pad), env(safe-area-inset-top))
+    max(var(--area-game-pad), env(safe-area-inset-right))
+    max(var(--area-game-pad), env(safe-area-inset-bottom))
+    max(var(--area-game-pad), env(safe-area-inset-left));
+  /* Main game tidak pernah memantulkan-scroll: tarikan ke bawah justru
+     membatalkan gerakan tongkat di ponsel. */
+  overscroll-behavior: none;
+}
+
+@media (min-width: 640px) {
+  .area-game {
+    --area-game-pad: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .area-game {
+    --area-game-pad: 1.5rem;
+  }
+}
+
 /* --------------------------------------------------------------------------
  * Portal guru
  *

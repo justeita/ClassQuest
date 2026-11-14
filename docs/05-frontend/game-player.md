@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -271,18 +271,40 @@ di [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#penanganan-
 
 ## Responsif
 
-| Layar             | Perilaku                                                     |
-| ----------------- | ------------------------------------------------------------ |
-| Desktop ≥ 1024 px | Kanvas mengisi bingkai (margin 24 px, sudut membulat)        |
-| Tablet            | Sama — margin 16 px, dunia tetap utuh                        |
-| HP landscape      | Kanvas mengisi bingkai, skala ±1×; HUD kecil                 |
-| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati) |
+| Layar               | Perilaku                                                                   |
+| ------------------- | -------------------------------------------------------------------------- |
+| Desktop ≥ 1024 px   | Kanvas mengisi bingkai (margin 24 px, sudut membulat); kontrol keyboard    |
+| Tablet / HP lanskap | Kanvas mengisi bingkai; joystick dan tombol aksi **mengapung** di dalamnya |
+| HP potret           | Panggung 16:9 di atas, **dek kontrol** (joystick + tombol aksi) di bawah   |
+| Sentuh              | Label `Space` berganti jadi "Sentuh"; semua keycap keyboard disembunyikan  |
+
+Singkatnya: tidak ada lagi saran "putar layar". Di ponsel potret, kanvas tidak
+dipaksa memenuhi seluruh tinggi sehingga teksnya tetap terbaca — panggung game
+dikunci `aspect-video` di bagian atas, sisanya jadi dek kontrol yang jauh dari
+tepi bawah (tempat ibu jari beristirahat). Di lanskap, kontrol mengapung di dalam
+bingkai kanvas supaya dunia tidak ikut tergencet.
+
+Kontrol muncul hanya saat perangkat terbaca sentuh: penunjuk utama **kasar**
+(`pointer: coarse`) dan **tidak bisa hover** (`hover: none`). Laptop berlayar
+sentuh tetap memakai papan tombol dan tetikus — memunculkan joystick di sana cuma
+menutupi dunia. Deteksinya ada di `useSentuh.ts`; ringkasan keputusannya di
+[ADR 0021](../09-decisions/0021-kontrol-sentuh-hp.md).
+
+Joystick mengirim **satu dari delapan arah** yang sama dipakai papan tombol
+(`movement.ts`), bukan vektor bebas — jadi aturan gerak, tabrakan, dan animasi
+tetap satu jalur. Tombol aksi besar mengikuti konteks: "Bicara" saat pemain di
+zona NPC, "Lanjut" saat dialog menunggu, dan mati saat tidak ada yang bisa
+dilakukan. Rincian interaksinya di
+[`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#input-sentuh).
 
 Halaman game memakai seluruh viewport dengan margin 8–24 px dan bingkai bersudut
-membulat. Kanvas **selalu tampil utuh**: skala bulat dipakai bila sisa ruangnya
-≤6%, selain itu kanvas dibesarkan penuh mengikuti bingkai supaya tidak muncul bar
-gelap besar. Fullscreen API peramban tidak dipakai dan tidak dipaksa, jadi tidak
-ada konten yang terpotong di layar apa pun.
+membulat, ditambah **safe-area** (`env(safe-area-inset-*)`, lihat `.area-game` di
+`globals.css`) supaya HUD dan tombol sentuh tidak tertutup notch atau bar sistem.
+`viewport-fit=cover` di `layout.tsx` yang mengisi inset itu. Kanvas **selalu
+tampil utuh**: skala bulat dipakai bila sisa ruangnya ≤6%, selain itu kanvas
+dibesarkan penuh mengikuti bingkai supaya tidak muncul bar gelap besar. Fullscreen
+API peramban tidak dipakai dan tidak dipaksa, jadi tidak ada konten yang terpotong
+di layar apa pun.
 
 ## Berbagi
 

@@ -3,6 +3,7 @@ import type { Answer, PlayResult } from "@/story/scoring";
 import type { ChallengeView } from "./challengeView";
 import type { QuestState } from "./questLog";
 import type { PortraitView } from "./textbox";
+import type { ArahGerak } from "./world/karakter";
 
 /**
  * Bridge Phaser ↔ React sesuai docs/04-game/engine.md:
@@ -113,6 +114,17 @@ export type GameCommand =
   | { type: "resolve_challenge"; challengeId: string; correct: boolean }
   /** Satu langkah dialog: selesaikan ketikan atau lanjut beat berikutnya. */
   | { type: "advance" }
+  /**
+   * Arah gerak dari joystick layar sentuh; `null` saat tongkat dilepas. Sama
+   * artinya dengan tombol gerak yang sedang ditekan, jadi aturan gerak dan
+   * animasi tetap satu jalur (`GameScene.gerakkanPemain`).
+   */
+  | { type: "move"; arah: ArahGerak | null }
+  /**
+   * Tombol aksi sentuh saat fase explore: sama dengan menekan Space/Enter di
+   * dekat NPC — memicu dialog pemberi quest atau obrolan singkat.
+   */
+  | { type: "interact" }
   /**
    * Tahan untuk mempercepat beat dialog/narasi scene ala time-lapse; lepas
    * untuk kembali ke tempo normal. Berhenti sendiri di beat soal, transisi,
