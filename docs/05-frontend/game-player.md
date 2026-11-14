@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -13,9 +13,10 @@ cepat, dan tidak pernah menampilkan error mentah.
 
 ```text
 src/app/play/[storyId]/page.tsx        (Server Component)
-  ├─ ambil cerita published
+  ├─ ambil cerita published + kelas (?kelas=)
   ├─ notFound() bila tidak ada
   └─ <GameShell story={story} />       (Client Component)
+        ├─ <EntryScreen />             (DOM, layar masuk: pilih nama)
         ├─ <TitleScreen />             (DOM, sebelum Mulai)
         ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
         ├─ <ChallengeOverlay />        (DOM)
@@ -31,27 +32,67 @@ src/app/play/[storyId]/page.tsx        (Server Component)
 Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
-> **Yang ada hari ini:** `TitleScreen`, `GameShell`, `GameCanvas`,
+> **Yang ada hari ini:** `EntryScreen`, `TitleScreen`, `GameShell`, `GameCanvas`,
 > `ChallengeOverlay`, `QuestTracker`, `NpcHintLayer` (berisi `NpcMarker` dan
 > `InteractHint`), `ChapterCard`, `QuestToast`, `HUD`, `PauseMenu`, dan
 > `ResultScreen` sudah ada.
 >
-> `/play/[storyId]` membaca cerita terbit lewat `getPlayableStory()`
-> (`src/server/stories/playable.ts`). Hanya `status = 'published'` dengan
-> `published_version` yang dilayani; status lain, id tidak dikenal, dan id
-> tidak valid → 404. Id demo `st_demo_siklus_air` tetap memakai fixture
-> `src/game/demoStory.ts` supaya pengembangan frontend tidak butuh database.
-> Progres `localStorage` dan layar "Lanjutkan" **belum** ada.
+> `/play/[storyId]` membaca cerita terbit lewat `getPlayEntry()`
+> (`src/server/play/entry.ts`), yang memakai `getPublishedStory()`. Hanya
+> `status = 'published'` dengan `published_version` yang dilayani; status lain,
+> id tidak dikenal, dan id tidak valid → 404. Id demo `st_demo_siklus_air` tetap
+> memakai fixture `src/game/demoStory.ts` supaya pengembangan frontend tidak
+> butuh database. Progres `localStorage` dan layar "Lanjutkan" **belum** ada.
+
+## Layar masuk
+
+Setiap hasil main harus punya nama, jadi `/play/[storyId]` membuka
+`EntryScreen` lebih dulu. Gurunya yang menentukan kelas lewat tautan yang
+dibagikan:
+
+```text
+/play/st_abc123?kelas=QST-7K3M
+```
+
+Aturan:
+
+- **Kode kelas divalidasi di server** (`getPlayEntry`). Kelas hanya dipakai bila
+  kodenya sah dan pemiliknya guru pemilik cerita. Kelas guru lain diperlakukan
+  sama seperti kode salah: tidak ada daftar siswa, `classLinkInvalid: true`.
+- **Siswa memilih namanya dari daftar kelas**, bukan mengetik bebas sebagai
+  jalan utama. Daftar bisa dicari dengan nama atau NIS. Nama bebas tetap
+  tersedia untuk dua kasus: tautan tanpa `?kelas=`, atau nama siswa belum
+  terdaftar guru.
+- **Identitas dikirim sebagai `studentId`**, bukan nama. Server menurunkan nama
+  dan `classroom_id` dari baris `students`, jadi kelas tidak pernah dipercaya
+  dari klien. Nama bebas dikirim sebagai `nickname`.
+- Kode salah **tidak** membuat halaman 404: siswa tetap bisa bermain, layar
+  masuk menjelaskan bahwa hasilnya tidak masuk analytics kelas.
+- Yang dikirim ke client hanya `id`, `name`, dan `nis` siswa — tanpa username,
+  password hash, tahun ajaran, atau data guru.
+- Tidak ada akun siswa, cookie identitas, atau penyimpanan nama di
+  `localStorage`. Nama hanya hidup di state `GameShell` selama sesi main.
 
 ## Pengambilan data
 
 ```tsx
 export default async function PlayPage(props: PageProps<"/play/[storyId]">) {
   const { storyId } = await props.params;
-  const story = await getPlayableStory(storyId);
-  if (story === null) notFound();
+  const search = await props.searchParams;
+  const kelas = typeof search.kelas === "string" ? search.kelas : null;
 
-  return <GameShell story={story} />;
+  const entry = await getPlayEntry(storyId, kelas);
+  if (entry === null) notFound();
+
+  return (
+    <GameShell
+      story={entry.story}
+      classroom={entry.classroom}
+      students={entry.students}
+      classLinkInvalid={entry.classLinkInvalid}
+      requireIdentity
+    />
+  );
 }
 ```
 
@@ -89,16 +130,49 @@ Ini **state layar**, bukan state cerita. Soal yang sedang terbuka dilacak oleh
 `GameShell` hanya menampilkan overlay-nya. Pemetaan lengkap ada di
 [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#dua-state-bukan-satu).
 
-Implementasi sekarang memegang `judul | main | hasil` di `GameShell`, sedangkan
-`paused` dipegang `GameCanvas` karena menu jeda hanya relevan selama sesi
-permainan aktif. `QuestTracker` menerima daftar quest lewat event `quest` dari
-Phaser, diturunkan dari scene dan status runner — bukan ditebak dari DOM.
+Implementasi sekarang memegang `menu | judul | main | hasil` di `GameShell`,
+sedangkan `paused` dipegang `GameCanvas` karena menu jeda hanya relevan selama
+sesi permainan aktif. `QuestTracker` menerima daftar quest lewat event `quest`
+dari Phaser, diturunkan dari scene dan status runner — bukan ditebak dari DOM.
 
 State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 [`../04-game/engine.md`](../04-game/engine.md)). Sumber kebenaran progres:
 `localStorage`, bukan Phaser.
 
 ## Layar
+
+### Menu utama
+
+Dipakai `/game` (`menuUtama` di `GameShell`): pintu masuk demo sebelum layar
+judul cerita. `/play/[storyId]` **tidak** memakainya — siswa yang membuka tautan
+dari guru langsung melihat judul cerita, bukan menu.
+
+- Satu gambar desa utuh (`public/menu/desa.webp`) memenuhi layar. Teks menu
+  berdiri **langsung di atas gambar**, di bawah naungan pohon kiri atas, tanpa
+  panel — jadi seluruh desa tetap terlihat. Di layar < 768 px papan teksnya
+  diberi latar gelap transparan sendiri, karena crop gambar menaruh rumah terang
+  di belakang teks.
+- Isi papan: judul "CLASS QUEST" (serif tebal), garis emas berhiaskan bintang,
+  empat pilihan — `Mulai`, `Pengaturan`, `Kredit`, `Keluar` — petunjuk tombol, dan
+  label versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas.
+- Keyboard-first: `↑`/`↓` (atau `W`/`S`) memindahkan sorotan dan memindahkan
+  fokus DOM, `Home`/`End` ke ujung daftar, `Enter`/`Space` menjalankan pilihan.
+  `Tab` tidak pernah diambil alih. Selama dialog terbuka, panah tidak menggerakkan
+  menu karena fokus milik dialog.
+- `Mulai` menyerahkan kontrol ke `GameShell`, yang masih menampilkan layar judul
+  cerita. Tidak ada "Lanjutkan": progres `localStorage` belum ada, jadi menu tidak
+  menjanjikan simpanan yang belum pernah dibuat.
+- `Pengaturan` membuka dialog berisi slider **Musik** dan **Efek suara** terpisah,
+  membaca dan menulis `classquest:settings:v1` yang sama dengan
+  [`../../src/game/audioSettings.ts`](../../src/game/audioSettings.ts). Nilai
+  dibaca saat dialog dibuka (bukan saat mount) supaya render server dan client
+  tidak berbeda. `Simpan` menutup dialog dan memberi tahu lewat `role="status"`.
+- `Kredit` berisi asal-usul cerita dan lisensi font. `Keluar` membuka konfirmasi
+  yang menautkan ke `/` (halaman pemilihan peran) — bukan menutup tab, karena
+  `window.close()` tidak diizinkan peramban.
+- Kelopak sakura ditulis dengan nilai tetap (bukan `Math.random()`) agar render
+  server dan client sama, hanya jatuh di paruh kanan (area pohon), dan
+  disembunyikan total saat `prefers-reduced-motion: reduce`.
 
 ### Loading
 
@@ -245,11 +319,13 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Tanpa ranking, tanpa perbandingan dengan siswa lain.
 - Hasil disimpan lewat Server Action `savePlayResult` (`src/app/play/actions.ts`):
   `GameScene` mengirim event `finished` berisi `result` **dan** `answers`
-  percobaan pertama, lalu `GameShell` mengirim `{ storyId, result: { answers } }`.
-  Hanya jawaban yang dikirim — server menghitung ulang skor dari cerita terbit.
-  Layar hasil tampil tanpa menunggu simpan; statusnya ditulis jujur di bawah
-  ringkasan: "Menyimpan hasil main…", "Hasil main tersimpan.", atau
-  "Hasil main belum tersimpan.".
+  percobaan pertama, lalu `GameShell` mengirim
+  `{ storyId, result: { studentId | nickname, answers } }`. Hanya jawaban dan
+  identitas pilihan layar masuk yang dikirim — server menghitung ulang skor dari
+  cerita terbit, menurunkan nama/kelas dari baris `students`, dan mengisi
+  `classroom_id`. Layar hasil tampil tanpa menunggu simpan; statusnya ditulis
+  jujur di bawah ringkasan: "Menyimpan hasil main…", "Hasil main tersimpan.",
+  atau "Hasil main belum tersimpan.".
 - Cerita demo (`/game` dan `/play/st_demo_siklus_air`) dibaca tanpa database,
   jadi tidak punya baris `stories` untuk dirujuk `play_results`. Di sana action
   menjawab `not_found` dan status berbunyi "belum tersimpan" — bukan bug
@@ -343,8 +419,8 @@ Aturan:
 - Simpan setelah setiap beat (throttle 500 ms).
 - Kunci: `classquest:progress:{storyId}`.
 - Saat mount, baca progres; kalau `storyVersion` beda → tawarkan mulai ulang.
-- Saat selesai, kirim **jawaban** ke `savePlayResult` (server menghitung ulang
-  skor); jangan mengirim field skor.
+- Saat selesai, kirim **jawaban** dan identitas layar masuk ke `savePlayResult`
+  (server menghitung ulang skor); jangan mengirim field skor atau kelas.
 
 ## Checklist implementasi
 

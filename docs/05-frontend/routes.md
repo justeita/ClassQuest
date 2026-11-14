@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -27,7 +27,8 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 | `/guru/materi/[storyId]/preview` | Guru    | Dinamis | Preview game (versi draft)               |
 | `/guru/kelas`                    | Guru    | Dinamis | Daftar kelas, detail kelas, kelas baru   |
 | `/guru/game`                     | Guru    | Dinamis | Koleksi game edukasi                     |
-| `/play/[storyId]`                | Publik* | Dinamis | Game siswa (termasuk layar hasil)        |
+| `/guru/analitik`                 | Guru    | Dinamis | Analytics per kelas + game               |
+| `/play/[storyId]`                | Publik* | Dinamis | Game siswa (layar masuk + hasil)         |
 | `/game`                          | Publik  | Client  | Demo Phaser; pintu siswa sementara       |
 | `/_not-found`                    | Publik  | Statis  | Halaman 404 (`src/app/not-found.tsx`)    |
 
@@ -38,18 +39,19 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 Portal guru sudah tersambung ke backend. Tidak ada lagi data contoh untuk
 kelas/siswa:
 
-| Bagian                  | Sekarang                                                              |
-| ----------------------- | --------------------------------------------------------------------- |
-| Sumber data materi/game | `src/server/stories` (`listStories`, `getStoryDetail`)                |
-| Statistik dashboard     | Dihitung dari hasil `listStories` milik guru                          |
-| `/guru/masuk`           | `POST /api/auth/login`; kode salah/`429` dijawab pesan berbeda        |
-| Keluar                  | `POST /api/auth/logout` dari sidebar                                  |
-| Otorisasi halaman guru  | `requireTeacher()` di layout `(portal)`; tiap page memanggil lagi     |
-| AI Studio               | `POST /api/upload` (multipart) → redirect ke detail materi            |
-| Progres generasi        | `GenerationProgress` polling `GET /api/jobs/[jobId]` tiap 1,5 s       |
-| Aksi cerita             | Server Action `publishStory`/`archiveStory`/`deleteStory`             |
-| Kelas & siswa           | `src/server/classrooms`; Server Action `createClassroom`/`addStudent` |
-| Penugasan game          | **Belum ada** — UI menampilkan keterangan, bukan tombol               |
+| Bagian                  | Sekarang                                                                 |
+| ----------------------- | ------------------------------------------------------------------------ |
+| Sumber data materi/game | `src/server/stories` (`listStories`, `getStoryDetail`)                   |
+| Statistik dashboard     | Dihitung dari hasil `listStories` milik guru                             |
+| `/guru/masuk`           | `POST /api/auth/login`; kode salah/`429` dijawab pesan berbeda           |
+| Keluar                  | `POST /api/auth/logout` dari sidebar                                     |
+| Otorisasi halaman guru  | `requireTeacher()` di layout `(portal)`; tiap page memanggil lagi        |
+| AI Studio               | `POST /api/upload` (multipart) → redirect ke detail materi               |
+| Progres generasi        | `GenerationProgress` polling `GET /api/jobs/[jobId]` tiap 1,5 s          |
+| Aksi cerita             | Server Action `publishStory`/`archiveStory`/`deleteStory`                |
+| Kelas & siswa           | `src/server/classrooms`; Server Action `createClassroom`/`addStudent`    |
+| Penugasan game          | Tautan per kelas `?kelas=QST-XXXX` dari dialog "Bagikan" di `/guru/game` |
+| Analytics               | `/guru/analitik` → `getClassroomAnalytics` (`src/server/analytics`)      |
 
 Catatan wiring:
 
@@ -77,16 +79,26 @@ Catatan wiring:
   `src/app/guru/(portal)/kelas/actions.ts`; setelah sukses komponen memanggil
   `router.refresh()` supaya daftar kembali dari server, bukan state klien.
   Menghapus/mengedit siswa dan membagikan kode kelas **belum ada**.
+- `/guru/analitik` menerima pilihan lewat query string `?kelas=&storyId=`, bukan
+  state klien, supaya tautannya bisa dibagikan dan agregatnya dihitung di
+  server (`getClassroomAnalytics`). Daftar siswa yang belum bermain tetap
+  ditampilkan dengan poin 0. Halaman ini hanya membaca; tidak ada penulisan.
+- Tautan siswa yang dibagikan guru membawa kode kelas
+  (`/play/[storyId]?kelas=QST-XXXX`). Kode divalidasi di server: kelas yang
+  bukan milik guru pemilik cerita diperlakukan seperti kode salah — siswa tetap
+  bisa bermain, tetapi hasilnya tidak masuk analytics kelas.
 
 Tidak ada route `/play/[storyId]/hasil`. Layar hasil adalah **overlay di dalam
 `GameShell`** pada halaman yang sama, karena ia butuh state permainan yang masih
 hidup di memori (skor, jawaban, `weakConcepts`). Pindah route berarti membuang
 state itu. Lihat [`game-player.md`](./game-player.md).
 
-`/game` **bukan** route siswa resmi. Halaman itu hanya boot Phaser dengan
-`DEMO_STORY`: tanpa `storyId` dan tanpa otorisasi. Landing menautkan kartu
-"Arena Siswa" ke sini karena pembagian tautan `/play/[storyId]` belum ada;
-begitu tautan kelas tersedia, target siswa tetap `/play/[storyId]`.
+`/game` **bukan** route siswa resmi. Halaman itu membuka **menu utama** dulu
+(`MainMenu`, lihat [`game-player.md`](./game-player.md#menu-utama)), baru setelah
+"Mulai" ia memuat `DEMO_STORY` di Phaser: tanpa `storyId` dan tanpa otorisasi.
+Landing menautkan kartu "Arena Siswa" ke sini karena tautan kelas dibuat di
+portal guru ("Bagikan" di `/guru/game`); target siswa tetap
+`/play/[storyId]?kelas=QST-XXXX`.
 
 Landing `/` memakai route group `src/app/(landing)/` supaya punya layout sendiri
 (font Inter/Plus Jakarta/Pixelify + ikon Font Awesome) tanpa membebani halaman

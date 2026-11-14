@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -126,7 +126,11 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/game/fixture`                                | ya   | Cerita demo untuk pengembangan frontend game                   |
 | `src/components/game/GameCanvas.tsx`              | ya   | Host Phaser + overlay tantangan di React                       |
 | `src/components/game/ChallengeOverlay.tsx`        | ya   | Overlay tantangan DOM di atas canvas                           |
-| `src/components/game/GameShell.tsx`               | ya   | Shell halaman game + state layar judul/main/hasil              |
+| `src/components/game/EntryScreen.tsx`             | ya   | Layar masuk: pilih nama dari daftar kelas atau nama bebas      |
+| `src/components/game/EntryScreen.test.tsx`        | ya   | Tes pilih nama, pencarian, nama bebas, tautan kelas salah      |
+| `src/components/game/GameShell.tsx`               | ya   | Shell halaman game + state layar masuk/judul/main/hasil        |
+| `src/components/game/MainMenu.tsx`                | ya   | Menu utama `/game`: pilihan, pengaturan audio, kredit, keluar  |
+| `src/components/game/MainMenu.test.tsx`           | ya   | Tes keyboard menu, dialog pengaturan, simpan volume            |
 | `src/components/game/TitleScreen.tsx`             | ya   | Layar judul: ringkasan cerita + menu Mulai                     |
 | `src/components/game/HUD.tsx`                     | ya   | HUD: chapter aktif, tombol suara, tombol jeda                  |
 | `src/components/game/PauseMenu.tsx`               | ya   | Menu jeda: lanjut, ulangi chapter, suara, keluar               |
@@ -146,6 +150,12 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/server/stories/core.test.ts`                 | ya   | Tes logika inti cerita                                         |
 | `src/server/stories/playable.ts`                  | ya   | Cerita yang boleh dimainkan (terbit + demo)                    |
 | `src/server/stories/playable.test.ts`             | ya   | Tes sumber cerita halaman siswa                                |
+| `src/server/play`                                 | ya   | Data layar masuk siswa (cerita + kelas + daftar siswa)         |
+| `src/server/play/entry.ts`                        | ya   | `getPlayEntry`: validasi kode kelas milik guru cerita          |
+| `src/server/play/entry.test.ts`                   | ya   | Tes tautan kelas sah/salah/bukan milik guru                    |
+| `src/server/analytics`                            | ya   | Agregat hasil main per kelas + game (`/guru/analitik`)         |
+| `src/server/analytics/core.ts`                    | ya   | `getClassroomAnalytics`: poin terbaik, percobaan, konsep lemah |
+| `src/server/analytics/core.test.ts`               | ya   | Tes agregasi analytics (libSQL in-memory)                      |
 | `src/server/classrooms`                           | ya   | Logika inti kelas dan siswa (`/guru/kelas`)                    |
 | `src/server/classrooms/core.ts`                   | ya   | Query/validasi kelas, tambah siswa, NIS otomatis               |
 | `src/server/classrooms/core.test.ts`              | ya   | Tes kelas/siswa (libSQL in-memory)                             |
@@ -170,6 +180,8 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/app/guru/(portal)/kelas/page.tsx`            | ya   | Daftar & detail kelas dari `listClassrooms`                    |
 | `src/app/guru/(portal)/kelas/actions.ts`          | ya   | Server Action `createClassroom` / `addStudent`                 |
 | `src/app/guru/(portal)/game/page.tsx`             | ya   | Koleksi game guru dari `listStories`                           |
+| `src/app/guru/(portal)/analitik/page.tsx`         | ya   | Analytics per kelas + game dari `getClassroomAnalytics`        |
+| `src/app/guru/(portal)/analitik/loading.tsx`      | ya   | Kerangka `AnalyticsSkeleton`                                   |
 | `src/components/guru`                             | ya   | Komponen client portal guru                                    |
 | `src/components/guru/data.ts`                     | ya   | Hiasan gamifikasi guru (level/XP/gold) + pilihan jenjang       |
 | `src/components/guru/logic.ts`                    | ya   | Logika murni portal (filter, format, validasi berkas)          |
@@ -180,6 +192,10 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/components/guru/skeletons.tsx`               | ya   | Kerangka loading bersama untuk `loading.tsx` + `Suspense`      |
 | `src/components/guru/GenerationProgress.tsx`      | ya   | Polling `GET /api/jobs/[jobId]` per tahap                      |
 | `src/components/guru/StoryActions.tsx`            | ya   | Aksi bagikan/arsip/hapus cerita lewat Server Action            |
+| `src/components/guru/ShareGameDialog.tsx`         | ya   | Dialog tautan per kelas (`?kelas=QST-XXXX`) + tombol salin     |
+| `src/components/guru/ShareGameDialog.test.tsx`    | ya   | Tes tautan per kelas dan keadaan tanpa kelas                   |
+| `src/components/guru/AnalyticsBrowser.tsx`        | ya   | Penyaring kelas/game + tabel poin dan konsep lemah per siswa   |
+| `src/components/guru/AnalyticsBrowser.test.tsx`   | ya   | Tes penyaring query string dan tabel analytics                 |
 | `src/app/play/actions.ts`                         | ya   | Server Action simpan hasil bermain                             |
 | `src/app/play/actions.test.ts`                    | ya   | Tes Action hasil bermain                                       |
 | `src/app/api`                                     | ya   | Route handler                                                  |
@@ -198,6 +214,7 @@ isinya sudah ada di [`../README.md`](../README.md).
 | `src/server/jobs/status.test.ts`                  | ya   | Tes pencarian job terbaru milik guru                           |
 | `public/assets`                                   | ya   | File aset game (`assets:generate` + `assets:world`)            |
 | `public/brand`                                    | ya   | Logo + ikon brand (bukan aset game, tanpa id manifest)         |
+| `public/menu`                                     | ya   | Gambar desa menu utama (dekoratif, tanpa id manifest)          |
 | `src/app/favicon.ico`                             | ya   | Favicon 16/32/48 px dari ikon brand                            |
 | `src/app/icon.png`                                | ya   | Ikon aplikasi 192×192                                          |
 | `src/app/apple-icon.png`                          | ya   | `apple-touch-icon` 192×192                                     |
@@ -253,6 +270,7 @@ src/
 │   │   └── ChallengeEditor.tsx
 │   └── game/
 │       ├── GameShell.tsx              # shell fullscreen halaman game
+│       ├── MainMenu.tsx               # menu utama /game (sebelum layar judul)
 │       ├── TitleScreen.tsx            # layar judul sebelum game dimulai
 │       ├── GameCanvas.tsx             # host Phaser (client-only)
 │       ├── ChallengeOverlay.tsx
@@ -344,6 +362,9 @@ utilitas murni tanpa I/O.
 
 - File aset di `public/assets/...`, dirujuk lewat id manifest, **bukan** path langsung.
 - Path langsung di kode game dianggap bug (kecuali di `PreloadScene`).
+- Satu pengecualian: `public/menu/desa.webp`, latar layar menu utama. Ia gambar
+  dekoratif yang tidak pernah dipilih cerita, jadi sengaja **di luar**
+  `public/assets/` supaya tidak perlu entri manifest.
 
 ## Di mana meletakkan sesuatu
 
