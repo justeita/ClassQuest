@@ -153,6 +153,7 @@ describe("collectStoryAssets", () => {
         "sfx_correct",
         "sfx_wrong",
         "sfx_page",
+        "sfx_type",
       ]),
     );
   });
@@ -179,6 +180,7 @@ describe("collectStoryAssets", () => {
         DEFAULT_BACKGROUND_ID,
         DEFAULT_MUSIC_ID,
         "sfx_click",
+        "sfx_type",
       ]),
     );
   });

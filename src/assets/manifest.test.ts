@@ -51,7 +51,9 @@ const EXTENSION: Record<AssetKind, readonly string[]> = {
   character: ["png"],
   world: ["png", "jpg"],
   music: ["mp3"],
-  sfx: ["ogg"],
+  // SFX pendek yang tidak perlu dienkode ulang boleh ditulis langsung sebagai
+  // WAV; sisanya tetap OGG agar kecil.
+  sfx: ["ogg", "wav"],
   ui: ["png"],
 };
 
@@ -61,7 +63,7 @@ const INVENTORY_COUNTS: Record<AssetKind, number> = {
   character: 10,
   world: 81,
   music: 2,
-  sfx: 4,
+  sfx: 5,
   ui: 3,
 };
 

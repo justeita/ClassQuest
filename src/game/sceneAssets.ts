@@ -71,6 +71,7 @@ const RUNTIME_ASSET_IDS = [
   "sfx_correct",
   "sfx_wrong",
   "sfx_page",
+  "sfx_type",
 ] as const;
 
 export type SceneLook = {

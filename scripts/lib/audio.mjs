@@ -1,9 +1,10 @@
 /**
- * Sintesis audio untuk aset game: empat SFX dan lima musik loop.
+ * Sintesis audio untuk aset game: lima SFX dan lima musik loop.
  *
  * Semua dibangkitkan dari kode (gelombang kotak/segitiga + noise halus),
- * lalu dienkode ke OGG Vorbis oleh ffmpeg saat pembuatan aset. Hasilnya file
- * kecil, bebas lisensi, dan bisa dibuat ulang persis sama.
+ * lalu dienkode ke OGG Vorbis oleh ffmpeg saat pembuatan aset — kecuali SFX
+ * pendek yang bisa ditulis langsung sebagai WAV. Hasilnya file kecil, bebas
+ * lisensi, dan bisa dibuat ulang persis sama.
  *
  * Spesifikasi: docs/07-assets/asset-guide.md → Musik (30–60 s, loop mulus,
  * 96–128 kbps) dan SFX (≤ 1 s).
@@ -114,6 +115,34 @@ function finish(out, { peak = 0.7, fade = 0.02, sampleRate }) {
   });
 }
 
+/**
+ * Float32 mono → WAV 16-bit. Dipakai langsung untuk SFX berformat `.wav`
+ * (tanpa ffmpeg) dan sebagai input ffmpeg untuk `.ogg`.
+ */
+export function toWav(samples, sampleRate) {
+  const data = Buffer.alloc(samples.length * 2);
+  for (let i = 0; i < samples.length; i += 1) {
+    const clamped = Math.max(-1, Math.min(1, samples[i]));
+    data.writeInt16LE(Math.round(clamped * 32767), i * 2);
+  }
+
+  const header = Buffer.alloc(44);
+  header.write("RIFF", 0, "ascii");
+  header.writeUInt32LE(36 + data.length, 4);
+  header.write("WAVE", 8, "ascii");
+  header.write("fmt ", 12, "ascii");
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(1, 22);
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(sampleRate * 2, 28);
+  header.writeUInt16LE(2, 32);
+  header.writeUInt16LE(16, 34);
+  header.write("data", 36, "ascii");
+  header.writeUInt32LE(data.length, 40);
+  return Buffer.concat([header, data]);
+}
+
 /* -------------------------------------------------------------------------- */
 /* SFX                                                                        */
 /* -------------------------------------------------------------------------- */
@@ -203,6 +232,37 @@ export function sfxPage(sampleRate = 44100) {
     wave: "triangle",
   });
   return finish(out, { sampleRate, peak: 0.55, fade: 0.03 });
+}
+
+/**
+ * Ketik dialog: "tick" pendek untuk tiap karakter.
+ *
+ * Rancangan sengaja sederhana dan lembut supaya tidak mengganggu saat diputar
+ * puluhan kali per detik: chirp naik singkat (D5 → A5) dari gelombang segitiga
+ * dengan sedikit kotak, plus sisa klik mekanis yang sangat halus. Diputar secara
+ * bergantian nadanya oleh `GameScene`, jadi terasa hidup tanpa jadi bising.
+ * Semua dibangkitkan di sini — bukan sampel dari game mana pun.
+ */
+export function sfxType(sampleRate = 44100) {
+  const duration = 0.05;
+  const out = buffer(duration, sampleRate);
+  const base = noteHz("D5");
+  const target = noteHz("A5");
+  const glide = 0.014;
+  let phase = 0;
+
+  for (let i = 0; i < out.length; i += 1) {
+    const t = i / sampleRate;
+    const freq = base + (target - base) * Math.min(1, t / glide);
+    phase += freq / sampleRate;
+    const raw = triangle(phase) * 0.75 + square(phase, 0.18) * 0.25;
+    const envelope = Math.min(1, t / 0.003) * Math.exp(-t * 70);
+    out[i] += raw * envelope * 0.5;
+  }
+
+  // Sisa "klik" tombol: noise sangat singkat agar terasa mekanis, bukan hanya nada.
+  addNoise(out, sampleRate, { at: 0, duration: 0.007, gain: 0.12, decay: 320 });
+  return finish(out, { sampleRate, peak: 0.5, fade: 0.003 });
 }
 
 /* -------------------------------------------------------------------------- */

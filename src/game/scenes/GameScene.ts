@@ -79,6 +79,14 @@ const MUSIC_VOLUME_PAUSED = 0.12;
 const SFX_VOLUME = 0.6;
 
 /**
+ * Efek mesin tik saat teks dialog muncul. Blip dibatasi jeda ini supaya putaran
+ * cepat (35 karakter/detik) tidak berubah jadi dengung, dan nada kedua sedikit
+ * lebih tinggi agar terasa bergantian, bukan monoton.
+ */
+const KETIK_JEDA_MS = 60;
+const KETIK_RATE2 = 1.06;
+
+/**
  * Jeda antar-langkah input lanjut. Satu tekanan = satu beat; jeda ini menjaga
  * ketukan ganda atau tombol yang tidak sengaja tertekan dua kali tidak
  * melompati dua beat sekaligus.
@@ -164,6 +172,10 @@ export class GameScene extends Phaser.Scene {
   private volumeMusik = 1;
   private volumeSfx = 1;
   private volumeSedangJeda = false;
+  /** Waktu scene (ms) blip ketik terakhir; pembatas `KETIK_JEDA_MS`. */
+  private ketikTerakhir = -Infinity;
+  /** Blip berikutnya memakai nada kedua (bergantian) agar tidak monoton. */
+  private ketikNadaKedua = false;
   private sceneAktif: string | null = null;
   /** NPC pemegang quest scene aktif; hanya dia yang bisa memicu dialog. */
   private pemberiQuest: string | null = null;
@@ -261,9 +273,14 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.clearCaptures();
     // Teks dan potret dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene
     // tetap pemegang state typewriter dan mengirim potongannya lewat bus.
-    this.textbox = createTextbox((state) => {
-      this.bus?.emit({ type: "dialogue", view: state });
-    });
+    this.textbox = createTextbox(
+      (state) => {
+        this.bus?.emit({ type: "dialogue", view: state });
+      },
+      // Blip mesin tik disintesis dari kode (`sfx_type`); diputar bergantian
+      // nada oleh `ketikSfx`, bukan tiap karakter mentah.
+      { onKetik: (baru) => this.ketikSfx(baru) },
+    );
 
     this.input.on("pointerdown", () => this.onLanjutInput());
 
@@ -1440,10 +1457,31 @@ export class GameScene extends Phaser.Scene {
     this.music = music;
   }
 
-  private mainkanSfx(assetId: string) {
+  /**
+   * @param rate Pengali kecepatan/tinggi nada (1 = asli). Mekanisme `sfx_type`
+   *   memakainya untuk blip kedua yang sedikit lebih tinggi.
+   */
+  private mainkanSfx(assetId: string, rate = 1) {
     if (!this.cache.audio.exists(assetId)) return;
     if (this.volumeSfx <= 0) return;
-    this.sound.play(assetId, { volume: SFX_VOLUME * this.volumeSfx });
+    this.sound.play(assetId, { volume: SFX_VOLUME * this.volumeSfx, rate });
+  }
+
+  /**
+   * Blip mesin tik untuk potongan teks yang baru muncul.
+   *
+   * Spasi/tanda kosong tidak berbunyi, jeda `KETIK_JEDA_MS` mencegah dengung,
+   * dan mode percepat (time-lapse) dibiarkan senyap karena karakter mengalir
+   * terlalu cepat. Nadanya bergantian supaya terdengar hidup.
+   */
+  private ketikSfx(baru: string) {
+    if (this.lewatiDitahan) return;
+    if (baru.trim().length === 0) return;
+    const now = this.time.now;
+    if (now - this.ketikTerakhir < KETIK_JEDA_MS) return;
+    this.ketikTerakhir = now;
+    this.ketikNadaKedua = !this.ketikNadaKedua;
+    this.mainkanSfx("sfx_type", this.ketikNadaKedua ? KETIK_RATE2 : 1);
   }
 
   /**

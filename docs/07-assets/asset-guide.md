@@ -21,7 +21,7 @@ dalam waktu hackathon.
 Aset di `public/assets/` datang dari dua jalur yang tidak saling menimpa:
 
 1. **Generator repo** — `bun run assets:generate`. Membuat aset generik: latar
-   default 640×360, panel UI, dan empat efek suara. Gambar digambar tanpa
+   default 640×360, panel UI, dan lima efek suara. Gambar digambar tanpa
    dependensi di `scripts/lib/`.
 2. **Impor dunia desa** — `bun run assets:world` (`scripts/import-world.mjs`).
    Menyalin peta, potongan objek, dan dua lagu dari paket aset proyek di luar

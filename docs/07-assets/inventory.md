@@ -36,9 +36,9 @@ Aset di `public/assets/` datang dari dua jalur, dan keduanya tidak saling
 menimpa:
 
 1. **Generator repo** — `bun run assets:generate`. Membuat aset generik: latar
-   default `640×360`, panel UI, dan empat efek suara. Gambar digambar tanpa
+   default `640×360`, panel UI, dan lima efek suara. Gambar digambar tanpa
    dependensi di `scripts/lib/`; audio disintesis lalu dienkode ke OGG lewat
-   ffmpeg.
+   ffmpeg, sementara SFX sangat pendek ditulis langsung sebagai WAV.
 2. **Impor paket desa** — `bun run assets:world` (`scripts/import-world.mjs`).
    Menyalin peta desa, 80 potongan objek, dan dua lagu dari folder paket aset
    proyek di luar repo (`Asset/assets_classquest`), lalu membangkitkan
@@ -216,6 +216,7 @@ boleh dirujuk cerita, hanya dipakai sisi game.
 | `sfx_correct` | Jawaban benar | `/assets/sfx/correct.ogg` | benar, berhasil, tepat, correct | ready  |
 | `sfx_wrong`   | Jawaban salah | `/assets/sfx/wrong.ogg`   | salah, lembut, keliru, wrong    | ready  |
 | `sfx_page`    | Ganti scene   | `/assets/sfx/page.ogg`    | transisi, halaman, pindah, page | ready  |
+| `sfx_type`    | Ketik dialog  | `/assets/sfx/type.wav`    | ketik, dialog, teks, typewriter | ready  |
 
 ## UI
 
@@ -251,9 +252,9 @@ dimuat `next/font/local` dari `public/fonts/` (ADR 0007).
 | `character`  | 10      |
 | `world`      | 81      |
 | `music`      | 2       |
-| `sfx`        | 4       |
+| `sfx`        | 5       |
 | `ui`         | 3       |
-| **Total**    | **101** |
+| **Total**    | **102** |
 
 ## Prioritas bila aset perlu dibuat ulang
 

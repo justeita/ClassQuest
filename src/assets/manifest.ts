@@ -238,6 +238,14 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     label: "Ganti scene",
     tags: ["transisi", "halaman", "pindah", "page"],
   },
+  {
+    // Blip mesin tik saat teks dialog muncul (lihat `GameScene.ketikSfx`).
+    id: "sfx_type",
+    kind: "sfx",
+    path: "/assets/sfx/type.wav",
+    label: "Ketik dialog",
+    tags: ["ketik", "dialog", "teks", "typewriter"],
+  },
 
   /* UI */
   {

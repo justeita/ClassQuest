@@ -69,9 +69,9 @@ Aturan:
    override scene, musik chapter + override scene, dan `spriteId` setiap `cast`.
    Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0023).
 3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `bgm_vellore`,
-   `sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`). Kedua BGM ikut dimuat
-   karena track awal dipilih acak dan rotasinya memakai keduanya. Panel dan
-   potret dialog tidak dimuat Phaser.
+   `sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`, `sfx_type`). Kedua BGM
+   ikut dimuat karena track awal dipilih acak dan rotasinya memakai keduanya.
+   Panel dan potret dialog tidak dimuat Phaser.
 
 Semua key loader memakai `id` manifest, jadi scene tidak menebak path file.
 `manifest.test.ts` menjamin setiap id punya berkasnya, sehingga `PreloadScene`
@@ -276,6 +276,9 @@ terjadi sebelum beat pertama scene.
 ## Typewriter
 
 - Kecepatan 35 karakter/detik (`Typewriter`, default 35; rentang desain 30–40).
+- Tiap karakter baru memicu blip `sfx_type` lewat `TextboxHooks.onKetik`, dengan
+  jeda 60 ms dan nada bergantian agar tidak berdengung. Blip diam saat spasi,
+  mode percepat, atau volume SFX nol.
 - Klik/Spasi saat mengetik → tampilkan seluruh teks (bukan lanjut beat).
 - Klik/Spasi saat selesai → lanjut beat.
 - Teks di-`setText` utuh, bukan per karakter dengan `Text` baru; gunakan counter
