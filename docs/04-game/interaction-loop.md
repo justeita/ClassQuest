@@ -95,9 +95,10 @@ bebas berjalan. NPC tanpa `smallTalk` tetap berdiri sebagai penghalang dan tidak
 memunculkan prompt.
 
 Saat interaksi dimulai — baik dialog cerita maupun obrolan singkat — NPC yang
-diajak bicara **berbalik menghadap pemain**, sesuai posisi pemain relatif NPC
-(mis. pemain di selatan → NPC menghadap selatan). Arah hadap itu dihitung
-`arahKe()` di `karakter.ts` dan tidak mengubah posisi cerita.
+diajak bicara **berbalik menghadap pemain**, dan MC juga **berbalik menghadap
+NPC**, sesuai posisi masing-masing (mis. pemain di selatan NPC → NPC menghadap
+selatan dan pemain menghadap utara). Arah hadap itu dihitung `arahKe()` di
+`karakter.ts` dan tidak mengubah posisi cerita.
 
 Scene dan ruangan adalah dua hal berbeda. Scene adalah unit cerita, ruangan
 adalah unit peta (`roomId`). Beberapa scene boleh terjadi di ruangan yang sama;

@@ -556,6 +556,27 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
+   * Balikkan pemain agar menghadap NPC `npcId`. Dipanggil bersama
+   * `hadapkanKePemain` supaya MC dan lawan bicara saling berhadapan saat
+   * interaksi dimulai, bukan hanya NPC yang menoleh.
+   *
+   * Arah disimpan di `arahTerakhir` supaya `hentikanPemain` (dan frame berikut
+   * setelah dialog ditutup) memakai arah yang sama, bukan arah jalan terakhir.
+   */
+  private hadapkanPemainKeNpc(npcId: string) {
+    const npc = this.npcSprites.get(npcId);
+    const pemain = this.player;
+    if (!npc || !pemain) return;
+    this.arahTerakhir = arahKe(npc.x - pemain.x, npc.y - pemain.y);
+    this.mainkanKarakter(
+      pemain,
+      this.playerSpriteId,
+      "idle",
+      this.arahTerakhir,
+    );
+  }
+
+  /**
    * Hentikan animasi jalan pemain. Interaksi membekukan `updateExplore`, jadi
    * tanpa ini pemain yang menekan Space sambil berjalan akan berjalan di tempat
    * selama dialog/obrolan.
@@ -625,6 +646,7 @@ export class GameScene extends Phaser.Scene {
 
     if (dekat === this.pemberiQuest) {
       this.hadapkanKePemain(dekat);
+      this.hadapkanPemainKeNpc(dekat);
       this.hentikanPemain();
       this.runner.interact();
       this.presentBeat();
@@ -634,6 +656,7 @@ export class GameScene extends Phaser.Scene {
     const teks = this.obrolan.get(dekat);
     if (teks) {
       this.hadapkanKePemain(dekat);
+      this.hadapkanPemainKeNpc(dekat);
       this.hentikanPemain();
       this.mulaiObrolan(dekat, teks);
     }
