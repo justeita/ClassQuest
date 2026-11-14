@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { toAssetManifest } from "../assets/manifest";
+import { FIXED_CAST } from "./cast";
 import { buildFallbackStory, type FallbackStoryInput } from "./fallback";
-import type { CharacterRole } from "./schema";
 import { type AssetManifest, validateStory } from "./validate";
 
 /**
@@ -290,7 +290,7 @@ describe("percabangan cerita cadangan", () => {
         for (const beat of scene.beats) {
           if (beat.type !== "dialogue") continue;
           for (const variant of beat.textVariants ?? []) {
-            used.add(variant.when.flag);
+            if ("flag" in variant.when) used.add(variant.when.flag);
           }
         }
       }
@@ -321,7 +321,7 @@ describe("determinisme dan kemurnian", () => {
       meta: { title: "Siklus Air", subject: "IPA", fileName: "siklus-air.pdf" },
       concepts: CONCEPTS,
       castSeed: [
-        { id: "char_nara", name: "Nara", role: "player" },
+        { id: "char_nara", name: "Kael", role: "player" },
         { id: "char_pak_bima", name: "Pak Bima", role: "mentor" },
       ],
       reason: "timeout",
@@ -342,7 +342,7 @@ describe("determinisme dan kemurnian", () => {
       meta: { title: "Siklus Air", pageCount: 6 },
       concepts: [...CONCEPTS],
       castSeed: [
-        { id: "char_nara", name: "Nara", role: "player" },
+        { id: "char_nara", name: "Kael", role: "player" },
         { id: "char_pak_bima", name: "Pak Bima", role: "mentor" },
       ],
       reason: "anggaran habis",
@@ -383,8 +383,8 @@ describe("input aneh tidak membuat fallback melempar", () => {
     },
     {
       castSeed: [
-        { id: "char_nara", name: "Nara", role: "player" },
-        { id: "char_nara", name: "Nara Kembar", role: "player" },
+        { id: "char_nara", name: "Kael", role: "player" },
+        { id: "char_nara", name: "Kael Kembar", role: "player" },
       ],
     },
   ];
@@ -434,18 +434,23 @@ describe("input aneh tidak membuat fallback melempar", () => {
     expect(low.meta.estimatedMinutes).toBe(3);
   });
 
-  it("memperbaiki castSeed yang cacat tanpa mengubah input", () => {
-    const castSeed: { id: string; name: string; role: CharacterRole }[] = [
-      { id: "char_nara", name: "Nara", role: "player" },
-      { id: "char_nara", name: "Nara Kembar", role: "player" },
-    ];
-    const story = build({ castSeed });
+  it("mengabaikan castSeed dan selalu memakai roster tetap", () => {
+    const story = build({
+      castSeed: [
+        { id: "char_nara", name: "Kael", role: "player" },
+        { id: "char_nara", name: "Kael Kembar", role: "player" },
+        { id: "char_asing", name: "Tokoh Karangan", role: "mentor" },
+      ],
+    });
     const ids = story.cast.map((character) => character.id);
 
-    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids).toEqual(FIXED_CAST.map((character) => character.id));
+    expect(story.cast.map((character) => character.name)).toEqual(
+      FIXED_CAST.map((character) => character.name),
+    );
     expect(story.cast.filter((c) => c.role === "player")).toHaveLength(1);
     expect(story.cast.some((c) => c.role === "mentor")).toBe(true);
-    expect(story.cast.length).toBeLessThanOrEqual(10);
+    expect(ids).not.toContain("char_asing");
   });
 });
 

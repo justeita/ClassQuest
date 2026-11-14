@@ -368,7 +368,8 @@ Semua wajib:
 
 ```ts
 type PlayResultInput = {
-  nickname?: string; // opsional, maks 40 karakter, tanpa identitas asli
+  studentId?: string; // siswa dari daftar kelas; server menurunkan nama + kelas
+  nickname?: string; // nama bebas, maks 40 karakter, tanpa identitas asli
   answers: Answer[]; // satu entri per tantangan yang dijawab (Answer dari src/story/scoring.ts)
 };
 
@@ -383,10 +384,30 @@ type SavePlayResultOutcome =
 Aturan:
 
 - **Skor dihitung server.** Klien tidak boleh mengirim field skor (`earnedPoints`, `correctCount`, dsb.); field tersebut ditolak (`invalid`). Server menghitung ulang skor via `scoreStory()` dari cerita versi terbit yang tersimpan.
-- **Pemanggil di klien:** `GameShell` memanggil action ini sekali saat event `finished` (membawa `answers` percobaan pertama). Layar hasil tampil lebih dulu; kegagalan simpan hanya mengubah status di layar ("Hasil main belum tersimpan."), tidak memblokir siswa.
+- **Identitas diturunkan server.** `studentId` harus milik guru pemilik cerita (`students.teacher_id`); id tidak dikenal atau milik guru lain → `{ ok: false, reason: "invalid" }`, tanpa membocorkan apakah id itu ada. Saat `studentId` dipakai, nama diambil dari `students.display_name` dan `classroom_id` dari `students.classroom_id`; `nickname` kiriman klien diabaikan. Kelas **tidak pernah** diterima dari klien.
+- **Tanpa identitas tetap boleh.** `studentId` dan `nickname` sama-sama opsional (hasil main tanpa nama tetap tersimpan, hanya tidak masuk analytics kelas).
+- **Pemanggil di klien:** `GameShell` memanggil action ini sekali saat event `finished` (membawa `answers` percobaan pertama + identitas dari layar masuk). Layar hasil tampil lebih dulu; kegagalan simpan hanya mengubah status di layar ("Hasil main belum tersimpan."), tidak memblokir siswa.
 - Jawaban divalidasi terhadap tantangan cerita: id tantangan atau opsi tidak dikenal, jawaban ganda, atau jumlah jawaban melebihi tantangan ditolak (`invalid`).
 - Data yang disimpan hanya agregat di tabel `play_results` (tanpa data per-opsi, IP, user-agent, atau identitas siswa).
 - **Rate limit:** 120 panggilan per 10 menit per IP, diperiksa paling awal sebelum input disentuh. Melebihi batas menghasilkan `{ ok: false, reason: "rate_limited" }` (Server Action tidak bisa mengirim HTTP 429, jadi tidak ada header `Retry-After`; UI cukup menampilkan pesan "coba lagi sebentar lagi"). Kalau penghitungnya gagal, hasil bermain **tetap diproses** (fail open). Angka ini longgar karena satu kelas bisa berbagi satu IP.
+
+### Tautan kelas dan `/guru/analitik` (bukan API publik)
+
+Tidak ada endpoint untuk menautkan game ke kelas. Kaitannya dibuat lewat
+**tautan**: guru menyalin `/play/[storyId]?kelas=QST-XXXX` dari dialog "Bagikan"
+di `/guru/game`, dan halaman siswa memakai kode itu untuk memuat daftar siswa.
+
+- **Kode divalidasi di server** (`src/server/play/entry.ts`): bentuk harus
+  `QST-XXXX` **dan** `classrooms.teacher_id` harus sama dengan pemilik cerita.
+  Kelas guru lain atau kode salah → `classroom: null`, `classLinkInvalid: true`;
+  siswa tetap bisa bermain dan hasilnya tersimpan tanpa `classroom_id`.
+- **Yang dikirim ke browser hanya** `id`, `name`, dan `nis` siswa. Tanpa
+  username, password hash, tahun ajaran, atau data guru. `PublishedStoryRow`
+  membawa `teacherId`, tetapi `GET /api/stories/[storyId]` tidak menyertakannya.
+- **Halaman `/guru/analitik` membaca langsung dari server**, bukan lewat API
+  publik: query string `?kelas=<classroomId>&storyId=<storyId>` diterjemahkan
+  `getClassroomAnalytics()` dengan filter `teacher_id` pada kelas **dan** cerita.
+  Kelas/game milik guru lain dan yang tidak ada sama-sama `null`.
 
 ### Batas ukuran payload
 

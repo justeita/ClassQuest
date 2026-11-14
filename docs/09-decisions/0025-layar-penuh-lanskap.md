@@ -4,16 +4,16 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0022 — Layar Penuh, Kunci Lanskap, dan Ketukan yang Responsif
+# 0025 - Layar Penuh, Kunci Lanskap, dan Ketukan yang Responsif
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
-- **Menggantikan:** — (memperluas [ADR 0021](0021-kontrol-sentuh-hp.md), tidak membatalkannya)
+- **Menggantikan:** — (memperluas [ADR 0024](0024-kontrol-sentuh-hp.md), tidak membatalkannya)
 
 ## Konteks
 
-Setelah kontrol sentuh masuk ([ADR 0021](0021-kontrol-sentuh-hp.md)), pemain
+Setelah kontrol sentuh masuk ([ADR 0024](0024-kontrol-sentuh-hp.md)), pemain
 mencoba langsung dari ponsel Android dan melaporkan dua hal:
 
 1. **Tombol menu utama terasa mati.** Ketukan tidak menghasilkan apa-apa; perlu
@@ -46,7 +46,7 @@ Batasan yang mengikat:
 | A. `touch-action: manipulation` + tombol layar penuh | Ketukan langsung; imersif          | Perlu stubbing API di uji                           | Kecil |
 | B. Kunci `main` ke `touch-action: none`              | Tidak ada gulir/zoom di dalam game | Klik di Chrome Android justru tersendat             | Kecil |
 | C. Paksa lanskap lewat CSS/medan magnet              | Nol tombol                         | Tak bisa memaksa peramban; melawan kehendak pemain  | —     |
-| D. Saran "putar layar"                               | Nol kerja                          | Tidak menyelesaikan apa pun (sudah ditolak di 0021) | Nol   |
+| D. Saran "putar layar"                               | Nol kerja                          | Tidak menyelesaikan apa pun (sudah ditolak di 0024) | Nol   |
 
 ## Keputusan
 
@@ -76,7 +76,7 @@ Kami memilih **A**, dengan aturan:
 
 - Ketukan di menu dan di dalam permainan langsung terdaftar di Android.
 - Permainan bisa dibuka penuh dan mendatar dalam satu ketukan; tata letak
-  `mengapung` (ADR 0021) langsung terpakai.
+  `mengapung` (ADR 0024) langsung terpakai.
 - Tanpa dependensi baru; status dibaca lewat `useSyncExternalStore` sehingga
   label tombol ikut berubah saat pemain keluar lewat tombol sistem.
 
@@ -109,6 +109,6 @@ Kami memilih **A**, dengan aturan:
 
 ## Referensi
 
-- [ADR 0021](0021-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
+- [ADR 0024](0024-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
 - [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#input-sentuh) —
   perilaku input sentuh di dalam loop permainan.

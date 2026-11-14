@@ -48,7 +48,7 @@ const BISA_DIJAWAB = new Set<ChallengeView["type"]>([
  * - Seluruh UI jawaban memakai **desain kotak dialog** (`KOTAK_DIALOG` di
  *   `gayaDialog.ts`): latar hijau-gelap `#0b120e`, bingkai tipis aksen oranye
  *   `#E8A87C`, sudut membulat, teks krem terang `#F7F4EC` — seragam dengan HUD
- *   dan DialogueBox (ADR 0026, ADR 0027).
+ *   dan DialogueBox (ADR 0029, ADR 0030).
  * - Penunjuk pilihan aktif adalah **tangan menunjuk (glove) SVG** yang digambar
  *   sendiri (`Penunjuk` di bawah), bukan glyph font, supaya tajam dan presisi
  *   di semua perangkat. Ia berada **di luar** kotak (di kiri untuk daftar, di
@@ -423,7 +423,7 @@ export function ChallengeOverlay({
                         {/* Segitiga kursor ▶ berada di LUAR kotak di sebelah kiri */}
                         <Penunjuk aktif={disorot} kelas="mr-2" />
 
-                        {/* Kotak item urutan memakai desain kotak dialog (ADR 0026) */}
+                        {/* Kotak item urutan memakai desain kotak dialog (ADR 0029) */}
                         <div
                           className={`flex flex-1 items-center gap-2 px-3 py-1.5 transition-colors select-none ${
                             disorot

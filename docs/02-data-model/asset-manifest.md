@@ -92,7 +92,7 @@ editor, dan game.
 - `portraits` hanya boleh ada untuk kind `character`: satu path per ekspresi
   (`neutral`, `happy`, `sad`, `angry`, `shocked`, `thinking`), semuanya harus
   ada di `public/assets/portrait/<nama>/`. Cerita memilih ekspresi lewat field
-  `expression`, bukan path ([ADR 0020](../09-decisions/0020-potret-ekspresi-persona.md)).
+  `expression`, bukan path ([ADR 0023](../09-decisions/0023-potret-ekspresi-persona.md)).
 - `world` adalah aset sisi game — peta desa dan potongan objeknya. Entri ini
   **tidak** bisa dipilih cerita (`STORY_ASSET_KINDS` tidak memuatnya). Peta
   `world_map_*` memakai `width`/`height` kelipatan 16 agar sejajar grid collider
@@ -140,8 +140,8 @@ BACKGROUNDS
 - bg_schoolyard_day | Halaman sekolah, siang | halaman, sekolah, luar, siang, schoolyard, outdoor
 
 CHARACTERS
-- char_nara | Nara (siswa) | siswa, perempuan, seragam, remaja, student
-- char_pak_bima | Pak Bima (guru) | guru, dewasa, pria, pengajar, teacher
+- char_mc | Pemuda syal biru | pemuda, syal, biru, desa, pemain, karakter
+- char_npc_10 | Tetua bijak desa | tetua, bijak, tua, desa, warga, penasihat
 ```
 
 Kalau AI butuh suasana yang tidak ada (mis. "laboratorium"), ia harus memilih

@@ -220,7 +220,7 @@ describe("GameShell", () => {
     });
     bus.emit({
       type: "nametags",
-      plates: [{ npcId: "char_npc_10", nama: "Pak Wira", x: 200, y: 126 }],
+      plates: [{ npcId: "char_npc_10", nama: "Edric", x: 200, y: 126 }],
     });
     bus.emit({
       type: "prompt",
@@ -228,7 +228,7 @@ describe("GameShell", () => {
     });
 
     expect(await screen.findByText("!")).toBeInTheDocument();
-    expect(screen.getByText("Pak Wira")).toBeInTheDocument();
+    expect(screen.getByText("Edric")).toBeInTheDocument();
     expect(screen.getByText("Space")).toBeInTheDocument();
   });
 
@@ -530,7 +530,7 @@ describe("GameShell", () => {
       type: "dialogue",
       view: {
         visible: true,
-        name: "Bu Ratna",
+        name: "Leonhardt",
         text: "Air di bumi tidak pernah hilang.",
         waiting: true,
         portrait: null,
@@ -791,7 +791,7 @@ describe("GameShell — soal di atas dialog", () => {
       type: "dialogue",
       view: {
         visible: true,
-        name: "Bu Ratna",
+        name: "Leonhardt",
         text: "Air di bumi tidak pernah hilang.",
         waiting: true,
         portrait: null,
@@ -999,7 +999,7 @@ describe("GameShell — kontrol sentuh", () => {
     );
     expect(bicara).toHaveBeenCalledTimes(1);
 
-    // Selama dialog joystick dan tombol aksi disembunyikan (ADR 0024); lanjut
+    // Selama dialog joystick dan tombol aksi disembunyikan (ADR 0027); lanjut
     // dialog lewat mengetuk kotak dialog, bukan tombol.
     bus.emit({
       type: "dialogue",
@@ -1090,7 +1090,7 @@ describe("GameShell — kontrol sentuh", () => {
     expect(dalam.getByRole("button", { name: /^jeda$/i })).toBeInTheDocument();
 
     // Desain HUD disatukan dengan kotak dialog: gelap dengan teks krem terang,
-    // sama seperti varian overlay (ADR 0026).
+    // sama seperti varian overlay (ADR 0029).
     expect(musik.className).toContain("bg-[#0b120e]/95");
     expect(musik.className).toContain("text-[#F7F4EC]");
   });

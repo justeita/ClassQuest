@@ -142,7 +142,7 @@ Aturan input:
   mengandalkan `pointerup` elemen terasa mati. Selama ditahan, listener
   `touchmove` non-passive menahan gulir supaya gestur tidak diambil alih, dan
   `pointerleave` tidak dipakai sama sekali agar jitter jempol tidak mematikan
-  time-lapse (ADR 0025).
+  time-lapse (ADR 0028).
 - Saat tab tidak aktif (`visibilitychange`), game pause otomatis.
 
 ## Alur tantangan
@@ -168,12 +168,36 @@ Aturan input:
 Detail penting:
 
 - **Penilaian terjadi sekali per percobaan.** Jangan menilai ulang saat render.
-- **Soal bisa diulang bila cerita memakai `onWrong`.** Tantangan dengan `onWrong`
-  punya `maxAttempts` 2 atau 3 (lihat
+- **Soal bisa diulang bila cerita memakai `onWrong.retryQuestions`.** Tantangan
+  dengan soal ulang punya `maxAttempts` 2 atau 3 (lihat
   [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md#konsekuensi-jawaban-salah-opsional)).
   Setelah jawaban salah **dan** masih ada percobaan, game memutar `detour`
   (narasi/dialog singkat) lewat kotak dialog yang sama, lalu membuka lagi soal
   yang sama dengan teks `retryQuestions`. Opsi dan jawaban benar tidak berubah.
+- **Cerita mengakui jawaban salah, bukan memaksa benar.** `onWrong.setFlags`
+  menyala pada **setiap** jawaban salah, termasuk percobaan terakhir. Dialog
+  sesudah soal karena itu bisa memakai `textVariants` untuk kalimat yang
+  mengutip jawaban siswa lewat `{{jawaban}}`; `detour` juga boleh memakainya
+  karena flag sudah menyala sebelum detour diputar (ADR 0020).
+- **Pemain mengucapkan jawabannya lebih dulu.** Sesudah beat `challenge`, beat
+  dialog pertama diucapkan `char_mc` dan **hanya** berisi jawabannya dalam satu
+  kalimat pendek (≤ 60 karakter), tanpa pembenaran atau hitungan. Tokoh lain
+  menanggapi ucapan itu di beat berikutnya (ADR 0022). Jadi urutan yang dilihat
+  siswa: soal → "Jawabanku empat cangkir." → "Empat cangkir? Masih kurang." →
+  penjelasan tokoh.
+- **Balasan bisa berbeda untuk tiap jawaban salah.** Varian
+  `when: { jawaban }` mencocokkan teks jawaban yang persis dan menang atas
+  varian `when.flag`, sehingga pilihan `4 cangkir` dan `12 cangkir` mendapat
+  balasan NPC yang berbeda (ADR 0021). Jawaban disimpan per tantangan, dan
+  `{{jawaban}}`/varian jawaban memakai tantangan terdekat sebelum beat; selama
+  `detour`, yang dipakai adalah tantangan pemicunya. Tantangan yang tidak pernah
+  dijawab salah tidak mengutip jawaban lama.
+- **Varian jawaban hanya untuk hasil akhir.** Yang disimpan
+  `BranchingRun` adalah percobaan **terakhir**; bila percobaan terakhir benar,
+  `jawabanSalahUntuk()` mengembalikan `null` dan dialog memakai `text` utama.
+  Siswa yang salah lalu menjawab benar di soal ulang karena itu tidak lagi
+  melihat varian kesalahan lamanya. Flag "pernah salah" tetap menyala dan hanya
+  dipakai kalimat cadangan `when.flag`.
 - **Penjelasan hanya tampil saat benar atau di percobaan terakhir.** Selama masih
   ada percobaan berikutnya, overlay tidak menampilkan `explanation` supaya soal
   ulang tetap bermakna; game baru mengirim `graded` (beserta penjelasan) untuk
@@ -287,7 +311,7 @@ Browser memblokir audio sebelum interaksi pengguna. Karena itu:
 
 ## Input sentuh
 
-Perangkat sentuh (ADR 0021) memakai kontrol yang **mengirim command yang sama**
+Perangkat sentuh (ADR 0024) memakai kontrol yang **mengirim command yang sama**
 dengan papan tombol, bukan jalur gerak kedua:
 
 - **Joystick** (`move`): tongkat analog disnap ke salah satu dari delapan
@@ -295,10 +319,10 @@ dengan papan tombol, bukan jalur gerak kedua:
   `gerakkanPemain()` yang sama. `null` saat tongkat dilepas berarti berhenti.
 - **Tombol aksi** (`interact`): satu tombol besar berlabel "Bicara" (sama dengan
   `Space`/`Enter`). Di dekat NPC tombolnya menyala; saat belum ada warga di
-  jangkauan ia **tampil redup tetapi tetap bisa ditekan** (ADR 0023) — menekannya
+  jangkauan ia **tampil redup tetapi tetap bisa ditekan** (ADR 0026) - menekannya
   hanya memunculkan pesan singkat "Dekati warga untuk bicara", dan command
   `interact` tidak dikirim.
-- **Selama dialog** joystick dan tombol aksi disembunyikan (ADR 0024); lanjut
+- **Selama dialog** joystick dan tombol aksi disembunyikan (ADR 0027); lanjut
   dialog dilakukan dengan mengetuk kotak dialog di layar. Tidak ada lagi tombol
   sentuh "Lanjut".
 - Selama soal, kontrol gerak disembunyikan; pilihan jawaban punya tombolnya
@@ -307,7 +331,7 @@ dengan papan tombol, bukan jalur gerak kedua:
   disembunyikan (`Keycap` mengembalikan `null`), karena tidak ada tombol fisik di
   perangkat itu.
 - **Tombol "Layar penuh"** (layar judul dan HUD) memenuhkan halaman lalu mencoba
-  mengunci orientasi mendatar (ADR 0022). Bukan bagian alur cerita: tidak ada
+  mengunci orientasi mendatar (ADR 0025). Bukan bagian alur cerita: tidak ada
   command bus, dan gagal memenuhkan layar tidak mengubah jalannya permainan.
 - Ketukan memakai `touch-action: manipulation` supaya tidak tertahan menunggu
   ketuk-dua-kali zoom; akar `GameCanvas` `touch-manipulation`, hanya pad tongkat
@@ -324,7 +348,7 @@ dengan papan tombol, bukan jalur gerak kedua:
 | Dua tab dibuka bersamaan             | Tab terakhir yang menulis progres menang (dokumentasikan, jangan diperbaiki di MVP)       |
 | Layar sangat kecil (≤ 360 px)        | Teks ikut `clamp()` (minimum tetap terbaca); di sentuh, kanvas dikunci 16:9 + dek kontrol |
 | HP lanskap                           | Kontrol sentuh mengapung di dalam bingkai kanvas, tidak memakan ruang dunia               |
-| HP potret                            | Panggung 16:9 di atas + dek kontrol di bawah — **tanpa** saran putar layar (ADR 0021)     |
+| HP potret                            | Panggung 16:9 di atas + dek kontrol di bawah - **tanpa** saran putar layar (ADR 0024)     |
 
 ## Metrik yang dicatat (lokal)
 

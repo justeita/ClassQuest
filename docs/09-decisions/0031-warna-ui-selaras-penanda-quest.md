@@ -4,19 +4,19 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0028 — Warna UI selaras dengan penanda quest dan penunjuk tangan SVG
+# 0031 - Warna UI selaras dengan penanda quest dan penunjuk tangan SVG
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
-- **Menyesuaikan:** butir warna pada [ADR 0026](0026-desain-hud-dan-tombol-bicara.md)
+- **Menyesuaikan:** butir warna pada [ADR 0029](0029-desain-hud-dan-tombol-bicara.md)
   dan butir warna serta penunjuk pada
-  [ADR 0027](0027-desain-tantangan-seragam-dialog.md); arsitektur kedua ADR itu
+  [ADR 0030](0030-desain-tantangan-seragam-dialog.md); arsitektur kedua ADR itu
   (token bersama, penunjuk di luar kotak, fit text) tetap berlaku.
 
 ## Konteks
 
-ADR 0026 dan 0027 menyatukan HUD, dialog, dan kotak tantangan memakai palet
+ADR 0029 dan 0030 menyatukan HUD, dialog, dan kotak tantangan memakai palet
 **navy `#0f172b` + teks `#EFF2F7` + aksen teal `#55D0A5`**. Setelah dipakai, dua
 masalah muncul:
 
@@ -26,7 +26,7 @@ masalah muncul:
    dua bahasa visual yang berbeda dari penanda quest, padahal keduanya muncul
    berdampingan di layar yang sama.
 2. **Penunjuk pilihan masih kurang jelas.** Segitiga penunjuk dari border CSS
-   (ADR 0027) bergantung pada ukuran tetap yang kecil dan tidak mudah dikenali
+   (ADR 0030) bergantung pada ukuran tetap yang kecil dan tidak mudah dikenali
    sebagai penunjuk; pemain meminta penanda yang lebih tegas.
 3. **Sudut dan scrollbar belum konsisten.** Kotak `!`/`Space` masih bersudut
    tegas, sedangkan jendela **buku catatan** dan **menu jeda** memakai bingkai
@@ -115,9 +115,9 @@ Kami memilih **A**, dengan aturan:
 
 ## Referensi
 
-- [ADR 0026](0026-desain-hud-dan-tombol-bicara.md) — desain HUD seragam dengan
+- [ADR 0029](0029-desain-hud-dan-tombol-bicara.md) — desain HUD seragam dengan
   kotak dialog.
-- [ADR 0027](0027-desain-tantangan-seragam-dialog.md) — desain tantangan seragam
+- [ADR 0030](0030-desain-tantangan-seragam-dialog.md) — desain tantangan seragam
   dan penunjuk pilihan.
 - [`../05-frontend/game-player.md`](../05-frontend/game-player.md) — dokumen hidup
   UI pemutar game.

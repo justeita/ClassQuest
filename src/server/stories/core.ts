@@ -645,6 +645,12 @@ export async function deleteStory(
 /** Baris cerita yang berlaku untuk publik: versi terbit, bukan terbaru. */
 export type PublishedStoryRow = {
   storyId: string;
+  /**
+   * Pemilik cerita. **Hanya untuk pengecekan di server** (mis. memastikan
+   * kelas yang dipakai tautan siswa memang milik guru ini); jangan pernah
+   * dikirim ke klien — `GET /api/stories/[storyId]` tidak menyertakannya.
+   */
+  teacherId: string;
   version: number;
   publishedAt: string;
   story: Story | null;
@@ -668,7 +674,7 @@ export async function getPublishedStory(
   input: GetPublishedStoryInput,
 ): Promise<PublishedStoryRow | null> {
   const result = await db.execute({
-    sql: `select s.id, s.published_version, v.story, v.created_at
+    sql: `select s.id, s.teacher_id, s.published_version, v.story, v.created_at
           from stories s
           join story_versions v
             on v.story_id = s.id and v.version = s.published_version
@@ -700,6 +706,7 @@ export async function getPublishedStory(
 
   return {
     storyId: id,
+    teacherId: typeof row.teacher_id === "string" ? row.teacher_id : "",
     version,
     publishedAt: typeof row.created_at === "string" ? row.created_at : "",
     story,

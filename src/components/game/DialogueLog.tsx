@@ -24,7 +24,7 @@ type Tab = "dialog" | "konsep";
  * `pointer-events-auto` karena menutupi seluruh layar saat terbuka. Kartunya
  * **membulat** dengan aksen oranye, dan area bacanya memakai scrollbar bertema
  * (`scrollbar-tema`) — bukan scrollbar bawaan peramban — supaya tetap seragam
- * dengan HUD, dialog, dan menu jeda (ADR 0026).
+ * dengan HUD, dialog, dan menu jeda (ADR 0029).
  */
 export function DialogueLog({
   entriDialog,

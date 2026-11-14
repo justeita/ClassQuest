@@ -241,7 +241,7 @@ pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). State dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx` — panel kotak navy gelap membulat, potret
-ber-`expression`, nama, dan teks (ADR 0020); React membalas command `advance`.
+ber-`expression`, nama, dan teks (ADR 0023); React membalas command `advance`.
 Prompt interaksi
 memakai event `prompt`: kotak `Space` pemberi quest dirender `NpcMarker.tsx`
 (menyatu dengan `!`), sedangkan obrolan singkat dirender `InteractHint.tsx`
@@ -454,7 +454,7 @@ Aturan yang mengikat:
 - `pause` membekukan loop scene dan mengecilkan musik; `freeze` (buku log)
   membekukan dunia tanpa mengecilkan musik.
 - `move` dan `interact` datang dari kontrol layar sentuh (`TouchControls.tsx`,
-  ADR 0021). `move` menggantikan tombol gerak papan tombol — scene menyimpannya
+  ADR 0024). `move` menggantikan tombol gerak papan tombol — scene menyimpannya
   sebagai satu `ArahGerak` dan menggabungkannya di `arahGerak()` yang sama,
   sehingga kecepatan, tabrakan, dan animasi tidak punya jalur kedua. `interact`
   sama dengan `Space`/`Enter` di dekat NPC: memakai `mulaiInteraksiTerdekat()`

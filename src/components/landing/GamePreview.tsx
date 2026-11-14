@@ -42,7 +42,7 @@ export function GamePreview() {
           Bab 1 · Perbandingan
         </p>
 
-        {/* Dialog meniru gaya Persona (ADR 0020): dua potret tanpa bingkai
+        {/* Dialog meniru gaya Persona (ADR 0023): dua potret tanpa bingkai
             berdiri di **atas** panel, dasarnya menempel tepi atas kotak. NPC
             yang bicara di kiri menyala; potret MC di kanan dicerminkan dan
             diredupkan sebagai lawan bicara. */}
@@ -50,14 +50,14 @@ export function GamePreview() {
           <div className="relative">
             <Image
               src="/assets/portrait/mc/neutral.png"
-              alt="Potret Nara"
+              alt="Potret Kael"
               width={456}
               height={360}
               className="pointer-events-none absolute bottom-full right-0 h-24 w-[50%] -scale-x-100 object-contain object-bottom brightness-50 sm:h-32"
             />
             <Image
-              src="/assets/portrait/npc_10/thinking.png"
-              alt="Potret Pak Wira"
+              src="/assets/portrait/npc_1/thinking.png"
+              alt="Potret Elian"
               width={456}
               height={360}
               className="pointer-events-none absolute bottom-full left-0 h-24 w-[50%] object-contain object-bottom sm:h-32"
@@ -65,11 +65,11 @@ export function GamePreview() {
 
             <div className="relative rounded-xl border border-white/5 bg-slate-900/95 px-3 pb-2.5 pt-2 sm:px-4">
               <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.14em] text-[#55D0A5]">
-                Pak Wira
+                Elian
               </p>
               <p className="font-game text-[13px] leading-snug text-[#EFF2F7] sm:text-sm">
-                Tiga bagian tepung, dua bagian gula. Berapa cangkir gula untuk
-                sembilan cangkir tepung?
+                Tiga bagian tinta biru, dua bagian tinta emas. Berapa cangkir
+                tinta emas untuk sembilan cangkir biru?
               </p>
             </div>
           </div>

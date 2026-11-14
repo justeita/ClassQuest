@@ -9,7 +9,7 @@ import type { ArahGerak } from "@/game/world/karakter";
  * Konteks tombol besar: `"bicara"` saat ada warga di jangkauan, `null` saat
  * belum ada sasaran. Tombol tidak lagi punya mode "Lanjut": selama dialog
  * kontrol sentuh disembunyikan, dan pemain melanjutkan dengan mengetuk kotak
- * dialog (ADR 0024).
+ * dialog (ADR 0027).
  */
 export type AksiSentuh = "bicara" | null;
 
@@ -49,12 +49,12 @@ const KELAS_REDUP = "border-[#3D4B41] text-[#8FA396]";
  * Tombol besar selalu "Bicara": menyala saat pemain di zona NPC, redup saat
  * belum ada warga di jangkauan.
  *
- * Tanpa sasaran tombolnya **tidak dimatikan** (ADR 0023): di ponsel tombol mati
+ * Tanpa sasaran tombolnya **tidak dimatikan** (ADR 0026): di ponsel tombol mati
  * tanpa penjelasan bikin bingung. Tombolnya tampil redup, tetap bisa ditekan,
  * dan menampilkan pesan singkat "dekati warga" — command `interact` baru dikirim
  * saat memang ada sasaran.
  *
- * Selama dialog kontrol ini tidak dirender sama sekali (ADR 0024): joystick dan
+ * Selama dialog kontrol ini tidak dirender sama sekali (ADR 0027): joystick dan
  * tombol hanya menutupi layar, sedangkan lanjut dialog cukup mengetuk kotak
  * dialognya.
  *

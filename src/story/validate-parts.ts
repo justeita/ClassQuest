@@ -26,7 +26,7 @@
 import Ajv2020 from "ajv/dist/2020.js";
 
 import storyJsonSchema from "../../docs/02-data-model/story.schema.json";
-import type { Challenge, Chapter } from "./schema";
+import type { Challenge, Chapter, TextVariant } from "./schema";
 import type {
   AjvIssue,
   AssetManifest,
@@ -694,14 +694,21 @@ const checkChapterSemantics = (
 };
 
 /**
+ * Id flag dari kondisi varian, atau `null` untuk varian `when.jawaban`
+ * (ADR 0021) yang tidak bergantung pada flag.
+ */
+const flagVarian = (variant: TextVariant): string | null =>
+  "flag" in variant.when ? variant.when.flag : null;
+
+/**
  * Aturan percabangan tingkat chapter.
  *
  * Bentuk `onWrong`, pola id flag, dan batas `retryQuestions` sudah dijaga
  * schema (`story.schema.json`) sehingga kesalahan bentuk muncul sebagai
  * `E_SCHEMA` sebelum sampai ke sini — termasuk format id flag yang salah
  * (`propertyNames`/`pattern`). Fungsi ini memeriksa aturan yang butuh konteks
- * urutan beat: `onWrong` tanpa `maxAttempts` yang cukup, jumlah soal ulang,
- * panjang detour, dan flag `textVariants` yang belum di-set.
+ * urutan beat: `retryQuestions` tanpa `maxAttempts` yang cukup, jumlah soal
+ * ulang, panjang detour, dan flag `textVariants` yang belum di-set.
  *
  * Error yang dilaporkan memicu repair di level chapter; warning
  * `W_TEXT_VARIANT_FLAG_UNSET` tidak memblokir.
@@ -732,8 +739,10 @@ const checkChapterBranching = (
 
       if (beat.type === "dialogue") {
         beat.textVariants?.forEach((variant, variantIndex) => {
+          const flagId = flagVarian(variant);
+          if (flagId === null) return;
           warnUnsetVariant(
-            variant.when.flag,
+            flagId,
             `${beatPath}.textVariants[${variantIndex}].when.flag`,
             "",
           );
@@ -750,8 +759,10 @@ const checkChapterBranching = (
       detour.forEach((detourBeat, detourIndex) => {
         if (detourBeat.type !== "dialogue") return;
         detourBeat.textVariants?.forEach((variant, variantIndex) => {
+          const flagId = flagVarian(variant);
+          if (flagId === null) return;
           warnUnsetVariant(
-            variant.when.flag,
+            flagId,
             `${beatPath}.onWrong.detour[${detourIndex}].textVariants[${variantIndex}].when.flag`,
             "detour",
           );
@@ -760,13 +771,16 @@ const checkChapterBranching = (
 
       if (!onWrong) return;
 
-      if (maxAttempts < 2) {
+      // `onWrong` boleh hanya berisi `setFlags` (reaksi salah tanpa soal ulang),
+      // jadi syarat `maxAttempts` 2/3 hanya berlaku bila ada soal ulang.
+      const adaSoalUlang = (onWrong.retryQuestions?.length ?? 0) > 0;
+      if (adaSoalUlang && maxAttempts < 2) {
         report(
           errorIssue(
             "E_ONWRONG_WITHOUT_ATTEMPTS",
             `${beatPath}.maxAttempts`,
-            `Tantangan "${beat.challengeId}" memakai onWrong tanpa maxAttempts 2 atau 3.`,
-            `Beri tantangan "${beat.challengeId}" maxAttempts 2 atau 3, atau hapus onWrong.`,
+            `Tantangan "${beat.challengeId}" memakai retryQuestions tanpa maxAttempts 2 atau 3.`,
+            `Beri tantangan "${beat.challengeId}" maxAttempts 2 atau 3, atau hapus retryQuestions.`,
           ),
         );
       }

@@ -3,7 +3,7 @@
     "id": "ch_01",
     "title": "Daun yang Bekerja",
     "concept": "Fotosintesis",
-    "summary": "Nara memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
+    "summary": "Kael memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
     "backgroundId": "bg_default",
     "musicId": "bgm_default",
     "scenes": [
@@ -13,7 +13,7 @@
         "beats": [
           {
             "type": "narration",
-            "text": "Bel istirahat berbunyi. Nara berdiri di depan pot tanaman di kelas dan memperhatikan daun yang basah oleh embun."
+            "text": "Bel istirahat berbunyi. Kael berdiri di depan pot tanaman di kelas dan memperhatikan daun yang basah oleh embun."
           },
           {
             "type": "dialogue",
@@ -32,7 +32,7 @@
               "detour": [
                 {
                   "type": "narration",
-                  "text": "Nara mengerutkan dahi dan mengingat kembali kalimat Pak Bima tentang daun."
+                  "text": "Kael mengerutkan dahi dan mengingat kembali kalimat Pak Bima tentang daun."
                 },
                 {
                   "type": "dialogue",
@@ -46,11 +46,11 @@
       },
       {
         "id": "sc_01_02",
-        "title": "Pertanyaan Nara",
+        "title": "Pertanyaan Kael",
         "beats": [
           {
             "type": "narration",
-            "text": "Nara menempelkan telapak tangan di dekat daun. Permukaannya terasa dingin dan sedikit lembap."
+            "text": "Kael menempelkan telapak tangan di dekat daun. Permukaannya terasa dingin dan sedikit lembap."
           },
           {
             "type": "dialogue",
@@ -98,7 +98,7 @@
     }
   ],
   "continuity": {
-    "previousChapterSummary": "Nara baru saja mulai mengamati daun di depan kelas.",
+    "previousChapterSummary": "Kael baru saja mulai mengamati daun di depan kelas.",
     "characterStates": [
       {
         "id": "char_mc",

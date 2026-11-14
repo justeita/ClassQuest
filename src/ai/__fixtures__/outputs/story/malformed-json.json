@@ -7,7 +7,7 @@
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat dan penasaran",
-    "synopsis": "Nara mengamati daun di kelas dan halaman sekolah. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
+    "synopsis": "Kael mengamati daun di kelas dan halaman sekolah. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
     "estimatedMinutes": 7
   },
   "source": {
@@ -23,7 +23,7 @@
   "cast": [
     {
       "id": "char_mc",
-      "name": "Nara",
+      "name": "Kael",
       "role": "player",
       "spriteId": "char_mc",
  

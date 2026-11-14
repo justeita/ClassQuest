@@ -4,7 +4,7 @@
  * Warna disalin dari keluarga kotak penanda quest (`!`/`Space` di atas NPC):
  * latar hijau-gelap `#0b120e`, aksen oranye `#E8A87C`, dan teks krem terang
  * `#F7F4EC`. Dipakai tombol HUD, kotak pilihan jawaban, dan kartu umpan balik
- * tantangan supaya semuanya tampil seragam (ADR 0026, ADR 0027).
+ * tantangan supaya semuanya tampil seragam (ADR 0029, ADR 0030).
  *
  * Tiap token adalah string kelas **lengkap**. Keadaan diam dan aktif dipilih
  * dengan percabangan, bukan ditumpuk: dua kelas warna Tailwind yang bentrok

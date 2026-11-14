@@ -32,15 +32,18 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0017 | [Anggaran pipeline per unit dan reasoning dimatikan](0017-anggaran-pipeline-per-unit.md)                                  | Accepted     | AI, pipeline          |
 | 0018 | [Plafon output, batas eksplisit outline, dan reasoning default mati](0018-plafon-output-thinking.md)                      | Accepted     | AI, pipeline          |
 | 0019 | [Percabangan konsekuensi jawaban salah](0019-branching-konsekuensi-jawaban-salah.md)                                      | Accepted     | AI, validator, cerita |
-| 0020 | [Potret berekspresi ala Persona](0020-potret-ekspresi-persona.md)                                                         | Accepted     | Game, aset, cerita    |
-| 0021 | [Kontrol sentuh dan tata letak HP](0021-kontrol-sentuh-hp.md)                                                             | Accepted     | Game, aksesibilitas   |
-| 0022 | [Layar penuh, kunci lanskap, dan ketukan responsif](0022-layar-penuh-lanskap.md)                                          | Accepted     | Game, aksesibilitas   |
-| 0023 | [Tombol aksi sentuh tetap hidup tanpa sasaran](0023-tombol-aksi-tanpa-sasaran.md)                                         | Accepted     | Game, aksesibilitas   |
-| 0024 | [Tombol Bicara dan kontrol yang hilang saat dialog](0024-tombol-bicara-dan-kontrol-saat-dialog.md)                        | Accepted     | Game, aksesibilitas   |
-| 0025 | [Jangkauan interaksi luas, menu jeda bergulir, dan bar HUD potret](0025-jangkauan-interaksi-dan-bar-hud-potret.md)        | Accepted     | Game, aksesibilitas   |
-| 0026 | [Desain HUD seragam dengan kotak dialog dan tombol Bicara menjauh dari tepi](0026-desain-hud-dan-tombol-bicara.md)        | Accepted     | Game, aksesibilitas   |
-| 0027 | [Desain tantangan seragam dengan kotak dialog dan penunjuk pilihan yang presisi](0027-desain-tantangan-seragam-dialog.md) | Accepted     | Game, aksesibilitas   |
-| 0028 | [Warna UI selaras dengan penanda quest dan penunjuk tangan SVG](0028-warna-ui-selaras-penanda-quest.md)                   | Accepted     | Game, aksesibilitas   |
+| 0020 | [Kutipan jawaban siswa di dialog](0020-kutipan-jawaban-siswa-di-dialog.md)                                                | Accepted     | AI, validator, cerita |
+| 0021 | [Varian dialog per jawaban salah](0021-varian-dialog-per-jawaban-salah.md)                                                | Accepted     | AI, validator, cerita |
+| 0022 | [Pemain mengucapkan jawabannya di dialog](0022-pemain-mengucapkan-jawaban-di-dialog.md)                                   | Accepted     | AI, game, cerita      |
+| 0023 | [Potret berekspresi ala Persona](0023-potret-ekspresi-persona.md)                                                         | Accepted     | Game, aset, cerita    |
+| 0024 | [Kontrol sentuh dan tata letak HP](0024-kontrol-sentuh-hp.md)                                                             | Accepted     | Game, aksesibilitas   |
+| 0025 | [Layar penuh, kunci lanskap, dan ketukan responsif](0025-layar-penuh-lanskap.md)                                          | Accepted     | Game, aksesibilitas   |
+| 0026 | [Tombol aksi sentuh tetap hidup tanpa sasaran](0026-tombol-aksi-tanpa-sasaran.md)                                         | Accepted     | Game, aksesibilitas   |
+| 0027 | [Tombol Bicara dan kontrol yang hilang saat dialog](0027-tombol-bicara-dan-kontrol-saat-dialog.md)                        | Accepted     | Game, aksesibilitas   |
+| 0028 | [Jangkauan interaksi luas, menu jeda bergulir, dan bar HUD potret](0028-jangkauan-interaksi-dan-bar-hud-potret.md)        | Accepted     | Game, aksesibilitas   |
+| 0029 | [Desain HUD seragam dengan kotak dialog dan tombol Bicara menjauh dari tepi](0029-desain-hud-dan-tombol-bicara.md)        | Accepted     | Game, aksesibilitas   |
+| 0030 | [Desain tantangan seragam dengan kotak dialog dan penunjuk pilihan yang presisi](0030-desain-tantangan-seragam-dialog.md) | Accepted     | Game, aksesibilitas   |
+| 0031 | [Warna UI selaras dengan penanda quest dan penunjuk tangan SVG](0031-warna-ui-selaras-penanda-quest.md)                   | Accepted     | Game, aksesibilitas   |
 
 ## Status
 

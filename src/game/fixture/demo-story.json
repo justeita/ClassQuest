@@ -2,12 +2,12 @@
   "schemaVersion": "1.0",
   "meta": {
     "id": "st_demo_pesta_panen",
-    "title": "Pesta Panen Desa",
+    "title": "Pesta Panen Desa Sukamaju",
     "subject": "Matematika",
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat, riang, dan gotong royong",
-    "synopsis": "Nara membantu warga Desa Sukamaju menyiapkan Pesta Panen. Dari dapur Bu Sri sampai lumbung Pak Joko, ia memakai perbandingan, pecahan, persentase, rata-rata, dan diagram data agar pesta berjalan adil dan meriah.",
+    "synopsis": "Kael membantu warga Desa Sukamaju menyiapkan Pesta Panen. Dari balai desa sampai tepi sungai, ia memakai perbandingan, pecahan, persentase, rata-rata, dan diagram data agar pesta berjalan adil dan meriah.",
     "estimatedMinutes": 30
   },
   "source": {
@@ -25,123 +25,123 @@
   "cast": [
     {
       "id": "char_mc",
-      "name": "Nara",
+      "name": "Kael",
       "role": "player",
       "spriteId": "char_mc",
-      "description": "Siswa SMP yang senang membantu warga desa dan tidak takut berhitung."
+      "description": "Pemuda berjubah biru navy berhias emas dan tunik putih gading; tenang, pendiam, sederhana, dan penuh rasa ingin tahu."
     },
     {
       "id": "char_npc_10",
-      "name": "Pak Wira",
+      "name": "Edric",
       "role": "mentor",
       "spriteId": "char_npc_10",
-      "description": "Kepala desa yang tenang dan percaya bahwa matematika membuat keputusan lebih adil.",
-      "smallTalk": "Semua keputusan desa dimulai dari catatan yang rapi. Kalau angkanya jujur, hasilnya juga adil."
+      "description": "Tetua desa berambut putih keperakan bermantel hijau tua berornamen emas; bijaksana, tenang, dan berwibawa.",
+      "smallTalk": "Desa ini tumbuh karena warganya saling mendengar. Setiap keputusan sebaiknya ditimbang dengan tenang, bukan tergesa-gesa."
     },
     {
       "id": "char_npc_1",
-      "name": "Bu Sri",
+      "name": "Elian",
       "role": "npc",
       "spriteId": "char_npc_1",
-      "description": "Juru masak pesta yang hafal semua resep kue desa.",
-      "smallTalk": "Dapur ini selalu wangi kayu manis. Kalau laparmu datang, cicipi dulu satu kue kecil, ya."
+      "description": "Pelajar akademi bertopi biru tua berpita emas yang membawa buku sihir; pendiam, lembut, dan gemar membaca.",
+      "smallTalk": "Buku ini lebih ramai daripada aku. Kalau kau ingin tahu sesuatu, biasanya jawabannya ada di halaman-halamannya."
     },
     {
       "id": "char_npc_3",
-      "name": "Pak Darto",
+      "name": "Elias",
       "role": "npc",
       "spriteId": "char_npc_3",
-      "description": "Petani yang mencatat setiap hasil panen di buku lusuhnya.",
-      "smallTalk": "Tanah tidak pernah bohong. Yang perlu kita rapikan cuma cara mencatat hasilnya."
+      "description": "Pelajar akademi berkacamata persegi yang selalu membawa buku tebal bersampul hijau tua; tenang dan teliti.",
+      "smallTalk": "Aku suka mencatat hal-hal kecil. Kadang dari catatan yang paling sederhana, kita baru mengerti sesuatu yang besar."
     },
     {
       "id": "char_npc_4",
-      "name": "Bu Lastri",
+      "name": "Clara",
       "role": "npc",
       "spriteId": "char_npc_4",
-      "description": "Pembuat kue yang teliti saat membagi porsi untuk tamu.",
-      "smallTalk": "Membagi kue itu latihan pecahan paling menyenangkan. Semua kebagian, tidak ada yang lebih."
+      "description": "Pelajar akademi berjubah biru royal dengan dua pita besar dan buku bersampul cokelat tua; lembut dan tekun.",
+      "smallTalk": "Aku suka membaca pelan-pelan supaya tidak ada yang terlewat. Satu halaman kadang perlu dibaca dua kali agar benar-benar paham."
     },
     {
       "id": "char_npc_5",
-      "name": "Pak Joko",
+      "name": "Griselda",
       "role": "npc",
       "spriteId": "char_npc_5",
-      "description": "Penjaga lumbung yang rajin menimbang hasil panen.",
-      "smallTalk": "Timbangan ini setia menemaniku sejak muda. Beratnya berapa pun, ya harus ditulis apa adanya."
+      "description": "Tetua desa berambut putih tersanggul dan berjubah marun bertongkat kayu; bijaksana, ramah, dan penyayang.",
+      "smallTalk": "Setiap orang punya waktunya sendiri untuk belajar. Yang penting jangan berhenti bertanya, walau sudah setua aku."
     },
     {
       "id": "char_npc_6",
-      "name": "Kak Nia",
+      "name": "Eldric",
       "role": "npc",
       "spriteId": "char_npc_6",
-      "description": "Pemuda panitia pesta yang mengurus stan dan harga.",
-      "smallTalk": "Harga di papan harus pas. Salah sedikit saja, pembeli bisa bingung dan pesta jadi ribut."
+      "description": "Tetua desa berjanggut putih lebat berjubah hijau tua dan bertongkat kayu; bijaksana, tenang, dan ramah.",
+      "smallTalk": "Desa ini menyimpan banyak cerita yang tidak tertulis di mana pun. Kalau kau punya waktu, aku bisa menceritakan beberapa."
     },
     {
       "id": "char_npc_7",
-      "name": "Mbah Karto",
+      "name": "Marlow",
       "role": "npc",
       "spriteId": "char_npc_7",
-      "description": "Sesepuh desa yang hafal cerita setiap musim panen.",
-      "smallTalk": "Setiap musim panen punya ceritanya sendiri. Dari yang paling ramai sampai yang gagal, aku ingat semua."
+      "description": "Pemancing bertopi jerami bermata cokelat dan biru yang membawa joran serta keranjang tangkapan; ramah dan santai.",
+      "smallTalk": "Sungai mengajarkan kesabaran. Kadang ikan datang cepat, kadang kita cuma perlu menunggu lebih lama."
     },
     {
       "id": "char_npc_8",
-      "name": "Bu Ratna",
+      "name": "Leonhardt",
       "role": "npc",
       "spriteId": "char_npc_8",
-      "description": "Guru desa yang membantu menulis laporan panen.",
-      "smallTalk": "Laporan yang baik bukan yang paling panjang, tapi yang angkanya bisa dipercaya."
+      "description": "Calon kesatria berhelm baja perak dengan tunik biru dan armor kulit cokelat; tenang, sopan, dan pemberani.",
+      "smallTalk": "Aku masih belajar banyak hal, tapi aku berjanji akan melindungi desa ini dengan sebaik-baiknya."
     },
     {
       "id": "char_npc_9",
-      "name": "Dewi",
+      "name": "Theo",
       "role": "npc",
       "spriteId": "char_npc_9",
-      "description": "Teman Nara yang senang menata piring dan membuat papan pengumuman.",
-      "smallTalk": "Aku suka menata piring. Setiap potongan punya tempatnya supaya meja pesta terlihat rapi."
+      "description": "Petani muda bertopi jerami dan overall cokelat tua; ramah, pekerja keras, dan menyukai kehidupan desa.",
+      "smallTalk": "Kerja di ladang memang melelahkan, tapi aku suka melihat hasilnya tumbuh sedikit demi sedikit."
     }
   ],
   "chapters": [
     {
       "id": "ch_01",
-      "title": "Pagi di Dapur Pesta",
+      "title": "Tinta untuk Spanduk Pesta",
       "concept": "Perbandingan",
-      "summary": "Pagi hari di Desa Sukamaju, Nara membantu Bu Sri menyiapkan kue untuk Pesta Panen. Ia belajar menjaga perbandingan bahan agar rasa kue tetap sama meski resepnya diperbesar.",
+      "summary": "Pagi di balai desa, Kael membantu Elian mencampur tinta hias untuk spanduk Pesta Panen. Ia belajar menjaga perbandingan warna agar hasilnya tetap sama meski adonannya diperbesar.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_01_01",
-          "title": "Aroma dari Dapur Bu Sri",
+          "title": "Balai Desa yang Ramai",
           "beats": [
             {
               "type": "narration",
-              "text": "Matahari baru muncul di balik perbukitan Desa Sukamaju. Asap tipis mengepul dari dapur warga, dan balai desa sudah dihiasi janur kuning."
+              "text": "Matahari baru naik di balik perbukitan Desa Sukamaju. Bau tanah basah bercampur wangi janur kuning yang dipasang warga di balai desa."
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_1",
-              "text": "Nara! Tepat waktu. Hari ini kita memasak untuk Pesta Panen. Banyak resep harus dibagi rata.",
+              "text": "Kael! Tepat waktu. Spanduk pesta belum selesai, dan aku butuh bantuan menakar tinta.",
               "expression": "happy"
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Aku siap membantu, Bu. Apa yang harus kuhitung lebih dulu?",
+              "text": "Aku siap membantu, Elian. Apa yang harus kuhitung lebih dulu?",
               "expression": "happy"
-            },
-            {
-              "type": "dialogue",
-              "speakerId": "char_npc_1",
-              "text": "Resep kue pisang memakai tiga bagian tepung dan dua bagian gula. Kita akan membuat tiga kali resep."
             },
             {
               "type": "narration",
-              "speakerId": "char_mc",
-              "text": "Nara mengangguk sambil mengeluarkan buku catatan kecil dari kantong celemeknya.",
+              "speakerId": "char_npc_1",
+              "text": "Elian membuka buku sihirnya. Di halaman yang lusuh, sebuah resep tinta tertulis rapi dengan angka-angka kecil.",
               "expression": "thinking"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_1",
+              "text": "Resepnya mudah: tiga bagian tinta biru untuk dua bagian tinta emas. Hari ini spanduknya harus dibuat tiga kali lipat."
             }
           ]
         },
@@ -152,26 +152,83 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_10",
-              "text": "Sebelum mulai, ayo pastikan takarannya benar. Salah takaran, kue pesta bisa gagal.",
+              "text": "Sebelum mulai, pastikan takarannya benar. Salah sedikit, warna spanduk bisa pucat dan pesta jadi kurang meriah.",
               "expression": "thinking"
             },
             {
               "type": "challenge",
-              "challengeId": "chl_01_01"
-            },
-            {
-              "type": "dialogue",
-              "speakerId": "char_npc_1",
-              "text": "Benar, sembilan cangkir tepung butuh enam cangkir gula. Kamu sudah paham perbandingan."
-            },
-            {
-              "type": "narration",
-              "text": "Nara menuang bahan dengan hati-hati. Aroma kue mulai memenuhi dapur."
+              "challengeId": "chl_01_01",
+              "onWrong": {
+                "setFlags": {
+                  "flg_salah_tinta": true
+                }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Jadi selama perbandingannya tetap, rasa kue juga tetap enak."
+              "text": "Jawabanku enam cangkir.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "4 cangkir"
+                  },
+                  "text": "Jawabanku empat cangkir."
+                },
+                {
+                  "when": {
+                    "jawaban": "12 cangkir"
+                  },
+                  "text": "Jawabanku dua belas cangkir."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_tinta",
+                    "is": true
+                  },
+                  "text": "Tadi aku menjawab {{jawaban}}."
+                }
+              ]
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_1",
+              "text": "Tepat, enam cangkir. Sembilan dibagi tiga itu tiga, lalu dikali dua. Kau sudah paham perbandingan.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "4 cangkir"
+                  },
+                  "text": "Empat cangkir? Masih kurang. Sembilan dibagi tiga itu tiga, lalu dikali dua."
+                },
+                {
+                  "when": {
+                    "jawaban": "12 cangkir"
+                  },
+                  "text": "Dua belas cangkir? Kebanyakan. Sembilan dibagi tiga itu tiga, lalu dikali dua."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_tinta",
+                    "is": true
+                  },
+                  "text": "Belum tepat. Sembilan dibagi tiga itu tiga, lalu dikali dua."
+                }
+              ]
+            },
+            {
+              "type": "narration",
+              "text": "Kael menuang tinta dengan hati-hati. Biru dan emas perlahan melebur di atas palet kayu."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Jadi selama perbandingannya tetap, warnanya juga tetap sama, ya?"
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_10",
+              "text": "Tepat. Perbandingan menjaga hasil tetap sama, berapa pun besar adonannya."
             }
           ]
         }
@@ -179,77 +236,146 @@
     },
     {
       "id": "ch_02",
-      "title": "Kue untuk Semua",
+      "title": "Petak-Petak di Ladang Theo",
       "concept": "Pecahan",
-      "summary": "Kue sudah matang dan meja pesta harus segera ditata. Nara bersama Bu Lastri membagi loyang serta memotong kue menjadi bagian-bagian yang mudah dibandingkan.",
+      "summary": "Menjelang siang, Theo menunjukkan ladangnya yang akan dibagi untuk kebun pesta. Kael membantunya membagi petak dengan adil dan berurutan.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_02_01",
-          "title": "Meja yang Harus Dibagi",
+          "title": "Ladang yang Harus Dibagi",
           "beats": [
             {
               "type": "dialogue",
-              "speakerId": "char_npc_4",
-              "text": "Kue sudah matang. Sekarang kita harus membaginya untuk meja-meja pesta."
+              "speakerId": "char_npc_9",
+              "text": "Kael, ladang ini akan kita pakai untuk kebun pesta. Aku bingung membaginya supaya adil."
             },
             {
               "type": "narration",
-              "text": "Di meja panjang ada empat loyang kue yang sama besar. Bu Lastri mengambil dua loyang untuk meja tamu."
+              "text": "Di depan mereka terbentang ladang hijau. Theo menancapkan empat patok kayu, lalu menunjuk papan kecil di tanah."
             },
             {
               "type": "challenge",
-              "challengeId": "chl_02_01"
+              "challengeId": "chl_02_01",
+              "maxAttempts": 2,
+              "onWrong": {
+                "setFlags": {
+                  "flg_salah_petak": true
+                },
+                "retryQuestions": [
+                  "Coba lagi. Dua per empat itu sama saja dengan berapa bagian dari seluruh ladang?"
+                ],
+                "detour": [
+                  {
+                    "type": "narration",
+                    "text": "Kael menatap keempat patok sekali lagi dan menghitung ulang dengan tenang."
+                  },
+                  {
+                    "type": "dialogue",
+                    "speakerId": "char_npc_9",
+                    "text": "Kau menjawab {{jawaban}}. Tidak apa-apa, pelan-pelan saja. Ladangnya tidak akan lari ke mana."
+                  }
+                ]
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Dua dari empat loyang sama saja dengan setengah dari seluruh kue."
+              "text": "Jawabanku benar.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "Salah"
+                  },
+                  "text": "Jawabanku salah."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_petak",
+                    "is": true
+                  },
+                  "text": "Tadi aku menjawab {{jawaban}}."
+                }
+              ]
             },
             {
               "type": "dialogue",
-              "speakerId": "char_npc_4",
-              "text": "Tepat. Sekarang bantu aku memotong bagian yang lebih kecil."
-            },
-            {
-              "type": "narration",
-              "text": "Bu Lastri menunjuk empat potongan kue dengan ukuran berbeda."
+              "speakerId": "char_npc_9",
+              "text": "Tepat! Berarti setiap petak kebagian sama banyak. Aku suka cara berpikirmu.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "Salah"
+                  },
+                  "text": "Belum tepat. Dua per empat itu sama dengan setengah, jadi pernyataannya benar."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_petak",
+                    "is": true
+                  },
+                  "text": "Belum tepat. Dua per empat itu sama dengan setengah, jadi pernyataannya benar."
+                }
+              ]
             }
           ]
         },
         {
           "id": "sc_02_02",
-          "title": "Potongan dari Kecil ke Besar",
+          "title": "Patok dari Kecil ke Besar",
           "beats": [
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Nara, piring tamu masih kosong! Kita harus menyusun potongan kue ini dengan rapi.",
-              "expression": "shocked"
+              "text": "Sekarang kita beri nama patok sesuai ukuran petak, dari yang paling kecil.",
+              "expression": "thinking"
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Potongan ini berbeda-beda. Aku urutkan dulu supaya tamu tidak bingung."
+              "text": "Ukurannya berbeda-beda. Aku urutkan dulu supaya tidak ada yang tertukar."
             },
             {
               "type": "challenge",
-              "challengeId": "chl_02_02"
+              "challengeId": "chl_02_02",
+              "onWrong": {
+                "setFlags": {
+                  "flg_salah_patok": true
+                }
+              }
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Susunanku: 1/4, 1/3, 1/2, lalu 3/4.",
+              "textVariants": [
+                {
+                  "when": {
+                    "flag": "flg_salah_patok",
+                    "is": true
+                  },
+                  "text": "Susunanku: {{jawaban}}."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Bagus! Mulai dari yang paling kecil, lalu ke yang paling besar."
+              "text": "Bagus! Mulai dari yang paling kecil, lalu ke yang paling besar.",
+              "textVariants": [
+                {
+                  "when": {
+                    "flag": "flg_salah_patok",
+                    "is": true
+                  },
+                  "text": "Belum tepat. Yang benar: 1/4, 1/3, 1/2, lalu 3/4. Makin besar penyebut, makin kecil potongannya."
+                }
+              ]
             },
             {
               "type": "narration",
-              "text": "Nara menyusun potongan kue di piring dengan rapi, dari seperempat sampai tiga perempat."
-            },
-            {
-              "type": "dialogue",
-              "speakerId": "char_mc",
-              "text": "Sekarang semua piring punya ukuran yang mudah dibandingkan."
+              "text": "Kael menancapkan patok di setiap petak, dari seperempat sampai tiga perempat bagian."
             }
           ]
         }
@@ -257,24 +383,29 @@
     },
     {
       "id": "ch_03",
-      "title": "Keranjang di Pasar Desa",
+      "title": "Hasil Tangkapan Marlow",
       "concept": "Persentase",
-      "summary": "Hasil panen mulai dijual di pasar desa. Nara membantu Pak Joko menghitung bagian untuk balai desa dan Kak Nia memasang harga diskon untuk pengunjung pesta.",
+      "summary": "Siang di tepi sungai, Marlow membawa tangkapan yang melimpah. Kael membantu Griselda menghitung bagian untuk balai desa dan Eldric menetapkan harga pasar pesta.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_03_01",
-          "title": "Jeruk untuk Balai Desa",
+          "title": "Ikan untuk Balai Desa",
           "beats": [
             {
               "type": "dialogue",
+              "speakerId": "char_npc_7",
+              "text": "Panen hari ini melimpah! Keranjangku sampai penuh, padahal sungai baru saja surut."
+            },
+            {
+              "type": "dialogue",
               "speakerId": "char_npc_5",
-              "text": "Panen hari ini melimpah. Sebagian hasil harus disisihkan untuk balai desa."
+              "text": "Hasil sungai juga rezeki desa. Sebagian sebaiknya disisihkan untuk balai desa."
             },
             {
               "type": "narration",
-              "text": "Karung jeruk ditimbang satu per satu. Totalnya lima puluh kilogram."
+              "text": "Keranjang ikan ditimbang satu per satu di atas meja kayu. Totalnya lima puluh kilogram."
             },
             {
               "type": "dialogue",
@@ -283,50 +414,126 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_03_01"
+              "challengeId": "chl_03_01",
+              "onWrong": {
+                "setFlags": {
+                  "flg_salah_persen": true
+                }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Dua puluh persen. Cukup besar untuk membantu warga."
+              "text": "Jawabanku dua puluh persen.",
+              "textVariants": [
+                {
+                  "when": {
+                    "flag": "flg_salah_persen",
+                    "is": true
+                  },
+                  "text": "Jawabanku {{jawaban}}."
+                }
+              ]
             },
             {
-              "type": "narration",
-              "text": "Pak Joko mencatat angka itu di papan kecil dekat timbangan."
+              "type": "dialogue",
+              "speakerId": "char_npc_5",
+              "text": "Bagus sekali. Angka yang jujur membuat pembagian terasa adil untuk semua.",
+              "textVariants": [
+                {
+                  "when": {
+                    "flag": "flg_salah_persen",
+                    "is": true
+                  },
+                  "text": "Bukan itu. Sepuluh dari lima puluh itu dua puluh persen, Nak."
+                }
+              ]
             }
           ]
         },
         {
           "id": "sc_03_02",
-          "title": "Diskon di Stan Sayur",
+          "title": "Harga di Pasar Pesta",
           "beats": [
             {
               "type": "dialogue",
               "speakerId": "char_npc_6",
-              "text": "Stan sayur sudah dibuka! Tapi papan harganya masih kosong."
+              "text": "Stan ikan di pasar pesta sudah dibuka, tapi papan harga masih kosong."
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_6",
-              "text": "Satu ikat sayur harganya delapan ribu rupiah. Kita beri diskon dua puluh lima persen untuk pesta."
+              "text": "Satu keranjang kecil harganya delapan ribu rupiah. Kita beri potongan dua puluh lima persen supaya warga senang."
             },
             {
               "type": "challenge",
-              "challengeId": "chl_03_02"
+              "challengeId": "chl_03_02",
+              "onWrong": {
+                "setFlags": {
+                  "flg_salah_harga": true
+                }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Berarti harganya turun dua ribu, jadi enam ribu rupiah."
-            },
-            {
-              "type": "narration",
-              "text": "Kak Nia menulis harga baru di papan dengan kapur warna-warni."
+              "text": "Harga akhirnya Rp6.000.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "Rp2.000"
+                  },
+                  "text": "Harga akhirnya Rp2.000."
+                },
+                {
+                  "when": {
+                    "jawaban": "Rp7.500"
+                  },
+                  "text": "Harga akhirnya Rp7.500."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_harga",
+                    "is": true
+                  },
+                  "text": "Aku tadi menjawab {{jawaban}}."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_6",
-              "text": "Pembeli pasti senang. Hitunganmu cepat sekali!"
+              "text": "Benar, Rp6.000. Potongannya Rp2.000.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "Rp2.000"
+                  },
+                  "text": "Itu justru potongannya. Harga akhirnya jadinya Rp6.000."
+                },
+                {
+                  "when": {
+                    "jawaban": "Rp7.500"
+                  },
+                  "text": "Dua puluh lima persen dari delapan ribu itu Rp2.000. Harga akhirnya Rp6.000."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_harga",
+                    "is": true
+                  },
+                  "text": "Belum tepat. Potongannya dua puluh lima persen, jadi harga akhirnya Rp6.000."
+                }
+              ]
+            },
+            {
+              "type": "narration",
+              "text": "Eldric menulis harga baru di papan dengan kapur putih, lalu mengangguk puas."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_6",
+              "text": "Papan harga jadi jelas dan tidak ada yang bertanya-tanya."
             }
           ]
         }
@@ -334,42 +541,83 @@
     },
     {
       "id": "ch_04",
-      "title": "Timbangan di Lumbung",
+      "title": "Catatan di Lumbung",
       "concept": "Rata-rata",
-      "summary": "Menjelang sore, hasil panen masuk ke lumbung desa. Nara membantu Mbah Karto dan Bu Ratna menghitung rata-rata panen supaya laporan desa adil dan mudah dibaca.",
+      "summary": "Menjelang sore, hasil kebun dan sungai masuk ke lumbung desa. Kael membantu Theo dan Leonhardt menghitung rata-rata agar catatan desa adil dan mudah dibaca.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_04_01",
-          "title": "Empat Keranjang Mbah Karto",
+          "title": "Empat Keranjang Theo",
           "beats": [
             {
               "type": "dialogue",
-              "speakerId": "char_npc_7",
-              "text": "Lumbung desa harus tahu berapa banyak panen yang masuk hari ini."
+              "speakerId": "char_npc_9",
+              "text": "Lumbung harus tahu berapa banyak hasil kebun yang masuk hari ini."
             },
             {
               "type": "narration",
-              "text": "Mbah Karto meletakkan empat keranjang kecil di atas meja. Beratnya empat, enam, delapan, dan sepuluh kilogram."
+              "text": "Theo meletakkan empat keranjang kecil di atas meja. Beratnya empat, enam, delapan, dan sepuluh kilogram."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_8",
+              "text": "Catatannya harus rapi. Rata-rata membantu kita melihat gambaran besarnya."
             },
             {
               "type": "challenge",
-              "challengeId": "chl_04_01"
+              "challengeId": "chl_04_01",
+              "onWrong": {
+                "setFlags": {
+                  "flg_salah_rata": true
+                }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Jumlahnya dua puluh delapan. Dibagi empat, rata-ratanya tujuh kilogram."
+              "text": "Pernyataan itu salah.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "Benar"
+                  },
+                  "text": "Pernyataan itu benar."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_rata",
+                    "is": true
+                  },
+                  "text": "Aku tadi menjawab {{jawaban}}."
+                }
+              ]
             },
             {
               "type": "dialogue",
-              "speakerId": "char_npc_7",
-              "text": "Tepat sekali. Rata-rata membantu kita melihat gambaran besarnya."
+              "speakerId": "char_npc_9",
+              "text": "Tepat sekali! Rata-ratanya tujuh kilogram, bukan enam.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "Benar"
+                  },
+                  "text": "Pernyataan tadi memang salah. Dua puluh delapan dibagi empat itu tujuh, bukan enam."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_rata",
+                    "is": true
+                  },
+                  "text": "Belum tepat. Jumlahnya dua puluh delapan, dibagi empat jadi tujuh kilogram."
+                }
+              ]
             },
             {
-              "type": "narration",
-              "text": "Mbah Karto mengangguk pelan sambil menutup buku catatan lumbung."
+              "type": "dialogue",
+              "speakerId": "char_mc",
+              "text": "Aku jadi tahu berapa yang biasanya masuk setiap hari."
             }
           ]
         },
@@ -380,30 +628,53 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_8",
-              "text": "Nara, boleh bantu aku? Catatan panen lima petak di lereng ini belum dijumlah."
+              "text": "Kael, boleh bantu aku? Catatan hasil kebun lima petak di lereng ini belum dijumlah."
             },
             {
               "type": "narration",
-              "text": "Di kertas Bu Ratna tertulis angka dua belas, lima belas, sembilan, empat belas, dan sepuluh kilogram."
+              "text": "Di kertas Leonhardt tertulis angka dua belas, lima belas, sembilan, empat belas, dan sepuluh kilogram."
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_8",
-              "text": "Kita perlu rata-ratanya untuk laporan ke kecamatan."
+              "text": "Kita perlu rata-ratanya untuk laporan ke balai desa."
             },
             {
               "type": "challenge",
-              "challengeId": "chl_04_02"
+              "challengeId": "chl_04_02",
+              "onWrong": {
+                "setFlags": {
+                  "flg_salah_lereng": true
+                }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Totalnya enam puluh kilogram. Dibagi lima petak, rata-ratanya dua belas kilogram."
+              "text": "Jawabanku dua belas kilogram.",
+              "textVariants": [
+                {
+                  "when": {
+                    "flag": "flg_salah_lereng",
+                    "is": true
+                  },
+                  "text": "Jawabanku {{jawaban}}."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_8",
-              "text": "Terima kasih! Laporan kita jadi rapi dan jujur."
+              "text": "Terima kasih! Laporan kita jadi rapi dan bisa dipercaya.",
+              "textVariants": [
+                {
+                  "when": {
+                    "flag": "flg_salah_lereng",
+                    "is": true
+                  },
+                  "text": "Bukan itu. Totalnya enam puluh, dibagi lima petak jadi dua belas kilogram."
+                }
+              ]
             }
           ]
         }
@@ -413,40 +684,64 @@
       "id": "ch_05",
       "title": "Papan Data di Panggung",
       "concept": "Diagram data",
-      "summary": "Malam pesta tiba. Nara dan Pak Darto merapikan papan diagram hasil panen, lalu Pak Wira menutup pesta dengan pesan bahwa data yang jujur membuat keputusan desa lebih baik.",
+      "summary": "Malam pesta tiba. Kael, Elias, dan Clara merapikan papan diagram hasil desa, lalu Edric menutup pesta dengan pesan bahwa data yang jujur membuat keputusan desa lebih baik.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
         {
           "id": "sc_05_01",
-          "title": "Papan Hasil Panen",
+          "title": "Papan Hasil Desa",
           "beats": [
             {
               "type": "dialogue",
               "speakerId": "char_npc_3",
-              "text": "Papan diagram hasil panen masih berantakan. Ayo kita urutkan sebelum panggung dibuka."
+              "text": "Papan diagram hasil desa masih berantakan. Ayo kita urutkan sebelum panggung dibuka."
+            },
+            {
+              "type": "dialogue",
+              "speakerId": "char_npc_4",
+              "text": "Aku sudah menulis angkanya. Tinggal menyusun batangnya dari yang paling pendek."
             },
             {
               "type": "narration",
-              "text": "Empat batang kayu menunjukkan hasil panen: padi empat puluh kilogram, kacang lima belas kilogram, ubi tiga puluh kilogram, dan jagung dua puluh lima kilogram."
+              "text": "Empat batang kayu menunjukkan hasil desa: padi empat puluh kilogram, kacang lima belas kilogram, ubi tiga puluh kilogram, dan jagung dua puluh lima kilogram."
             },
             {
               "type": "challenge",
-              "challengeId": "chl_05_01"
+              "challengeId": "chl_05_01",
+              "onWrong": {
+                "setFlags": {
+                  "flg_salah_diagram": true
+                }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Kalau diurutkan dari yang paling sedikit: kacang, jagung, ubi, lalu padi."
+              "text": "Susunanku: kacang, jagung, ubi, lalu padi.",
+              "textVariants": [
+                {
+                  "when": {
+                    "flag": "flg_salah_diagram",
+                    "is": true
+                  },
+                  "text": "Susunanku: {{jawaban}}."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_3",
-              "text": "Sekarang diagramnya mudah dibaca. Warga tidak perlu menebak-nebak."
-            },
-            {
-              "type": "narration",
-              "text": "Mereka memasang papan itu di dekat gerbang pesta."
+              "text": "Sekarang diagramnya mudah dibaca. Warga tidak perlu menebak-nebak.",
+              "textVariants": [
+                {
+                  "when": {
+                    "flag": "flg_salah_diagram",
+                    "is": true
+                  },
+                  "text": "Belum tepat. Urutannya kacang, jagung, ubi, lalu padi."
+                }
+              ]
             }
           ]
         },
@@ -457,7 +752,7 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_10",
-              "text": "Pesta hampir selesai. Aku ingin memastikan catatan panen kita benar."
+              "text": "Pesta hampir selesai. Aku ingin memastikan catatan hasil desa kita benar."
             },
             {
               "type": "narration",
@@ -465,17 +760,64 @@
             },
             {
               "type": "challenge",
-              "challengeId": "chl_05_02"
+              "challengeId": "chl_05_02",
+              "onWrong": {
+                "setFlags": {
+                  "flg_salah_selisih": true
+                }
+              }
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Selisih padi dan kacang dua puluh lima kilogram, Pak."
+              "text": "Selisihnya 25 kg, Edric.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "15 kg"
+                  },
+                  "text": "Selisihnya 15 kg, Edric."
+                },
+                {
+                  "when": {
+                    "jawaban": "55 kg"
+                  },
+                  "text": "Selisihnya 55 kg, Edric."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_selisih",
+                    "is": true
+                  },
+                  "text": "Aku tadi menjawab {{jawaban}}."
+                }
+              ]
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_10",
-              "text": "Benar. Matematika membuat cerita desa kita bisa dipercaya."
+              "text": "Benar, 25 kg. Angka yang jujur membuat cerita desa kita bisa dipercaya.",
+              "textVariants": [
+                {
+                  "when": {
+                    "jawaban": "15 kg"
+                  },
+                  "text": "Itu berat kacangnya. Padi empat puluh dikurangi lima belas, jadi 25 kg."
+                },
+                {
+                  "when": {
+                    "jawaban": "55 kg"
+                  },
+                  "text": "Itu hasil menjumlah. Selisih berarti dikurangi: empat puluh kurang lima belas."
+                },
+                {
+                  "when": {
+                    "flag": "flg_salah_selisih",
+                    "is": true
+                  },
+                  "text": "Belum tepat. Selisihnya empat puluh dikurangi lima belas, jadi 25 kg."
+                }
+              ]
             },
             {
               "type": "narration",
@@ -495,15 +837,28 @@
     {
       "id": "chl_01_01",
       "type": "multiple_choice",
-      "prompt": "Resep kue pisang memakai 3 bagian tepung dan 2 bagian gula. Jika Bu Sri memakai 9 cangkir tepung, berapa cangkir gula yang dibutuhkan?",
+      "prompt": "Resep tinta pesta memakai 3 bagian tinta biru dan 2 bagian tinta emas. Jika Elian memakai 9 cangkir tinta biru, berapa cangkir tinta emas yang dibutuhkan?",
       "conceptTag": "Perbandingan",
       "difficulty": 1,
-      "explanation": "Perbandingan tepung dan gula adalah 3 : 2. Karena tepung dikali tiga menjadi 9 cangkir, gula juga dikali tiga menjadi 6 cangkir.",
+      "explanation": "Perbandingan tinta biru dan emas adalah 3 : 2. Karena tinta biru dikali tiga menjadi 9 cangkir, tinta emas juga dikali tiga menjadi 6 cangkir.",
+      "hints": [
+        "Bandingkan 3 bagian biru dengan 9 cangkir biru.",
+        "Kalau biru dikali tiga, emas juga dikali tiga."
+      ],
       "points": 10,
       "options": [
-        { "id": "opt_a", "text": "6 cangkir" },
-        { "id": "opt_b", "text": "4 cangkir" },
-        { "id": "opt_c", "text": "12 cangkir" }
+        {
+          "id": "opt_a",
+          "text": "6 cangkir"
+        },
+        {
+          "id": "opt_b",
+          "text": "4 cangkir"
+        },
+        {
+          "id": "opt_c",
+          "text": "12 cangkir"
+        }
       ],
       "correctOptionId": "opt_a"
     },
@@ -511,26 +866,44 @@
       "id": "chl_02_01",
       "type": "true_false",
       "prompt": "Tentukan benar atau salah pernyataan berikut.",
-      "statement": "Dua per empat bagian kue sama besar dengan setengah bagian kue.",
+      "statement": "Dua per empat bagian ladang sama besar dengan setengah bagian ladang.",
       "conceptTag": "Pecahan",
       "difficulty": 2,
       "explanation": "Pecahan 2/4 dapat disederhanakan menjadi 1/2, jadi keduanya menunjukkan bagian yang sama besar.",
+      "hints": [
+        "Sederhanakan 2/4 dengan membagi atas dan bawah dengan angka yang sama."
+      ],
       "points": 10,
       "correctAnswer": true
     },
     {
       "id": "chl_02_02",
       "type": "ordering",
-      "prompt": "Urutkan potongan kue dari yang paling kecil ke yang paling besar.",
+      "prompt": "Urutkan petak ladang dari yang paling kecil ke yang paling besar.",
       "conceptTag": "Pecahan",
       "difficulty": 2,
       "explanation": "Pada pembilang yang sama, semakin besar penyebut semakin kecil nilainya. Urutan yang benar adalah 1/4, 1/3, 1/2, lalu 3/4.",
+      "hints": [
+        "Bandingkan penyebutnya: penyebut besar berarti potongan kecil."
+      ],
       "points": 15,
       "items": [
-        { "id": "itm_seperempat", "text": "1/4 bagian" },
-        { "id": "itm_sepertiga", "text": "1/3 bagian" },
-        { "id": "itm_setengah", "text": "1/2 bagian" },
-        { "id": "itm_tigaperempat", "text": "3/4 bagian" }
+        {
+          "id": "itm_seperempat",
+          "text": "1/4 bagian"
+        },
+        {
+          "id": "itm_sepertiga",
+          "text": "1/3 bagian"
+        },
+        {
+          "id": "itm_setengah",
+          "text": "1/2 bagian"
+        },
+        {
+          "id": "itm_tigaperempat",
+          "text": "3/4 bagian"
+        }
       ],
       "correctOrder": [
         "itm_seperempat",
@@ -542,10 +915,11 @@
     {
       "id": "chl_03_01",
       "type": "short_answer",
-      "prompt": "Dari 50 kg jeruk panen, 10 kg diberikan ke balai desa. Berapa persen jeruk yang diberikan?",
+      "prompt": "Dari 50 kg ikan hasil tangkapan, 10 kg disisihkan untuk balai desa. Berapa persen ikan yang disisihkan?",
       "conceptTag": "Persentase",
       "difficulty": 2,
       "explanation": "Persentase dihitung dengan membagi bagian dengan keseluruhan lalu dikali 100. Sepuluh dibagi lima puluh sama dengan 0,2 atau 20%.",
+      "hints": ["Bagi 10 dengan 50, lalu kalikan 100."],
       "points": 15,
       "acceptedAnswers": ["20", "20%", "dua puluh persen"],
       "caseSensitive": false
@@ -553,15 +927,25 @@
     {
       "id": "chl_03_02",
       "type": "multiple_choice",
-      "prompt": "Satu ikat sayur harganya Rp8.000. Saat pesta, penjual memberi diskon 25%. Berapa harga sayur setelah diskon?",
+      "prompt": "Satu keranjang ikan harganya Rp8.000. Saat pesta, Eldric memberi potongan 25%. Berapa harga keranjang ikan setelah potongan?",
       "conceptTag": "Persentase",
       "difficulty": 3,
-      "explanation": "Diskon 25% dari Rp8.000 adalah Rp2.000. Harga setelah diskon menjadi Rp8.000 dikurangi Rp2.000, yaitu Rp6.000.",
+      "explanation": "Potongan 25% dari Rp8.000 adalah Rp2.000. Harga setelah potongan menjadi Rp8.000 dikurangi Rp2.000, yaitu Rp6.000.",
+      "hints": ["Hitung 25% dari Rp8.000 lebih dulu."],
       "points": 20,
       "options": [
-        { "id": "opt_a", "text": "Rp6.000" },
-        { "id": "opt_b", "text": "Rp2.000" },
-        { "id": "opt_c", "text": "Rp7.500" }
+        {
+          "id": "opt_a",
+          "text": "Rp6.000"
+        },
+        {
+          "id": "opt_b",
+          "text": "Rp2.000"
+        },
+        {
+          "id": "opt_c",
+          "text": "Rp7.500"
+        }
       ],
       "correctOptionId": "opt_a"
     },
@@ -573,16 +957,20 @@
       "conceptTag": "Rata-rata",
       "difficulty": 2,
       "explanation": "Jumlah keempat data adalah 28. Dibagi banyaknya data, yaitu 4, hasilnya 7 kilogram, bukan 6 kilogram.",
+      "hints": [
+        "Jumlahkan keempat beratnya, lalu bagi dengan banyaknya keranjang."
+      ],
       "points": 10,
       "correctAnswer": false
     },
     {
       "id": "chl_04_02",
       "type": "short_answer",
-      "prompt": "Panen lima petak tercatat 12, 15, 9, 14, dan 10 kg. Berapa rata-rata panen per petak?",
+      "prompt": "Hasil kebun lima petak tercatat 12, 15, 9, 14, dan 10 kg. Berapa rata-rata hasil per petak?",
       "conceptTag": "Rata-rata",
       "difficulty": 3,
-      "explanation": "Jumlah seluruh panen adalah 60 kg. Dibagi lima petak, rata-ratanya 12 kg per petak.",
+      "explanation": "Jumlah seluruh hasil kebun adalah 60 kg. Dibagi lima petak, rata-ratanya 12 kg per petak.",
+      "hints": ["Jumlahkan kelima angka, lalu bagi lima."],
       "points": 20,
       "acceptedAnswers": ["12", "12 kg", "dua belas"],
       "caseSensitive": false
@@ -590,16 +978,29 @@
     {
       "id": "chl_05_01",
       "type": "ordering",
-      "prompt": "Urutkan hasil panen pada diagram dari yang paling sedikit ke paling banyak.",
+      "prompt": "Urutkan hasil desa pada diagram dari yang paling sedikit ke paling banyak.",
       "conceptTag": "Diagram data",
       "difficulty": 3,
       "explanation": "Diagram dibaca dari batang terpendek ke terpanjang: kacang 15 kg, jagung 25 kg, ubi 30 kg, lalu padi 40 kg.",
+      "hints": ["Mulai dari batang yang paling pendek."],
       "points": 20,
       "items": [
-        { "id": "itm_kacang", "text": "Kacang 15 kg" },
-        { "id": "itm_jagung", "text": "Jagung 25 kg" },
-        { "id": "itm_ubi", "text": "Ubi 30 kg" },
-        { "id": "itm_padi", "text": "Padi 40 kg" }
+        {
+          "id": "itm_kacang",
+          "text": "Kacang 15 kg"
+        },
+        {
+          "id": "itm_jagung",
+          "text": "Jagung 25 kg"
+        },
+        {
+          "id": "itm_ubi",
+          "text": "Ubi 30 kg"
+        },
+        {
+          "id": "itm_padi",
+          "text": "Padi 40 kg"
+        }
       ],
       "correctOrder": ["itm_kacang", "itm_jagung", "itm_ubi", "itm_padi"]
     },
@@ -610,13 +1011,61 @@
       "conceptTag": "Diagram data",
       "difficulty": 3,
       "explanation": "Selisih dihitung dengan mengurangkan nilai yang lebih kecil dari yang lebih besar: 40 kg dikurangi 15 kg sama dengan 25 kg.",
+      "hints": ["Kurangkan angka kacang dari angka padi."],
       "points": 20,
       "options": [
-        { "id": "opt_a", "text": "25 kg" },
-        { "id": "opt_b", "text": "15 kg" },
-        { "id": "opt_c", "text": "55 kg" }
+        {
+          "id": "opt_a",
+          "text": "25 kg"
+        },
+        {
+          "id": "opt_b",
+          "text": "15 kg"
+        },
+        {
+          "id": "opt_c",
+          "text": "55 kg"
+        }
       ],
       "correctOptionId": "opt_a"
+    }
+  ],
+  "flags": [
+    {
+      "id": "flg_salah_tinta",
+      "default": false
+    },
+    {
+      "id": "flg_salah_petak",
+      "default": false
+    },
+    {
+      "id": "flg_salah_patok",
+      "default": false
+    },
+    {
+      "id": "flg_salah_persen",
+      "default": false
+    },
+    {
+      "id": "flg_salah_harga",
+      "default": false
+    },
+    {
+      "id": "flg_salah_rata",
+      "default": false
+    },
+    {
+      "id": "flg_salah_lereng",
+      "default": false
+    },
+    {
+      "id": "flg_salah_diagram",
+      "default": false
+    },
+    {
+      "id": "flg_salah_selisih",
+      "default": false
     }
   ],
   "assetUsage": {

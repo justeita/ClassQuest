@@ -474,7 +474,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   /**
    * Konteks tombol aksi sentuh: "Bicara" saat pemain di zona NPC, `null` saat
    * belum ada warga di jangkauan. Tidak ada lagi mode "Lanjut": kontrol sentuh
-   * disembunyikan selama dialog (ADR 0024), dan lanjut dialog dilakukan dengan
+   * disembunyikan selama dialog (ADR 0027), dan lanjut dialog dilakukan dengan
    * mengetuk kotak dialognya.
    */
   const aksiSentuh: AksiSentuh = promptAktif ? "bicara" : null;
@@ -599,7 +599,6 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
                         text:
                           tantangan.type === "true_false" && tantangan.statement
                             ? `${tantangan.prompt}
-
 "${tantangan.statement}"`
                             : tantangan.prompt,
                         waiting: false,

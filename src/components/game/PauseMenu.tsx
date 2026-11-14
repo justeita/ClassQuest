@@ -17,7 +17,7 @@ type PauseMenuProps = {
  * Menu jeda (docs/04-game/interaction-loop.md → Menu jeda).
  *
  * Tampil sebagai satu kartu gelap **membulat** dengan garis aksen oranye, sejalan
- * dengan bahasa visual kotak dialog, HUD, dan buku catatan (ADR 0026). Area
+ * dengan bahasa visual kotak dialog, HUD, dan buku catatan (ADR 0029). Area
  * luarnya bisa digulir dan memakai scrollbar bertema (`scrollbar-tema`), jadi di
  * layar ponsel pendek menu tetap terjangkau tanpa memunculkan scrollbar bawaan
  * peramban.

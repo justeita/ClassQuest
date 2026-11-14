@@ -186,7 +186,7 @@ describe("TouchControls — mode", () => {
     );
 
     // Bicara diberi margin ke kiri & ke atas supaya tidak terpotong tepi layar
-    // di lanskap (ADR 0026).
+    // di lanskap (ADR 0029).
     const geser = container.querySelector('[data-tombol-aksi="geser"]');
     expect(geser).not.toBeNull();
     expect(geser?.className).toContain("mr-6");

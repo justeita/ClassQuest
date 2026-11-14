@@ -12,7 +12,7 @@ import {
  * `gayaDialog.ts`: latar hijau-gelap `#0b120e`, bingkai tipis aksen oranye
  * `#E8A87C`, sudut membulat, dan teks krem terang `#F7F4EC`. Jadi tombol HUD,
  * kotak dialog, dan kotak pilihan tantangan terbaca sebagai satu bahasa visual
- * — di desktop maupun HP (ADR 0026).
+ * — di desktop maupun HP (ADR 0029).
  *
  * Ada dua varian ukuran:
  * - `overlay`: di dalam bingkai kanvas. Di **desktop** (`lg`, ≥1024px) tombol

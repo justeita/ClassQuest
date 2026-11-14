@@ -4,16 +4,16 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0023 — Tombol Aksi Sentuh Tetap Hidup Tanpa Sasaran
+# 0026 - Tombol Aksi Sentuh Tetap Hidup Tanpa Sasaran
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
-- **Menggantikan:** — (menyesuaikan butir 2 [ADR 0021](0021-kontrol-sentuh-hp.md), tidak membatalkannya)
+- **Menggantikan:** — (menyesuaikan butir 2 [ADR 0024](0024-kontrol-sentuh-hp.md), tidak membatalkannya)
 
 ## Konteks
 
-[ADR 0021](0021-kontrol-sentuh-hp.md) menetapkan satu tombol aksi kontekstual yang
+[ADR 0024](0024-kontrol-sentuh-hp.md) menetapkan satu tombol aksi kontekstual yang
 **mati** saat tidak ada yang bisa dilakukan. Setelah dipakai di ponsel, perilaku
 itu menimbulkan masalah yang tidak terlihat di desktop:
 
@@ -36,7 +36,7 @@ Batasan yang mengikat:
 | Opsi                                                | Kelebihan                       | Kekurangan                                   | Biaya |
 | --------------------------------------------------- | ------------------------------- | -------------------------------------------- | ----- |
 | A. Tombol redup, tetap aktif + pesan "dekati warga" | Selalu bisa dicoba; menjelaskan | Perlu timer pesan & status ARIA              | Kecil |
-| B. Tombol mati (status quo ADR 0021)                | Tidak ada aksi "hantu"          | Bisu; terasa rusak di ponsel                 | Nol   |
+| B. Tombol mati (status quo ADR 0024)                | Tidak ada aksi "hantu"          | Bisu; terasa rusak di ponsel                 | Nol   |
 | C. Sembunyikan tombol saat tanpa sasaran            | Bersih secara visual            | Tata letak melompat; pemain kehilangan acuan | Kecil |
 | D. Tampilkan peta/penunjuk menuju warga terdekat    | Sangat menolong                 | Fitur baru yang jauh lebih besar             | Besar |
 
@@ -69,7 +69,7 @@ Kami memilih **A**, dengan aturan:
 
 - Timer pesan harus dibersihkan saat kontrol dilepas supaya tidak menulis state
   pada komponen yang sudah unmount.
-- Menyimpang dari butir 2 ADR 0021, jadi ADR ini harus dibaca bersama-sama.
+- Menyimpang dari butir 2 ADR 0024, jadi ADR ini harus dibaca bersama-sama.
 
 **Yang harus diubah:**
 
@@ -88,6 +88,6 @@ Kami memilih **A**, dengan aturan:
 
 ## Referensi
 
-- [ADR 0021](0021-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
+- [ADR 0024](0024-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
 - [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#input-sentuh) —
   perilaku input sentuh di dalam loop permainan.

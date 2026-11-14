@@ -193,6 +193,67 @@ export function isCorrect(challenge: Challenge, answer: Answer): boolean {
   return matches(challenge, answer);
 }
 
+/* -------------------------------------------------------------------------- */
+/* Jawaban sebagai teks                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Batas panjang jawaban yang dikutip di dialog (code point). Kotak dialog hanya
+ * muat ±180 karakter; dengan teks bervariabel ≤ 120 karakter, jawaban 60
+ * karakter masih muat. Kontrak: `story-schema.md` bagian "Konsekuensi jawaban
+ * salah".
+ */
+export const MAX_JAWABAN_CHARS = 60;
+
+const potong = (value: string): string => {
+  const huruf = [...value];
+  return huruf.length > MAX_JAWABAN_CHARS
+    ? `${huruf.slice(0, MAX_JAWABAN_CHARS).join("")}…`
+    : value;
+};
+
+/**
+ * Jawaban siswa dalam bentuk yang bisa dibaca di dialog (`{{jawaban}}`).
+ *
+ * - `multiple_choice` → teks opsi yang dipilih; id tak dikenal dipakai apa adanya.
+ * - `true_false` → `Benar` / `Salah`.
+ * - `ordering` → teks item sesuai urutan susunan siswa, dipisah ` → `.
+ * - `short_answer` → teks yang diketik, spasi dirapikan.
+ *
+ * Fungsi ini **tidak** menilai jawaban; ia hanya menerjemahkan bentuk jawaban.
+ * Tipe jawaban yang tidak cocok dengan tantangan tetap diterjemahkan memakai
+ * data tantangan bila ada, sehingga tidak pernah melempar.
+ */
+export function renderAnswer(challenge: Challenge, answer: Answer): string {
+  switch (answer.type) {
+    case "multiple_choice": {
+      const opsi =
+        challenge.type === "multiple_choice"
+          ? challenge.options.find((option) => option.id === answer.selectedId)
+          : undefined;
+      return potong(opsi?.text ?? answer.selectedId);
+    }
+
+    case "true_false":
+      return answer.answer ? "Benar" : "Salah";
+
+    case "ordering": {
+      const item =
+        challenge.type === "ordering"
+          ? challenge.items
+          : ([] as { id: string; text: string }[]);
+      return potong(
+        answer.order
+          .map((id) => item.find((entry) => entry.id === id)?.text ?? id)
+          .join(" → "),
+      );
+    }
+
+    case "short_answer":
+      return potong(answer.text.replace(/\s+/g, " ").trim());
+  }
+}
+
 /** Jumlahkan poin dari sekumpulan hasil jawaban. */
 export function totalScore(results: readonly AnswerResult[]): number {
   return results.reduce((sum, result) => sum + result.pointsAwarded, 0);

@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { GamesGrid } from "@/components/guru/GamesGrid";
 import { GamesSkeleton } from "@/components/guru/skeletons";
 import { requireTeacher } from "@/server/auth";
+import { listClassrooms } from "@/server/classrooms";
 import { getReadyDb } from "@/server/db";
 import { listStories, MAX_STORIES_PAGE_LIMIT } from "@/server/stories";
 
@@ -29,10 +30,11 @@ export default function GamePage() {
 async function GamesList() {
   await connection();
   const { teacherId } = await requireTeacher();
-  const items = await listStories(await getReadyDb(), {
-    teacherId,
-    limit: MAX_STORIES_PAGE_LIMIT,
-  });
+  const db = await getReadyDb();
+  const [items, classes] = await Promise.all([
+    listStories(db, { teacherId, limit: MAX_STORIES_PAGE_LIMIT }),
+    listClassrooms(db, teacherId),
+  ]);
 
-  return <GamesGrid items={items} />;
+  return <GamesGrid items={items} classes={classes} />;
 }

@@ -17,17 +17,19 @@
  * - **repair** — memperbaiki draft JSON dari daftar error validator.
  *
  * Urutan blok `user` mengikuti `prompt-contract.md`:
- * SCHEMA → ASSETS → OUTLINE → CONTINUITY → MATERIAL → TASK. Repair memakai
- * formatnya sendiri yang sudah ditetapkan `validation-and-repair.md`.
+ * SCHEMA → ASSETS → CAST → OUTLINE → CONTINUITY → MATERIAL → TASK. Repair
+ * memakai formatnya sendiri yang sudah ditetapkan
+ * `validation-and-repair.md`.
  */
 
 import { ASSETS_BY_ID } from "../assets/manifest";
+import { FIXED_CAST } from "../story/cast";
 import type { CharacterRole } from "../story/schema";
 import type { AssetManifest } from "../story/validate";
 import type { LlmRequest } from "./provider";
 
 /** Versi prompt. Naikkan setiap kali perilaku prompt berubah. */
-export const PROMPT_VERSION = "story-v4";
+export const PROMPT_VERSION = "story-v8";
 
 /**
  * Plafon output per panggilan. Reasoning model bisa memakai 6.000–14.000
@@ -54,8 +56,8 @@ export const MATERIAL_START = "<<<MATERIAL_START>>>";
 export const MATERIAL_END = "<<<MATERIAL_END>>>";
 
 /**
- * System prompt `story-v3`, disalin dari `prompt-contract.md` bagian **System
- * prompt (story-v4)**. Instruksi sistem tidak boleh diletakkan setelah data
+ * System prompt `story-v5`, disalin dari `prompt-contract.md` bagian **System
+ * prompt (story-v5)**. Instruksi sistem tidak boleh diletakkan setelah data
  * pengguna.
  *
  * Blok **SUARA DAN ROLEPLAY** ditambahkan pada `story-v3`: cerita harus terasa
@@ -63,6 +65,15 @@ export const MATERIAL_END = "<<<MATERIAL_END>>>";
  * "Anda/Saya" yang kaku), dan mengikuti tema/nada yang dipilih guru.
  * `story-v4` tidak mengubah blok ini; yang berubah adalah batas eksplisit
  * `SECTION_SCHEMA_OUTLINE` dan plafon output per panggilan.
+ *
+ * `story-v5` menambahkan aturan cast tetap: nama dan penampilan tokoh tidak
+ * boleh diubah model, dan deskripsi penampilan dikirim di blok CAST.
+ * `story-v6` tidak mengubah blok ini; yang berubah hanya blok `BRANCHING`
+ * (kutipan `{{jawaban}}` dan `onWrong` tanpa percobaan ulang, ADR 0020).
+ * `story-v7` juga tidak mengubah blok ini; blok `BRANCHING` kini mengajarkan
+ * varian `when.jawaban` supaya tiap pilihan salah dibalas berbeda (ADR 0021).
+ * `story-v8` menambah pola wajib di blok `BRANCHING`: pemain mengucapkan
+ * jawabannya lebih dulu, tokoh lain menanggapi (ADR 0022).
  */
 export const SYSTEM_PROMPT = `Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
 Tugasmu mengubah MATERI dari guru menjadi cerita yang bisa dimainkan.
@@ -72,7 +83,8 @@ ATURAN KERAS
    nama, atau teori yang tidak ada di materi.
 2. Jangan membuat aset baru. Semua backgroundId, musicId, dan spriteId harus
    diambil persis dari daftar ASSETS.
-3. Jangan membuat karakter di luar CAST pada OUTLINE.
+3. Cast sudah ditetapkan di blok CAST. Jangan membuat karakter di luar CAST,
+   dan jangan mengubah nama, id, role, spriteId, deskripsi, atau obrolan tokoh.
 4. Setiap chapter membahas tepat satu konsep dari OUTLINE.
 5. Setiap chapter minimal memiliki satu beat bertipe "challenge".
 6. Patuhi batas panjang teks: beat maksimal 240 karakter.
@@ -389,7 +401,14 @@ const SECTION_SCHEMA_OUTLINE = `SCHEMA
   "language": "id",
   "concepts": ["konsep utama", "konsep pendukung"],
   "cast": [
-    { "id": "char_...", "name": "...", "role": "player", "spriteId": "char_..." }
+    {
+      "id": "char_...",
+      "name": "...",
+      "role": "player",
+      "spriteId": "char_...",
+      "description": "...",
+      "smallTalk": "..."
+    }
   ],
   "chapters": [
     {
@@ -408,6 +427,9 @@ BATAS OUTLINE
   berupa frasa pendek, bukan kalimat.
 - cast 2..10; role wajib salah satu dari "player", "mentor", "npc", "antagonist";
   tepat satu "player", minimal satu "mentor"; spriteId dari ASSETS.
+- cast sudah ditetapkan di blok CAST: salin persis seluruh anggotanya. Jangan
+  menambah tokoh baru atau mengganti nama, id, role, spriteId, deskripsi, dan
+  obrolan singkat.
 - title 3..80 karakter; synopsis 40..400 karakter.
 - chapters 3..6; title 3..60 karakter; summary 20..240 karakter; setiap
   chapters[].concept harus salah satu concepts.
@@ -494,29 +516,57 @@ BATAS CHAPTER
  * default tetap persis seperti sebelum fitur ini ada.
  *
  * Isinya sengaja pendek dan hanya soal konsekuensi jawaban salah: siswa hanya
- * melihat soal ulang dan detour; tidak ada pilihan dialog pemain.
+ * melihat soal ulang, detour, dan dialog yang membalas jawabannya — tidak ada
+ * pilihan dialog pemain. Pola yang diwajibkan: pemain mengucapkan jawabannya
+ * lebih dulu (satu kalimat, tanpa pembenaran), baru tokoh lain menanggapi.
+ * Dua bentuk varian (ADR 0021): `when.jawaban` untuk tanggapan per pilihan,
+ * `when.flag` sebagai cadangan umum.
  */
 const SECTION_BRANCHING_RULES = `BRANCHING
-- Tidak semua challenge perlu onWrong; cukup 1-2 challenge per chapter.
-- onWrong selalu bersama maxAttempts 2 atau 3 (tidak boleh 1).
-- retryQuestions berisi maxAttempts - 1 teks dan menanyakan hal yang SAMA:
-  konsep, jawaban benar, dan opsi tidak berubah; hanya kata-katanya berbeda.
-- detour berisi 1-2 beat (maksimal 3) narasi atau dialog; hanya speaker dari
-  cast; tanpa beat challenge.
-- Petunjuk di detour tidak menyebut jawaban, hanya mengarahkan.
-- Flag id berpola flg_[a-z0-9_]+; maksimal 2 flag per cerita.
-- Pakai ulang id flag yang sudah ada; jangan mengarang id baru.
-- textVariants hanya merujuk flag yang sudah di-set di beat sebelumnya.
-- Field onWrong dan turunannya hanya muncul bila dipakai; jangan menambah
-  field di luar SCHEMA CHAPTER.
+- Setiap challenge boleh punya onWrong; detour cukup 1-2 challenge per chapter.
+- onWrong.setFlags menandai "pernah salah" dan menyala di SETIAP jawaban salah.
+- onWrong boleh hanya setFlags (tanpa maxAttempts). retryQuestions hanya bila
+  maxAttempts 2 atau 3, berisi maxAttempts - 1 soal SAMA dengan kata lain.
+- detour 1-2 beat (maksimal 3) narasi/dialog, speaker dari cast, tanpa challenge;
+  petunjuknya tidak menyebut jawaban.
+- POLA WAJIB sesudah setiap challenge: pemain char_mc mengucapkan jawabannya
+  lebih dulu, baru pembicara lain menjawab ucapan itu. Jangan pernah memakai
+  varian jawaban salah untuk teks narasi atau kalimat bertanya.
+- Teks char_mc sesudah soal harus SINGKAT (maksimal 60 karakter): satu kalimat
+  yang hanya mengucapkan jawaban. Pembenaran, hitungan, dan koreksi hanya boleh
+  diucapkan pembicara lain, di beat berikutnya.
+- Teks pembicara lain boleh menanggapi jawaban itu (mis. "Empat cangkir? Masih
+  kurang.") tanpa mengulang kalimat pertanyaan.
+- reaksi pada jawaban salah memakai dua bentuk varian:
+  * when.jawaban — teks jawaban yang persis, untuk soal pilihan
+    (multiple_choice: teks opsi; true_false: "Benar"/"Salah"; ordering: item
+    berurutan dipisah " → "). Satu varian per kemungkinan jawaban salah, dan
+    balasannya berbeda-beda supaya pilihan siswa terasa ditanggapi.
+  * when.flag — cadangan umum "pernah salah"; wajib untuk short_answer karena
+    teks ketikan siswa tidak bisa ditebak.
+- Varian when.jawaban dipertimbangkan lebih dulu daripada when.flag, dan hanya
+  berlaku untuk tantangan yang percobaan terakhirnya salah; dialog sesudah
+  jawaban benar tetap memakai teks utama.
+- {{jawaban}} boleh dipakai di dalam teks varian; teks varian maksimal 120
+  karakter.
+- Flag id flg_[a-z0-9_]+; satu flag per tantangan; pakai ulang id yang ada.
+- Field di luar SCHEMA CHAPTER tidak boleh ditambah.
 
 CONTOH onWrong
-{ "type": "challenge", "challengeId": "chl_x", "maxAttempts": 2,
-  "onWrong": {
-    "setFlags": { "flg_salah": true },
-    "retryQuestions": ["Soal yang sama dengan kata berbeda."],
-    "detour": [{ "type": "narration", "text": "Petunjuk tanpa jawaban." }]
-  } }`;
+{ "type": "challenge", "challengeId": "chl_x",
+  "onWrong": { "setFlags": { "flg_salah_x": true } } }
+CONTOH dialog sesudah soal ("4 cangkir" dan "12 cangkir" diucapkan siswa, lalu
+dibalas berbeda oleh tokoh lain)
+{ "type": "dialogue", "speakerId": "char_mc", "text": "Jawabanku enam cangkir.",
+  "textVariants": [
+    { "when": { "jawaban": "4 cangkir" }, "text": "Jawabanku empat cangkir." },
+    { "when": { "jawaban": "12 cangkir" }, "text": "Jawabanku dua belas cangkir." },
+    { "when": { "flag": "flg_salah_x", "is": true }, "text": "Tadi aku menjawab {{jawaban}}." } ] }
+{ "type": "dialogue", "speakerId": "char_npc_1", "text": "Tepat, enam cangkir.",
+  "textVariants": [
+    { "when": { "jawaban": "4 cangkir" }, "text": "Empat cangkir? Masih kurang." },
+    { "when": { "jawaban": "12 cangkir" }, "text": "Dua belas cangkir? Kebanyakan." },
+    { "when": { "flag": "flg_salah_x", "is": true }, "text": "Belum tepat." } ] }`;
 
 const branchingSection = (usedFlags: readonly string[]): string => {
   const flags =
@@ -560,6 +610,25 @@ const assetSection = (assets: AssetManifest): string => {
     assetList(assets, "character", "CHARACTERS"),
     assetList(assets, "music", "MUSIC"),
   ].join("\n\n");
+};
+
+/**
+ * Blok roster tetap. Deskripsi penampilan ikut dikirim supaya model menulis
+ * aksi dan dialog yang cocok dengan sprite (mis. nenek bertongkat atau pelajar
+ * bertopi biru), bukan mengarang ciri fisik yang tidak ada.
+ */
+const castSection = (): string => {
+  const lines = FIXED_CAST.map((member) => {
+    const smallTalk =
+      member.smallTalk === undefined ? "" : ` | obrolan: "${member.smallTalk}"`;
+    return `- ${member.id} | ${member.name} | role: ${member.role} | sprite: ${member.spriteId} | deskripsi: ${member.description ?? "(tanpa deskripsi)"}${smallTalk}`;
+  });
+
+  return [
+    "CAST",
+    "Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role, spriteId, description, dan smallTalk dari daftar ini. Jangan menambah, mengurangi, atau mengganti nama tokoh.",
+    ...lines,
+  ].join("\n");
 };
 
 const materialSection = (kept: readonly KeptPage[]): string => {
@@ -654,6 +723,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): PromptResult {
   const user = [
     SECTION_SCHEMA_OUTLINE,
     assetSection(input.assets),
+    castSection(),
     [
       "OUTLINE",
       "Belum ada outline. Buat outline baru dari materi di bawah.",
@@ -703,6 +773,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
     SECTION_SCHEMA_CHAPTER,
     ...(input.branching ? [branchingSection(input.usedFlags ?? [])] : []),
     assetSection(input.assets),
+    castSection(),
     ["OUTLINE", JSON.stringify(input.outline, null, 2)].join("\n"),
     continuitySection(input.continuity),
     materialSection(kept),
@@ -770,7 +841,10 @@ export function buildRepairPrompt(input: RepairPromptInput): PromptResult {
       : JSON.stringify(input.draft ?? null, null, 2);
 
   const context: string[] = [];
-  if (input.assets) context.push(assetSection(input.assets));
+  if (input.assets) {
+    context.push(assetSection(input.assets));
+    context.push(castSection());
+  }
   if (input.outline) {
     context.push(
       ["OUTLINE", JSON.stringify(input.outline, null, 2)].join("\n"),

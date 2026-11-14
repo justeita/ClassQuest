@@ -270,6 +270,35 @@ create unique index if not exists students_nis_idx on students (teacher_id, nis)
 `;
 
 /**
+ * Migrasi 0006: hasil bermain terhubung ke kelas dan siswa.
+ *
+ * Sebelumnya `play_results` hanya menyimpan `nickname` opsional, sehingga guru
+ * tidak bisa melihat hasil per kelas. Sekarang setiap hasil bisa menunjuk
+ * `students` (siswa yang dipilih di layar masuk) dan `classrooms` (kelas dari
+ * tautan yang dibagikan guru).
+ *
+ * Aturan yang dipegang:
+ *
+ * - Kedua kolom boleh `null`: tautan lama tanpa `?kelas=` dan `/game` (demo)
+ *   tetap bisa menyimpan hasil, hanya tidak masuk analytics kelas.
+ * - `on delete set null`: menghapus kelas/siswa tidak boleh menghapus riwayat
+ *   hasil main. `nickname` tetap menyimpan nama saat bermain sebagai salinan.
+ * - `total_points` disimpan supaya analytics tidak perlu membuka JSON cerita;
+ *   nilai lama diisi 0 (tidak ada data untuk dihitung ulang).
+ * - Index per kelas+cerita mempercepat query halaman `/guru/analitik`.
+ */
+const PLAY_RESULTS_CLASSROOM_SQL = `
+alter table play_results add column classroom_id text references classrooms(id) on delete set null;
+alter table play_results add column student_id text references students(id) on delete set null;
+alter table play_results add column total_points integer not null default 0;
+
+create index if not exists play_results_classroom_idx
+  on play_results (classroom_id, story_id, created_at desc);
+create index if not exists play_results_student_idx
+  on play_results (student_id, created_at desc);
+`;
+
+/**
  * Daftar migrasi berurutan. Jangan mengubah entri yang sudah pernah dipakai;
  * tambahkan entri baru di akhir.
  */
@@ -298,6 +327,11 @@ export const MIGRATIONS: readonly Migration[] = [
     id: "0005_classrooms_students",
     name: "Kelas dan siswa yang dikelola guru (students: classroom_id, nis, akun opsional)",
     sql: CLASSROOMS_SQL,
+  },
+  {
+    id: "0006_play_results_classroom",
+    name: "Hasil bermain terhubung ke kelas/siswa + total_points",
+    sql: PLAY_RESULTS_CLASSROOM_SQL,
   },
 ];
 

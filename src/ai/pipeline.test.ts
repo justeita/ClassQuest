@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { toAssetManifest } from "../assets/manifest";
+import { FIXED_CAST } from "../story/cast";
 import type { Story } from "../story/schema";
 import { validateStory } from "../story/validate";
 import { MockProvider, type MockProviderStep } from "./mock-provider";
@@ -172,6 +173,25 @@ describe("jalur bahagia", () => {
     expectValid(result);
   });
 
+  it("mengunci cast ke roster tetap, bukan keluaran model", async () => {
+    const result = await run(happy());
+
+    expect(result.usedFallback).toBe(false);
+    expect(result.story.cast.map((character) => character.id)).toEqual(
+      FIXED_CAST.map((character) => character.id),
+    );
+    expect(result.story.cast.map((character) => character.name)).toEqual(
+      FIXED_CAST.map((character) => character.name),
+    );
+    expect(
+      result.story.cast.find((character) => character.role === "player")?.name,
+    ).toBe("Kael");
+    expect(result.story.cast.every((character) => character.description)).toBe(
+      true,
+    );
+    expectValid(result);
+  });
+
   it("mock bawaan menghasilkan cerita valid untuk outline tiga chapter", async () => {
     const result = await run(new MockProvider());
 
@@ -214,7 +234,18 @@ describe("jalur bahagia", () => {
     expect(result.story.assetUsage).toEqual({
       backgrounds: ["bg_default"],
       music: ["bgm_default"],
-      sprites: ["char_mc", "char_npc_1", "char_npc_10"],
+      sprites: [
+        "char_mc",
+        "char_npc_1",
+        "char_npc_10",
+        "char_npc_3",
+        "char_npc_4",
+        "char_npc_5",
+        "char_npc_6",
+        "char_npc_7",
+        "char_npc_8",
+        "char_npc_9",
+      ],
     });
 
     for (const list of Object.values(result.story.assetUsage)) {

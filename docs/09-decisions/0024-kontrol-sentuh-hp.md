@@ -4,7 +4,7 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0021 — Kontrol Sentuh dan Tata Letak HP
+# 0024 - Kontrol Sentuh dan Tata Letak HP
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14

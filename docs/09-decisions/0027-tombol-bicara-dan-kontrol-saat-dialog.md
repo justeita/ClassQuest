@@ -4,17 +4,17 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0024 — Tombol Bicara Selalu Berlabel "Bicara" dan Kontrol Hilang Saat Dialog
+# 0027 - Tombol Bicara Selalu Berlabel "Bicara" dan Kontrol Hilang Saat Dialog
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
-- **Menggantikan:** — (menyesuaikan butir 2 [ADR 0021](0021-kontrol-sentuh-hp.md)
-  dan butir 3 [ADR 0023](0023-tombol-aksi-tanpa-sasaran.md), tidak membatalkannya)
+- **Menggantikan:** — (menyesuaikan butir 2 [ADR 0024](0024-kontrol-sentuh-hp.md)
+  dan butir 3 [ADR 0026](0026-tombol-aksi-tanpa-sasaran.md), tidak membatalkannya)
 
 ## Konteks
 
-Setelah tombol aksi sentuh diperbaiki lewat [ADR 0023](0023-tombol-aksi-tanpa-sasaran.md),
+Setelah tombol aksi sentuh diperbaiki lewat [ADR 0026](0026-tombol-aksi-tanpa-sasaran.md),
 pemain mencoba lagi dan melaporkan dua hal di ponsel:
 
 1. **Label "·" di tombol tanpa sasaran membingungkan.** Tombolnya kini hidup dan
@@ -67,7 +67,7 @@ Kami memilih **A**, dengan aturan:
 
 - Lanjut dialog di ponsel bergantung pada ketukan kotak dialog; bila kotak dialog
   suatu saat tidak lagi menerima ketukan, tidak ada tombol cadangan.
-- Ini menyimpang dari butir 2 ADR 0021 dan butir 3 ADR 0023, jadi ketiganya harus
+- Ini menyimpang dari butir 2 ADR 0024 dan butir 3 ADR 0026, jadi ketiganya harus
   dibaca bersama-sama.
 
 **Yang harus diubah:**
@@ -89,7 +89,7 @@ Kami memilih **A**, dengan aturan:
 
 ## Referensi
 
-- [ADR 0021](0021-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
-- [ADR 0023](0023-tombol-aksi-tanpa-sasaran.md) — tombol aksi yang tetap hidup.
+- [ADR 0024](0024-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
+- [ADR 0026](0026-tombol-aksi-tanpa-sasaran.md) — tombol aksi yang tetap hidup.
 - [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#input-sentuh) —
   perilaku input sentuh di dalam loop permainan.

@@ -4,21 +4,21 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0027 — Desain tantangan seragam dengan kotak dialog dan penunjuk pilihan yang presisi
+# 0030 - Desain tantangan seragam dengan kotak dialog dan penunjuk pilihan yang presisi
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
 - **Menggantikan:** — (menyesuaikan butir desain bersama pada
-  [ADR 0026](0026-desain-hud-dan-tombol-bicara.md), tidak membatalkannya)
-- **Diperbarui oleh:** [ADR 0028](0028-warna-ui-selaras-penanda-quest.md) —
+  [ADR 0029](0029-desain-hud-dan-tombol-bicara.md), tidak membatalkannya)
+- **Diperbarui oleh:** [ADR 0031](0031-warna-ui-selaras-penanda-quest.md) —
   nilai warna token (gelap `#0b120e` + aksen oranye `#E8A87C`) dan bentuk
   penunjuk pilihan (tangan menunjuk SVG, bukan segitiga border CSS); arsitektur
   token bersama dan penunjuk di luar kotak tetap.
 
 ## Konteks
 
-[ADR 0026](0026-desain-hud-dan-tombol-bicara.md) menyatukan **tombol HUD** dengan
+[ADR 0029](0029-desain-hud-dan-tombol-bicara.md) menyatukan **tombol HUD** dengan
 bahasa visual panel kotak dialog navy (`#0f172b`, bingkai tipis putih transparan,
 sudut membulat, teks `#EFF2F7`). Setelah itu pemain memeriksa bagian **tantangan**
 dan menemukan tiga hal:
@@ -116,8 +116,8 @@ Kami memilih **A**, dengan aturan:
 
 ## Referensi
 
-- [ADR 0020](0020-potret-ekspresi-persona.md) — potret berekspresi.
-- [ADR 0026](0026-desain-hud-dan-tombol-bicara.md) — desain HUD seragam dengan
+- [ADR 0023](0023-potret-ekspresi-persona.md) — potret berekspresi.
+- [ADR 0029](0029-desain-hud-dan-tombol-bicara.md) — desain HUD seragam dengan
   kotak dialog.
 - [`../05-frontend/game-player.md`](../05-frontend/game-player.md) — dokumen hidup
   UI pemutar game.

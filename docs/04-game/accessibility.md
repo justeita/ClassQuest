@@ -59,7 +59,7 @@ Aturan:
 
 ## Kontrol sentuh
 
-Setiap aksi yang bisa dilakukan keyboard juga punya jalur sentuh (ADR 0021),
+Setiap aksi yang bisa dilakukan keyboard juga punya jalur sentuh (ADR 0024),
 sehingga siswa di ponsel/tablet tidak ditinggalkan:
 
 | Aksi          | Sentuh                                   |
@@ -75,31 +75,31 @@ Aturan:
 
 - Joystick dan tombol aksi hanya muncul saat perangkat terbaca sentuh
   (`pointer: coarse` + `hover: none`), jadi tidak menutupi layar desktop.
-- Selama dialog, joystick dan tombol aksi **disembunyikan** (ADR 0024) supaya
+- Selama dialog, joystick dan tombol aksi **disembunyikan** (ADR 0027) supaya
   tidak menutupi teks; lanjut dialog cukup dengan mengetuk kotak dialog.
 - Memakai pointer events + `setPointerCapture`, jadi jari yang menggeser keluar
   pad tetap menahan tongkat sampai diangkat — tidak "nyangkut".
 - Label yang menyebut tombol fisik (`Space`, keycap `Tab`/`B`/`Esc`) diganti atau
   disembunyikan di perangkat sentuh: menyebut tombol yang tidak ada itu menyesatkan.
 - Tombol aksi selalu berlabel "Bicara": menyala saat ada warga di jangkauan dan
-  tampil redup tetapi tetap bisa ditekan saat belum ada sasaran (ADR 0023);
+  tampil redup tetapi tetap bisa ditekan saat belum ada sasaran (ADR 0026);
   menekannya lalu memunculkan pesan `role="status"` "Dekati warga untuk bicara"
   alih-alih command "hantu".
 - `touch-action: manipulation` dipasang pada tombol/tautan dan `.area-game` supaya
   ketukan di Android langsung jadi klik, bukan tertahan menunggu zoom ketuk-dua
   kali. Tombol "Layar penuh" tetap tombol biasa: bisa difokuskan dan diaktifkan
-  papan tombol, dan menghilang bila peramban tidak mendukungnya (ADR 0022).
+  papan tombol, dan menghilang bila peramban tidak mendukungnya (ADR 0025).
 - **Di layar potret** tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar
   penuh) dipindah ke bar di bawah kanvas, bukan melayang menutupi dunia.
   Tombolnya memakai desain yang sama dengan kotak dialog (gelap `#0b120e`,
   bingkai dan aksen oranye `#E8A87C`, teks krem terang, sudut membulat), jadi
-  seragam di desktop maupun HP (ADR 0026, ADR 0028).
+  seragam di desktop maupun HP (ADR 0029, ADR 0031).
   Teks dialog juga diperkecil agar tidak melimpah dari kotak 16:9 yang sempit.
 - Tombol "Percepat" di sentuh memantau pelepasan dari `window`
   (`pointerup`/`pointercancel`/`touchend`/`touchcancel`/`blur`) dan memakai
   `touchmove` non-passive selama ditahan, jadi peramban ponsel tidak bisa
   mengambil alih ketukan-tahan sebagai gestur gulir dan mematikan time-lapse
-  (ADR 0025).
+  (ADR 0028).
 
 ## Overlay tantangan (DOM)
 
@@ -143,7 +143,7 @@ Catatan:
   ("Tepat", "Belum tepat").
 - Teks dialog, kotak jawaban tantangan, dan tombol HUD memakai bahasa visual yang
   sama: teks krem terang `#F7F4EC` di atas latar gelap `#0b120e`, dengan aksen
-  oranye `#E8A87C` (ADR 0026, ADR 0027, ADR 0028).
+  oranye `#E8A87C` (ADR 0029, ADR 0030, ADR 0031).
 - Penunjuk pilihan aktif adalah tangan menunjuk (glove) SVG berwarna krem terang
   `#F7F4EC` dengan outline gelap dan manset oranye, jadi tetap terbaca di atas
   dunia terang maupun kotak gelap; pilihan aktif juga dibedakan lewat latar yang

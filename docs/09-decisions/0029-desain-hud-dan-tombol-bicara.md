@@ -4,21 +4,21 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0026 — Desain HUD Seragam dengan Kotak Dialog dan Tombol Bicara Menjauh dari Tepi
+# 0029 - Desain HUD Seragam dengan Kotak Dialog dan Tombol Bicara Menjauh dari Tepi
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
 - **Menggantikan:** — (menyesuaikan butir desain HUD pada
-  [ADR 0025](0025-jangkauan-interaksi-dan-bar-hud-potret.md), tidak membatalkannya)
-- **Diperbarui oleh:** [ADR 0028](0028-warna-ui-selaras-penanda-quest.md) —
+  [ADR 0028](0028-jangkauan-interaksi-dan-bar-hud-potret.md), tidak membatalkannya)
+- **Diperbarui oleh:** [ADR 0031](0031-warna-ui-selaras-penanda-quest.md) —
   nilai warna token HUD (dari navy/teal menjadi gelap + oranye); struktur dan
   perilaku HUD tetap.
 
 ## Konteks
 
 Setelah tata letak HUD dipindah ke bar bawah di potret
-([ADR 0025](0025-jangkauan-interaksi-dan-bar-hud-potret.md)), pemain mencoba lagi
+([ADR 0028](0028-jangkauan-interaksi-dan-bar-hud-potret.md)), pemain mencoba lagi
 di desktop dan ponsel lalu melaporkan empat keluhan tampilan:
 
 1. **Petunjuk "Tahan untuk mempercepat" mengganggu.** Keterangan di atas panel
@@ -102,9 +102,9 @@ Kami memilih **A**, dengan aturan:
 
 ## Referensi
 
-- [ADR 0021](0021-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
-- [ADR 0023](0023-tombol-aksi-tanpa-sasaran.md) — tombol aksi yang tetap hidup.
-- [ADR 0024](0024-tombol-bicara-dan-kontrol-saat-dialog.md) — tombol Bicara dan
+- [ADR 0024](0024-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
+- [ADR 0026](0026-tombol-aksi-tanpa-sasaran.md) — tombol aksi yang tetap hidup.
+- [ADR 0027](0027-tombol-bicara-dan-kontrol-saat-dialog.md) — tombol Bicara dan
   kontrol yang hilang saat dialog.
-- [ADR 0025](0025-jangkauan-interaksi-dan-bar-hud-potret.md) — jangkauan
+- [ADR 0028](0028-jangkauan-interaksi-dan-bar-hud-potret.md) — jangkauan
   interaksi, menu jeda bergulir, dan bar HUD potret.

@@ -208,15 +208,18 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0017-anggaran-pipeline-per-unit.md`](./09-decisions/0017-anggaran-pipeline-per-unit.md)                         | stable | Anggaran pipeline per unit dan reasoning dimatikan           |
 | [`09-decisions/0018-plafon-output-thinking.md`](./09-decisions/0018-plafon-output-thinking.md)                                 | stable | Plafon output, batas outline, dan reasoning default mati     |
 | [`09-decisions/0019-branching-konsekuensi-jawaban-salah.md`](./09-decisions/0019-branching-konsekuensi-jawaban-salah.md)       | stable | Percabangan sebagai konsekuensi jawaban salah                |
-| [`09-decisions/0020-potret-ekspresi-persona.md`](./09-decisions/0020-potret-ekspresi-persona.md)                               | stable | Potret berekspresi di atas kotak dialog                      |
-| [`09-decisions/0021-kontrol-sentuh-hp.md`](./09-decisions/0021-kontrol-sentuh-hp.md)                                           | stable | Kontrol sentuh dan tata letak HP                             |
-| [`09-decisions/0022-layar-penuh-lanskap.md`](./09-decisions/0022-layar-penuh-lanskap.md)                                       | stable | Layar penuh, kunci lanskap, dan ketukan responsif            |
-| [`09-decisions/0023-tombol-aksi-tanpa-sasaran.md`](./09-decisions/0023-tombol-aksi-tanpa-sasaran.md)                           | stable | Tombol aksi sentuh tetap hidup tanpa sasaran                 |
-| [`09-decisions/0024-tombol-bicara-dan-kontrol-saat-dialog.md`](./09-decisions/0024-tombol-bicara-dan-kontrol-saat-dialog.md)   | stable | Tombol Bicara dan kontrol yang hilang saat dialog            |
-| [`09-decisions/0025-jangkauan-interaksi-dan-bar-hud-potret.md`](./09-decisions/0025-jangkauan-interaksi-dan-bar-hud-potret.md) | stable | Jangkauan interaksi, menu jeda bergulir, dan bar HUD potret  |
-| [`09-decisions/0026-desain-hud-dan-tombol-bicara.md`](./09-decisions/0026-desain-hud-dan-tombol-bicara.md)                     | stable | Desain HUD seragam dan tombol Bicara menjauh dari tepi       |
-| [`09-decisions/0027-desain-tantangan-seragam-dialog.md`](./09-decisions/0027-desain-tantangan-seragam-dialog.md)               | stable | Desain tantangan seragam dan penunjuk pilihan yang presisi   |
-| [`09-decisions/0028-warna-ui-selaras-penanda-quest.md`](./09-decisions/0028-warna-ui-selaras-penanda-quest.md)                 | stable | Warna UI selaras penanda quest dan penunjuk tangan SVG       |
+| [`09-decisions/0020-kutipan-jawaban-siswa-di-dialog.md`](./09-decisions/0020-kutipan-jawaban-siswa-di-dialog.md)               | stable | Kutipan jawaban siswa lewat token `{{jawaban}}`              |
+| [`09-decisions/0021-varian-dialog-per-jawaban-salah.md`](./09-decisions/0021-varian-dialog-per-jawaban-salah.md)               | stable | Varian dialog berbeda untuk tiap jawaban salah               |
+| [`09-decisions/0022-pemain-mengucapkan-jawaban-di-dialog.md`](./09-decisions/0022-pemain-mengucapkan-jawaban-di-dialog.md)     | stable | Pemain mengucapkan jawabannya sebelum dibalas tokoh          |
+| [`09-decisions/0023-potret-ekspresi-persona.md`](./09-decisions/0023-potret-ekspresi-persona.md)                               | stable | Potret berekspresi di atas kotak dialog                      |
+| [`09-decisions/0024-kontrol-sentuh-hp.md`](./09-decisions/0024-kontrol-sentuh-hp.md)                                           | stable | Kontrol sentuh dan tata letak HP                             |
+| [`09-decisions/0025-layar-penuh-lanskap.md`](./09-decisions/0025-layar-penuh-lanskap.md)                                       | stable | Layar penuh, kunci lanskap, dan ketukan responsif            |
+| [`09-decisions/0026-tombol-aksi-tanpa-sasaran.md`](./09-decisions/0026-tombol-aksi-tanpa-sasaran.md)                           | stable | Tombol aksi sentuh tetap hidup tanpa sasaran                 |
+| [`09-decisions/0027-tombol-bicara-dan-kontrol-saat-dialog.md`](./09-decisions/0027-tombol-bicara-dan-kontrol-saat-dialog.md)   | stable | Tombol Bicara dan kontrol yang hilang saat dialog            |
+| [`09-decisions/0028-jangkauan-interaksi-dan-bar-hud-potret.md`](./09-decisions/0028-jangkauan-interaksi-dan-bar-hud-potret.md) | stable | Jangkauan interaksi, menu jeda bergulir, dan bar HUD potret  |
+| [`09-decisions/0029-desain-hud-dan-tombol-bicara.md`](./09-decisions/0029-desain-hud-dan-tombol-bicara.md)                     | stable | Desain HUD seragam dan tombol Bicara menjauh dari tepi       |
+| [`09-decisions/0030-desain-tantangan-seragam-dialog.md`](./09-decisions/0030-desain-tantangan-seragam-dialog.md)               | stable | Desain tantangan seragam dan penunjuk pilihan yang presisi   |
+| [`09-decisions/0031-warna-ui-selaras-penanda-quest.md`](./09-decisions/0031-warna-ui-selaras-penanda-quest.md)                 | stable | Warna UI selaras penanda quest dan penunjuk tangan SVG       |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                                               | draft  | Urutan kerja dan pembagian tugas                             |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                                                     | draft  | Naskah demo 3 menit + sketsa layar                           |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                                           | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal     |

@@ -99,6 +99,11 @@ type Outline = {
 
 Aturan:
 
+- **Cast dikunci.** Pipeline menimpa `outline.cast` dengan roster tetap di
+  `src/story/cast.ts` sebelum validasi. Model tetap diminta menyalin blok
+  `CAST`, tetapi nama, id, role, sprite, deskripsi, dan obrolan tokoh tidak
+  pernah diambil dari keluaran model. Lihat
+  [`prompt-contract.md`](./prompt-contract.md#blok-cast-di-prompt).
 - Jumlah chapter mengikuti panjang materi: 3 chapter untuk materi pendek,
   maksimal 6.
 - Satu chapter = satu konsep. Jangan menggabungkan dua konsep besar.
@@ -315,6 +320,9 @@ Tiga hal yang sengaja dibuat eksplisit di kode itu:
 3. **`challenges` global.** Di `Story`, tantangan hidup di array tingkat atas,
    bukan di dalam chapter; `assemble` yang menggabungkannya. Tidak ada variabel
    `allChallenges` yang tidak pernah didefinisikan.
+4. **`cast` di `assemble` adalah roster tetap.** Pipeline tidak memakai
+   `outline.cast` dari model; `src/story/cast.ts` adalah satu-satunya sumber
+   nama dan penampilan tokoh.
 
 ## Prinsip yang tidak boleh dilanggar
 

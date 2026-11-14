@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -98,6 +98,46 @@ Tiga keadaan:
 - Langkah berikutnya: "Coba lagi", "Ganti PDF", "Kurangi halaman".
 - Tidak menampilkan stack trace atau kode provider.
 
+### `/guru/analitik` — poin dan kesalahan per siswa
+
+Halaman ini menjawab satu pertanyaan: "setelah kelas memainkan game ini, siapa
+sudah paham dan bagian mana yang masih salah?"
+
+Alur: pilih **kelas** → pilih **game** → tabel siswa muncul. Kedua pilihan
+disimpan di query string (`?kelas=<id>&storyId=<id>`), jadi tautannya bisa
+dibagikan atau di-bookmark dan server yang menghitung agregatnya.
+
+Isi:
+
+- Empat kartu ringkasan: siswa bermain / total siswa, total percobaan,
+  rata-rata poin terbaik, dan jumlah konsep yang perlu diulang.
+- Tabel per siswa: nama (+ NIS), **poin terbaik**, percobaan terakhir, jumlah
+  percobaan, chip konsep yang sering salah, dan tanggal main terakhir.
+- Siswa yang **belum bermain tetap tampil** dengan poin 0 dan label
+  "Belum main" — guru perlu melihat yang tertinggal, bukan hanya yang sudah
+  mengerjakan.
+- Tanpa ranking kompetitif dan tanpa perbandingan antar kelas; nadanya sama
+  dengan layar hasil siswa.
+
+Sumber data:
+
+- Satu-satunya sumber adalah `play_results` yang sudah dihubungkan ke
+  `classrooms`/`students` saat hasil disimpan. Tidak ada tabel analytics
+  terpisah dan tidak ada perhitungan skor ulang di halaman.
+- `getClassroomAnalytics()` (`src/server/analytics`) memfilter
+  `classrooms.teacher_id` **dan** `stories.teacher_id`; kelas atau game milik
+  guru lain dan yang tidak ada sama-sama `null`.
+- Satu baris = satu `student_id`. Nama bebas dikelompokkan per nama
+  (tanpa peduli huruf besar/kecil). Siswa yang sudah dihapus tetap tampil
+  dengan nama salinan di `play_results`.
+- Yang tersimpan hanya `weak_concepts`, bukan jawaban per opsi — halaman ini
+  tidak mengarang detail jawaban yang tidak ada
+  ([`../06-backend/persistence.md`](../06-backend/persistence.md#hasil-bermain)).
+
+Hasil main baru masuk analytics bila siswa memakai tautan kelas dari dialog
+"Bagikan" di `/guru/game` (`/play/[storyId]?kelas=QST-XXXX`). Hasil main tanpa
+tautan kelas tetap tersimpan, tetapi tidak muncul di halaman ini.
+
 ## Komponen
 
 | Komponen             | Tanggung jawab                                |
@@ -106,11 +146,12 @@ Tiga keadaan:
 | `GenerationProgress` | Polling status job, tampilan per tahap        |
 | `StorySummaryCard`   | Ringkasan hasil + aksi                        |
 | `StoryList`          | Daftar materi + status                        |
-| `ShareDialog`        | Tautan + kode kelas + tombol salin            |
+| `ShareGameDialog`    | Tautan per kelas (`?kelas=`) + tombol salin   |
 | `DeleteStoryDialog`  | Konfirmasi hapus (ketik judul bila published) |
 | `ClassesBrowser`     | Daftar kelas, detail kelas, modal buat kelas  |
 | `CreateClassModal`   | Form kelas baru (nama, mapel, jenjang, tahun) |
 | `AddStudentModal`    | Form tambah siswa (nama, NIS opsional)        |
+| `AnalyticsBrowser`   | Penyaring kelas/game + tabel poin & kesalahan |
 
 ## Alur status generasi
 
@@ -129,7 +170,11 @@ stage "failed" → tampilkan alasan
 
 Aturan polling:
 
-- Hentikan polling saat `done`/`failed`.
+- Saat `done`/`failed`: panggil `router.refresh()` **sekali**, lalu terus periksa
+  sampai halaman berhenti merender kartu progres (ringkasan tampil) atau batas
+  waktu habis. Refresh bisa tiba sebelum halaman melihat status cerita yang baru,
+  jadi berhenti tepat di `done` membuat kartu berhenti di langkah terakhir
+  walaupun cerita sudah tersimpan.
 - Hentikan saat tab tidak aktif; lanjutkan saat aktif.
 - Batas waktu total 3 menit, lalu tampilkan "masih diproses, cek lagi nanti".
 - Jangan polling lebih cepat dari 1 detik.

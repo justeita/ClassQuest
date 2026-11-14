@@ -13,9 +13,10 @@ cepat, dan tidak pernah menampilkan error mentah.
 
 ```text
 src/app/play/[storyId]/page.tsx        (Server Component)
-  ├─ ambil cerita published
+  ├─ ambil cerita published + kelas (?kelas=)
   ├─ notFound() bila tidak ada
   └─ <GameShell story={story} />       (Client Component)
+        ├─ <EntryScreen />             (DOM, layar masuk: pilih nama)
         ├─ <TitleScreen />             (DOM, sebelum Mulai)
         ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
         ├─ <ChallengeOverlay />        (DOM)
@@ -31,27 +32,67 @@ src/app/play/[storyId]/page.tsx        (Server Component)
 Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
-> **Yang ada hari ini:** `TitleScreen`, `GameShell`, `GameCanvas`,
+> **Yang ada hari ini:** `EntryScreen`, `TitleScreen`, `GameShell`, `GameCanvas`,
 > `ChallengeOverlay`, `QuestTracker`, `NpcHintLayer` (berisi `NpcMarker` dan
 > `InteractHint`), `ChapterCard`, `QuestToast`, `HUD`, `PauseMenu`, dan
 > `ResultScreen` sudah ada.
 >
-> `/play/[storyId]` membaca cerita terbit lewat `getPlayableStory()`
-> (`src/server/stories/playable.ts`). Hanya `status = 'published'` dengan
-> `published_version` yang dilayani; status lain, id tidak dikenal, dan id
-> tidak valid → 404. Id demo `st_demo_siklus_air` tetap memakai fixture
-> `src/game/demoStory.ts` supaya pengembangan frontend tidak butuh database.
-> Progres `localStorage` dan layar "Lanjutkan" **belum** ada.
+> `/play/[storyId]` membaca cerita terbit lewat `getPlayEntry()`
+> (`src/server/play/entry.ts`), yang memakai `getPublishedStory()`. Hanya
+> `status = 'published'` dengan `published_version` yang dilayani; status lain,
+> id tidak dikenal, dan id tidak valid → 404. Id demo `st_demo_siklus_air` tetap
+> memakai fixture `src/game/demoStory.ts` supaya pengembangan frontend tidak
+> butuh database. Progres `localStorage` dan layar "Lanjutkan" **belum** ada.
+
+## Layar masuk
+
+Setiap hasil main harus punya nama, jadi `/play/[storyId]` membuka
+`EntryScreen` lebih dulu. Gurunya yang menentukan kelas lewat tautan yang
+dibagikan:
+
+```text
+/play/st_abc123?kelas=QST-7K3M
+```
+
+Aturan:
+
+- **Kode kelas divalidasi di server** (`getPlayEntry`). Kelas hanya dipakai bila
+  kodenya sah dan pemiliknya guru pemilik cerita. Kelas guru lain diperlakukan
+  sama seperti kode salah: tidak ada daftar siswa, `classLinkInvalid: true`.
+- **Siswa memilih namanya dari daftar kelas**, bukan mengetik bebas sebagai
+  jalan utama. Daftar bisa dicari dengan nama atau NIS. Nama bebas tetap
+  tersedia untuk dua kasus: tautan tanpa `?kelas=`, atau nama siswa belum
+  terdaftar guru.
+- **Identitas dikirim sebagai `studentId`**, bukan nama. Server menurunkan nama
+  dan `classroom_id` dari baris `students`, jadi kelas tidak pernah dipercaya
+  dari klien. Nama bebas dikirim sebagai `nickname`.
+- Kode salah **tidak** membuat halaman 404: siswa tetap bisa bermain, layar
+  masuk menjelaskan bahwa hasilnya tidak masuk analytics kelas.
+- Yang dikirim ke client hanya `id`, `name`, dan `nis` siswa — tanpa username,
+  password hash, tahun ajaran, atau data guru.
+- Tidak ada akun siswa, cookie identitas, atau penyimpanan nama di
+  `localStorage`. Nama hanya hidup di state `GameShell` selama sesi main.
 
 ## Pengambilan data
 
 ```tsx
 export default async function PlayPage(props: PageProps<"/play/[storyId]">) {
   const { storyId } = await props.params;
-  const story = await getPlayableStory(storyId);
-  if (story === null) notFound();
+  const search = await props.searchParams;
+  const kelas = typeof search.kelas === "string" ? search.kelas : null;
 
-  return <GameShell story={story} />;
+  const entry = await getPlayEntry(storyId, kelas);
+  if (entry === null) notFound();
+
+  return (
+    <GameShell
+      story={entry.story}
+      classroom={entry.classroom}
+      students={entry.students}
+      classLinkInvalid={entry.classLinkInvalid}
+      requireIdentity
+    />
+  );
 }
 ```
 
@@ -89,16 +130,49 @@ Ini **state layar**, bukan state cerita. Soal yang sedang terbuka dilacak oleh
 `GameShell` hanya menampilkan overlay-nya. Pemetaan lengkap ada di
 [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#dua-state-bukan-satu).
 
-Implementasi sekarang memegang `judul | main | hasil` di `GameShell`, sedangkan
-`paused` dipegang `GameCanvas` karena menu jeda hanya relevan selama sesi
-permainan aktif. `QuestTracker` menerima daftar quest lewat event `quest` dari
-Phaser, diturunkan dari scene dan status runner — bukan ditebak dari DOM.
+Implementasi sekarang memegang `menu | judul | main | hasil` di `GameShell`,
+sedangkan `paused` dipegang `GameCanvas` karena menu jeda hanya relevan selama
+sesi permainan aktif. `QuestTracker` menerima daftar quest lewat event `quest`
+dari Phaser, diturunkan dari scene dan status runner — bukan ditebak dari DOM.
 
 State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 [`../04-game/engine.md`](../04-game/engine.md)). Sumber kebenaran progres:
 `localStorage`, bukan Phaser.
 
 ## Layar
+
+### Menu utama
+
+Dipakai `/game` (`menuUtama` di `GameShell`): pintu masuk demo sebelum layar
+judul cerita. `/play/[storyId]` **tidak** memakainya — siswa yang membuka tautan
+dari guru langsung melihat judul cerita, bukan menu.
+
+- Satu gambar desa utuh (`public/menu/desa.webp`) memenuhi layar. Teks menu
+  berdiri **langsung di atas gambar**, di bawah naungan pohon kiri atas, tanpa
+  panel — jadi seluruh desa tetap terlihat. Di layar < 768 px papan teksnya
+  diberi latar gelap transparan sendiri, karena crop gambar menaruh rumah terang
+  di belakang teks.
+- Isi papan: judul "CLASS QUEST" (serif tebal), garis emas berhiaskan bintang,
+  empat pilihan — `Mulai`, `Pengaturan`, `Kredit`, `Keluar` — petunjuk tombol, dan
+  label versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas.
+- Keyboard-first: `↑`/`↓` (atau `W`/`S`) memindahkan sorotan dan memindahkan
+  fokus DOM, `Home`/`End` ke ujung daftar, `Enter`/`Space` menjalankan pilihan.
+  `Tab` tidak pernah diambil alih. Selama dialog terbuka, panah tidak menggerakkan
+  menu karena fokus milik dialog.
+- `Mulai` menyerahkan kontrol ke `GameShell`, yang masih menampilkan layar judul
+  cerita. Tidak ada "Lanjutkan": progres `localStorage` belum ada, jadi menu tidak
+  menjanjikan simpanan yang belum pernah dibuat.
+- `Pengaturan` membuka dialog berisi slider **Musik** dan **Efek suara** terpisah,
+  membaca dan menulis `classquest:settings:v1` yang sama dengan
+  [`../../src/game/audioSettings.ts`](../../src/game/audioSettings.ts). Nilai
+  dibaca saat dialog dibuka (bukan saat mount) supaya render server dan client
+  tidak berbeda. `Simpan` menutup dialog dan memberi tahu lewat `role="status"`.
+- `Kredit` berisi asal-usul cerita dan lisensi font. `Keluar` membuka konfirmasi
+  yang menautkan ke `/` (halaman pemilihan peran) — bukan menutup tab, karena
+  `window.close()` tidak diizinkan peramban.
+- Kelopak sakura ditulis dengan nilai tetap (bukan `Math.random()`) agar render
+  server dan client sama, hanya jatuh di paruh kanan (area pohon), dan
+  disembunyikan total saat `prefers-reduced-motion: reduce`.
 
 ### Loading
 
@@ -133,7 +207,7 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   keycap konsisten (`Tab`, `B`, `Q`, `Esc`) lewat komponen `Keycap`, dan
   memakai satu **desain yang sama dengan panel kotak dialog** — gelap `#0b120e`
   dengan bingkai dan aksen oranye `#E8A87C` serta teks krem terang `#F7F4EC`,
-  sudut membulat — supaya terlihat konsisten (ADR 0026, ADR 0028). Di desktop (`lg`, ≥1024px) ukuran tombolnya sengaja diperbesar
+  sudut membulat — supaya terlihat konsisten (ADR 0029, ADR 0031). Di desktop (`lg`, ≥1024px) ukuran tombolnya sengaja diperbesar
   agar nyaman diklik; di HP tetap ringkas. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
@@ -180,13 +254,13 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   diputar. Di perangkat sentuh tombolnya didengarkan dari `window`
   (`pointerup`/`pointercancel`/`touchend`/`touchcancel`), supaya peramban ponsel
   yang mengubah ketukan-tahan jadi gestur gulir tidak mematikannya
-  (ADR 0025).
+  (ADR 0028).
 - Tombol `Catatan` (`B`) membuka buku catatan dua halaman: riwayat dialog
   (dikelompokkan per scene, dengan chip nama pembicara) dan jurnal konsep
   (conceptTag, status benar/perlu diulang, penjelasan). Jendelanya **kartu
   membulat** dengan garis aksen oranye, dan area bacaannya memakai **scrollbar
   bertema** (`scrollbar-tema` di `globals.css`) alih-alih scrollbar bawaan
-  peramban (ADR 0028). Dunia dibekukan
+  peramban (ADR 0031). Dunia dibekukan
   selama buku terbuka; musik tetap diputar penuh. Buku dibersihkan saat
   "Ulangi chapter" atau sesi baru.
 - Tombol musik (`♪`) mengatur volume musik saja: nyala/mati. Efek suara
@@ -206,10 +280,10 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   - Opsi pendek (seperti "1", "2", "4"): ditata 1 baris horizontal di kanan atas dialog.
   - Opsi teks panjang: ditata bertumpuk vertikal di kanan atas dialog; lebar seluruh box seragam mengikuti opsi terpanjang.
   - Persoalan matematika / matriks: ditata sebagai kartu berjejer agar formula terlihat jelas.
-- **Lebar kotak mengikuti isi (fit text), bukan lebar panel.** Opsi pilihan, baris pengurutan, input jawaban singkat, dan tombol `Jawab` dibungkus grup `w-fit` sehingga hanya selebar isinya; pada daftar kolom, semua opsi diseragamkan ke opsi terpanjang (tanpa lebar minimum tetap). Jadi jawaban pendek tidak lagi membentang penuh ke kanan. Baris petunjuk pintasan ditaruh di luar grup agar tidak ikut menentukan lebarnya. (ADR 0027)
+- **Lebar kotak mengikuti isi (fit text), bukan lebar panel.** Opsi pilihan, baris pengurutan, input jawaban singkat, dan tombol `Jawab` dibungkus grup `w-fit` sehingga hanya selebar isinya; pada daftar kolom, semua opsi diseragamkan ke opsi terpanjang (tanpa lebar minimum tetap). Jadi jawaban pendek tidak lagi membentang penuh ke kanan. Baris petunjuk pintasan ditaruh di luar grup agar tidak ikut menentukan lebarnya. (ADR 0030)
   - Pada `ordering`, daftar item dan tombol `Jawab` berbagi grup `w-fit` yang sama supaya tepi kanan keduanya rata.
   - Pada `short_answer`, input `size` mengikuti panjang placeholder sehingga teks petunjuk muat tanpa terpotong, dan tombol `Jawab` selebar input.
-- Konsistensi visual HCI dengan DialogueBox (ADR 0027, ADR 0028):
+- Konsistensi visual HCI dengan DialogueBox (ADR 0030, ADR 0031):
   - Kotak jawaban, kartu matriks, kartu umpan balik, tombol aksi, dan petunjuk pintasan memakai **token kotak dialog** yang sama (`gayaDialog.ts`): latar gelap `#0b120e`/95, bingkai tipis aksen oranye `#E8A87C`, sudut membulat (`rounded-lg`), teks krem terang `#F7F4EC`, aksen oranye `#E8A87C`, flat tanpa drop shadow.
   - Keadaan terpilih memakai `KOTAK_DIALOG_AKTIF` (bingkai oranye penuh, latar sedikit terangkat); keadaan diam memakai `KOTAK_DIALOG` + hover. Dipilih dengan percabangan agar tidak menumpuk kelas warna yang bentrok.
   - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar; bingkai kartu berwarna status (`#6F9B7A` benar, `#C9A227` belum tepat).
@@ -248,7 +322,7 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Tampil sebagai satu **kartu gelap membulat** dengan garis aksen oranye; area
   luarnya bisa digulir dan memakai **scrollbar bertema** (`scrollbar-tema`),
   jadi di layar ponsel pendek menu tetap terjangkau tanpa scrollbar bawaan
-  peramban (ADR 0028).
+  peramban (ADR 0031).
 - Game di-pause (`scene.pause()`), input dialog berhenti.
 - Musik tidak dihentikan, hanya dikecilkan (volume 0,35 → 0,12) agar jeda tidak
   terasa memutus suasana; volume kembali saat lanjut atau ulangi chapter.
@@ -262,11 +336,13 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - Tanpa ranking, tanpa perbandingan dengan siswa lain.
 - Hasil disimpan lewat Server Action `savePlayResult` (`src/app/play/actions.ts`):
   `GameScene` mengirim event `finished` berisi `result` **dan** `answers`
-  percobaan pertama, lalu `GameShell` mengirim `{ storyId, result: { answers } }`.
-  Hanya jawaban yang dikirim — server menghitung ulang skor dari cerita terbit.
-  Layar hasil tampil tanpa menunggu simpan; statusnya ditulis jujur di bawah
-  ringkasan: "Menyimpan hasil main…", "Hasil main tersimpan.", atau
-  "Hasil main belum tersimpan.".
+  percobaan pertama, lalu `GameShell` mengirim
+  `{ storyId, result: { studentId | nickname, answers } }`. Hanya jawaban dan
+  identitas pilihan layar masuk yang dikirim — server menghitung ulang skor dari
+  cerita terbit, menurunkan nama/kelas dari baris `students`, dan mengisi
+  `classroom_id`. Layar hasil tampil tanpa menunggu simpan; statusnya ditulis
+  jujur di bawah ringkasan: "Menyimpan hasil main…", "Hasil main tersimpan.",
+  atau "Hasil main belum tersimpan.".
 - Cerita demo (`/game` dan `/play/st_demo_siklus_air`) dibaca tanpa database,
   jadi tidak punya baris `stories` untuk dirujuk `play_results`. Di sana action
   menjawab `not_found` dan status berbunyi "belum tersimpan" — bukan bug
@@ -306,25 +382,25 @@ Di ponsel potret tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar penuh)
 tidak lagi melayang di atas kanvas: semuanya dipindah ke **bar di bawah kanvas**.
 Tombolnya memakai desain yang sama dengan kotak dialog — gelap `#0b120e`
 dengan bingkai dan aksen oranye `#E8A87C` serta teks krem terang, sudut
-membulat — jadi seragam di desktop maupun HP (ADR 0026, ADR 0028). Teks dialog juga diperkecil karena kotak 16:9 di potret hanya
+membulat — jadi seragam di desktop maupun HP (ADR 0029, ADR 0031). Teks dialog juga diperkecil karena kotak 16:9 di potret hanya
 setinggi ±65 px. Gaya tombol dipakai bersama lewat `gayaHud.ts`, dan prop `letak`
-(`overlay` | `bar`) yang memilih variannya (ADR 0025).
+(`overlay` | `bar`) yang memilih variannya (ADR 0028).
 
 Kontrol muncul hanya saat perangkat terbaca sentuh: penunjuk utama **kasar**
 (`pointer: coarse`) dan **tidak bisa hover** (`hover: none`). Laptop berlayar
 sentuh tetap memakai papan tombol dan tetikus — memunculkan joystick di sana cuma
 menutupi dunia. Deteksinya ada di `useSentuh.ts`; ringkasan keputusannya di
-[ADR 0021](../09-decisions/0021-kontrol-sentuh-hp.md).
+[ADR 0024](../09-decisions/0024-kontrol-sentuh-hp.md).
 
 Joystick mengirim **satu dari delapan arah** yang sama dipakai papan tombol
 (`movement.ts`), bukan vektor bebas — jadi aturan gerak, tabrakan, dan animasi
 tetap satu jalur. Tombol aksi besar berlabel "Bicara": menyala saat pemain di zona
 NPC, dan tampil redup tetapi tetap bisa ditekan saat belum ada warga, lalu
-memunculkan pesan "Dekati warga untuk bicara" (ADR 0023). Di lanskap tombolnya
+memunculkan pesan "Dekati warga untuk bicara" (ADR 0026). Di lanskap tombolnya
 digeser agak menjauh dari sudut kanan bawah supaya tidak terpotong tepi layar
-(ADR 0026). Selama dialog joystick
+(ADR 0029). Selama dialog joystick
 dan tombol aksi disembunyikan supaya tidak menutupi teks; lanjut dialog cukup
-dengan mengetuk kotak dialog (ADR 0024). Rincian interaksinya di
+dengan mengetuk kotak dialog (ADR 0027). Rincian interaksinya di
 [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#input-sentuh).
 
 Halaman game memakai seluruh viewport dengan margin 8–24 px dan bingkai bersudut
@@ -339,7 +415,7 @@ memenuhkan halaman lalu mencoba mengunci orientasi mendatar; keluar dari layar
 penuh melepas kunci itu lagi. Keduanya best-effort — di Safari iPhone tombolnya
 tidak dirender sama sekali, dan bila kunci orientasi ditolak pemain tetap dapat
 layar penuh. Keputusannya di
-[ADR 0022](../09-decisions/0022-layar-penuh-lanskap.md).
+[ADR 0025](../09-decisions/0025-layar-penuh-lanskap.md).
 
 Semua tombol dan tautan memakai `touch-action: manipulation`, dan akar
 `GameCanvas` `touch-manipulation`, supaya di Android ketukan langsung jadi klik
@@ -405,8 +481,8 @@ Aturan:
 - Simpan setelah setiap beat (throttle 500 ms).
 - Kunci: `classquest:progress:{storyId}`.
 - Saat mount, baca progres; kalau `storyVersion` beda → tawarkan mulai ulang.
-- Saat selesai, kirim **jawaban** ke `savePlayResult` (server menghitung ulang
-  skor); jangan mengirim field skor.
+- Saat selesai, kirim **jawaban** dan identitas layar masuk ke `savePlayResult`
+  (server menghitung ulang skor); jangan mengirim field skor atau kelas.
 
 ## Checklist implementasi
 

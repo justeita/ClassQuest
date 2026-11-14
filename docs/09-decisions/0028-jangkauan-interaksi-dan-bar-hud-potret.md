@@ -4,20 +4,20 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0025 — Jangkauan Interaksi Luas, Menu Jeda Bergulir, dan Bar HUD Potret
+# 0028 - Jangkauan Interaksi Luas, Menu Jeda Bergulir, dan Bar HUD Potret
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
-- **Menggantikan:** — (menyesuaikan butir tata letak [ADR 0021](0021-kontrol-sentuh-hp.md),
-  [ADR 0023](0023-tombol-aksi-tanpa-sasaran.md), dan [ADR 0024](0024-tombol-bicara-dan-kontrol-saat-dialog.md),
+- **Menggantikan:** — (menyesuaikan butir tata letak [ADR 0024](0024-kontrol-sentuh-hp.md),
+  [ADR 0026](0026-tombol-aksi-tanpa-sasaran.md), dan [ADR 0027](0027-tombol-bicara-dan-kontrol-saat-dialog.md),
   tidak membatalkannya)
 
 ## Konteks
 
 Setelah kontrol sentuh dan tombol aksi diperbaiki
-([ADR 0023](0023-tombol-aksi-tanpa-sasaran.md),
-[ADR 0024](0024-tombol-bicara-dan-kontrol-saat-dialog.md)), pemain mencoba lagi di
+([ADR 0026](0026-tombol-aksi-tanpa-sasaran.md),
+[ADR 0027](0027-tombol-bicara-dan-kontrol-saat-dialog.md)), pemain mencoba lagi di
 ponsel dan melaporkan empat keluhan tata letak:
 
 1. **Jangkauan interaksi NPC terlalu sempit.** Pemain harus menempel persis ke
@@ -119,9 +119,9 @@ Kami memilih **A**, dengan aturan:
 
 ## Referensi
 
-- [ADR 0021](0021-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
-- [ADR 0023](0023-tombol-aksi-tanpa-sasaran.md) — tombol aksi yang tetap hidup.
-- [ADR 0024](0024-tombol-bicara-dan-kontrol-saat-dialog.md) — tombol Bicara dan
+- [ADR 0024](0024-kontrol-sentuh-hp.md) — kontrol sentuh dan tata letak HP.
+- [ADR 0026](0026-tombol-aksi-tanpa-sasaran.md) — tombol aksi yang tetap hidup.
+- [ADR 0027](0027-tombol-bicara-dan-kontrol-saat-dialog.md) — tombol Bicara dan
   kontrol yang hilang saat dialog.
 - [`../05-frontend/game-player.md`](../05-frontend/game-player.md#responsif) —
   tata letak responsif pemutar game.

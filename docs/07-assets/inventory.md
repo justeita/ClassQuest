@@ -77,7 +77,7 @@ Setiap karakter punya enam potret dialog di
 `angry`, `shocked`, dan `thinking` (kanvas 456×360 diseragamkan untuk semua
 karakter, tinggi kepala dinormalkan dan digeser satu nilai tetap agar potret
 tidak bergeser saat ekspresi berganti, latar transparan).
-Potret dirender DOM dan bukan bagian `PreloadScene` (ADR 0020). Kolom Potret di
+Potret dirender DOM dan bukan bagian `PreloadScene` (ADR 0023). Kolom Potret di
 bawah menunjuk foldernya; nama folder mengikuti berkas sumber, bukan id manifest.
 
 Normalisasi menyamakan **tinggi** kepala; karakter yang wajahnya jelas lebih
@@ -92,8 +92,8 @@ dengan `bun run assets:portraits:ukur`.
 | `char_npc_1`  | Pelajar bertopi biru | `/assets/char/npc_1.png`  | `/assets/portrait/npc_1/`  | 33×61 | pelajar, topi, biru, desa, remaja, warga      | ready  |
 | `char_npc_3`  | Pelajar berkacamata  | `/assets/char/npc_3.png`  | `/assets/portrait/npc_3/`  | 33×62 | pelajar, kacamata, desa, remaja, warga, siswa | ready  |
 | `char_npc_4`  | Gadis berjubah biru  | `/assets/char/npc_4.png`  | `/assets/portrait/npc_4/`  | 34×62 | gadis, jubah, biru, desa, warga, remaja       | ready  |
-| `char_npc_5`  | Nenek bertongkat     | `/assets/char/npc_5.png`  | `/assets/portrait/npc_5/`  | 40×62 | nenek, tongkat, tua, desa, warga, bijak       | ready  |
-| `char_npc_6`  | Kakek berjubah hijau | `/assets/char/npc_6.png`  | `/assets/portrait/npc_6/`  | 36×61 | kakek, jubah, hijau, desa, warga, tua         | ready  |
+| `char_npc_5`  | Tetua bertongkat     | `/assets/char/npc_5.png`  | `/assets/portrait/npc_5/`  | 40×62 | tetua, tongkat, tua, desa, warga, bijak       | ready  |
+| `char_npc_6`  | Tetua berjubah hijau | `/assets/char/npc_6.png`  | `/assets/portrait/npc_6/`  | 36×61 | tetua, jubah, hijau, desa, warga, tua         | ready  |
 | `char_npc_7`  | Nelayan desa         | `/assets/char/npc_7.png`  | `/assets/portrait/npc_7/`  | 52×63 | nelayan, perahu, ikan, desa, warga, sungai    | ready  |
 | `char_npc_8`  | Penjaga desa         | `/assets/char/npc_8.png`  | `/assets/portrait/npc_8/`  | 48×62 | penjaga, jaga, desa, warga, aman, pos         | ready  |
 | `char_npc_9`  | Petani desa          | `/assets/char/npc_9.png`  | `/assets/portrait/npc_9/`  | 44×61 | petani, sawah, tani, desa, warga, panen       | ready  |
@@ -216,7 +216,7 @@ Satu lagu untuk seluruh permainan; chapter tidak berganti lagu.
 | `ui_portrait_frame` | Bingkai potret | `/assets/ui/portrait_frame.png` | potret, bingkai, karakter, frame | ready  |
 | `ui_default`        | UI default     | `/assets/ui/default.png`        | default, cadangan, panel, netral | ready  |
 
-Sejak ADR 0020, panel dialog digambar DOM, dan sejak rework kotak dialog ia
+Sejak ADR 0023, panel dialog digambar DOM, dan sejak rework kotak dialog ia
 menjadi kotak CSS navy gelap membulat (bukan `ui_textbox`), dan bingkai potret
 (`ui_portrait_frame`) tidak dipakai runtime karena potret digambar tanpa bingkai.
 Keduanya tetap ada di manifest supaya tidak ada aset yang hilang dari repo;
