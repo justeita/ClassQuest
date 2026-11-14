@@ -73,7 +73,7 @@ sehingga siswa di ponsel/tablet tidak ditinggalkan:
 | Gerak         | Joystick 8 arah di sudut kiri bawah              |
 | Bicara        | Tombol aksi besar di sudut kanan bawah           |
 | Lanjut dialog | Ketuk kotak dialog yang sedang tampil            |
-| Pilih jawaban | Ketuk opsi / tombol di overlay tantangan         |
+| Pilih jawaban | Ketuk opsi untuk memindah glove, lalu "Jawab"    |
 | Menu jeda     | Tombol "Jeda" di HUD                             |
 | Layar penuh   | Kartu "Arena Siswa" / tombol judul / ikon di HUD |
 
@@ -155,6 +155,10 @@ Catatan:
   di atas dunia terang maupun kotak gelap; ukurannya dibatasi `clamp(15px, …,
 22px)` agar tidak menabrak margin kotak pilihan. Pilihan aktif juga dibedakan
   lewat latar yang terangkat, bukan warna saja.
+- Di desktop glove mengikuti hover tetikus; di perangkat sentuh ia mengikuti
+  ketukan pada opsi. Karena HP tidak punya hover, ketukan pertama memilih opsi
+  dan tombol "Jawab" mengonfirmasi, sehingga jari yang salah tekan tidak
+  langsung menjawab (desktop tetap klik-langsung).
 - Border fokus: 2 px, warna aksen, offset 2 px.
 
 ## Ukuran teks

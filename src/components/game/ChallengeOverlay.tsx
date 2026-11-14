@@ -8,6 +8,7 @@ import {
   KOTAK_DIALOG_FOKUS,
   KOTAK_DIALOG_HOVER,
 } from "@/components/game/gayaDialog";
+import { useSentuh } from "@/components/game/useSentuh";
 import type { ChallengeView } from "@/game/challengeView";
 import { GAME_HEIGHT } from "@/game/constants";
 import { CHALLENGE, cqw, TEXTBOX, ukuranHuruf } from "@/game/layout";
@@ -108,6 +109,10 @@ export function ChallengeOverlay({
   onSubmit,
   onResolve,
 }: ChallengeOverlayProps) {
+  // Perangkat sentuh tidak punya hover: ketukan pertama memindahkan penunjuk
+  // (glove) ke opsi, lalu tombol "Jawab" mengirim. Di desktop hover tetap
+  // memindahkan penunjuk dan klik mengirim langsung.
+  const sentuh = useSentuh();
   const [pilihan, setPilihan] = useState<string | null>(null);
   const [teks, setTeks] = useState("");
   // Indeks sorotan kursor keyboard (▶) untuk daftar pilihan dialog (MC / TF).
@@ -217,6 +222,20 @@ export function ChallengeOverlay({
         ...tandaHint,
       });
     }
+  }
+
+  /**
+   * Ketuk/klik opsi pilihan ganda dan benar-salah.
+   *
+   * Di perangkat sentuh tidak ada kursor melayang, jadi ketukan hanya
+   * memindahkan penunjuk (glove) ke opsi itu dulu — persis seperti hover di
+   * desktop. Jawaban dikirim lewat tombol "Jawab" supaya jari yang salah tekan
+   * tidak langsung menjawab. Di desktop klik tetap mengirim langsung.
+   */
+  function ketukOpsi(id: string, index: number) {
+    setPilihan(id);
+    setSorot(index);
+    if (!sentuh) kirimJawabanOpsi(id);
   }
 
   function geser(index: number, arah: -1 | 1) {
@@ -467,11 +486,7 @@ export function ChallengeOverlay({
                   mode={modeLayout}
                   pilihan={pilihan}
                   sorot={sorot}
-                  onPilih={(id, index) => {
-                    setPilihan(id);
-                    setSorot(index);
-                    kirimJawabanOpsi(id);
-                  }}
+                  onPilih={ketukOpsi}
                   onSorot={setSorot}
                   disabled={graded !== null}
                 />
@@ -486,15 +501,34 @@ export function ChallengeOverlay({
                   mode={modeLayout}
                   pilihan={pilihan}
                   sorot={sorot}
-                  onPilih={(id, index) => {
-                    setPilihan(id);
-                    setSorot(index);
-                    kirimJawabanOpsi(id);
-                  }}
+                  onPilih={ketukOpsi}
                   onSorot={setSorot}
                   disabled={graded !== null}
                 />
               )}
+
+              {/* Di perangkat sentuh ketukan opsi hanya memindahkan penunjuk
+                  (glove). Tombol inilah yang mengirim jawaban pilihan ganda /
+                  benar-salah, supaya jari yang salah tekan tidak langsung
+                  menjawab. Di desktop tidak tampil karena klik sudah mengirim. */}
+              {sentuh &&
+                (view.type === "multiple_choice" ||
+                  view.type === "true_false") && (
+                  <div className="mt-2 flex w-full justify-end">
+                    <button
+                      type="button"
+                      onClick={kirimJawabanManual}
+                      disabled={!bisaJawab}
+                      className="min-w-[5.5rem] rounded-lg border border-[#E8A87C] bg-[#0b120e]/95 px-5 py-1.5 font-bold uppercase tracking-wider text-[#E8A87C] transition-colors hover:bg-[#E8A87C] hover:text-[#0b120e] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#E8A87C]"
+                      style={{
+                        fontSize: ukuranHuruf(14, 12, 20),
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      Jawab
+                    </button>
+                  </div>
+                )}
 
               {view.type === "ordering" && (
                 <div className="space-y-2">

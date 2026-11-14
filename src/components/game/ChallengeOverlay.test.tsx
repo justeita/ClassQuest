@@ -714,3 +714,85 @@ describe("ChallengeOverlay — soal diketik dulu, animasi jawaban", () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("ChallengeOverlay — penunjuk pada perangkat sentuh", () => {
+  /**
+   * jsdom tidak punya `window.matchMedia`. Palsukan agar perangkat terbaca
+   * sebagai ponsel (penunjuk kasar + tidak bisa hover), sama seperti pola
+   * `useSentuh.ts`. Di desktop (tanpa matchMedia) `useSentuh` bernilai false.
+   */
+  function pasangSentuh() {
+    const asli = window.matchMedia;
+    window.matchMedia = ((query: string) =>
+      ({
+        matches:
+          query.includes("pointer: coarse") || query.includes("hover: none"),
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }) as unknown as MediaQueryList) as typeof window.matchMedia;
+    return () => {
+      window.matchMedia = asli;
+    };
+  }
+
+  it("ketukan memindahkan glove tanpa mengirim; jawaban dikirim lewat Jawab", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      const { onSubmit } = renderOverlay({
+        ...dasar,
+        id: "chl_01_01",
+        type: "multiple_choice",
+        options: [
+          { id: "opt_a", text: "Menguap" },
+          { id: "opt_b", text: "Membeku" },
+        ],
+      });
+
+      const tombolB = screen.getByRole("button", { name: /membeku$/i });
+      fireEvent.click(tombolB);
+
+      // Ketukan pertama hanya memindahkan penunjuk (glove) ke opsi; belum ada
+      // jawaban yang terkirim.
+      expect(onSubmit).not.toHaveBeenCalled();
+      expect(tombolB).toHaveAttribute("aria-pressed", "true");
+      const penunjuk =
+        tombolB.parentElement?.querySelector<HTMLElement>("[data-penunjuk]");
+      expect(penunjuk).toHaveAttribute("data-penunjuk", "aktif");
+
+      // Tombol "Jawab" (khusus sentuh) yang mengirim jawaban terpilih.
+      fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+      expect(onSubmit).toHaveBeenCalledWith({
+        challengeId: "chl_01_01",
+        type: "multiple_choice",
+        selectedId: "opt_b",
+      });
+    } finally {
+      pulihkan();
+    }
+  });
+
+  it("di desktop tidak ada tombol Jawab tambahan: klik tetap mengirim langsung", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_01_02",
+      type: "true_false",
+      statement: "Uap air lebih ringan.",
+    });
+
+    expect(
+      screen.queryByRole("button", { name: /^jawab$/i }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /\bsalah$/i }));
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_01_02",
+      type: "true_false",
+      answer: false,
+    });
+  });
+});
