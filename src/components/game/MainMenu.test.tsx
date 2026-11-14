@@ -234,7 +234,7 @@ describe("MainMenu", () => {
   });
 });
 
-describe("MainMenu — petunjuk keyboard di perangkat sentuh", () => {
+describe("MainMenu — di perangkat sentuh", () => {
   /**
    * jsdom tidak punya `window.matchMedia`. Palsukan agar perangkat terbaca
    * sebagai ponsel (penunjuk kasar + tidak bisa hover), sama seperti pola
@@ -259,11 +259,12 @@ describe("MainMenu — petunjuk keyboard di perangkat sentuh", () => {
     };
   }
 
-  it("menyembunyikan petunjuk tombol keyboard di HP", () => {
+  it("menukar petunjuk keyboard dengan petunjuk sentuh", () => {
     const pulihkan = pasangSentuh();
     try {
       render(<MainMenu onMulai={vi.fn()} />);
       expect(screen.queryByText(/Enter konfirmasi/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/ketuk lagi konfirmasi/i)).toBeInTheDocument();
     } finally {
       pulihkan();
     }
@@ -272,5 +273,54 @@ describe("MainMenu — petunjuk keyboard di perangkat sentuh", () => {
   it("tetap menampilkan petunjuk tombol di desktop", () => {
     render(<MainMenu onMulai={vi.fn()} />);
     expect(screen.getByText(/Enter konfirmasi/i)).toBeInTheDocument();
+  });
+
+  it("ketukan pertama memindahkan penunjuk tanpa menjalankan aksi", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      render(<MainMenu onMulai={vi.fn()} />);
+
+      fireEvent.click(tombol(/^pengaturan$/i));
+
+      expect(tombol(/^pengaturan$/i)).toHaveAttribute("aria-current", "true");
+      expect(
+        screen.queryByRole("dialog", { name: "Pengaturan" }),
+      ).not.toBeInTheDocument();
+    } finally {
+      pulihkan();
+    }
+  });
+
+  it("ketukan kedua pada pilihan yang sama menjalankannya", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      render(<MainMenu onMulai={vi.fn()} />);
+
+      fireEvent.click(tombol(/^pengaturan$/i));
+      fireEvent.click(tombol(/^pengaturan$/i));
+
+      expect(
+        screen.getByRole("dialog", { name: "Pengaturan" }),
+      ).toBeInTheDocument();
+    } finally {
+      pulihkan();
+    }
+  });
+
+  it("penunjuk pindah ke tiap pilihan yang diketuk", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      render(<MainMenu onMulai={vi.fn()} />);
+
+      fireEvent.click(tombol(/^keluar$/i));
+      expect(tombol(/^keluar$/i)).toHaveAttribute("aria-current", "true");
+      expect(tombol(/^mulai$/i)).toHaveAttribute("aria-current", "false");
+
+      fireEvent.click(tombol(/^mulai$/i));
+      expect(tombol(/^mulai$/i)).toHaveAttribute("aria-current", "true");
+      expect(tombol(/^keluar$/i)).toHaveAttribute("aria-current", "false");
+    } finally {
+      pulihkan();
+    }
   });
 });

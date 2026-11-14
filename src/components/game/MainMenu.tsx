@@ -352,11 +352,24 @@ export function MainMenu({ onMulai }: MainMenuProps) {
                       type="button"
                       aria-current={terpilih ? "true" : "false"}
                       onClick={() => {
+                        // Di perangkat sentuh tidak ada hover: ketukan pertama
+                        // memindahkan segitiga penunjuk ke pilihan ini, ketukan
+                        // berikutnya baru menjalankannya. Kalau tidak, aksi
+                        // langsung jalan (dialog terbuka / permainan mulai)
+                        // sehingga penunjuk tak pernah terlihat berpindah.
+                        if (sentuh && indeks !== aktif) {
+                          setAktif(indeks);
+                          return;
+                        }
                         setAktif(indeks);
                         jalankan(pilihan.id);
                       }}
-                      onFocus={() => setAktif(indeks)}
-                      onMouseEnter={() => setAktif(indeks)}
+                      // `onFocus`/`onMouseEnter` dilewati di perangkat sentuh:
+                      // peramban memancarkan keduanya sebelum `click` setelah
+                      // sebuah ketukan, dan itu akan langsung mengonfirmasi
+                      // pilihan sebelum penunjuknya sempat terlihat.
+                      onFocus={sentuh ? undefined : () => setAktif(indeks)}
+                      onMouseEnter={sentuh ? undefined : () => setAktif(indeks)}
                       className="menu-item relative flex min-h-11 w-full items-center text-left"
                     >
                       <span
@@ -371,11 +384,15 @@ export function MainMenu({ onMulai }: MainMenuProps) {
             </ul>
           </nav>
 
-          {!sentuh && (
-            <p className="menu-kredit menu-petunjuk mt-5">
-              <span aria-hidden="true">↑ ↓</span> pilih · Enter konfirmasi
-            </p>
-          )}
+          <p className="menu-kredit menu-petunjuk mt-5">
+            {sentuh ? (
+              <>Ketuk pilih · ketuk lagi konfirmasi</>
+            ) : (
+              <>
+                <span aria-hidden="true">↑ ↓</span> pilih · Enter konfirmasi
+              </>
+            )}
+          </p>
         </div>
 
         <p className="menu-kredit menu-versi mt-auto pt-6">
@@ -521,11 +538,14 @@ function Dunia() {
         className="object-cover object-[62%_center]"
       />
 
-      {/* Kabut tipis di sisi kiri, tempat teks menu berdiri. Di gambar aslinya
-          area itu sudah teduh di bawah pohon; lapisan ini menstabilkannya
-          untuk layar kecil, tempat papan teks memakan hampir separuh layar. */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#04120b]/85 via-[#04120b]/45 to-transparent md:hidden" />
-      <div className="absolute inset-0 hidden bg-gradient-to-br from-[#04120b]/75 via-[#04120b]/20 to-transparent to-[55%] md:block" />
+      {/* Kabut gelap untuk teks menu. Satu lapisan saja, membentang dari tepi
+          kiri ke tepi kanan kanvas: gelap di sisi kiri tempat teks berdiri,
+          memudar habis tepat di tepi kanan. Dulu ada dua lapisan dan yang
+          layar lebar dipotong di tengah (`to-[55%]`), jadi menyisakan garis
+          batas yang terlihat; sekarang gradien berjalan penuh 0→100%. Di
+          layar lebar bayangan pohon di gambar sudah menambah teduh, jadi
+          sisinya lebih tipis. */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#04120b]/85 via-[#04120b]/45 to-transparent md:from-[#04120b]/75 md:via-[#04120b]/25" />
       {/* Sedikit gelap di tepi bawah supaya label versi tetap terbaca. */}
       <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[#05130c]/55 to-transparent" />
     </div>

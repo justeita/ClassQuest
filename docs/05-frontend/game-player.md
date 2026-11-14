@@ -158,14 +158,19 @@ dari guru langsung melihat judul cerita, bukan menu.
 
 - Satu gambar desa utuh (`public/menu/desa.webp`) memenuhi layar. Teks menu
   berdiri **langsung di atas gambar**, di bawah naungan pohon kiri atas, tanpa
-  panel — jadi seluruh desa tetap terlihat. Di layar < 768 px papan teksnya
-  diberi latar gelap transparan sendiri, karena crop gambar menaruh rumah terang
-  di belakang teks.
+  panel — jadi seluruh desa tetap terlihat. Satu lapisan gradien gelap penuh
+  kanvas (dari tepi kiri yang pekat, memudar habis tepat di tepi kanan)
+  menstabilkan keterbacaan teks tanpa meninggalkan garis batas di tengah layar.
 - Isi papan: judul "CLASS QUEST" (serif tebal), garis emas berhiaskan bintang,
-  empat pilihan — `Mulai`, `Pengaturan`, `Kredit`, `Keluar` — petunjuk tombol, dan
-  label versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas. Di
-  perangkat sentuh petunjuk tombol (`↑ ↓ pilih · Enter`) disembunyikan karena
-  tidak ada tombol fisik di HP (`useSentuh`), sekaligus menghemat tinggi papan.
+  empat pilihan — `Mulai`, `Pengaturan`, `Kredit`, `Keluar` — petunjuk, dan label
+  versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas.
+- Di perangkat sentuh (`useSentuh`) petunjuk tombol keyboard diganti petunjuk
+  sentuh (`Ketuk pilih · ketuk lagi konfirmasi`) dan menu memakai dua langkah:
+  ketukan pertama memindahkan segitiga penunjuk ke pilihan itu, ketukan
+  berikutnya di pilihan yang sama baru menjalankannya. Tanpa jeda ini aksi
+  langsung berjalan (dialog terbuka atau permainan mulai) sehingga penunjuk tak
+  pernah terlihat berpindah. `onFocus`/`onMouseEnter` dilewati di sentuh karena
+  peramban memancarkan keduanya sebelum `click` setelah sebuah ketukan.
 - Di lanskap ponsel (tinggi ≤ 30rem) judul, jarak antar-blok, dan padding papan
   diperkecil supaya keempat pilihan dan label versi muat tanpa terpotong tepi
   bawah; tinggi tiap pilihan tetap 44 px agar nyaman disentuh, dan papan boleh

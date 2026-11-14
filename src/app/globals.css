@@ -1205,20 +1205,14 @@ label,
   text-shadow: 0 0 8px rgb(231 196 93 / 0.55);
 }
 
-/* Di layar sempit tidak ada area gelap alami di bawah pohon: gambar desa
-   ter-crop ke tengah, jadi teks akan jatuh di atas rumah yang terang. Papan
-   teksnya sendiri yang diberi latar gelap transparan — di layar lebar latar itu
-   tidak dipakai karena bayangan pohon sudah cukup. */
+/* Papan teks di layar sempit mengambil lebar penuh supaya teks tetap punya
+   ruang. Penggelapan di belakang teks sekarang ditangani satu lapisan gradien
+   penuh kanvas di `Dunia` (MainMenu.tsx); papan tidak lagi membawa gradiennya
+   sendiri karena dua lapisan bertumpuk meninggalkan garis batas di tengah. */
 @media (width < 48rem) {
   .menu-panel {
     width: 100%;
     padding: 1.1rem 1.2rem 1.35rem;
-    background-image: linear-gradient(
-      100deg,
-      rgb(4 18 11 / 0.9) 0%,
-      rgb(4 18 11 / 0.78) 58%,
-      rgb(4 18 11 / 0) 100%
-    );
   }
 }
 
