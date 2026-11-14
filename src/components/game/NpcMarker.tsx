@@ -178,7 +178,7 @@ function KotakSeru({ className = "" }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`relative flex items-center justify-center border border-[#E8A87C]/80 bg-[#0b120e]/90 font-bold leading-none text-[#E8A87C] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)] ${className}`}
+      className={`relative flex items-center justify-center rounded-md border border-[#E8A87C]/80 bg-[#0b120e]/90 font-bold leading-none text-[#E8A87C] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)] ${className}`}
       style={{
         width: cqw(PENANDA.kotak),
         height: cqw(PENANDA.kotak),

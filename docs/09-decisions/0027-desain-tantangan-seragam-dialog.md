@@ -11,6 +11,10 @@ owner: tim ClassQuest
 - **Pengambil keputusan:** tim ClassQuest
 - **Menggantikan:** — (menyesuaikan butir desain bersama pada
   [ADR 0026](0026-desain-hud-dan-tombol-bicara.md), tidak membatalkannya)
+- **Diperbarui oleh:** [ADR 0028](0028-warna-ui-selaras-penanda-quest.md) —
+  nilai warna token (gelap `#0b120e` + aksen oranye `#E8A87C`) dan bentuk
+  penunjuk pilihan (tangan menunjuk SVG, bukan segitiga border CSS); arsitektur
+  token bersama dan penunjuk di luar kotak tetap.
 
 ## Konteks
 

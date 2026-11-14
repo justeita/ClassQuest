@@ -216,6 +216,7 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0025-jangkauan-interaksi-dan-bar-hud-potret.md`](./09-decisions/0025-jangkauan-interaksi-dan-bar-hud-potret.md) | stable | Jangkauan interaksi, menu jeda bergulir, dan bar HUD potret  |
 | [`09-decisions/0026-desain-hud-dan-tombol-bicara.md`](./09-decisions/0026-desain-hud-dan-tombol-bicara.md)                     | stable | Desain HUD seragam dan tombol Bicara menjauh dari tepi       |
 | [`09-decisions/0027-desain-tantangan-seragam-dialog.md`](./09-decisions/0027-desain-tantangan-seragam-dialog.md)               | stable | Desain tantangan seragam dan penunjuk pilihan yang presisi   |
+| [`09-decisions/0028-warna-ui-selaras-penanda-quest.md`](./09-decisions/0028-warna-ui-selaras-penanda-quest.md)                 | stable | Warna UI selaras penanda quest dan penunjuk tangan SVG       |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                                               | draft  | Urutan kerja dan pembagian tugas                             |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                                                     | draft  | Naskah demo 3 menit + sketsa layar                           |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                                           | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal     |

@@ -127,9 +127,9 @@ function PortraitSlot({ portrait, bicara, menutup }: PortraitSlotProps) {
  * bukan lagi gambar `ui_textbox` — supaya sudut membulat dan warnanya tajam di
  * resolusi layar asli. Potret anime juga dirender browser, tidak ikut bergerigi.
  *
- * Bentuk panel mengikuti referensi gaya Persona: kotak navy gelap membulat tanpa
- * bingkai pixel, nama pembicara teal dengan huruf pixel kapital, isi dialog
- * putih. Dua potret berdiri **di atas** panel dengan dasar menempel tepi
+ * Bentuk panel mengikuti referensi gaya Persona: kotak hijau-gelap membulat
+ * tanpa bingkai pixel, nama pembicara oranye dengan huruf pixel kapital, isi
+ * dialog krem terang. Dua potret berdiri **di atas** panel dengan dasar menempel tepi
  * atasnya: NPC di pojok kiri, MC dicerminkan di pojok kanan. Pembicara menyala
  * dan lawan bicaranya meredup, jadi giliran bicara selalu terbaca. Posisi
  * memakai persen dari `TEXTBOX`/`PORTRAIT`; ukuran huruf dan padding memakai
@@ -245,12 +245,12 @@ export function DialogueBox({
           menutup ? "animate-crt-keluar" : "animate-crt-masuk"
         }`}
       >
-        {/* Panel dialog: kotak navy gelap membulat tanpa bingkai pixel (gaya
+        {/* Panel dialog: kotak hijau-gelap membulat tanpa bingkai pixel (gaya
             Persona). Digambar CSS, bukan `ui_textbox.png`, supaya sudut dan
             warnanya tajam di resolusi layar asli. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-10 border border-white/5 bg-[#0f172b]/95"
+          className="pointer-events-none absolute inset-0 z-10 border border-[#E8A87C]/20 bg-[#0b120e]/95"
           style={{ borderRadius: cqw(TEXTBOX.radius) }}
         />
 
@@ -264,7 +264,7 @@ export function DialogueBox({
         >
           {tampil.name && (
             <p
-              className="font-pixel font-bold uppercase text-[#55D0A5]"
+              className="font-pixel font-bold uppercase text-[#E8A87C]"
               style={{
                 fontSize: kecil
                   ? ukuranHuruf(15, 9, 18)
@@ -279,7 +279,7 @@ export function DialogueBox({
 
           <p
             aria-live="polite"
-            className="break-words whitespace-pre-wrap text-[#EFF2F7]"
+            className="break-words whitespace-pre-wrap text-[#F7F4EC]"
             style={{
               marginTop: cqw(4),
               fontSize: kecil
@@ -295,7 +295,7 @@ export function DialogueBox({
           {tampil.waiting && (
             <span
               aria-hidden="true"
-              className="absolute bottom-2.5 right-4 animate-pulse select-none text-[#55D0A5] motion-reduce:animate-none"
+              className="absolute bottom-2.5 right-4 animate-pulse select-none text-[#E8A87C] motion-reduce:animate-none"
               style={{ fontSize: ukuranHuruf(16, 14, 24) }}
             >
               ▼

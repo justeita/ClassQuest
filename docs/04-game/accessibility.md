@@ -91,8 +91,9 @@ Aturan:
   papan tombol, dan menghilang bila peramban tidak mendukungnya (ADR 0022).
 - **Di layar potret** tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar
   penuh) dipindah ke bar di bawah kanvas, bukan melayang menutupi dunia.
-  Tombolnya memakai desain yang sama dengan kotak dialog (navy gelap `#0f172b`,
-  sudut membulat, teks terang), jadi seragam di desktop maupun HP (ADR 0026).
+  Tombolnya memakai desain yang sama dengan kotak dialog (gelap `#0b120e`,
+  bingkai dan aksen oranye `#E8A87C`, teks krem terang, sudut membulat), jadi
+  seragam di desktop maupun HP (ADR 0026, ADR 0028).
   Teks dialog juga diperkecil agar tidak melimpah dari kotak 16:9 yang sempit.
 - Tombol "Percepat" di sentuh memantau pelepasan dari `window`
   (`pointerup`/`pointercancel`/`touchend`/`touchcancel`/`blur`) dan memakai
@@ -141,12 +142,12 @@ Catatan:
 - Jangan mengandalkan hijau/merah saja. Selalu ada ikon atau teks
   ("Tepat", "Belum tepat").
 - Teks dialog, kotak jawaban tantangan, dan tombol HUD memakai bahasa visual yang
-  sama: teks terang `#EFF2F7` di atas navy kotak dialog `#0f172b`, dengan aksen
-  teal `#55D0A5` (ADR 0026, ADR 0027).
-- Segitiga penunjuk pilihan aktif digambar dari border CSS berwarna krem terang
-  `#F7F4EC` dengan bayangan gelap tipis, jadi tetap terbaca di atas dunia terang
-  maupun kotak navy; pilihan aktif juga dibedakan lewat latar yang terangkat,
-  bukan warna saja.
+  sama: teks krem terang `#F7F4EC` di atas latar gelap `#0b120e`, dengan aksen
+  oranye `#E8A87C` (ADR 0026, ADR 0027, ADR 0028).
+- Penunjuk pilihan aktif adalah tangan menunjuk (glove) SVG berwarna krem terang
+  `#F7F4EC` dengan outline gelap dan manset oranye, jadi tetap terbaca di atas
+  dunia terang maupun kotak gelap; pilihan aktif juga dibedakan lewat latar yang
+  terangkat, bukan warna saja.
 - Border fokus: 2 px, warna aksen, offset 2 px.
 
 ## Ukuran teks
@@ -179,7 +180,7 @@ bergerigi bersama pixel art.
   layar sempit.
 - Isi dialog memakai **Patrick Hand** (OFL, lokal di `public/fonts/`, dimuat
   `next/font/local`); nama pembicara memakai huruf pixel **Pixelify Sans**
-  (`font-pixel`) berwarna teal. Keduanya punya ukuran minimum `clamp()` supaya
+  (`font-pixel`) berwarna oranye. Keduanya punya ukuran minimum `clamp()` supaya
   tetap terbaca di layar sempit — lihat
   [`world-design.md`](./world-design.md#teks-dan-font).
 

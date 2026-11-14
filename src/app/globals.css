@@ -456,6 +456,44 @@ label,
 }
 
 /* --------------------------------------------------------------------------
+ * Scrollbar bertema game
+ *
+ * Area gulir di UI game (buku catatan, menu jeda) memakai scrollbar ini alih-alih
+ * scrollbar bawaan peramban: jalurnya gelap `#0b120e` dan ibu jarinya oranye
+ * `#E8A87C`, senada HUD, dialog, dan kotak penanda quest. `scrollbar-width` /
+ * `scrollbar-color` menangani Firefox, sedangkan `::-webkit-scrollbar*`
+ * menangani Chromium, Safari, dan Edge.
+ * ------------------------------------------------------------------------ */
+.scrollbar-tema {
+  scrollbar-width: thin;
+  scrollbar-color: #e8a87c #0b120e;
+}
+
+.scrollbar-tema::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-tema::-webkit-scrollbar-track {
+  background: #0b120e;
+  border-radius: 9999px;
+}
+
+.scrollbar-tema::-webkit-scrollbar-thumb {
+  background: #e8a87c;
+  border: 2px solid #0b120e;
+  border-radius: 9999px;
+}
+
+.scrollbar-tema::-webkit-scrollbar-thumb:hover {
+  background: #f0b98f;
+}
+
+.scrollbar-tema::-webkit-scrollbar-corner {
+  background: #0b120e;
+}
+
+/* --------------------------------------------------------------------------
  * Portal guru
  *
  * Desain asalnya berkas HTML statis + Tailwind CDN. Kelas di bawah adalah

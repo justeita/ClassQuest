@@ -1089,10 +1089,10 @@ describe("GameShell — kontrol sentuh", () => {
     ).toBeInTheDocument();
     expect(dalam.getByRole("button", { name: /^jeda$/i })).toBeInTheDocument();
 
-    // Desain HUD disatukan dengan kotak dialog: navy gelap dengan teks terang,
+    // Desain HUD disatukan dengan kotak dialog: gelap dengan teks krem terang,
     // sama seperti varian overlay (ADR 0026).
-    expect(musik.className).toContain("bg-[#0f172b]/95");
-    expect(musik.className).toContain("text-[#EFF2F7]");
+    expect(musik.className).toContain("bg-[#0b120e]/95");
+    expect(musik.className).toContain("text-[#F7F4EC]");
   });
 
   it("menampilkan tombol Percepat di bar bawah saat dialog di layar potret", async () => {

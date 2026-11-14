@@ -342,13 +342,13 @@ describe("ChallengeOverlay — panel di atas dialog", () => {
 
     const tombolB = screen.getByRole("button", { name: /membeku$/i });
     fireEvent.mouseEnter(tombolB);
-    // Tombol B tersorot dengan desain kotak dialog aktif (#16223d + border putih)
-    expect(tombolB.className).toContain("border-white/60");
-    expect(tombolB.className).toContain("bg-[#16223d]");
+    // Tombol B tersorot dengan desain kotak dialog aktif (#1c2a22 + border aksen)
+    expect(tombolB.className).toContain("border-[#E8A87C]");
+    expect(tombolB.className).toContain("bg-[#1c2a22]");
     expect(tombolB.className).toContain("text-white");
   });
 
-  it("penunjuk segitiga tampil presisi di samping opsi yang aktif (HCI)", () => {
+  it("tangan penunjuk tampil presisi di samping opsi yang aktif (HCI)", () => {
     renderOverlay({
       ...dasar,
       id: "chl_01_01",
@@ -362,7 +362,7 @@ describe("ChallengeOverlay — panel di atas dialog", () => {
     const tombolA = screen.getByRole("button", { name: /menguap$/i });
     fireEvent.mouseEnter(tombolA);
 
-    // Penunjuk digambar dari border CSS (bukan glyph) dan ditandai agar jelas.
+    // Penunjuk digambar sebagai SVG tangan (bukan glyph font) dan ditandai jelas.
     const penunjuk = tombolA.parentElement?.querySelector("[data-penunjuk]");
     expect(penunjuk).not.toBeNull();
     expect(penunjuk).toHaveAttribute("data-penunjuk", "aktif");

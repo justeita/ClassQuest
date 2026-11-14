@@ -11,6 +11,9 @@ owner: tim ClassQuest
 - **Pengambil keputusan:** tim ClassQuest
 - **Menggantikan:** — (menyesuaikan butir desain HUD pada
   [ADR 0025](0025-jangkauan-interaksi-dan-bar-hud-potret.md), tidak membatalkannya)
+- **Diperbarui oleh:** [ADR 0028](0028-warna-ui-selaras-penanda-quest.md) —
+  nilai warna token HUD (dari navy/teal menjadi gelap + oranye); struktur dan
+  perilaku HUD tetap.
 
 ## Konteks
 

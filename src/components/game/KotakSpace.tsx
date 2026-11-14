@@ -28,7 +28,7 @@ export function KotakSpace({ text, className = "" }: KotakSpaceProps) {
 
   return (
     <span
-      className={`flex items-center justify-center whitespace-nowrap border border-[#E8A87C]/80 bg-[#0b120e]/90 font-bold uppercase tracking-[0.12em] text-[#E8A87C] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)] ${className}`}
+      className={`flex items-center justify-center whitespace-nowrap rounded-md border border-[#E8A87C]/80 bg-[#0b120e]/90 font-bold uppercase tracking-[0.12em] text-[#E8A87C] shadow-[2px_2px_0_0_rgba(0,0,0,0.45)] ${className}`}
       style={{
         height: cqw(PENANDA.kotak),
         fontSize: ukuranHuruf(12, 10, 18),

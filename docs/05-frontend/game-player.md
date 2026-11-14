@@ -131,9 +131,9 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - HUD kanan atas: tombol quest, percepat, musik, catatan, jeda, dan layar
   penuh. Semua tombol HUD dan quest menampilkan tombol keyboardnya sebagai
   keycap konsisten (`Tab`, `B`, `Q`, `Esc`) lewat komponen `Keycap`, dan
-  memakai satu **desain yang sama dengan panel kotak dialog** — navy gelap
-  `#0f172b`, sudut membulat, teks terang — supaya terlihat konsisten
-  (ADR 0026). Di desktop (`lg`, ≥1024px) ukuran tombolnya sengaja diperbesar
+  memakai satu **desain yang sama dengan panel kotak dialog** — gelap `#0b120e`
+  dengan bingkai dan aksen oranye `#E8A87C` serta teks krem terang `#F7F4EC`,
+  sudut membulat — supaya terlihat konsisten (ADR 0026, ADR 0028). Di desktop (`lg`, ≥1024px) ukuran tombolnya sengaja diperbesar
   agar nyaman diklik; di HP tetap ringkas. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
@@ -183,7 +183,10 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   (ADR 0025).
 - Tombol `Catatan` (`B`) membuka buku catatan dua halaman: riwayat dialog
   (dikelompokkan per scene, dengan chip nama pembicara) dan jurnal konsep
-  (conceptTag, status benar/perlu diulang, penjelasan). Dunia dibekukan
+  (conceptTag, status benar/perlu diulang, penjelasan). Jendelanya **kartu
+  membulat** dengan garis aksen oranye, dan area bacaannya memakai **scrollbar
+  bertema** (`scrollbar-tema` di `globals.css`) alih-alih scrollbar bawaan
+  peramban (ADR 0028). Dunia dibekukan
   selama buku terbuka; musik tetap diputar penuh. Buku dibersihkan saat
   "Ulangi chapter" atau sesi baru.
 - Tombol musik (`♪`) mengatur volume musik saja: nyala/mati. Efek suara
@@ -206,14 +209,14 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 - **Lebar kotak mengikuti isi (fit text), bukan lebar panel.** Opsi pilihan, baris pengurutan, input jawaban singkat, dan tombol `Jawab` dibungkus grup `w-fit` sehingga hanya selebar isinya; pada daftar kolom, semua opsi diseragamkan ke opsi terpanjang (tanpa lebar minimum tetap). Jadi jawaban pendek tidak lagi membentang penuh ke kanan. Baris petunjuk pintasan ditaruh di luar grup agar tidak ikut menentukan lebarnya. (ADR 0027)
   - Pada `ordering`, daftar item dan tombol `Jawab` berbagi grup `w-fit` yang sama supaya tepi kanan keduanya rata.
   - Pada `short_answer`, input `size` mengikuti panjang placeholder sehingga teks petunjuk muat tanpa terpotong, dan tombol `Jawab` selebar input.
-- Konsistensi visual HCI dengan DialogueBox (ADR 0027):
-  - Kotak jawaban, kartu matriks, kartu umpan balik, tombol aksi, dan petunjuk pintasan memakai **token kotak dialog** yang sama (`gayaDialog.ts`): latar navy `#0f172b`/95, bingkai tipis putih transparan (`border-white/10`), sudut membulat (`rounded-lg`), teks terang `#EFF2F7`, aksen teal `#55D0A5`, flat tanpa drop shadow.
-  - Keadaan terpilih memakai `KOTAK_DIALOG_AKTIF` (bingkai putih lebih terang, latar sedikit terangkat); keadaan diam memakai `KOTAK_DIALOG` + hover. Dipilih dengan percabangan agar tidak menumpuk kelas warna yang bentrok.
+- Konsistensi visual HCI dengan DialogueBox (ADR 0027, ADR 0028):
+  - Kotak jawaban, kartu matriks, kartu umpan balik, tombol aksi, dan petunjuk pintasan memakai **token kotak dialog** yang sama (`gayaDialog.ts`): latar gelap `#0b120e`/95, bingkai tipis aksen oranye `#E8A87C`, sudut membulat (`rounded-lg`), teks krem terang `#F7F4EC`, aksen oranye `#E8A87C`, flat tanpa drop shadow.
+  - Keadaan terpilih memakai `KOTAK_DIALOG_AKTIF` (bingkai oranye penuh, latar sedikit terangkat); keadaan diam memakai `KOTAK_DIALOG` + hover. Dipilih dengan percabangan agar tidak menumpuk kelas warna yang bentrok.
   - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar; bingkai kartu berwarna status (`#6F9B7A` benar, `#C9A227` belum tepat).
   - Ukuran huruf dan line-height opsi dan penjelasan umpan balik proporsional dan nyaman dibaca (`ukuranHuruf(13.5, 12, 20)` & `lineHeight: 1.3`).
-  - Segitiga penunjuk pilihan aktif berada di **luar kotak** (di kiri untuk daftar, di atas untuk kartu) dan digambar dari **border CSS**, bukan glyph, sehingga tajam dan presisi. Warnanya krem terang `#F7F4EC` dengan bayangan gelap tipis agar tetap jelas di atas dunia terang maupun kotak navy; saat tidak aktif ia `opacity-0` agar tata letak tidak bergeser.
-  - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya dan memakai aksen teal `#55D0A5`.
-  - Teks petunjuk tombol shortcut (`hints`) memakai latar navy `#0f172b`/95 dengan teks terang `#EFF2F7` untuk keterbacaan tinggi.
+  - Penunjuk pilihan aktif adalah **tangan menunjuk (glove) SVG** yang digambar sendiri (bukan glyph font atau emoji) di **luar kotak** — kiri untuk daftar, atas untuk kartu, dan di depan input `short_answer`. Telapak krem `#F7F4EC` dengan outline gelap dan manset oranye `#E8A87C`, jadi tetap jelas di atas dunia terang maupun kotak gelap; saat tidak aktif ia `opacity-0` agar tata letak tidak bergeser.
+  - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya dan memakai aksen oranye `#E8A87C`.
+  - Teks petunjuk tombol shortcut (`hints`) memakai latar gelap `#0b120e`/95 dengan teks krem terang `#F7F4EC` untuk keterbacaan tinggi.
 - Segitiga lanjut dialog `▼` diposisikan di **sudut kanan bawah kotak dialog**.
 - Tanpa background kotak pembungkus hitam luar (hanya baris pilihan yang memiliki latar), tanpa tombol jawab/lanjut terpisah. Memilih opsi langsung mengirim respon dialog, dan kartu umpan balik cerita dapat diklik atau ditekan Spasi/Enter untuk lanjut.
 - Kontrol keyboard-first meminimalkan ketergantungan mouse/touchpad:
@@ -242,6 +245,10 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 - Lanjut, ulangi chapter, pengaturan suara (slider Musik dan Efek suara
   terpisah + tombol mute per baris), keluar.
+- Tampil sebagai satu **kartu gelap membulat** dengan garis aksen oranye; area
+  luarnya bisa digulir dan memakai **scrollbar bertema** (`scrollbar-tema`),
+  jadi di layar ponsel pendek menu tetap terjangkau tanpa scrollbar bawaan
+  peramban (ADR 0028).
 - Game di-pause (`scene.pause()`), input dialog berhenti.
 - Musik tidak dihentikan, hanya dikecilkan (volume 0,35 → 0,12) agar jeda tidak
   terasa memutus suasana; volume kembali saat lanjut atau ulangi chapter.
@@ -297,9 +304,9 @@ bingkai kanvas supaya dunia tidak ikut tergencet.
 
 Di ponsel potret tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar penuh)
 tidak lagi melayang di atas kanvas: semuanya dipindah ke **bar di bawah kanvas**.
-Tombolnya memakai desain yang sama dengan kotak dialog — navy gelap `#0f172b`
-dengan sudut membulat dan teks terang — jadi seragam di desktop maupun HP
-(ADR 0026). Teks dialog juga diperkecil karena kotak 16:9 di potret hanya
+Tombolnya memakai desain yang sama dengan kotak dialog — gelap `#0b120e`
+dengan bingkai dan aksen oranye `#E8A87C` serta teks krem terang, sudut
+membulat — jadi seragam di desktop maupun HP (ADR 0026, ADR 0028). Teks dialog juga diperkecil karena kotak 16:9 di potret hanya
 setinggi ±65 px. Gaya tombol dipakai bersama lewat `gayaHud.ts`, dan prop `letak`
 (`overlay` | `bar`) yang memilih variannya (ADR 0025).
 

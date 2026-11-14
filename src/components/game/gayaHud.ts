@@ -9,10 +9,10 @@ import {
  * supaya ketiganya tampak satu keluarga (docs/05-frontend/game-player.md).
  *
  * Desainnya mengikuti **panel kotak dialog** (`DialogueBox`) lewat token di
- * `gayaDialog.ts`: latar navy gelap `#0f172b`, bingkai tipis putih transparan,
- * sudut membulat, dan teks terang `#EFF2F7`. Jadi tombol HUD, kotak dialog, dan
- * kotak pilihan tantangan terbaca sebagai satu bahasa visual — di desktop
- * maupun HP (ADR 0026).
+ * `gayaDialog.ts`: latar hijau-gelap `#0b120e`, bingkai tipis aksen oranye
+ * `#E8A87C`, sudut membulat, dan teks krem terang `#F7F4EC`. Jadi tombol HUD,
+ * kotak dialog, dan kotak pilihan tantangan terbaca sebagai satu bahasa visual
+ * — di desktop maupun HP (ADR 0026).
  *
  * Ada dua varian ukuran:
  * - `overlay`: di dalam bingkai kanvas. Di **desktop** (`lg`, ≥1024px) tombol

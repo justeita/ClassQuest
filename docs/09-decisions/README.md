@@ -40,6 +40,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0025 | [Jangkauan interaksi luas, menu jeda bergulir, dan bar HUD potret](0025-jangkauan-interaksi-dan-bar-hud-potret.md)        | Accepted     | Game, aksesibilitas   |
 | 0026 | [Desain HUD seragam dengan kotak dialog dan tombol Bicara menjauh dari tepi](0026-desain-hud-dan-tombol-bicara.md)        | Accepted     | Game, aksesibilitas   |
 | 0027 | [Desain tantangan seragam dengan kotak dialog dan penunjuk pilihan yang presisi](0027-desain-tantangan-seragam-dialog.md) | Accepted     | Game, aksesibilitas   |
+| 0028 | [Warna UI selaras dengan penanda quest dan penunjuk tangan SVG](0028-warna-ui-selaras-penanda-quest.md)                   | Accepted     | Game, aksesibilitas   |
 
 ## Status
 
