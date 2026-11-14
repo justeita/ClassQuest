@@ -66,14 +66,14 @@ bercerita**. Siswa tidak lagi membaca PDF panjang tanpa keterlibatan: mereka
 menjelajahi dunia cerita, berbincang dengan karakter, dan menjawab tantangan yang
 bersumber langsung dari materi guru.
 
-| Item                    | Keterangan                                                          |
-| ----------------------- | ------------------------------------------------------------------- |
-| **Nama aplikasi**       | ClassQuest                                                          |
-| **Kategori**            | Web                                                                 |
-| **Subtema LOGICODIX**   | Smart & Fun Education                                               |
-| **Target pengguna**     | Guru dan siswa SMP/SMA                                              |
-| **Aplikasi live**       | [classquest.justeita.com](https://classquest.justeita.com)          |
-| **Repositori**          | [github.com/justeita/ClassQuest](https://github.com/justeita/ClassQuest) |
+| Item                  | Keterangan                                                               |
+| --------------------- | ------------------------------------------------------------------------ |
+| **Nama aplikasi**     | ClassQuest                                                               |
+| **Kategori**          | Web                                                                      |
+| **Subtema LOGICODIX** | Smart & Fun Education                                                    |
+| **Target pengguna**   | Guru dan siswa SMP/SMA                                                   |
+| **Aplikasi live**     | [classquest.justeita.com](https://classquest.justeita.com)               |
+| **Repositori**        | [github.com/justeita/ClassQuest](https://github.com/justeita/ClassQuest) |
 
 ---
 
@@ -114,8 +114,8 @@ bersumber langsung dari materi guru.
 
 **Nama tim:** Fastfetch
 
-| Nama                                  | Peran     | Instansi                     | GitHub |
-| ------------------------------------- | --------- | --------------------------- | ------   |
+| Nama                                  | Peran     | Instansi                    | GitHub            |
+| ------------------------------------- | --------- | --------------------------- | ----------------- |
 | Marson Arya Bagas Prasetyo            | Ketua tim | Universitas Negeri Surabaya | @justeita         |
 | Muhammad Geral Herpavy                | Anggota 1 | Universitas Negeri Surabaya | @Gerraldd         |
 | Fadhlurrahman Akwa Qinthara           | Anggota 2 | Universitas Negeri Surabaya | @akwaqinthara     |
@@ -139,11 +139,11 @@ sudah duduk di bangku SMP, tetapi fondasi literasinya belum kuat.
 
 Hasil PISA 2025 (dirilis 8 September 2026) menunjukkan:
 
-| Bidang      | Skor Indonesia | Rata-rata OECD | Siswa di bawah kompetensi dasar (Level 2) |
-| ----------- | -------------- | -------------- | ----------------------------------------- |
-| Matematika  | 364            | 463            | **83,07%**                                |
-| Membaca     | 365            | 461            | -                                         |
-| Sains       | 389            | 482            | 63,2%                                     |
+| Bidang     | Skor Indonesia | Rata-rata OECD | Siswa di bawah kompetensi dasar (Level 2) |
+| ---------- | -------------- | -------------- | ----------------------------------------- |
+| Matematika | 364            | 463            | **83,07%**                                |
+| Membaca    | 365            | 461            | -                                         |
+| Sains      | 389            | 482            | 63,2%                                     |
 
 ### 3. Sisi guru: waktu habis untuk administrasi
 
@@ -175,14 +175,14 @@ sempit.
 ClassQuest membalik alurnya: **guru tinggal mengunggah materi**, sistem yang
 menyusun cerita, dan guru tetap memegang kendali sebelum siswa melihat hasilnya.
 
-| Langkah | Siapa  | Apa yang terjadi                                                              |
-| :-----: | ------ | ----------------------------------------------------------------------------- |
-| **1**   | Guru   | Mengunggah PDF materi dan mengisi judul, mata pelajaran, jenjang, bahasa, nada |
-| **2**   | Sistem | Mengekstrak teks, menyusun kerangka chapter, lalu menulis cerita per chapter  |
-| **3**   | Sistem | Memvalidasi cerita, memperbaiki otomatis bila perlu, atau memakai cerita cadangan |
-| **4**   | Guru   | Meninjau hasil dan mempublikasikan satu versi                                 |
-| **5**   | Siswa  | Membuka tautan, memainkan cerita, dan menjawab tantangan                      |
-| **6**   | Sistem | Menghitung skor di server dan menyimpan hasil bermain                         |
+| Langkah | Siapa  | Apa yang terjadi                                                                  |
+| :-----: | ------ | --------------------------------------------------------------------------------- |
+|  **1**  | Guru   | Mengunggah PDF materi dan mengisi judul, mata pelajaran, jenjang, bahasa, nada    |
+|  **2**  | Sistem | Mengekstrak teks, menyusun kerangka chapter, lalu menulis cerita per chapter      |
+|  **3**  | Sistem | Memvalidasi cerita, memperbaiki otomatis bila perlu, atau memakai cerita cadangan |
+|  **4**  | Guru   | Meninjau hasil dan mempublikasikan satu versi                                     |
+|  **5**  | Siswa  | Membuka tautan, memainkan cerita, dan menjawab tantangan                          |
+|  **6**  | Sistem | Menghitung skor di server dan menyimpan hasil bermain                             |
 
 **Kenapa pendekatan ini kuat:**
 
@@ -202,17 +202,17 @@ menyusun cerita, dan guru tetap memegang kendali sebelum siswa melihat hasilnya.
 
 ### Sudah berjalan di commit ini
 
-| Fitur                                          | Status      | Cara mencoba                                      |
-| ---------------------------------------------- | :---------: | ------------------------------------------------- |
-| Halaman pengenalan                             | ✅ Berjalan | Buka `/`                                          |
-| Game siswa dari cerita demo                    | ✅ Berjalan | Buka `/play/<storyId>` cerita demo                |
-| Upload PDF + pembuatan job generasi            | ✅ Berjalan | `POST /api/upload`                                |
-| Pipeline AI: ekstrak teks → outline → cerita   | ✅ Berjalan | `AI_PROVIDER=mock` atau provider nyata lewat env  |
-| Login guru (akun + cookie sesi)                | ✅ Berjalan | `POST /api/auth/login`                            |
-| Manajemen cerita guru (Server Actions)         | ✅ Berjalan | `src/app/guru/actions.ts`                         |
-| Simpan hasil bermain siswa + ringkasan         | ✅ Berjalan | `src/server/play-results`                         |
-| Portal guru: dashboard, materi, kelas          | ✅ Berjalan | Buka `/guru/masuk` setelah `bun run db:seed`      |
-| Kelas dan siswa (buat kelas, tambah siswa)     | ✅ Berjalan | `/guru/kelas`                                     |
+| Fitur                                        |   Status    | Cara mencoba                                     |
+| -------------------------------------------- | :---------: | ------------------------------------------------ |
+| Halaman pengenalan                           | ✅ Berjalan | Buka `/`                                         |
+| Game siswa dari cerita demo                  | ✅ Berjalan | Buka `/play/<storyId>` cerita demo               |
+| Upload PDF + pembuatan job generasi          | ✅ Berjalan | `POST /api/upload`                               |
+| Pipeline AI: ekstrak teks → outline → cerita | ✅ Berjalan | `AI_PROVIDER=mock` atau provider nyata lewat env |
+| Login guru (akun + cookie sesi)              | ✅ Berjalan | `POST /api/auth/login`                           |
+| Manajemen cerita guru (Server Actions)       | ✅ Berjalan | `src/app/guru/actions.ts`                        |
+| Simpan hasil bermain siswa + ringkasan       | ✅ Berjalan | `src/server/play-results`                        |
+| Portal guru: dashboard, materi, kelas        | ✅ Berjalan | Buka `/guru/masuk` setelah `bun run db:seed`     |
+| Kelas dan siswa (buat kelas, tambah siswa)   | ✅ Berjalan | `/guru/kelas`                                    |
 
 ### Rencana pengembangan
 
@@ -227,12 +227,12 @@ di [docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hackathon-plan.md).
 
 ### Batas unggahan PDF
 
-| Ketentuan                       | Nilai                                               |
-| ------------------------------- | --------------------------------------------------- |
-| Ukuran berkas                   | Maksimal 20 MB                                      |
-| Jenis berkas                    | PDF dengan lapisan teks (bukan hasil scan murni)    |
-| Teks minimum                    | Sekitar 200 karakter                                |
-| Halaman yang diproses           | Maksimal 40 halaman diekstrak; 15 halaman atau 30.000 karakter pertama dipakai AI |
+| Ketentuan             | Nilai                                                                             |
+| --------------------- | --------------------------------------------------------------------------------- |
+| Ukuran berkas         | Maksimal 20 MB                                                                    |
+| Jenis berkas          | PDF dengan lapisan teks (bukan hasil scan murni)                                  |
+| Teks minimum          | Sekitar 200 karakter                                                              |
+| Halaman yang diproses | Maksimal 40 halaman diekstrak; 15 halaman atau 30.000 karakter pertama dipakai AI |
 
 ---
 
@@ -396,11 +396,11 @@ DATABASE_AUTH_TOKEN=
 
 <br/>
 
-| `AI_PROVIDER`       | Variabel yang diisi                                  | Catatan                                                    |
-| ------------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
-| `mock`              | Tidak ada                                            | Tanpa kunci dan tanpa biaya. Cocok untuk development dan uji alur |
-| `anthropic`         | `AI_API_KEY`, `AI_MODEL`                             | Memakai Anthropic SDK                                      |
-| `openai-compatible` | `AI_BASE_URL`, `AI_MODEL`, `AI_API_KEY` (opsional)   | Untuk router atau layanan yang kompatibel dengan OpenAI    |
+| `AI_PROVIDER`       | Variabel yang diisi                                | Catatan                                                           |
+| ------------------- | -------------------------------------------------- | ----------------------------------------------------------------- |
+| `mock`              | Tidak ada                                          | Tanpa kunci dan tanpa biaya. Cocok untuk development dan uji alur |
+| `anthropic`         | `AI_API_KEY`, `AI_MODEL`                           | Memakai Anthropic SDK                                             |
+| `openai-compatible` | `AI_BASE_URL`, `AI_MODEL`, `AI_API_KEY` (opsional) | Untuk router atau layanan yang kompatibel dengan OpenAI           |
 
 Panduan lengkap: [docs/03-ai-pipeline/provider-setup.md](docs/03-ai-pipeline/provider-setup.md).
 
@@ -444,12 +444,12 @@ Detail langkah setup dan deploy: [docs/08-workflow/setup.md](docs/08-workflow/se
 
 ### Pemecahan masalah
 
-| Gejala                                   | Penyebab umum                                  | Solusi                                                    |
-| ---------------------------------------- | ---------------------------------------------- | --------------------------------------------------------- |
-| Login selalu gagal                       | `TEACHER_SESSION_SECRET` kosong                | Isi variabel itu di `.env.local`                          |
-| `db:seed` gagal                          | Salah satu variabel `*_SEED_*` kosong          | Isi keempat variabel akun seed                            |
-| Upload PDF ditolak                       | PDF hasil scan tanpa lapisan teks, atau > 20 MB | Gunakan PDF yang teksnya bisa diseleksi dan ukuran lebih kecil |
-| Cerita yang muncul terasa generik        | AI gagal atau `AI_PROVIDER=mock`, sehingga cerita cadangan dipakai | Periksa `AI_PROVIDER`, kunci, dan model                   |
+| Gejala                            | Penyebab umum                                                      | Solusi                                                         |
+| --------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
+| Login selalu gagal                | `TEACHER_SESSION_SECRET` kosong                                    | Isi variabel itu di `.env.local`                               |
+| `db:seed` gagal                   | Salah satu variabel `*_SEED_*` kosong                              | Isi keempat variabel akun seed                                 |
+| Upload PDF ditolak                | PDF hasil scan tanpa lapisan teks, atau > 20 MB                    | Gunakan PDF yang teksnya bisa diseleksi dan ukuran lebih kecil |
+| Cerita yang muncul terasa generik | AI gagal atau `AI_PROVIDER=mock`, sehingga cerita cadangan dipakai | Periksa `AI_PROVIDER`, kunci, dan model                        |
 
 ---
 
@@ -485,13 +485,13 @@ submission. Endpoint masuk: `POST /api/auth/login` dengan body
 
 ### Peta penilaian: di mana juri menemukan buktinya
 
-| Kriteria (bobot)                           | Lihat bagian                                                                                 |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| Kesesuaian Masalah dan Solusi (25%)        | [Latar Belakang Masalah](#latar-belakang-masalah), [Solusi dan Cara Kerja](#solusi-dan-cara-kerja) |
-| Inovasi dan Implementasi Teknologi (25%)   | [Arsitektur Sistem](#arsitektur-sistem), [Penggunaan AI](#penggunaan-ai)                     |
-| Rekayasa Perangkat Lunak (25%)             | [Fitur Utama](#fitur-utama), [Struktur Repositori](#struktur-repositori), [Kualitas dan Pengujian](#kualitas-dan-pengujian), [Dokumentasi](#dokumentasi) |
-| Desain dan Pengalaman Pengguna (15%)       | [Solusi dan Cara Kerja](#solusi-dan-cara-kerja), alur uji cepat di atas                      |
-| Etika dan Keamanan Digital (10%)           | [Etika, Privasi, dan Keamanan](#etika-privasi-dan-keamanan), [Atribusi Pihak Ketiga](#atribusi-pihak-ketiga) |
+| Kriteria (bobot)                         | Lihat bagian                                                                                                                                             |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kesesuaian Masalah dan Solusi (25%)      | [Latar Belakang Masalah](#latar-belakang-masalah), [Solusi dan Cara Kerja](#solusi-dan-cara-kerja)                                                       |
+| Inovasi dan Implementasi Teknologi (25%) | [Arsitektur Sistem](#arsitektur-sistem), [Penggunaan AI](#penggunaan-ai)                                                                                 |
+| Rekayasa Perangkat Lunak (25%)           | [Fitur Utama](#fitur-utama), [Struktur Repositori](#struktur-repositori), [Kualitas dan Pengujian](#kualitas-dan-pengujian), [Dokumentasi](#dokumentasi) |
+| Desain dan Pengalaman Pengguna (15%)     | [Solusi dan Cara Kerja](#solusi-dan-cara-kerja), alur uji cepat di atas                                                                                  |
+| Etika dan Keamanan Digital (10%)         | [Etika, Privasi, dan Keamanan](#etika-privasi-dan-keamanan), [Atribusi Pihak Ketiga](#atribusi-pihak-ketiga)                                             |
 
 ---
 
@@ -523,6 +523,7 @@ Detail dan keputusan provider ada di
 [docs/11-logicodix/14-ai-dan-atribusi.md](docs/11-logicodix/14-ai-dan-atribusi.md).
 
 ### AI Yang Dipakai Ketika Membuat Proyek
+
 - Deeepseek 4.1 flash
 - Gemini 3.8 flash
 - Claude Sonnet 5.5
@@ -533,7 +534,6 @@ Detail dan keputusan provider ada di
 - Pixellab AI
 - SpriteLab
 - Suno AI
-
 
 ### Transparansi dan batasan AI
 
@@ -548,18 +548,18 @@ Detail dan keputusan provider ada di
 
 ## Etika, Privasi, dan Keamanan
 
-| Aspek                      | Penerapan                                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------ |
-| **Kredensial**             | Hanya dari environment variable; `.env.local` masuk `.gitignore`; `.env.example` berisi nama tanpa nilai |
-| **Autentikasi guru**       | Sandi disimpan sebagai hash scrypt; sesi lewat cookie yang ditandatangani `TEACHER_SESSION_SECRET`; login gagal (fail closed) bila secret kosong |
-| **Pembatasan akses**       | Rate limit pada login, upload, dan penyimpanan hasil bermain                               |
-| **Privasi materi**         | PDF diproses di memori dan tidak disimpan; yang tersimpan hanya story JSON                 |
-| **Privasi siswa**          | Data pribadi siswa tidak dikirim ke model AI                                               |
-| **Integritas skor**        | Skor dihitung ulang di server, bukan dipercaya dari client                                 |
-| **Validasi input**         | Seluruh input API divalidasi dengan skema; keluaran AI divalidasi sebelum disimpan         |
-| **Transparansi AI**        | Penggunaan AI (pengembangan dan fitur) didokumentasikan di bagian [Penggunaan AI](#penggunaan-ai) |
-| **Efisiensi sumber daya**  | Teks materi yang dikirim ke AI dibatasi, jumlah panggilan dan waktu pipeline dibatasi, `mock` tersedia untuk development tanpa biaya |
-| **Atribusi**               | Seluruh pustaka dan aset pihak ketiga dicantumkan di [Atribusi Pihak Ketiga](#atribusi-pihak-ketiga) |
+| Aspek                     | Penerapan                                                                                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Kredensial**            | Hanya dari environment variable; `.env.local` masuk `.gitignore`; `.env.example` berisi nama tanpa nilai                                         |
+| **Autentikasi guru**      | Sandi disimpan sebagai hash scrypt; sesi lewat cookie yang ditandatangani `TEACHER_SESSION_SECRET`; login gagal (fail closed) bila secret kosong |
+| **Pembatasan akses**      | Rate limit pada login, upload, dan penyimpanan hasil bermain                                                                                     |
+| **Privasi materi**        | PDF diproses di memori dan tidak disimpan; yang tersimpan hanya story JSON                                                                       |
+| **Privasi siswa**         | Data pribadi siswa tidak dikirim ke model AI                                                                                                     |
+| **Integritas skor**       | Skor dihitung ulang di server, bukan dipercaya dari client                                                                                       |
+| **Validasi input**        | Seluruh input API divalidasi dengan skema; keluaran AI divalidasi sebelum disimpan                                                               |
+| **Transparansi AI**       | Penggunaan AI (pengembangan dan fitur) didokumentasikan di bagian [Penggunaan AI](#penggunaan-ai)                                                |
+| **Efisiensi sumber daya** | Teks materi yang dikirim ke AI dibatasi, jumlah panggilan dan waktu pipeline dibatasi, `mock` tersedia untuk development tanpa biaya             |
+| **Atribusi**              | Seluruh pustaka dan aset pihak ketiga dicantumkan di [Atribusi Pihak Ketiga](#atribusi-pihak-ketiga)                                             |
 
 ---
 
@@ -582,33 +582,33 @@ bun run build   # build produksi
 
 ## Kepatuhan terhadap Ketentuan Lomba
 
-| Ketentuan LOGICODIX 2026                                   | Status di repositori                                             |
-| ---------------------------------------------------------- | ---------------------------------------------------------------- |
-| Produk berbasis Web, berupa MVP yang dapat dijalankan      | ✅ Aplikasi web, dapat dicoba di URL live                        |
-| Memakai satu subtema resmi                                 | ✅ Smart & Fun Education                                         |
-| Kode dan komponen utama dikembangkan selama Hacking Week   | ✅ Riwayat commit berkala, tanpa bulk upload                     |
-| Pesan commit memakai awalan `feat`, `fix`, `docs`, `style`, `refactor`, `chore` | ✅ Dijaga oleh test kepatuhan                  |
-| Tidak ada kredensial di repositori                         | ✅ Semua lewat environment variable; `.env.example` tanpa nilai  |
-| README memuat tim, produk, fitur, teknologi, arsitektur, panduan menjalankan, akun demo, penggunaan AI, atribusi | ✅ Lihat bagian-bagian di atas |
-| Aplikasi dapat diakses lewat browser tanpa biaya bagi juri | ✅ [classquest.justeita.com](https://classquest.justeita.com)    |
-| Sumber dan atribusi pihak ketiga dicantumkan               | ✅ Lihat [Atribusi Pihak Ketiga](#atribusi-pihak-ketiga)         |
+| Ketentuan LOGICODIX 2026                                                                                         | Status di repositori                                            |
+| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Produk berbasis Web, berupa MVP yang dapat dijalankan                                                            | ✅ Aplikasi web, dapat dicoba di URL live                       |
+| Memakai satu subtema resmi                                                                                       | ✅ Smart & Fun Education                                        |
+| Kode dan komponen utama dikembangkan selama Hacking Week                                                         | ✅ Riwayat commit berkala, tanpa bulk upload                    |
+| Pesan commit memakai awalan `feat`, `fix`, `docs`, `style`, `refactor`, `chore`                                  | ✅ Dijaga oleh test kepatuhan                                   |
+| Tidak ada kredensial di repositori                                                                               | ✅ Semua lewat environment variable; `.env.example` tanpa nilai |
+| README memuat tim, produk, fitur, teknologi, arsitektur, panduan menjalankan, akun demo, penggunaan AI, atribusi | ✅ Lihat bagian-bagian di atas                                  |
+| Aplikasi dapat diakses lewat browser tanpa biaya bagi juri                                                       | ✅ [classquest.justeita.com](https://classquest.justeita.com)   |
+| Sumber dan atribusi pihak ketiga dicantumkan                                                                     | ✅ Lihat [Atribusi Pihak Ketiga](#atribusi-pihak-ketiga)        |
 
 ---
 
 ## Dokumentasi
 
-| Topik                          | Berkas                                                                                   |
-| ------------------------------ | ---------------------------------------------------------------------------------------- |
-| Indeks dokumentasi             | [docs/README.md](docs/README.md)                                                         |
-| Gambaran arsitektur            | [docs/01-architecture/overview.md](docs/01-architecture/overview.md)                     |
-| Alur data                      | [docs/01-architecture/data-flow.md](docs/01-architecture/data-flow.md)                   |
-| Struktur repositori            | [docs/01-architecture/repo-structure.md](docs/01-architecture/repo-structure.md)         |
-| Skema story JSON               | [docs/02-data-model/story.schema.json](docs/02-data-model/story.schema.json)             |
-| Setup provider AI              | [docs/03-ai-pipeline/provider-setup.md](docs/03-ai-pipeline/provider-setup.md)           |
-| Inventaris dan lisensi aset    | [docs/07-assets/inventory.md](docs/07-assets/inventory.md)                               |
-| Setup dan deploy               | [docs/08-workflow/setup.md](docs/08-workflow/setup.md)                                   |
-| Roadmap pengerjaan             | [docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hackathon-plan.md)                   |
-| Penggunaan AI dan atribusi     | [docs/11-logicodix/14-ai-dan-atribusi.md](docs/11-logicodix/14-ai-dan-atribusi.md)       |
+| Topik                       | Berkas                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------- |
+| Indeks dokumentasi          | [docs/README.md](docs/README.md)                                                   |
+| Gambaran arsitektur         | [docs/01-architecture/overview.md](docs/01-architecture/overview.md)               |
+| Alur data                   | [docs/01-architecture/data-flow.md](docs/01-architecture/data-flow.md)             |
+| Struktur repositori         | [docs/01-architecture/repo-structure.md](docs/01-architecture/repo-structure.md)   |
+| Skema story JSON            | [docs/02-data-model/story.schema.json](docs/02-data-model/story.schema.json)       |
+| Setup provider AI           | [docs/03-ai-pipeline/provider-setup.md](docs/03-ai-pipeline/provider-setup.md)     |
+| Inventaris dan lisensi aset | [docs/07-assets/inventory.md](docs/07-assets/inventory.md)                         |
+| Setup dan deploy            | [docs/08-workflow/setup.md](docs/08-workflow/setup.md)                             |
+| Roadmap pengerjaan          | [docs/10-roadmap/hackathon-plan.md](docs/10-roadmap/hackathon-plan.md)             |
+| Penggunaan AI dan atribusi  | [docs/11-logicodix/14-ai-dan-atribusi.md](docs/11-logicodix/14-ai-dan-atribusi.md) |
 
 ---
 
