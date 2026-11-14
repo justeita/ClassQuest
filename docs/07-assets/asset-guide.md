@@ -107,7 +107,10 @@ rasionya sama. Seluruh potret satu karakter digeser dengan **satu nilai tetap**
 lalu dipotong sedikit di sisi luarnya, jadi karakternya mentok sejajar sisi
 kotak dialog dan tidak melompat sama sekali saat ekspresi berganti. Karakter
 berbadan pendek dinaikkan skalanya sedikit supaya isinya menyentuh tepi bawah
-kanvas, jadi potret tidak tampak melayang di atas kotak. MC
+kanvas, dan tepi bawah yang memudar dipadatkan jadi potongan rata, jadi potret
+tidak tampak melayang di atas kotak. Slot potret di DOM masuk 14 px dari sisi
+panel (sebesar radius sudutnya), sehingga bahu karakter tidak terpotong
+lengkungan sudut. MC
 dicerminkan di DOM sehingga rata kiri kanvas menjadi rata kanan slotnya. Berkas
 disimpan dengan filter PNG adaptif (±8 MB untuk 60 berkas) supaya cepat dimuat.
 Karena potret dirender DOM, berkasnya tidak dimuat `PreloadScene`.

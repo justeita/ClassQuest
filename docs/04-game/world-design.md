@@ -257,10 +257,12 @@ Keputusan (ADR 0007, diperluas ADR 0017): **teks permainan pindah ke DOM**.
 - Panel, potret, nama, isi dialog, dan indikator "lanjut" dirender React
   (`DialogueBox.tsx`). Panel bukan lagi gambar `ui_textbox`, melainkan kotak CSS
   navy gelap membulat. Potret anime tidak dibungkus bingkai: NPC berdiri di
-  pangkal kiri atas panel, MC (dicerminkan) di pangkal kanan — dasarnya menempel
-  tepi atas panel — dan berekspresi sesuai field `expression` beat. Importer
-  menormalkan tinggi kepala, menggeser potret sampai mentok tepi, dan menaikkan
-  skala karakter berbadan pendek supaya isinya menyentuh tepi bawah kanvas; jadi
+  sisi kiri atas panel, MC (dicerminkan) di sisi kanan — dasarnya menempel
+  tepi atas panel, dengan jarak masuk sebesar radius sudut panel supaya bahu
+  tidak terpotong lengkungan — dan berekspresi sesuai field `expression` beat.
+  Importer menormalkan tinggi kepala, menggeser potret sampai mentok tepi,
+  menaikkan skala karakter berbadan pendek supaya isinya menyentuh tepi bawah
+  kanvas, dan memadatkan tepi bawah yang memudar jadi potongan rata; jadi
   wajah semua karakter sama besar, karakternya sejajar sisi kotak, dan tidak ada
   potret yang melayang di atas panel. Potret MC hanya menemani dialog scene yang
   memang memuat giliran MC — dialog antar-NPC dan obrolan singkat NPC non-quest

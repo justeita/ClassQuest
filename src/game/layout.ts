@@ -18,6 +18,14 @@ export const TEXTBOX = {
   padding: 16,
   /** Jarak baris pertama dari tepi atas panel. */
   paddingTop: 8,
+  /**
+   * Jari-jari sudut panel (px internal). Dipakai juga sebagai jarak masuk potret
+   * dari sisi kotak: kalau potret menempel tepat di tepi, sudut membulat panel
+   * memotong bahu karakter dan menyisakan celah latar di bawahnya — potret
+   * tampak melayang. Dengan jarak masuk sebesar radius ini, tepi potret berhenti
+   * tepat di titik singgung lengkungan sudut.
+   */
+  radius: 14,
 } as const;
 
 /**
@@ -44,18 +52,18 @@ export const CHALLENGE = {
  * atas** panel dialog — dasarnya sejajar tepi atas panel, jadi tidak ada bagian
  * potret yang tertutup kotak.
  *
- * Lebarnya **setengah lebar panel**: NPC berpangkal di pojok kiri atas panel,
- * MC (yang dicerminkan) di pojok kanan atas; keduanya menjulur ke tengah tepi
+ * Lebarnya **setengah lebar panel**: NPC berpangkal di sisi kiri atas panel,
+ * MC (yang dicerminkan) di sisi kanan atas; keduanya menjulur ke tengah tepi
  * atas. Slot berukuran tetap dan gambarnya dirender `object-contain`, jadi
  * potret tetap mengisi persis walau rasio berkasnya meleset sedikit.
  *
  * `scripts/import-portraits.mjs` menyeragamkan **tinggi kepala** (bukan tinggi
  * gambar), menaruh semua potret di kanvas berukuran sama, dan menggesernya
  * sampai mentok tepi kiri kanvas — jadi wajah semua karakter tampil sebesar
- * yang sama, karakternya sejajar sisi kotak, dan potret tidak melompat saat
- * ekspresi berganti. Rasio kanvas importer (456:360) sengaja sama persis dengan
- * slot di sini; MC yang dicerminkan membuat rata kiri kanvas jadi rata kanan
- * slot. Berkas aslinya lebih kecil dari kanvas lama supaya cepat dimuat.
+ * yang sama dan potret tidak melompat saat ekspresi berganti. Rasio kanvas
+ * importer (456:360) sengaja sama persis dengan slot di sini; MC yang
+ * dicerminkan membuat rata kiri kanvas jadi rata kanan slot. Berkas aslinya
+ * lebih kecil dari kanvas lama supaya cepat dimuat.
  */
 export const PORTRAIT = {
   /** Lebar slot potret (px internal) = setengah lebar panel dialog. */
@@ -66,6 +74,12 @@ export const PORTRAIT = {
    * (panel mulai di `y=240`).
    */
   height: 240,
+  /**
+   * Jarak potret dari sisi luar panel (px internal). Sama dengan radius sudut
+   * panel: tepi potret berhenti di titik singgung lengkungan sudut, jadi bahu
+   * karakter tidak terpotong sudut dan tidak ada celah latar di bawahnya.
+   */
+  inset: TEXTBOX.radius,
 } as const;
 
 /**

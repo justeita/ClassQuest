@@ -328,17 +328,64 @@ function susunPotret(image, box, skala, geserKiri) {
     }
   }
 
+  padatkanDasar(data);
   return { width: LEBAR_KANVAS, height: TINGGI_KANVAS, data };
 }
 
 /**
- * Jarak baris opaque terbawah dari tepi bawah kanvas. Dipakai sebagai pemeriksa
- * supaya potret tidak "melayang" di atas kotak dialog.
+ * Rapikan tepi bawah potret supaya badan benar-benar **terpotong** di dasar
+ * kanvas, bukan memudar.
+ *
+ * Beberapa aset sumber punya tepi bawah ber-alpha rendah (fringe 2–4 px, alpha
+ * 6–93) karena badannya di-fade halus ke transparan. Setelah diskalakan, fringe
+ * itu jadi selaput tipis di atas kotak dialog: badan tampak berhenti sedikit di
+ * atas panel — persis kesan "melayang" yang sulit ditunjuk. Di sini tiap kolom
+ * yang piksel pekatnya berhenti dekat dasar kanvas diperpanjang sampai baris
+ * terakhir dengan alpha penuh, jadi siluetnya terpotong rata di tepi bawah.
+ *
+ * Kolom yang isinya memang berhenti jauh di atas dasar (mis. celah di bawah
+ * lengan) dibiarkan, supaya tidak tergambar garis memanjang yang aneh.
+ */
+function padatkanDasar(data) {
+  for (let x = 0; x < LEBAR_KANVAS; x += 1) {
+    let bawah = -1;
+    for (let y = TINGGI_KANVAS - 1; y >= 0; y -= 1) {
+      if (data[(y * LEBAR_KANVAS + x) * 4 + 3] >= AMBANG_PADAT) {
+        bawah = y;
+        break;
+      }
+    }
+    if (bawah < 0 || TINGGI_KANVAS - 1 - bawah > BATAS_PADAT) continue;
+    const asal = (bawah * LEBAR_KANVAS + x) * 4;
+    for (let y = bawah + 1; y < TINGGI_KANVAS; y += 1) {
+      const at = (y * LEBAR_KANVAS + x) * 4;
+      data[at] = data[asal];
+      data[at + 1] = data[asal + 1];
+      data[at + 2] = data[asal + 2];
+      data[at + 3] = 255;
+    }
+  }
+}
+
+/** Alpha minimum yang dianggap bagian pekat badan (bukan fringe). */
+const AMBANG_PADAT = 160;
+
+/**
+ * Seberapa dekat ke dasar kanvas sebuah kolom masih boleh diperpanjang. Cukup
+ * untuk menelan fringe hasil skala, tetapi tidak sampai menarik badan yang
+ * memang berhenti jauh di atas tepi.
+ */
+const BATAS_PADAT = 10;
+
+/**
+ * Jarak baris pekat terbawah dari tepi bawah kanvas. Dipakai sebagai pemeriksa
+ * supaya potret tidak "melayang" di atas kotak dialog: yang dihitung hanya
+ * piksel badan yang pekat, bukan fringe transparan.
  */
 function celahBawah(data) {
   for (let y = TINGGI_KANVAS - 1; y >= 0; y -= 1) {
     for (let x = 0; x < LEBAR_KANVAS; x += 1) {
-      if (data[(y * LEBAR_KANVAS + x) * 4 + 3] >= AMBANG_ALPHA) {
+      if (data[(y * LEBAR_KANVAS + x) * 4 + 3] >= AMBANG_PADAT) {
         return TINGGI_KANVAS - 1 - y;
       }
     }
@@ -347,11 +394,12 @@ function celahBawah(data) {
 }
 
 /**
- * Celah bawah terbesar yang masih diterima (px kanvas). Skala per karakter
- * memakai median, jadi satu ekspresi bisa tersisa beberapa piksel; ambang ini
- * menangkap karakter yang benar-benar mengapung tanpa rewel soal selisih kecil.
+ * Celah bawah yang masih diterima (px kanvas). Harus nol: `padatkanDasar`
+ * memotong badan rata di tepi bawah, dan `skalaIsi` memastikan badannya memang
+ * sampai ke sana. Kalau pemeriksa ini menyala, ada karakter yang potretnya
+ * mengapung di atas kotak dialog.
  */
-const MAKS_CELAH_BAWAH = 12;
+const MAKS_CELAH_BAWAH = 0;
 
 /** Hapus keluaran lama supaya folder sumber yang dihapus tidak menyisakan berkas. */
 rmSync(join(ROOT, "public", "assets", "portrait"), {

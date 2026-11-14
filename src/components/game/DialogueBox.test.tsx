@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DialogueBox } from "./DialogueBox";
 import type { DialogueView } from "@/game/gameBus";
+import { PORTRAIT, cqw } from "@/game/layout";
 
 // `globals` tidak aktif di vitest.config.mjs, jadi RTL tidak membersihkan DOM
 // sendiri di antara tes.
@@ -113,7 +114,7 @@ describe("DialogueBox", () => {
     const slot = screen
       .getByAltText("Potret Bu Ratna")
       .closest('[data-slot="potret"]') as HTMLElement;
-    expect(slot.style.left).toBe("0px");
+    expect(slot.style.left).toBe(cqw(PORTRAIT.inset));
     expect(slot.style.right).toBe("");
     expect(slot.style.transform).toBe("");
   });
@@ -135,7 +136,7 @@ describe("DialogueBox", () => {
     const slot = screen
       .getByAltText("Potret Nara")
       .closest('[data-slot="potret"]') as HTMLElement;
-    expect(slot.style.right).toBe("0px");
+    expect(slot.style.right).toBe(cqw(PORTRAIT.inset));
     expect(slot.style.left).toBe("");
     expect(slot.style.transform).toBe("scaleX(-1)");
   });

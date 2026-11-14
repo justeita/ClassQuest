@@ -57,9 +57,15 @@ function muatPotretKarakter(src: string) {
 }
 
 /**
- * Satu potret di atas panel: NPC menempel pojok kiri, MC dicerminkan di pojok
- * kanan. Pembicara menyala dengan glow teal; yang sedang tidak bicara tetap
- * tampil tetapi dibuat gelap, jadi pemain selalu tahu siapa yang bicara.
+ * Satu potret di atas panel: NPC di sisi kiri, MC dicerminkan di sisi kanan.
+ * Pembicara menyala dengan glow teal; yang sedang tidak bicara tetap tampil
+ * tetapi dibuat gelap, jadi pemain selalu tahu siapa yang bicara.
+ *
+ * Slotnya masuk `PORTRAIT.inset` px dari sisi panel — sama dengan radius sudut
+ * panel. Tanpa jarak itu tepi potret bertumpuk dengan lengkungan sudut: bahu
+ * karakter terpotong dan latar menyembul di bawahnya sehingga potret tampak
+ * melayang. Dengan jarak ini tepi potret berhenti tepat di titik singgung
+ * lengkungan, jadi dasar potret menyambung rata dengan tepi atas panel.
  *
  * `overflow-hidden` + animasi masuk yang menggeser ke bawah membuat potret
  * seolah terbit dari balik panel, bukan muncul mendadak; saat menutup, animasi
@@ -67,14 +73,15 @@ function muatPotretKarakter(src: string) {
  */
 function PortraitSlot({ portrait, bicara, menutup }: PortraitSlotProps) {
   const mc = portrait.src.includes("/mc/");
+  const inset = cqw(PORTRAIT.inset);
 
   return (
     <div
       data-slot="potret"
       className="pointer-events-none absolute bottom-full select-none overflow-hidden"
       style={{
-        left: mc ? undefined : 0,
-        right: mc ? 0 : undefined,
+        left: mc ? undefined : inset,
+        right: mc ? inset : undefined,
         width: cqw(PORTRAIT.width),
         height: cqw(PORTRAIT.height),
         transform: mc ? "scaleX(-1)" : undefined,
@@ -233,7 +240,7 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-10 border border-white/5 bg-[#0f172b]/95"
-          style={{ borderRadius: cqw(14) }}
+          style={{ borderRadius: cqw(TEXTBOX.radius) }}
         />
 
         <div

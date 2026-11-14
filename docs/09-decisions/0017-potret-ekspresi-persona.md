@@ -99,15 +99,23 @@ Alasan:
    sedangkan panel tetap pixel karena memang dibuat pixel.
 2. Tanpa bingkai, dasar potret menempel tepi atas panel: tidak ada bagian potret
    yang tertutup kotak, dan kepalanya menjulang penuh di atas dialog. NPC
-   berpangkal di pojok kiri atas panel dan MC — yang dicerminkan agar menghadap
-   ke tengah — di pojok kanan; lebarnya setengah panel, jadi keduanya menjulur
-   sampai tengah tepi atas. Importer menormalkan tinggi kepala (bukan tinggi
-   gambar) dan menggeser semua potret satu karakter dengan **satu nilai tetap**,
-   lalu memotong sedikit sisi luarnya; jadi wajah semua karakter sama besar,
-   karakternya mentok sejajar sisi kotak, dan potret tidak melompat saat ekspresi
-   berganti. Karakter berbadan pendek dinaikkan skalanya sedikit supaya isinya
-   menyentuh tepi bawah kanvas — tidak ada celah transparan yang membuat potret
-   tampak melayang di atas kotak. Itu siluet dialog Persona yang dituju.
+   berpangkal di sisi kiri atas panel dan MC — yang dicerminkan agar menghadap
+   ke tengah — di sisi kanan; lebarnya setengah panel, jadi keduanya menjulur
+   sampai tengah tepi atas. Slot potret masuk `PORTRAIT.inset` px dari sisi
+   panel — nilainya sama dengan `TEXTBOX.radius` — supaya bahu karakter tidak
+   bertumpuk dengan lengkungan sudut panel: tanpa jarak itu, tepi potret
+   menempel tepat di tepi panel, lengkungan sudut memotong bahunya, dan sisa
+   latar menyembul di bawah potret sehingga tampak melayang. Dengan jarak itu
+   tepi potret berhenti tepat di titik singgung lengkungan, jadi dasarnya
+   menyambung rata dengan tepi atas kotak. Importer menormalkan tinggi kepala
+   (bukan tinggi gambar) dan menggeser semua potret satu karakter dengan **satu
+   nilai tetap**, lalu memotong sedikit sisi luarnya; jadi wajah semua karakter
+   sama besar, karakternya mentok sejajar sisi kotak, dan potret tidak melompat
+   saat ekspresi berganti. Karakter berbadan pendek dinaikkan skalanya sedikit
+   supaya isinya menyentuh tepi bawah kanvas, lalu tepi bawah yang masih
+   memudar (fringe alpha rendah) dipadatkan jadi potongan rata — tidak ada
+   selaput transparan yang membuat potret tampak melayang di atas kotak. Itu
+   siluet dialog Persona yang dituju.
 3. Potret disusun ke kanvas 456×360 (rasio sama dengan slot) dan disimpan dengan
    filter PNG adaptif: 60 berkas turun dari ±21 MB ke ±8 MB, jadi potret pertama
    muncul jauh lebih cepat. `DialogueBox` juga memanaskan keenam ekspresi
