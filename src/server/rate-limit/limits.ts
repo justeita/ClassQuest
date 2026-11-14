@@ -102,6 +102,22 @@ export const PUBLIC_STORY_RATE_LIMIT: RateLimitPolicy = {
 };
 
 /**
+ * Gerbang kode kelas di `/play`: 30 percobaan per 10 menit per IP.
+ *
+ * Kode kelas hanya 4 karakter dari 32 huruf (`QST-XXXX`, ±1 juta kombinasi),
+ * jadi tanpa batas ini kode bisa ditebak beruntun dan daftar siswa kelas orang
+ * lain ikut terbaca. 30 percobaan per 10 menit jauh di atas kebutuhan satu
+ * kelas (satu siswa biasanya sekali masuk) tetapi membuat penebakan tidak
+ * berguna. Disimpan **di memori** karena ini hanya baca, tanpa tulis database;
+ * kegagalan limiter diperlakukan sebagai izin (fail open).
+ */
+export const JOIN_RATE_LIMIT: RateLimitPolicy = {
+  name: "join",
+  limit: 30,
+  windowSeconds: 10 * MINUTE,
+};
+
+/**
  * Aksi kelas/siswa (`createClassroom`, `addStudent`): 60 per jam per guru.
  *
  * Keduanya Server Action yang bisa dipanggil berulang oleh skrip selama sesi

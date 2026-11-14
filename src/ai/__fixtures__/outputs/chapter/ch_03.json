@@ -13,7 +13,7 @@
         "beats": [
           {
             "type": "narration",
-            "text": "Kael kembali ke kelas dan membuka buku catatannya di meja."
+            "text": "Kael kembali ke kebun dan membuka buku catatannya di meja."
           },
           {
             "type": "dialogue",
@@ -37,12 +37,12 @@
           },
           {
             "type": "narration",
-            "text": "Pak Bima mengangguk dan menutup papan tulis dengan rapi."
+            "text": "Edric mengangguk dan menutup tanah lembap dengan rapi."
           },
           {
             "type": "dialogue",
             "speakerId": "char_npc_10",
-            "text": "Tepat. Besok kita akan melihat contoh glukosa di sekitar sekolah."
+            "text": "Tepat. Besok kita akan melihat contoh glukosa di sekitar rumah warga."
           }
         ]
       }
@@ -70,7 +70,7 @@
     "characterStates": [
       {
         "id": "char_mc",
-        "location": "kelas",
+        "location": "kebun sayuran dekat sumur batu",
         "knows": [
           "klorofil menangkap cahaya",
           "fotosintesis menghasilkan glukosa"
@@ -78,7 +78,7 @@
       },
       {
         "id": "char_npc_10",
-        "location": "kelas",
+        "location": "kebun sayuran dekat sumur batu",
         "knows": ["glukosa adalah makanan tumbuhan"]
       }
     ],

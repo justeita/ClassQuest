@@ -15,9 +15,9 @@ import { TautanLayarPenuh } from "@/components/landing/TautanLayarPenuh";
  * (empat langkah), lalu "saya masuk sebagai siapa?" (dua kartu peran).
  *
  * Kartu "Portal Guru" mengarah ke `/guru` (belum masuk → diarahkan ke
- * `/guru/masuk` oleh layout portal), kartu "Arena Siswa" mengarah ke `/game`
- * (demo Phaser) sekaligus meminta layar penuh mendatar lewat
- * `TautanLayarPenuh` (ADR 0037).
+ * `/guru/masuk` oleh layout portal), kartu "Arena Siswa" mengarah ke `/play`
+ * (gerbang kode kelas; demo Phaser tetap di `/demo`) sekaligus meminta layar
+ * penuh mendatar lewat `TautanLayarPenuh` (ADR 0037).
  *
  * Server Component tanpa data dinamis, sesuai tabel cache di
  * `docs/01-architecture/data-flow.md` (landing statis). Tombol memakai
@@ -327,8 +327,9 @@ export default function Home() {
                 </div>
 
                 <p className="mb-4 text-xs leading-relaxed text-slate-600">
-                  Buka tautan dari guru, jelajahi setiap adegan, dan jawab soal
-                  yang muncul di tengah cerita — tanpa perlu membuat akun.
+                  Masukkan kode kelas dari gurumu, jelajahi setiap adegan, dan
+                  jawab soal yang muncul di tengah cerita — tanpa perlu membuat
+                  akun.
                 </p>
 
                 <ul className="mb-5 space-y-2">
@@ -350,7 +351,7 @@ export default function Home() {
               </div>
 
               <TautanLayarPenuh
-                href="/game"
+                href="/play"
                 className="landing-btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-siswa-700 px-4 py-3 font-pixel text-xs font-bold text-white hover:bg-siswa-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-siswa-700 sm:text-sm"
               >
                 <span>MASUK SEBAGAI SISWA</span>

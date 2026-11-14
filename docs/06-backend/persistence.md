@@ -71,6 +71,7 @@ erDiagram
         text id PK
         text teacher_id FK
         text classroom_id FK "boleh null"
+        text nisn "nomor induk nasional, boleh null, tidak unik"
         text nis "unik per guru, boleh null"
         text display_name
         text username UK "boleh null: akun siswa belum dipakai"
@@ -126,11 +127,13 @@ create table teachers (
 
 -- Siswa: identitas untuk halaman /guru/kelas.
 -- Akun login belum dipakai (siswa bermain lewat tautan), jadi username dan
--- password_hash boleh null. NIS unik per guru, bukan global.
+-- password_hash boleh null. NIS unik per guru, bukan global, dan menjadi nomor
+-- yang diketik siswa di /play (ADR 0044). NISN hanya label dari sekolah.
 create table students (
   id            text primary key,
   teacher_id    text not null references teachers(id),
   classroom_id  text references classrooms(id) on delete set null,
+  nisn          text,             -- migrasi 0007; nomor induk nasional, boleh null
   nis           text,             -- huruf besar, [A-Za-z0-9._-]{1,20}
   display_name  text not null,
   username      text unique,      -- null = belum punya akun login
@@ -226,8 +229,10 @@ create index play_results_student_idx on play_results (student_id, created_at de
 
 `play_results` adalah satu-satunya sumber halaman `/guru/analitik`. Aturannya:
 
-- **`classroom_id` dan `student_id` boleh `null`.** Tautan tanpa `?kelas=` dan
-  `/game` (demo) tetap menyimpan hasil, hanya tidak masuk analytics kelas.
+- **`classroom_id` dan `student_id` boleh `null`.** Tautan tanpa `?kelas=`,
+  siswa yang memilih nama bebas di `/play/[storyId]`, dan `/demo` (demo) tetap
+  menyimpan hasil, hanya tidak masuk analytics kelas. Gerbang `/play` sendiri
+  selalu mengirim `studentId` karena NIS wajib terdaftar (ADR 0044).
 - **`classroom_id` diturunkan dari `students`, bukan dari klien.** Siswa hanya
   mengirim `studentId` (atau `nickname` bebas); server membaca baris `students`
   dan menyalin `classroom_id` + `display_name`. Kelas yang dikirim klien tidak
@@ -239,10 +244,14 @@ create index play_results_student_idx on play_results (student_id, created_at de
   membuka JSON cerita untuk tahu poin maksimum. Baris lama (sebelum migrasi
   `0006_play_results_classroom`) bernilai 0.
 - **Agregat, bukan jawaban per opsi.** Halaman analytics mengelompokkan per
-  `student_id`, mengambil poin terbaik, percobaan terakhir, dan gabungan
-  `weak_concepts` — tidak ada tabel jawaban baru.
+  `classroom_id` + `story_id` + `student_id`, mengambil poin terbaik, percobaan
+  terakhir, dan gabungan `weak_concepts` — tidak ada tabel jawaban baru.
+- **Kelas yang sudah dihapus tidak diatribusikan.** Baris dengan
+  `classroom_id` null (atau kelas yang bukan milik guru) tidak ikut agregat,
+  karena tidak ada lagi kelas yang bisa dibuka guru untuk melihatnya.
 - Index `play_results_classroom_idx` melayani query "satu kelas + satu game"
-  yang menjadi bentuk utama halaman analytics.
+  dan versi tanpa filter kelas; keduanya memakai bentuk query yang sama di
+  `getClassroomAnalytics`.
 
 ### Catatan desain
 
@@ -259,7 +268,11 @@ create index play_results_student_idx on play_results (student_id, created_at de
   (`classroom_id` boleh `null`) dan menghapus kelas tidak menghapus identitas
   siswa (`on delete set null`). Daftar siswa selalu dibaca per kelas.
 - **NIS unik per guru**, bukan global: dua sekolah boleh memakai `1001`. NIS
-  kosong diisi otomatis mulai `1001` dan dilewati bila sudah terpakai.
+  kosong diisi otomatis mulai `1001` dan dilewati bila sudah terpakai. NIS ini
+  yang diketik siswa di `/play` (ADR 0044), jadi murid tanpa NIS tidak bisa
+  masuk lewat gerbang itu.
+- **NISN hanya label** (`0007_students_nisn`): boleh `null`, tidak unik, tidak
+  dipakai untuk masuk, dan tidak pernah dikirim ke browser siswa.
 
 ## Storage
 
@@ -351,8 +364,8 @@ MVP memakai akun yang dibuat admin lewat `bun run db:seed`:
   request.
 - Tabel `students` dan `classrooms` dipakai `/guru/kelas` (buat kelas + tambah
   siswa), tetapi halaman `/play/[storyId]` masih berbasis tautan: siswa belum
-  diminta login (`docs/00-product/personas-and-roles.md`). Kode kelas hanya
-  label tampilan sampai alur "siswa memasukkan kode kelas" dibuat.
+  diminta login (`docs/00-product/personas-and-roles.md`). Gerbang `/play`
+  memakai kode kelas + NIS sebagai identitas ringan (ADR 0044), bukan akun.
 - Tidak ada pendaftaran mandiri atau reset password. Akun diganti lewat
   `bun run db:seed` dengan `TEACHER_SEED_*`/`STUDENT_SEED_*`; keempat variabel
   wajib diisi (tidak ada akun demo bawaan, sesuai aturan kredensial).

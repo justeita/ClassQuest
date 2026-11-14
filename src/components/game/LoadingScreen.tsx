@@ -16,7 +16,7 @@ type LoadingScreenProps = {
   selesai: boolean;
   /** Phaser gagal dimuat: tampilkan jalan keluar, jangan berputar selamanya. */
   gagal?: boolean;
-  /** Kembali ke layar sebelumnya (menu utama di `/game`, judul di `/play`). */
+  /** Kembali ke layar sebelumnya (menu utama, sama di `/demo` dan `/play`). */
   onBatal: () => void;
   /** Muat ulang Phaser tanpa berpindah layar. */
   onCobaLagi?: () => void;
@@ -149,8 +149,8 @@ export function LoadingScreen({
             {story.meta.subject} · {story.meta.gradeLevel}
           </p>
 
-          {/* Judul sengaja bukan heading: ini keadaan sementara, dan heading
-              layar judul cerita sudah ada di layar sebelumnya. */}
+          {/* Judul sengaja bukan heading: ini keadaan sementara, dan menu
+              utama sudah memegang judul permainan di layar sebelumnya. */}
           <p className="mt-2.5 text-[clamp(1.45rem,5.6vw,2.35rem)] leading-[1.15] text-balance text-[#F7F4EC]">
             {story.meta.title}
           </p>

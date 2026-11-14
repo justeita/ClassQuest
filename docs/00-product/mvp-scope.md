@@ -23,30 +23,31 @@ MVP dianggap selesai jika alur ini berjalan tanpa intervensi manual:
 
 ## In scope
 
-| Area              | Yang dikerjakan                                                                                                                                             |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Upload            | Satu file PDF per cerita, metadata minimal                                                                                                                  |
-| Ekstraksi         | Teks dari PDF digital (bukan scan)                                                                                                                          |
-| AI                | Outline + generate JSON + validasi + repair + fallback                                                                                                      |
-| Cerita            | 3–6 chapter, tiap chapter 2–6 scene, tiap scene 3–10 beat                                                                                                   |
-| Tantangan         | `multiple_choice`, `true_false`, `ordering`, `short_answer`                                                                                                 |
-| Editor guru       | Edit teks, pilih aset dari daftar, edit soal & jawaban, urutkan scene                                                                                       |
-| Preview           | Preview dalam game yang sama dengan yang dipakai siswa                                                                                                      |
-| Game              | Alur linear per chapter dengan eksplorasi top-down per scene (map dummy, ADR 0008), gerak 4 arah + collision, interaksi NPC memicu dialog, tantangan, hasil |
-| Aset              | Sprite karakter, background, musik, SFX, UI — jumlah terbatas                                                                                               |
-| Penyimpanan lokal | Progres siswa di `localStorage`                                                                                                                             |
-| Kelas & siswa     | Guru membuat kelas dan menambah siswa (nama + NIS opsional); kode `QST-XXXX` dipakai di tautan kelas                                                        |
-| Persistence       | Satu database libSQL/Turso; PDF tidak disimpan (ADR 0013)                                                                                                   |
-| Akses             | Tautan publik, tanpa akun siswa. Tautan per kelas `/play/[storyId]?kelas=QST-XXXX`; siswa memilih namanya dari daftar kelas                                 |
-| Analytics         | `/guru/analitik`: pilih kelas → pilih game → poin terbaik dan konsep lemah per siswa                                                                        |
-| Deployment        | Satu environment (production demo)                                                                                                                          |
+| Area              | Yang dikerjakan                                                                                                                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Upload            | Satu file PDF per cerita, metadata minimal                                                                                                                                                                                                 |
+| Ekstraksi         | Teks dari PDF digital (bukan scan)                                                                                                                                                                                                         |
+| AI                | Outline + generate JSON + validasi + repair + fallback                                                                                                                                                                                     |
+| Cerita            | 3–6 chapter, tiap chapter 2–6 scene, tiap scene 3–10 beat                                                                                                                                                                                  |
+| Tantangan         | `multiple_choice`, `true_false`, `ordering`, `short_answer`                                                                                                                                                                                |
+| Editor guru       | Edit teks, pilih aset dari daftar, edit soal & jawaban, urutkan scene                                                                                                                                                                      |
+| Preview           | Preview dalam game yang sama dengan yang dipakai siswa                                                                                                                                                                                     |
+| Game              | Alur linear per chapter dengan eksplorasi top-down per scene (map dummy, ADR 0008), gerak 4 arah + collision, interaksi NPC memicu dialog, tantangan, hasil                                                                                |
+| Aset              | Sprite karakter, background, musik, SFX, UI — jumlah terbatas                                                                                                                                                                              |
+| Penyimpanan lokal | Progres siswa di `localStorage`                                                                                                                                                                                                            |
+| Kelas & siswa     | Guru membuat kelas dan menambah siswa (nama + NIS opsional); kode `QST-XXXX` dipakai di tautan kelas dan sebagai jalan masuk `/play`                                                                                                       |
+| Persistence       | Satu database libSQL/Turso; PDF tidak disimpan (ADR 0013)                                                                                                                                                                                  |
+| Akses             | Tautan publik, tanpa akun siswa. Tautan per kelas `/play/[storyId]?kelas=QST-XXXX`; siswa memilih namanya dari daftar kelas. Tanpa tautan, siswa masuk lewat `/play` dengan kode kelas + NIS lalu konfirmasi nama lengkap (ADR 0042, 0044) |
+| Analytics         | `/guru/analitik`: poin terbaik dan konsep lemah per siswa; filter kelas/game opsional (kosong = semua)                                                                                                                                     |
+| Deployment        | Satu environment (production demo)                                                                                                                                                                                                         |
 
 ## Out of scope (tegas)
 
 - Login/akun siswa, SSO sekolah, integrasi Google Classroom.
 - Multiplayer, leaderboard global, kelas real-time.
-- Nilai, rapor, dan analitik lintas kelas/semester (yang ada hanya agregat per
-  kelas + game: poin terbaik dan konsep lemah per siswa).
+- Nilai, rapor, dan rekap per semester (yang ada hanya agregat hasil main:
+  poin terbaik dan konsep lemah per siswa, per kelas dan per game — boleh
+  lintas kelas, tetapi tanpa pembandingan antar kelas).
 - OCR untuk PDF hasil scan (boleh disebut sebagai backlog).
 - AI membuat gambar, musik, suara, atau animasi baru.
 - Voice-over / text-to-speech.
@@ -69,9 +70,7 @@ Korbankan dari atas, bukan dari bawah.
 4. Musik per scene → satu rotasi musik latar per sesi (dua track bergantian, mulai acak).
 5. Animasi transisi → cut/fade sederhana.
 6. Edit urutan scene → cukup edit teks & soal.
-7. Kode kelas dipakai siswa untuk bergabung → cukup tautan. (Kode `QST-XXXX`
-   tetap dibuat sebagai label kelas, tetapi tidak dipakai untuk bergabung.)
-8. Ringkasan `weakConcepts` lintas sesi → cukup ringkasan per sesi.
+7. Ringkasan `weakConcepts` lintas sesi → cukup ringkasan per sesi.
 
 Riwayat versi **tidak** ada di cut line. Setiap simpan di server selalu membuat
 baris `story_versions` baru (lihat

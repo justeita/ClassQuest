@@ -21,6 +21,12 @@ export const metadata: Metadata = {
  * klien, supaya tautan bisa dibagikan dan agregatnya dihitung server
  * (`getClassroomAnalytics`). Halaman ini hanya menampilkan hasil; tidak ada
  * penulisan data di sini.
+ *
+ * Kedua filter opsional: tanpa `?kelas=` dan `?storyId=` halaman langsung
+ * menampilkan agregat semua kelas × semua game terbit milik guru, jadi guru
+ * tidak melihat layar kosong sebelum memilih apa pun. Id yang tidak dikenal
+ * diabaikan (dianggap tidak difilter) karena hasilnya sudah dibatasi
+ * `teacher_id`.
  */
 export default function AnalyticsPage(props: PageProps<"/guru/analitik">) {
   return (
@@ -45,17 +51,23 @@ async function AnalyticsSection({
   ]);
 
   const params = await searchParams;
-  const classroomId = typeof params.kelas === "string" ? params.kelas : null;
-  const storyId = typeof params.storyId === "string" ? params.storyId : null;
+  const kelas = typeof params.kelas === "string" ? params.kelas.trim() : "";
+  const game = typeof params.storyId === "string" ? params.storyId.trim() : "";
 
-  const analytics =
-    classroomId !== null && storyId !== null
-      ? await getClassroomAnalytics(db, {
-          teacherId,
-          classroomId,
-          storyId,
-        })
-      : null;
+  // Filter hanya diteruskan bila id-nya memang ada di daftar milik guru; id
+  // asing/kedaluwarsa jatuh kembali ke "semua" alih-alih layar kosong.
+  const classroomId = classes.some((item) => item.id === kelas) ? kelas : null;
+  const storyId = stories.some(
+    (story) => story.status === "published" && story.id === game,
+  )
+    ? game
+    : null;
+
+  const analytics = await getClassroomAnalytics(db, {
+    teacherId,
+    classroomId,
+    storyId,
+  });
 
   return (
     <AnalyticsBrowser

@@ -3,6 +3,18 @@ import type { Beat, Chapter, Challenge, Story } from "@/story/schema";
 export type StoryRunnerPhase =
   "explore" | "dialog" | "challenge" | "chapter_end" | "done";
 
+/**
+ * Posisi kursor cerita tanpa isi beat. Sama dengan bagian kursor di
+ * `PlayProgress` (docs/04-game/interaction-loop.md).
+ */
+export type KursorCerita = {
+  chapterIndex: number;
+  /** -1 = bab sudah tamat dan menunggu bab berikutnya. */
+  sceneIndex: number;
+  /** -1 = scene baru dibuka (explore) atau belum masuk deretan beat. */
+  beatIndex: number;
+};
+
 export interface StoryRunnerState {
   phase: StoryRunnerPhase;
   /** Indeks bab saat ini (0-based); -1 saat selesai. */
@@ -153,6 +165,42 @@ export class StoryRunner {
     if (this.getState().phase === "done") return;
     this.sceneIndex = 0;
     this.beatIndex = -1;
+  }
+
+  /**
+   * Kursor cerita apa adanya, dipakai menyimpan progres ke `localStorage`.
+   * `null` saat cerita sudah selesai: tidak ada yang perlu dilanjutkan.
+   */
+  getKursor(): KursorCerita | null {
+    if (this.getState().phase === "done") return null;
+    return {
+      chapterIndex: this.chapterIndex,
+      sceneIndex: this.sceneIndex,
+      beatIndex: this.beatIndex,
+    };
+  }
+
+  /**
+   * Lanjutkan dari progres tersimpan. Sesuai
+   * docs/04-game/interaction-loop.md → Progres dan resume, kursor dibuka di
+   * **awal scene** tempat beat terakhir (`beatIndex` = -1), bukan tengah beat:
+   * lebih sederhana dan tidak pernah menampilkan soal yang sudah dijawab.
+   *
+   * `sceneIndex` -1 berarti bab terakhir sudah tamat; kursor dibiarkan di
+   * `chapter_end` sehingga `advance()` berikutnya membuka bab selanjutnya.
+   *
+   * Mengembalikan `false` (dan tidak mengubah apa pun) bila posisi tidak ada di
+   * cerita ini — progres seperti itu sudah kedaluwarsa.
+   */
+  lanjutkanDari(chapterIndex: number, sceneIndex: number): boolean {
+    const chapter = this.story.chapters[chapterIndex];
+    if (!chapter) return false;
+    if (sceneIndex !== -1 && !chapter.scenes[sceneIndex]) return false;
+
+    this.chapterIndex = chapterIndex;
+    this.sceneIndex = sceneIndex;
+    this.beatIndex = -1;
+    return true;
   }
 
   /** Cari definisi challenge berdasarkan id dari beat challenge. */

@@ -187,6 +187,10 @@ Karakteristik fallback:
   `onWrong` (retry + detour) dan menyalakan flag yang dibaca varian `when.flag`
   di dialog sesudahnya. Chapter lain tetap tanpa `onWrong`.
 - **Memakai aset default yang ada.**
+- **Berlatar desa.** Adegan memakai tempat tetap mentor dari `locationOf()`
+  (`src/story/cast.ts`), bukan ruang kelas. Game hanya punya satu peta desa, jadi
+  cerita cadangan pun tidak boleh menyebut "kelas", "sekolah", atau "papan
+  tulis" (ADR 0040); `fallback.test.ts` menjaganya.
 - **Jujur.** Guru melihat banner bahwa ini cerita cadangan.
 
 Fallback bukan "cerita sampah": ia harus tetap bisa didemokan. Luangkan waktu

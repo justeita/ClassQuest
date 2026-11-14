@@ -21,6 +21,7 @@ import {
   STUDENT_NAME_INVALID_MESSAGE,
   STUDENT_NIS_DUPLICATE_MESSAGE,
   STUDENT_NIS_INVALID_MESSAGE,
+  STUDENT_NISN_INVALID_MESSAGE,
 } from "./index";
 
 /**
@@ -227,6 +228,70 @@ describe("addStudent", () => {
     if (!result.ok) throw new Error("kelas gagal dibuat");
     return result.classroom.id;
   }
+
+  it("menyimpan NISN bila diisi dan membiarkannya null bila kosong", async () => {
+    const classroomId = await buatKelas();
+
+    const denganNisn = await addStudent(db, {
+      teacherId: TEACHER_ID,
+      classroomId,
+      name: "Andi Pratama",
+      nis: "1001",
+      nisn: " 0091234567 ",
+    });
+    if (!denganNisn.ok) throw new Error("siswa gagal ditambahkan");
+    expect(denganNisn.student.nisn).toBe("0091234567");
+
+    const tanpaNisn = await addStudent(db, {
+      teacherId: TEACHER_ID,
+      classroomId,
+      name: "Siti Aminah",
+      nis: "1002",
+      nisn: "",
+    });
+    if (!tanpaNisn.ok) throw new Error("siswa gagal ditambahkan");
+    expect(tanpaNisn.student.nisn).toBeNull();
+
+    // NISN tidak unik: nomor yang sama tidak boleh membuat penyimpanan gagal.
+    const nisnSama = await addStudent(db, {
+      teacherId: TEACHER_ID,
+      classroomId,
+      name: "Budi Santoso",
+      nis: "1003",
+      nisn: "0091234567",
+    });
+    expect(nisnSama.ok).toBe(true);
+
+    const kelas = await getClassroom(db, {
+      teacherId: TEACHER_ID,
+      classroomId,
+    });
+    // Diperiksa per nama: urutan daftar bergantung pada `created_at` yang bisa
+    // sama untuk beberapa siswa yang ditambahkan dalam milidetik yang sama.
+    const perNama = new Map(
+      kelas?.students.map((student) => [student.name, student.nisn]),
+    );
+    expect(perNama.get("Andi Pratama")).toBe("0091234567");
+    expect(perNama.get("Siti Aminah")).toBeNull();
+    expect(perNama.get("Budi Santoso")).toBe("0091234567");
+  });
+
+  it("NISN yang bentuknya tidak sah ditolak", async () => {
+    const classroomId = await buatKelas();
+
+    const hasil = await addStudent(db, {
+      teacherId: TEACHER_ID,
+      classroomId,
+      name: "Andi Pratama",
+      nis: "1001",
+      nisn: "009 123",
+    });
+
+    expect(hasil).toEqual({
+      ok: false,
+      message: STUDENT_NISN_INVALID_MESSAGE,
+    });
+  });
 
   it("menambah siswa dengan NIS otomatis berurutan", async () => {
     const classroomId = await buatKelas();

@@ -94,8 +94,9 @@ Kami memilih **A**, dengan aturan:
 - `src/components/game/GameCanvas.tsx` — akar `touch-manipulation`.
 - `src/game/layarPenuh.ts`, `src/components/game/useLayarPenuh.ts`,
   `src/components/game/TombolLayarPenuh.tsx` — status dan tombol baru.
-- `src/components/game/TitleScreen.tsx` dan `src/components/game/HUD.tsx` — titik
-  pasang tombol.
+- `src/components/game/HUD.tsx` — titik pasang tombol. (Dulu juga
+  `TitleScreen.tsx`, yang sudah dihapus; `/play` sekarang memakai menu utama yang
+  sama dengan `/demo`.)
 - [`../05-frontend/game-player.md`](../05-frontend/game-player.md),
   [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md), dan
   [`../04-game/accessibility.md`](../04-game/accessibility.md).

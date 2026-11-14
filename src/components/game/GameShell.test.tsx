@@ -7,16 +7,24 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createElement } from "react";
 
 import { GameBus } from "@/game/gameBus";
 import { DEMO_STORY } from "@/game/demoStory";
 import { KUNCI_PENGATURAN } from "@/game/audioSettings";
 import { persenLebar } from "@/game/layout";
+import {
+  bacaProgres,
+  kunciProgres,
+  simpanProgres,
+  type KursorProgres,
+} from "@/game/progress";
 import type { QuestState } from "@/game/questLog";
 import type { Answer, PlayResult } from "@/story/scoring";
+import type { PlayClassroom, PlayStudent } from "@/server/contracts";
 
 // Phaser tidak bisa hidup di jsdom. Yang diuji di sini hanya kontrak
-// layar → bus → React: layar judul, HUD, menu jeda, overlay tantangan,
+// layar → bus → React: menu utama, HUD, menu jeda, overlay tantangan,
 // layar hasil, dan "Main lagi".
 const mocks = vi.hoisted(() => ({
   createGame: vi.fn(),
@@ -26,6 +34,12 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/game/createGame", () => ({ createGame: mocks.createGame }));
 vi.mock("@/app/play/actions", () => ({
   savePlayResult: mocks.savePlayResult,
+}));
+
+// `next/image` hanya dipakai untuk latar dekoratif menu; di jsdom cukup `<img>`.
+vi.mock("next/image", () => ({
+  default: ({ src, alt }: { src: string; alt: string }) =>
+    createElement("img", { src, alt }),
 }));
 
 vi.mock("next/link", () => ({
@@ -62,8 +76,8 @@ async function tungguBusTerpasang() {
 }
 
 /**
- * Render shell, lalu masuk ke permainan lewat layar judul. Sejak layar judul
- * ada, Phaser memang belum dinyalakan sebelum tombol "Mulai" ditekan.
+ * Render shell, lalu masuk ke permainan lewat menu utama. Phaser memang belum
+ * dinyalakan sebelum tombol "Mulai" ditekan.
  */
 async function masukMain() {
   render(<GameShell story={DEMO_STORY} />);
@@ -114,20 +128,36 @@ beforeEach(() => {
 });
 
 describe("GameShell", () => {
-  it("menampilkan layar judul tanpa menyalakan Phaser", () => {
+  it("menampilkan menu utama tanpa menyalakan Phaser", () => {
     render(<GameShell story={DEMO_STORY} />);
 
     expect(
-      screen.getByRole("heading", { name: DEMO_STORY.meta.title }),
+      screen.getByRole("navigation", { name: /menu utama/i }),
     ).toBeInTheDocument();
     expect(mocks.createGame).not.toHaveBeenCalled();
   });
 
-  it("Mulai menyembunyikan layar judul dan menyalakan Phaser", async () => {
+  it("Mulai menyembunyikan menu utama dan menyalakan Phaser", async () => {
     render(<GameShell story={DEMO_STORY} />);
     fireEvent.click(screen.getByRole("button", { name: /^mulai$/i }));
 
     await tungguBusTerpasang();
+    expect(
+      screen.queryByRole("navigation", { name: /menu utama/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("menu utama langsung memulai permainan, tanpa layar judul cerita", async () => {
+    render(<GameShell story={DEMO_STORY} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^mulai$/i }));
+
+    await tungguBusTerpasang();
+    // Satu menu saja: menu utama hilang, dan tidak ada layar perantara lain
+    // (dulu layar judul cerita) di antara menu dan permainan.
+    expect(
+      screen.queryByRole("navigation", { name: /menu utama/i }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: DEMO_STORY.meta.title }),
     ).not.toBeInTheDocument();
@@ -943,13 +973,13 @@ describe("GameShell — layar muat", () => {
     );
   });
 
-  it("Batal di layar muat kembali ke layar judul, bukan memuat ulang halaman", async () => {
+  it("Batal di layar muat kembali ke menu utama, bukan memuat ulang halaman", async () => {
     await masukMain();
 
     fireEvent.click(screen.getByRole("button", { name: /^batal$/i }));
 
     expect(
-      await screen.findByRole("heading", { name: DEMO_STORY.meta.title }),
+      await screen.findByRole("navigation", { name: /menu utama/i }),
     ).toBeInTheDocument();
     expect(mocks.createGame).toHaveBeenCalledTimes(1);
   });
@@ -1362,5 +1392,198 @@ describe("GameShell — kontrol sentuh", () => {
     expect(
       screen.queryByRole("group", { name: "Tongkat gerak" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("GameShell — progres localStorage", () => {
+  /**
+   * Jawaban yang benar-benar dikenal cerita demo. Progres menyaring jawaban
+   * untuk challenge yang tidak ada, jadi id palsu akan hilang saat dibaca.
+   */
+  const jawabanTersimpan: Answer[] = [
+    {
+      challengeId: DEMO_STORY.challenges[0]!.id,
+      type: "multiple_choice",
+      selectedId: "opsi_a",
+    },
+  ];
+
+  const kursorTersimpan: KursorProgres = {
+    chapterIndex: 1,
+    sceneIndex: 0,
+    beatIndex: -1,
+    answers: jawabanTersimpan,
+  };
+
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
+  it("progres tersimpan membuat menu utama menawarkan Lanjutkan", () => {
+    simpanProgres(window.localStorage, DEMO_STORY, kursorTersimpan);
+
+    render(<GameShell story={DEMO_STORY} />);
+
+    expect(
+      screen.getByRole("button", { name: /^lanjutkan$/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^mulai$/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("Lanjutkan menyalakan Phaser dari kursor tersimpan", async () => {
+    simpanProgres(window.localStorage, DEMO_STORY, kursorTersimpan);
+    render(<GameShell story={DEMO_STORY} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^lanjutkan$/i }));
+    await tungguBusTerpasang();
+
+    // Argumen ketiga `createGame` adalah titik lanjut; `null` berarti awal.
+    expect(mocks.createGame.mock.calls[0]?.[2]).toEqual(kursorTersimpan);
+  });
+
+  it("Mulai ulang membuang progres dan menyalakan Phaser dari awal", async () => {
+    simpanProgres(window.localStorage, DEMO_STORY, kursorTersimpan);
+    render(<GameShell story={DEMO_STORY} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^mulai ulang$/i }));
+    await tungguBusTerpasang();
+
+    expect(mocks.createGame.mock.calls[0]?.[2]).toBeNull();
+    expect(bacaProgres(window.localStorage, DEMO_STORY)).toEqual({
+      status: "kosong",
+    });
+  });
+
+  it("/play memakai menu yang sama dan ikut menawarkan Lanjutkan", async () => {
+    simpanProgres(window.localStorage, DEMO_STORY, kursorTersimpan);
+    render(<GameShell story={DEMO_STORY} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^lanjutkan$/i }));
+    await tungguBusTerpasang();
+
+    expect(mocks.createGame.mock.calls[0]?.[2]).toEqual(kursorTersimpan);
+  });
+
+  it("event progress menulis kursor, dan finished menghapusnya", async () => {
+    await mainkan();
+
+    bus.emit({ type: "progress", view: kursorTersimpan });
+    const tersimpan = bacaProgres(window.localStorage, DEMO_STORY);
+    expect(tersimpan.status).toBe("siap");
+    if (tersimpan.status !== "siap") return;
+    expect(tersimpan.progres.chapterIndex).toBe(1);
+    expect(tersimpan.progres.answers).toEqual(jawabanTersimpan);
+
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
+
+    // Cerita tamat: refresh di layar hasil tidak boleh menawarkan "Lanjutkan".
+    expect(bacaProgres(window.localStorage, DEMO_STORY)).toEqual({
+      status: "kosong",
+    });
+  });
+
+  it("simpanan kedaluwarsa dibuang dan menu mulai dari awal", () => {
+    window.localStorage.setItem(
+      kunciProgres(DEMO_STORY.meta.id),
+      "{bukan json",
+    );
+
+    render(<GameShell story={DEMO_STORY} />);
+
+    expect(
+      screen.getByRole("button", { name: /^mulai$/i }),
+    ).toBeInTheDocument();
+    expect(window.localStorage.getItem(kunciProgres(DEMO_STORY.meta.id))).toBe(
+      null,
+    );
+  });
+});
+
+describe("GameShell — pemainAwal (gerbang kode kelas)", () => {
+  const KELAS: PlayClassroom = {
+    id: "cls_5a",
+    name: "Kelas 5A",
+    code: "QST-7K3M",
+  };
+
+  const SISWA: PlayStudent[] = [
+    { id: "stu_andi", name: "Andi Pratama", nis: "1001" },
+  ];
+
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
+  it("identitas yang sudah ada melewati layar masuk dan langsung ke menu", () => {
+    render(
+      <GameShell
+        story={DEMO_STORY}
+        classroom={KELAS}
+        students={SISWA}
+        pemainAwal={{ studentId: "stu_andi", name: "Andi Pratama" }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("navigation", { name: /menu utama/i }),
+    ).toBeInTheDocument();
+    // Tidak ada layar masuk kedua: daftar nama kelas tidak pernah muncul.
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+  });
+
+  it("menyimpan hasil dengan studentId siswa yang cocok", async () => {
+    render(
+      <GameShell
+        story={DEMO_STORY}
+        classroom={KELAS}
+        students={SISWA}
+        pemainAwal={{ studentId: "stu_andi", name: "Andi Pratama" }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /^mulai$/i }));
+    await tungguBusTerpasang();
+    bus.emit({ type: "ready" });
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
+
+    await vi.waitFor(() =>
+      expect(mocks.savePlayResult).toHaveBeenCalledWith({
+        storyId: DEMO_STORY.meta.id,
+        result: { studentId: "stu_andi", answers: jawabanPalsu },
+      }),
+    );
+  });
+
+  it("nama di luar daftar disimpan sebagai nickname", async () => {
+    render(
+      <GameShell
+        story={DEMO_STORY}
+        classroom={KELAS}
+        students={SISWA}
+        pemainAwal={{ studentId: null, name: "Tamu Kelas" }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /^mulai$/i }));
+    await tungguBusTerpasang();
+    bus.emit({ type: "ready" });
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
+
+    await vi.waitFor(() =>
+      expect(mocks.savePlayResult).toHaveBeenCalledWith({
+        storyId: DEMO_STORY.meta.id,
+        result: { nickname: "Tamu Kelas", answers: jawabanPalsu },
+      }),
+    );
   });
 });

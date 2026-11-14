@@ -3,7 +3,7 @@
     "id": "ch_02",
     "title": "Warna Hijau Rahasia",
     "concept": "Klorofil",
-    "summary": "Di halaman sekolah, Kael menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
+    "summary": "Di kebun desa, Kael menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
     "backgroundId": "bg_default",
     "musicId": "bgm_default",
     "scenes": [
@@ -13,7 +13,7 @@
         "beats": [
           {
             "type": "narration",
-            "text": "Kael membawa daun ke halaman sekolah dan meletakkannya di bangku kayu."
+            "text": "Kael membawa daun ke kebun desa dan meletakkannya di bangku kayu."
           },
           {
             "type": "dialogue",
@@ -94,7 +94,7 @@
     "characterStates": [
       {
         "id": "char_mc",
-        "location": "halaman sekolah",
+        "location": "kebun desa",
         "knows": [
           "daun membutuhkan cahaya matahari",
           "klorofil menangkap cahaya"
@@ -102,12 +102,12 @@
       },
       {
         "id": "char_npc_10",
-        "location": "halaman sekolah",
+        "location": "kebun desa",
         "knows": ["klorofil ada di dalam daun"]
       },
       {
         "id": "char_npc_1",
-        "location": "halaman sekolah",
+        "location": "kebun desa",
         "knows": ["klorofil membantu daun memakai cahaya"]
       }
     ],

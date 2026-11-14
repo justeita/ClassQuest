@@ -26,6 +26,7 @@
 import Ajv2020 from "ajv/dist/2020.js";
 
 import storyJsonSchema from "../../docs/02-data-model/story.schema.json";
+import { isKnownPlace } from "./cast";
 import type { Challenge, Chapter, TextVariant } from "./schema";
 import type {
   AjvIssue,
@@ -901,6 +902,18 @@ const collectChapterWarnings = (
 
   let dialogueRun = 0;
   let runReported = false;
+
+  draft.continuity.characterStates.forEach((state, index) => {
+    if (!isKnownPlace(state.location)) {
+      warnings.push(
+        warningIssue(
+          "W_LOCATION_UNKNOWN",
+          `continuity.characterStates[${index}].location`,
+          `Lokasi "${state.location}" untuk ${state.id} tidak cocok dengan tempat mana pun di blok LOKASI. Game hanya punya peta desa, jadi ruangan seperti kelas tidak bisa ditampilkan.`,
+        ),
+      );
+    }
+  });
 
   chapter.scenes.forEach((scene, sceneIndex) => {
     scene.beats.forEach((beat, beatIndex) => {

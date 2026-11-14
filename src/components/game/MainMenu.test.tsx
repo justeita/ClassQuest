@@ -13,7 +13,7 @@ import { KUNCI_PENGATURAN } from "@/game/audioSettings";
 import { MainMenu } from "./MainMenu";
 
 /**
- * Menu utama `/game`.
+ * Menu utama `/demo`.
  *
  * Yang dijaga: menu bisa dijalankan penuh dengan keyboard (panah/W-S memilih,
  * Enter menjalankan, Esc menutup dialog), "Mulai" benar-benar menyerahkan
@@ -121,6 +121,37 @@ describe("MainMenu", () => {
 
     fireEvent.click(tombol(/^mulai$/i));
     expect(onMulai).toHaveBeenCalledTimes(1);
+  });
+
+  it("dengan progres menampilkan Lanjutkan dan mengganti Mulai jadi Mulai ulang", () => {
+    const onMulai = vi.fn();
+    const onLanjut = vi.fn();
+    render(<MainMenu onMulai={onMulai} adaProgres onLanjut={onLanjut} />);
+
+    expect(
+      screen.queryByRole("button", { name: /^mulai$/i }),
+    ).not.toBeInTheDocument();
+    expect(tombol(/^lanjutkan$/i)).toHaveAttribute("aria-current", "true");
+
+    // Enter pada sorotan pertama menjalankan "Lanjutkan", bukan "Mulai ulang".
+    tekan("Enter");
+    expect(onLanjut).toHaveBeenCalledTimes(1);
+    expect(onMulai).not.toHaveBeenCalled();
+
+    // "Mulai ulang" tetap tersedia satu langkah di bawahnya.
+    tekan("ArrowDown");
+    tekan("Enter");
+    expect(onMulai).toHaveBeenCalledTimes(1);
+  });
+
+  it("panah bawah dengan progres membungkus lima pilihan", () => {
+    render(<MainMenu onMulai={vi.fn()} adaProgres onLanjut={vi.fn()} />);
+
+    tekan("ArrowUp");
+    expect(tombol(/^keluar$/i)).toHaveAttribute("aria-current", "true");
+
+    tekan("ArrowDown");
+    expect(tombol(/^lanjutkan$/i)).toHaveAttribute("aria-current", "true");
   });
 
   it("Pengaturan membuka dialog dan menyimpan volume ke localStorage", () => {

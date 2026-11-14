@@ -16,14 +16,15 @@ menerima hasil. Tidak ada Phaser di server, tidak ada `window` saat SSR.
 
 ## Pembagian tanggung jawab
 
-| Bagian                 | Teknologi        | Isi                                           |
-| ---------------------- | ---------------- | --------------------------------------------- |
-| Dunia, peta, karakter  | Phaser           | Sprite, posisi, urutan gambar (depth), kamera |
-| Dialog                 | Hybrid           | Panel + potret DOM, state typewriter Phaser   |
-| Tantangan              | React DOM        | Form, tombol, input, feedback, aksesibilitas  |
-| HUD, menu, hasil       | React DOM        | Panel quest, jeda, layar hasil                |
-| State cerita           | TypeScript murni | `StoryRunner` (tanpa Phaser)                  |
-| Persistensi preferensi | `localStorage`   | Pengaturan audio, dibaca React saat mount     |
+| Bagian                 | Teknologi        | Isi                                            |
+| ---------------------- | ---------------- | ---------------------------------------------- |
+| Dunia, peta, karakter  | Phaser           | Sprite, posisi, urutan gambar (depth), kamera  |
+| Dialog                 | Hybrid           | Panel + potret DOM, state typewriter Phaser    |
+| Tantangan              | React DOM        | Form, tombol, input, feedback, aksesibilitas   |
+| HUD, menu, hasil       | React DOM        | Panel quest, jeda, layar hasil                 |
+| State cerita           | TypeScript murni | `StoryRunner` (tanpa Phaser)                   |
+| Persistensi preferensi | `localStorage`   | Pengaturan audio, dibaca React saat mount      |
+| Persistensi progres    | `localStorage`   | Kursor cerita + jawaban, dari event `progress` |
 
 Alasannya: input teks dan aksesibilitas jauh lebih baik di DOM, sementara dunia
 game butuh render loop. Memaksakan semuanya ke canvas akan memperlambat
@@ -118,18 +119,18 @@ Catatan Phaser 4:
 
 ### Komponen host
 
-`GameShell.tsx` memegang **layar** (judul → main → hasil), bukan state cerita:
+`GameShell.tsx` memegang **layar** (menu → main → hasil), bukan state cerita:
 
 ```tsx
 export function GameShell({ story }: { story: Story }) {
-  const [layar, setLayar] = useState<"judul" | "main" | "hasil">("judul");
+  const [layar, setLayar] = useState<"menu" | "main" | "hasil">("menu");
   const [hasil, setHasil] = useState<PlayResult | null>(null);
   const [sesi, setSesi] = useState(0);
 
   return (
     <div className="relative h-full w-full overflow-hidden">
-      {layar === "judul" ? (
-        <TitleScreen story={story} onStart={mulai} />
+      {layar === "menu" ? (
+        <MainMenu story={story} onMulai={mulai} />
       ) : (
         <GameCanvas key={sesi} story={story} onFinished={selesai} />
       )}
@@ -141,7 +142,7 @@ export function GameShell({ story }: { story: Story }) {
 }
 ```
 
-`GameCanvas` memasang Phaser setelah "Mulai" (bukan di belakang layar judul) dan
+`GameCanvas` memasang Phaser setelah "Mulai" (bukan di belakang menu utama) dan
 menjembatani dunia dengan overlay DOM:
 
 ```tsx
@@ -395,6 +396,7 @@ type GameEvent =
       sceneJudul: string | null;
     }
   | { type: "quest"; view: QuestState }
+  | { type: "progress"; view: KursorProgres }
   | { type: "skipping"; aktif: boolean }
   | { type: "error"; code: string };
 ```
@@ -410,8 +412,11 @@ tepi layar dan `sudut` (derajat, 0 = kanan) memutar penunjuk beacon. `QuestState
 berisi
 chapter, scene aktif, daftar quest turunan scene, dan `activeQuestId`; status
 `selesai | aktif | terkunci` dihitung dari posisi `StoryRunner`, bukan ditulis di
-Story JSON. Teks dialog dikirim bertahap saat typewriter berjalan, dan React tidak
-perlu tahu beat mana yang aktif.
+Story JSON. `KursorProgres` = `{ chapterIndex, sceneIndex, beatIndex, answers }`;
+scene mengirimnya setiap kursor bergerak, dan `GameCanvas` yang menulisnya ke
+`localStorage` — scene tidak pernah menyentuh storage. Teks dialog dikirim
+bertahap saat typewriter berjalan, dan React tidak perlu tahu beat mana yang
+aktif.
 
 Dua event pertama khusus layar muat, dan urutannya penting:
 
@@ -526,9 +531,32 @@ Yang sudah berlaku di kode hari ini:
 - [x] Bridge mengirim `GameEvent` dan menerima `GameCommand`.
 - [x] Tidak ada state penting hanya di dalam Phaser (progres dihitung ulang dari
       `story`).
+- [x] Persistensi progres ke `localStorage` (`src/game/progress.ts`, kunci
+      `classquest:progress:{storyId}`): scene mengirim event `progress` berisi
+      kursor + jawaban, React yang menulisnya, dan kursor tersimpan diberikan
+      lagi ke `GameScene` sebagai `mulaiDari` saat "Lanjutkan".
 - [x] `bun run build` tidak menghasilkan error `window is not defined`.
 
 Belum ada:
 
 - [ ] `loaderror` punya fallback eksplisit (dijaga lewat `manifest.test.ts`).
-- [ ] Persistensi progres ke `localStorage` (baru preferensi audio).
+
+## Progres dan resume
+
+Alur singkatnya (detail: `docs/04-game/interaction-loop.md` → Progres dan
+resume, dan `src/game/progress.ts`):
+
+1. `GameScene` memanggil `kirimProgres()` setiap kursor cerita bergerak dan
+   mengirim event `progress` berisi
+   `{ chapterIndex, sceneIndex, beatIndex, answers }`.
+2. `GameCanvas` menulisnya ke `localStorage` lewat `simpanProgres()`.
+3. Refresh: `GameShell` membaca progres lewat `useSyncExternalStore`
+   (`src/game/progressStore.ts`, snapshot server `null`) dan menampilkan
+   "Lanjutkan" di menu/judul. Memilihnya meneruskan kursor ke
+   `createGame(parent, story, mulaiDari)` → `new GameScene(story, bus, mulaiDari)`.
+4. `GameScene.pulihkanProgres()` mengisi `AnswerLog` dan memanggil
+   `StoryRunner.lanjutkanDari()`; resume selalu membuka **awal scene**
+   (`beatIndex = -1`), bukan tengah beat.
+5. Cerita selesai / "Main lagi" / "Mulai ulang" menghapus simpanan.
+
+Scene tidak pernah menyentuh `localStorage` — sama seperti pengaturan audio.

@@ -143,7 +143,7 @@ export function StoryActions({
           className="guru-press-pixel flex items-center gap-2 rounded-xl border-2 border-slate-900 bg-brand-600 px-4 py-2.5 font-pixel text-xs font-bold text-white shadow-[3px_3px_0px_#172554] transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <i className="fa-solid fa-share-nodes" aria-hidden />
-          <span>{busy === "publish" ? "MEMBAGIKAN…" : "BAGIKAN KE SISWA"}</span>
+          <span>{busy === "publish" ? "MEMBAGIKAN…" : "BAGIKAN"}</span>
         </button>
       ) : null}
 

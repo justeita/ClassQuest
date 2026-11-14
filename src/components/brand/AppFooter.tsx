@@ -7,7 +7,7 @@ import Link from "next/link";
  * halaman legal sendiri), tanpa menambah menu di kepala halaman.
  *
  * Nama tautan sengaja berbeda dari tautan peran: dokumen ini bukan pintu masuk
- * kedua ke `/guru` atau `/game`, dan namanya unik supaya tes `getByRole` di
+ * kedua ke `/guru` atau `/demo`, dan namanya unik supaya tes `getByRole` di
  * halaman 404 tidak ambigu.
  */
 const TAUTAN_LEGAL = [

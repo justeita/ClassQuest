@@ -45,7 +45,7 @@ const json = <T>(path: string): T => JSON.parse(fixture(path)) as T;
 const MANIFEST = toAssetManifest();
 
 const PAGES = [
-  "Halaman satu menjelaskan fotosintesis dan daun hijau di depan kelas.",
+  "Halaman satu menjelaskan fotosintesis dan daun hijau di kebun desa.",
   "Halaman dua menjelaskan klorofil yang menangkap cahaya matahari.",
   "Halaman tiga menjelaskan glukosa sebagai hasil fotosintesis.",
 ];
@@ -313,6 +313,48 @@ describe("mode permainan", () => {
 
     expect(result.story.meta.mode).toBeUndefined();
     expectValid(result);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* Sebaran pembicara (ADR 0039)                                               */
+/* -------------------------------------------------------------------------- */
+
+describe("sebaran pembicara", () => {
+  it("mewariskan pembicara chapter sebelumnya ke prompt berikutnya", async () => {
+    const provider = capturing();
+    const result = await run(provider);
+
+    expect(result.usedFallback).toBe(false);
+
+    const chapterPrompts = provider.prompts.filter((prompt) =>
+      prompt.includes("SCHEMA CHAPTER"),
+    );
+    expect(chapterPrompts).toHaveLength(3);
+
+    // Chapter pertama belum punya riwayat; chapter berikutnya diberi nama
+    // tokoh yang sudah bicara supaya giliran pembicara bergilir.
+    expect(chapterPrompts[0]).toContain("Ini chapter pertama");
+    expect(chapterPrompts[1]).toContain(
+      "Sudah bicara di chapter sebelumnya: Edric.",
+    );
+    expect(chapterPrompts[2]).toContain(
+      "Sudah bicara di chapter sebelumnya: Edric, Elian.",
+    );
+  });
+
+  it("tidak memasukkan pemain ke daftar pembicara sebelumnya", async () => {
+    const provider = capturing();
+    await run(provider);
+
+    const chapterPrompts = provider.prompts.filter((prompt) =>
+      prompt.includes("SCHEMA CHAPTER"),
+    );
+
+    for (const prompt of chapterPrompts) {
+      expect(prompt).not.toContain("Sudah bicara di chapter sebelumnya: Kael");
+      expect(prompt).not.toContain("char_mc.");
+    }
   });
 });
 

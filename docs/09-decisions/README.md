@@ -51,6 +51,12 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0036 | [Menu jeda dua kolom di lanskap pendek](0036-menu-jeda-dua-kolom.md)                                                      | Accepted     | Game, aksesibilitas   |
 | 0037 | [Layar penuh mendatar dari pintu siswa](0037-layar-penuh-pintu-siswa.md)                                                  | Accepted     | Game, aksesibilitas   |
 | 0038 | [Soal tantangan diketik lebih dulu, jawaban menyusul](0038-soal-diketik-lalu-jawaban.md)                                  | Accepted     | Game, aksesibilitas   |
+| 0039 | [Sebaran pembicara antar tokoh](0039-sebaran-pembicara.md)                                                                | Accepted     | AI, validator, cerita |
+| 0040 | [Latar dunia desa di prompt](0040-latar-dunia-desa-di-prompt.md)                                                          | Accepted     | AI, prompt, cerita    |
+| 0041 | [Profil tokoh untuk prompt](0041-profil-tokoh-untuk-prompt.md)                                                            | Accepted     | AI, prompt, cerita    |
+| 0042 | [Kode kelas sebagai jalan masuk game](0042-kode-kelas-masuk-game.md)                                                      | Accepted     | Game, backend         |
+| 0043 | [Route demo dipindah ke `/demo`](0043-route-demo-ke-demo.md)                                                              | Accepted     | Route, game           |
+| 0044 | [Masuk game dengan NIS dan konfirmasi nama lengkap](0044-masuk-dengan-nis.md)                                             | Accepted     | Game, backend         |
 
 ## Status
 

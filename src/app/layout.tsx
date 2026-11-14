@@ -36,7 +36,7 @@ const gameFont = localFont({
 
 /**
  * Font pixel untuk **nama pembicara** di kotak dialog (utility `font-pixel`).
- * Dipasang di root karena kotak dialog muncul di route game (`/game`,
+ * Dipasang di root karena kotak dialog muncul di route game (`/demo`,
  * `/play/[storyId]`) yang tidak punya layout sendiri. Hanya dipakai untuk nama
  * dan label kecil: teks isi dialog tetap Patrick Hand supaya mudah dibaca.
  */

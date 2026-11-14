@@ -24,7 +24,7 @@
  *   keluaran (ADR 0018).
  */
 
-import { fixedCast } from "../story/cast";
+import { fixedCast, PLAYER_ID } from "../story/cast";
 import { buildFallbackStory } from "../story/fallback";
 import { STORY_SCHEMA_VERSION } from "../story/schema";
 import type {
@@ -368,6 +368,42 @@ const collectFlags = (
   return ids.length === 0
     ? undefined
     : ids.map((id) => ({ id, default: false }));
+};
+
+/**
+ * Id NPC yang sudah bicara di chapter-chapter sebelumnya.
+ *
+ * Dipakai prompt chapter berikutnya supaya giliran pembicara bergilir
+ * (ADR 0039). Pemain tidak dihitung: ia memang selalu hadir. Urutan mengikuti
+ * kemunculan pertama sehingga hasilnya deterministik. Nilai yang bentuknya
+ * rusak diabaikan, karena chapter yang belum lolos validasi masih bisa sampai
+ * ke sini.
+ */
+const collectSpeakers = (chapters: readonly Chapter[]): string[] => {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  const add = (value: unknown) => {
+    if (typeof value !== "string" || value.length === 0) return;
+    if (value === PLAYER_ID || seen.has(value)) return;
+    seen.add(value);
+    ids.push(value);
+  };
+
+  for (const chapter of chapters) {
+    for (const scene of chapter?.scenes ?? []) {
+      for (const beat of scene?.beats ?? []) {
+        if (beat?.type === "dialogue") {
+          add(beat.speakerId);
+        } else if (beat?.type === "challenge") {
+          for (const detour of beat.onWrong?.detour ?? []) {
+            if (detour?.type === "dialogue") add(detour.speakerId);
+          }
+        }
+      }
+    }
+  }
+
+  return ids;
 };
 
 /**
@@ -804,6 +840,7 @@ export async function generateStory(
     planned: Outline["chapters"][number],
     continuity: ContinuityState,
     usedFlags: readonly string[],
+    usedSpeakers: readonly string[],
   ) => {
     const prompt = buildChapterPrompt({
       pages: input.pages,
@@ -814,6 +851,7 @@ export async function generateStory(
       meta: input.meta,
       branching: input.branching === true,
       usedFlags,
+      usedSpeakers,
     });
     collectPromptGaps(prompt, `chapter ${planned.id}`);
 
@@ -930,7 +968,14 @@ export async function generateStory(
     for (const planned of outline.chapters) {
       emit("generating");
       const usedFlags = (collectFlags(chapters) ?? []).map((flag) => flag.id);
-      const result = await chapterPass(outline, planned, continuity, usedFlags);
+      const usedSpeakers = collectSpeakers(chapters);
+      const result = await chapterPass(
+        outline,
+        planned,
+        continuity,
+        usedFlags,
+        usedSpeakers,
+      );
 
       chapters.push(result.chapter);
       challenges.push(...result.challenges);

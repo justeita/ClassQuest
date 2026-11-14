@@ -9,17 +9,18 @@ export const metadata: Metadata = {
 };
 
 /**
- * `/game` — pintu siswa sementara (docs/05-frontend/routes.md) dan halaman demo
- * Phaser. Server Component ini tidak merender Phaser: ia hanya menyerahkan
- * cerita demo ke `GameShell`, yang membuka menu utama (docs/05-frontend/
- * game-player.md → Menu utama) sebelum layar judul cerita.
+ * `/demo` — halaman demo Phaser (docs/05-frontend/routes.md). Server Component
+ * ini tidak merender Phaser: ia hanya menyerahkan cerita demo ke `GameShell`,
+ * yang membuka menu utama (docs/05-frontend/game-player.md → Menu utama). Menu
+ * itu sama dengan yang dipakai `/play/[storyId]`, jadi tampilan sebelum mulai
+ * di kedua route sinkron.
  */
-export default function GameDevPage() {
+export default function DemoPage() {
   return (
     <main className="area-game h-dvh w-full overflow-hidden bg-[#0b120e]">
       <h1 className="sr-only">ClassQuest</h1>
       <div className="h-full w-full overflow-hidden rounded-lg bg-[#14201a] ring-1 ring-white/10 sm:rounded-xl">
-        <GameShell story={DEMO_STORY} menuUtama />
+        <GameShell story={DEMO_STORY} />
       </div>
     </main>
   );

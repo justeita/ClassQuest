@@ -25,7 +25,7 @@ salah. Yang benar:
 | `RunnerState.phase` | `GameShellState.phase` | Yang tampil                               |
 | ------------------- | ---------------------- | ----------------------------------------- |
 | —                   | `loading`              | progress bar aset                         |
-| —                   | `ready`                | layar judul, tombol Mulai                 |
+| —                   | `ready`                | menu utama, tombol Mulai                  |
 | `explore`           | `playing`              | ruangan map + pemain + NPC                |
 | `dialog`            | `playing`              | canvas + panel dialog + teks DOM          |
 | `challenge`         | `playing`              | canvas + `ChallengeOverlay` (DOM)         |
@@ -219,13 +219,15 @@ Detail penting:
 - **Tanpa `onWrong`, perilaku lama berlaku.** `maxAttempts` efektif 1, jadi satu
   kemunculan soal hanya bisa dijawab sekali: overlay menampilkan jawaban benar +
   penjelasan, lalu "Lanjut". Ini yang membuat skor punya arti.
-- **Tapi mengulang bukan mustahil.** Kalau siswa me-refresh, keluar, atau memilih
-  "Ulangi chapter", soal itu akan muncul lagi dari awal. Itu memang disengaja:
-  ini game belajar, bukan ujian.
-- **Skor memakai percobaan pertama.** Progres menyimpan
-  `answers[challengeId] = { correct, at }`; nilai pertama tidak ditimpa saat soal
-  dijawab ulang. `weakConcepts` di layar hasil memakai data yang sama, jadi
-  mengulang tidak menghapus catatan bahwa konsep itu sempat salah.
+- **Tapi mengulang bukan mustahil.** Kalau siswa memilih "Ulangi chapter" — atau
+  me-refresh, yang membuka ulang **awal scene** tempat beat terakhir — soal yang
+  ada di scene itu akan muncul lagi. Itu memang disengaja: ini game belajar,
+  bukan ujian.
+- **Skor memakai percobaan pertama.** Progres menyimpan jawaban percobaan
+  pertama sebagai `Answer[]`; nilai pertama tidak ditimpa saat soal dijawab
+  ulang, dan daftar itu ikut dipulihkan saat resume. `weakConcepts` di layar
+  hasil memakai data yang sama, jadi mengulang tidak menghapus catatan bahwa
+  konsep itu sempat salah.
 - **Hint opsional, poin dipotong bila dipakai.** Bila soal punya `hints`, overlay
   menampilkan tombol "Lihat hint" di bawah pilihan jawaban. Hint tetap tersembunyi
   sampai siswa mengonfirmasi; setelah itu jawaban membawa `usedHint: true` dan
@@ -255,28 +257,51 @@ mendorong rasa ingin tahu.
 
 ## Progres dan resume
 
-Disimpan setiap kali beat berubah (di-throttle 500 ms):
+Disimpan setiap kali kursor cerita bergerak — beat baru, jawaban baru, atau
+"Ulangi chapter" (docs/01-architecture/data-flow.md → Alur 3):
 
 ```ts
 type PlayProgress = {
   storyId: string;
-  storyVersion: number;
+  /** Sidik isi cerita (FNV-1a), bukan nomor versi database. */
+  storyVersion: string;
   chapterIndex: number;
+  /** -1 = bab sudah tamat dan menunggu bab berikutnya. */
   sceneIndex: number;
+  /** -1 = scene baru dibuka (explore). */
   beatIndex: number;
-  answers: Record<string, { correct: boolean; at: string }>;
+  /** Jawaban percobaan pertama, urut kemunculan. */
+  answers: Answer[];
   updatedAt: string;
 };
 ```
 
 Aturan:
 
-- Key: `classquest:progress:{storyId}`.
-- **Versi cerita dicek.** Kalau `storyVersion` berbeda, progres lama dibuang dan
-  siswa mulai dari awal (dengan konfirmasi).
+- Key: `classquest:progress:{storyId}`; logikanya di `src/game/progress.ts`.
+- **Isi cerita dicek.** `storyVersion` adalah sidik struktur cerita (id bab,
+  id scene + jumlah beat, id tantangan). Bila berbeda, progres lama dibuang dan
+  siswa mulai dari awal — tanpa dialog konfirmasi, karena kursor lama memang
+  tidak lagi bermakna.
+- Kursor yang tidak ada di cerita (indeks di luar jangkauan, JSON rusak) juga
+  dianggap kedaluwarsa dan dibuang.
 - Saat resume, game mulai dari **awal scene** tempat beat terakhir, bukan tengah
   beat. Lebih sederhana dan tidak pernah menampilkan tantangan yang sudah dijawab.
-- Tombol "Mulai ulang" menghapus progres.
+  `sceneIndex -1` (akhir bab) melanjutkan di akhir bab, jadi bab berikutnya
+  langsung terbuka.
+- Jawaban percobaan pertama ikut dipulihkan, jadi skor setelah refresh tidak
+  menghitung soal yang sama sebagai percobaan baru.
+- Menu yang menawarkan lanjut ("Lanjutkan") muncul hanya bila ada progres sah;
+  saat itu "Mulai" berganti jadi "Mulai ulang". Keduanya menghapus progres —
+  "Lanjutkan" memakai kursor yang sudah dibaca sebelum permainan dimulai.
+- Progres dihapus saat cerita selesai, saat "Main lagi", dan saat "Mulai ulang",
+  supaya refresh di layar hasil tidak menawarkan cerita yang sudah tamat. Sesi
+  yang baru dimulai lalu langsung menyimpan kursornya sendiri (bab 1, awal
+  scene 1), jadi "Lanjutkan" tetap muncul setelah "Mulai ulang".
+- Posisi piksel pemain tidak disimpan: peta desa sama untuk semua scene, jadi
+  resume selalu menempatkan pemain di titik spawn.
+- Kegagalan storage (kuota penuh, mode privat) tidak menghentikan permainan —
+  sama seperti pengaturan audio.
 
 ## Menu jeda
 
@@ -351,7 +376,7 @@ dengan papan tombol, bukan jalur gerak kedua:
 - Label prompt `Space` berganti jadi "Sentuh" dan semua keycap keyboard
   disembunyikan (`Keycap` mengembalikan `null`), karena tidak ada tombol fisik di
   perangkat itu.
-- **Tombol "Layar penuh"** (layar judul dan HUD) memenuhkan halaman lalu mencoba
+- **Tombol "Layar penuh"** (di HUD) memenuhkan halaman lalu mencoba
   mengunci orientasi mendatar (ADR 0025). Bukan bagian alur cerita: tidak ada
   command bus, dan gagal memenuhkan layar tidak mengubah jalannya permainan.
 - Ketukan memakai `touch-action: manipulation` supaya tidak tertahan menunggu

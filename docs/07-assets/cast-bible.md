@@ -29,10 +29,13 @@ gender, usia, rambut, atau outfit — `characterSchema` hanya menerima `id`,
 
 Konsekuensi yang perlu diingat:
 
-- **AI hanya membaca `description`, `smallTalk`, keahlian, dan lokasi.** Pipeline
-  mengirim blok `CAST` berisi satu baris per tokoh (`src/ai/prompt.ts`), jadi
-  detail di bawah ini **tidak** ikut ke model. Kalau sebuah ciri wajib muncul di
-  cerita, ciri itu harus ada di `description`.
+- **AI membaca ringkasan prompt-only, bukan seluruh dokumen ini.** Pipeline
+  mengirim blok `CAST` multi-baris per tokoh (`src/ai/prompt.ts`) berisi
+  `penampilan`, `sifat`, `bicara`, `keahlian`, `lokasi`, dan `obrolan`. Sumber
+  `sifat` dan `bicara` adalah `CAST_TRAITS` dan `CAST_VOICE` di
+  `src/story/cast.ts` (ADR 0041). Detail di bawah ini **tidak** ikut ke model;
+  kalau sebuah ciri wajib muncul di cerita, ciri itu harus ada di `description`
+  atau di peta prompt-only tadi.
 - **Keahlian yang sampai ke model ada di `CAST_EXPERTISE`.** Peta di
   `src/story/cast.ts` itu berisi satu frasa bidang per tokoh dan dikirim sebagai
   kolom `keahlian:` di blok `CAST`; fungsinya memilih pembicara yang tepat
@@ -44,6 +47,12 @@ Konsekuensi yang perlu diingat:
   dikirim sebagai kolom `lokasi:` di blok `CAST` plus blok `LOKASI` per tempat.
   Kalau peta desa berubah, perbarui `CAST_PLACES` juga — lihat
   [ADR 0035](../09-decisions/0035-penempatan-tokoh-tetap.md) dan tabel di bawah.
+- **Sifat dan cara bicara yang sampai ke model ada di `CAST_TRAITS` dan
+  `CAST_VOICE`.** Keduanya peta prompt-only di `src/story/cast.ts`, dikirim
+  sebagai kolom `sifat:` dan `bicara:` di blok `CAST`. Kalau persona di bawah
+  berubah (mis. Marlow jadi lebih cerewet), perbarui peta itu juga — lihat
+  [ADR 0041](../09-decisions/0041-profil-tokoh-untuk-prompt.md). Schema cerita
+  tidak berubah.
 - **Nama marga tidak dipakai di game.** Nama yang tampil di panel dialog adalah
   `cast.name` (`Kael`, `Edric`, …), bukan nama lengkap. `name` dibatasi 40
   karakter, dan panel dialog didesain untuk nama pendek.

@@ -86,9 +86,17 @@ export const WARNING_CODES = [
   "W_SHORT_ANSWER_ONLY",
   "W_LONG_DIALOGUE_RUN",
   "W_GAP_RECORDED",
+  // Semua dialog di satu chapter dipegang satu tokoh (atau hanya pemain).
+  // Cerita tetap sah dan bisa dimainkan, tetapi terasa seperti monolog. Lihat
+  // ADR 0039.
+  "W_SINGLE_SPEAKER",
   // Dialog tanpa emosi: cerita tetap sah (schemaVersion 1.0), tetapi potretnya
   // selalu `neutral` sehingga percakapan terasa datar. Lihat ADR 0024.
   "W_DIALOGUE_NO_EXPRESSION",
+  // Hanya muncul dari `validateChapter` (validate-parts.ts): lokasi tokoh tidak
+  // cocok dengan tempat mana pun di peta desa. Cerita tetap sah, tetapi game
+  // hanya punya peta desa sehingga ruangan seperti kelas tidak bisa ditampilkan.
+  "W_LOCATION_UNKNOWN",
   // Hanya muncul dari `validateChapter` (validate-parts.ts): flag `textVariants`
   // yang belum pernah di-set. Tidak diproduksi validator cerita penuh.
   "W_TEXT_VARIANT_FLAG_UNSET",
@@ -1357,6 +1365,79 @@ const collectWarnings = (story: Story): ValidationIssue[] => {
           "W_DIALOGUE_NO_EXPRESSION",
           `chapters[${chapterIndex}]`,
           `Chapter "${chapter.id}" punya ${tanpaEmosi} dialog tanpa emosi; potretnya akan selalu netral.`,
+        ),
+      );
+    }
+  });
+
+  // Sebaran pembicara (ADR 0039). Cerita yang seluruh dialognya dipegang satu
+  // NPC tetap sah dan bisa dimainkan, tetapi terasa seperti monolog dan membuat
+  // delapan tokoh lain tidak pernah muncul. Peringatan ini tidak memblokir
+  // publish; ia hanya memberi tahu guru bahwa dialognya belum tersebar.
+  const playerId = story.cast.find(
+    (character) => character.role === "player",
+  )?.id;
+
+  story.chapters.forEach((chapter, chapterIndex) => {
+    const perTokoh = new Map<string, number>();
+
+    for (const scene of chapter.scenes) {
+      for (const beat of scene.beats) {
+        // Dialog di `onWrong.detour` juga terlihat siswa, jadi ikut dihitung.
+        const kandidat =
+          beat.type === "dialogue"
+            ? [beat]
+            : beat.type === "challenge"
+              ? (beat.onWrong?.detour ?? [])
+              : [];
+
+        for (const dialog of kandidat) {
+          if (dialog.type !== "dialogue") continue;
+          if (dialog.speakerId === playerId) continue;
+          perTokoh.set(
+            dialog.speakerId,
+            (perTokoh.get(dialog.speakerId) ?? 0) + 1,
+          );
+        }
+      }
+    }
+
+    const totalDialog = [...perTokoh.values()].reduce(
+      (total, jumlah) => total + jumlah,
+      0,
+    );
+
+    if (totalDialog === 0) {
+      warnings.push(
+        warningIssue(
+          "W_SINGLE_SPEAKER",
+          `chapters[${chapterIndex}]`,
+          `Chapter "${chapter.id}" tidak punya dialog tokoh NPC; cerita hanya berisi narasi dan pemain.`,
+        ),
+      );
+      return;
+    }
+
+    if (perTokoh.size === 1) {
+      const [speakerId] = [...perTokoh.keys()];
+      warnings.push(
+        warningIssue(
+          "W_SINGLE_SPEAKER",
+          `chapters[${chapterIndex}]`,
+          `Chapter "${chapter.id}" hanya memakai satu tokoh NPC untuk seluruh dialog (${speakerId}); sebar ke beberapa tokoh.`,
+        ),
+      );
+      return;
+    }
+
+    const terbanyak = Math.max(...perTokoh.values());
+    if (totalDialog >= 4 && terbanyak / totalDialog > 0.7) {
+      const persen = Math.round((terbanyak / totalDialog) * 100);
+      warnings.push(
+        warningIssue(
+          "W_SINGLE_SPEAKER",
+          `chapters[${chapterIndex}]`,
+          `Chapter "${chapter.id}" menumpuk ${persen}% dialog NPC pada satu tokoh; beri giliran tokoh lain.`,
         ),
       );
     }

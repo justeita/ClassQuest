@@ -57,7 +57,7 @@ const PINTU = [
     warna: "text-guru-600",
   },
   {
-    href: "/game",
+    href: "/demo",
     label: "Arena Siswa",
     ikon: "fa-gamepad",
     warna: "text-siswa-600",

@@ -36,7 +36,7 @@ flowchart TD
   end
 
   subgraph siswa["9–10. Siswa main"]
-    N["Buka /play/storyId"]
+    N["Buka /play/storyId atau /play + kode kelas"]
     O["Dialog → tantangan → lanjut"]
     P["Layar hasil + konsep yang perlu diulang"]
   end
@@ -193,12 +193,16 @@ Acuan yang mengikat adalah enum di dokumen itu.
 
 Guru mendapat:
 
-- tautan `/play/[storyId]`, dan
-- kode kelas singkat (opsional, masih `TBD` — lihat
-  [`../05-frontend/game-player.md`](../05-frontend/game-player.md)).
+- tautan `/play/[storyId]?kelas=QST-XXXX`, dan
+- kode kelas singkat `QST-XXXX` untuk ditulis di papan tulis.
 
-Siswa membuka tautan, memasukkan nama panggilan (opsional), lalu main. Tidak perlu
-akun.
+Siswa membuka tautan itu, **atau** membuka `/play` lalu mengetik kode kelas +
+**NIS**-nya. NIS harus ada di daftar murid guru itu (kalau tidak, siswa tidak
+bisa masuk); setelah cocok, siswa melihat konfirmasi nama lengkapnya lalu
+memilih game bila gurunya menerbitkan lebih dari satu. Tidak perlu akun.
+Detail: [`../05-frontend/game-player.md`](../05-frontend/game-player.md#gerbang-kode-kelas-play),
+[ADR 0042](../09-decisions/0042-kode-kelas-masuk-game.md), dan
+[ADR 0044](../09-decisions/0044-masuk-dengan-nis.md).
 
 ## Langkah 9 — Siswa bermain
 

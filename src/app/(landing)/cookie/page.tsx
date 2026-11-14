@@ -132,8 +132,10 @@ export default function CookiePage() {
             <ul className="list-disc space-y-1 pl-5">
               <li>Cookie iklan, pelacak lintas situs, atau analytics.</li>
               <li>
-                Token kelas di browser: kode <code>QST-XXXX</code> hanya label,
-                belum dipakai siswa untuk bergabung.
+                Token kelas di browser: kode <code>QST-XXXX</code> dipakai siswa
+                sebagai jalan masuk di <code>/play</code>, tetapi tidak disimpan
+                di cookie atau penyimpanan peramban — kode hanya hidup selama
+                form terbuka.
               </li>
               <li>
                 Draf ketikan guru di browser: penyimpanan otomatis draf belum

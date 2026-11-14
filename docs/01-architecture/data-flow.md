@@ -168,19 +168,23 @@ draft bocor ke siswa (server hanya mengembalikan versi `published`).
 ```ts
 type PlayProgress = {
   storyId: string;
-  storyVersion: number;
+  /** Sidik isi cerita (FNV-1a), bukan nomor versi database. */
+  storyVersion: string;
   chapterIndex: number;
+  /** -1 = bab sudah tamat dan menunggu bab berikutnya. */
   sceneIndex: number;
+  /** -1 = scene baru dibuka (explore). */
   beatIndex: number;
-  answers: Record<
-    string,
-    { challengeId: string; correct: boolean; at: string }
-  >;
+  /** Jawaban percobaan pertama, urut kemunculan. */
+  answers: Answer[];
   updatedAt: string;
 };
 ```
 
-Disimpan di `localStorage` dengan key `classquest:progress:{storyId}`.
+Disimpan di `localStorage` dengan key `classquest:progress:{storyId}`. Penulisnya
+React (`GameCanvas`), bukan Phaser: scene hanya mengirim event `progress` lewat
+bridge, sama seperti pengaturan audio. Cerita yang disunting guru mengubah sidik
+tersebut, sehingga progres lama otomatis dibuang.
 
 ## Alur 4 — Tantangan dijawab
 

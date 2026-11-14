@@ -66,6 +66,8 @@ export const STUDENT_NAME_INVALID_MESSAGE =
   "Nama siswa wajib diisi (1–80 karakter).";
 export const STUDENT_NIS_INVALID_MESSAGE =
   "NIS tidak sah: isi angka/huruf tanpa spasi, maksimal 20 karakter.";
+export const STUDENT_NISN_INVALID_MESSAGE =
+  "NISN tidak sah: isi angka tanpa spasi (biasanya 10 digit), maksimal 20 karakter.";
 export const STUDENT_NIS_DUPLICATE_MESSAGE =
   "NIS itu sudah dipakai siswa lain di kelas-kelasmu.";
 export const DATABASE_FAILURE_MESSAGE =
@@ -111,7 +113,7 @@ export function cleanText(value: unknown, maxLength: number): string {
 }
 
 /**
- * NIS opsional: huruf, angka, titik, dan strip (mis. `2026.001` atau
+ * NIS/NISN opsional: huruf, angka, titik, dan strip (mis. `2026.001` atau
  * `A-102`). Kosong = `null` (tidak semua sekolah memakai NIS).
  */
 export function cleanNis(value: unknown): string | null {
@@ -120,6 +122,9 @@ export function cleanNis(value: unknown): string | null {
   if (text.length > MAX_NIS_LENGTH) return null;
   return /^[A-Za-z0-9._-]+$/.test(text) ? text.toUpperCase() : null;
 }
+
+/** NISN memakai bentuk yang sama dengan NIS (10 digit angka di Dapodik). */
+export const cleanNisn = cleanNis;
 
 /** Kode kelas baru, mis. `QST-7K3M`. Huruf I/O/1/0 dihindari agar tidak salah baca. */
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -166,6 +171,7 @@ function toStudent(row: StudentRow): StudentListItem {
     id: toText(row.id),
     classroomId: toNullableText(row.classroom_id),
     name: toText(row.display_name),
+    nisn: toNullableText(row.nisn),
     nis: toNullableText(row.nis),
     username: toNullableText(row.username),
     createdAt: toText(row.created_at),
@@ -196,7 +202,7 @@ async function readStudents(
   classroomId: string,
 ): Promise<StudentListItem[]> {
   const result = await db.execute({
-    sql: `select id, classroom_id, display_name, nis, username, created_at
+    sql: `select id, classroom_id, display_name, nisn, nis, username, created_at
           from students
           where teacher_id = ? and classroom_id = ?
           order by created_at asc, display_name asc
@@ -375,11 +381,14 @@ export type AddStudentInput = {
   classroomId: string;
   name: unknown;
   nis: unknown;
+  /** NISN opsional (nomor dari sistem sekolah); lihat migrasi 0007. */
+  nisn?: unknown;
 };
 
 /**
  * Tambahkan satu siswa ke kelas. `nis` kosong diisi otomatis dengan nomor urut
  * (`1001`, `1002`, …) supaya daftar tetap rapi tanpa memaksa guru mengetik.
+ * `nisn` hanya disimpan bila guru mengisinya; tidak ada nomor otomatis.
  */
 export async function addStudent(
   db: Client,
@@ -398,6 +407,12 @@ export async function addStudent(
   const nis = rawNis === "" ? null : cleanNis(rawNis);
   if (rawNis !== "" && nis === null) {
     return { ok: false, message: STUDENT_NIS_INVALID_MESSAGE };
+  }
+
+  const rawNisn = cleanText(input.nisn, MAX_NIS_LENGTH + 1);
+  const nisn = rawNisn === "" ? null : cleanNisn(rawNisn);
+  if (rawNisn !== "" && nisn === null) {
+    return { ok: false, message: STUDENT_NISN_INVALID_MESSAGE };
   }
 
   const id = randomUUID();
@@ -419,9 +434,9 @@ export async function addStudent(
 
   await db.execute({
     sql: `insert into students
-            (id, teacher_id, classroom_id, nis, display_name)
-          values (?, ?, ?, ?, ?)`,
-    args: [id, input.teacherId, classroom.id, finalNis, name],
+            (id, teacher_id, classroom_id, nisn, nis, display_name)
+          values (?, ?, ?, ?, ?, ?)`,
+    args: [id, input.teacherId, classroom.id, nisn, finalNis, name],
   });
 
   return {
@@ -430,6 +445,7 @@ export async function addStudent(
       id,
       classroomId: classroom.id,
       name,
+      nisn,
       nis: finalNis,
       username: null,
       createdAt: new Date().toISOString(),

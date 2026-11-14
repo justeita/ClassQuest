@@ -9,7 +9,7 @@ import { LegalPage } from "@/components/legal/LegalPage";
  * Dua hal yang sengaja berbeda dari templat asal: tidak menjanjikan anti-cheat
  * (jawaban benar memang bisa terlihat di jaringan, lihat
  * `docs/01-architecture/security-and-privacy.md`) dan tidak menyebut akun siswa
- * atau kode kelas sebagai jalan masuk, karena keduanya belum ada.
+ * (siswa tetap tanpa akun; kode kelas di `/play` hanya jalan masuk).
  */
 export const metadata: Metadata = {
   title: "Syarat & Ketentuan",

@@ -387,6 +387,14 @@ type ChallengeView = {
 `acceptedAnswers` ke komponen presentasional. Penilaian dilakukan di modul yang
 memegang `Story`, lalu hasil boolean dikirim ke UI.
 
+`options` pada `multiple_choice` dikirim dalam urutan **teracak** oleh
+`buildChallengeView` (`src/game/acak.ts`): cerita hasil AI dan cerita cadangan
+selalu menaruh jawaban benar di opsi pertama, jadi urutan asli tidak boleh
+sampai ke layar. Pengacakan memakai benih `challenge.id`, sehingga soal yang
+sama selalu tampil dalam urutan sama (render ulang, soal ulang setelah jawaban
+salah, dan resume tidak menggeser pilihan). Penilaian tetap aman karena
+`selectedId` dibandingkan dengan `correctOptionId`, bukan posisi.
+
 > Catatan jujur: jawaban tetap ada di bundle karena game dinilai di client. Ini
 > batasan MVP yang diterima (lihat
 > [`../01-architecture/security-and-privacy.md`](../01-architecture/security-and-privacy.md)).

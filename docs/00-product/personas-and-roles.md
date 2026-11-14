@@ -86,9 +86,9 @@ dan [`../08-workflow/ai-agent-rules.md`](../08-workflow/ai-agent-rules.md).
 
 Guru masuk dengan **akun guru** (username + sandi). Tabel `students` dan akun
 siswa demo sudah ada, tetapi siswa **belum** diminta login: cukup memakai
-**tautan yang dibagikan**. Guru bisa membuat kelas dan menambah siswa di
-`/guru/kelas`; kode kelas (`QST-XXXX`) baru label tampilan — alur siswa
-memasukkan kode untuk bergabung masih backlog.
+**tautan yang dibagikan** atau mengetik **kode kelas** di `/play`. Guru bisa
+membuat kelas dan menambah siswa di `/guru/kelas`; kode kelas (`QST-XXXX`)
+sekarang menjadi jalan masuk siswa (ADR 0042), bukan sekadar label.
 
 | Aksi                    | Guru | Siswa (punya tautan) | Tanpa tautan |
 | ----------------------- | ---- | -------------------- | ------------ |
@@ -102,9 +102,11 @@ memasukkan kode untuk bergabung masih backlog.
 | Menghapus cerita        | ✅   | ❌                   | ❌           |
 
 "Tanpa tautan" berarti tidak tahu `storyId`; halaman `/play/[storyId]` hanya
-melayani cerita `published`, dan endpoint publik menolak selain itu. Itu bukan
-keamanan sungguhan untuk data rahasia — hanya pembatas agar siswa tidak menemukan
-cerita yang belum siap.
+melayani cerita `published`, dan endpoint publik menolak selain itu. Siswa tanpa
+tautan tetap bisa masuk bila gurunya memberi **kode kelas**: `/play` mencari
+game terbit milik guru kelas itu (ADR 0042). Tanpa tautan **dan** tanpa kode
+kelas, tidak ada jalan masuk. Ini bukan keamanan sungguhan untuk data rahasia —
+hanya pembatas agar siswa tidak menemukan cerita yang belum siap.
 
 Implementasi izin guru: cookie sesi bertanda tangan HMAC-SHA256 (berlaku 8 jam)
 yang diperiksa `requireTeacher()` di setiap halaman portal dan Server Action. Ini

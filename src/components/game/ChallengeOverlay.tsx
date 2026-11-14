@@ -9,6 +9,7 @@ import {
   KOTAK_DIALOG_HOVER,
 } from "@/components/game/gayaDialog";
 import { useSentuh } from "@/components/game/useSentuh";
+import { acakDeterministik } from "@/game/acak";
 import type { ChallengeView } from "@/game/challengeView";
 import { GAME_HEIGHT } from "@/game/constants";
 import { CHALLENGE, cqw, TEXTBOX, ukuranHuruf } from "@/game/layout";
@@ -902,22 +903,12 @@ function tentukanLayoutOpsi(
 
 /**
  * Acak berbasis benih tetap: soal yang sama selalu tampil dalam urutan sama.
+ *
+ * Dipindah ke `@/game/acak` supaya opsi pilihan ganda bisa memakai pengacak
+ * yang sama di `buildChallengeView`. Diekspor ulang dari sini agar pemanggil
+ * lama tidak perlu berubah.
  */
-export function acakDeterministik(ids: string[], seed: string): string[] {
-  let state = 2166136261;
-  for (const karakter of seed) {
-    state ^= karakter.codePointAt(0) ?? 0;
-    state = Math.imul(state, 16777619) >>> 0;
-  }
-
-  const hasil = [...ids];
-  for (let i = hasil.length - 1; i > 0; i -= 1) {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    const j = state % (i + 1);
-    [hasil[i], hasil[j]] = [hasil[j]!, hasil[i]!];
-  }
-  return hasil;
-}
+export { acakDeterministik };
 
 /**
  * Bentuk sarung tangan penunjuk dalam peta piksel, satu karakter = satu piksel.

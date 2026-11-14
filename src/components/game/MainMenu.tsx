@@ -16,6 +16,14 @@ import {
 type MainMenuProps = {
   /** Dipanggil saat siswa memilih "Mulai"; Phaser baru dipasang setelahnya. */
   onMulai: () => void;
+  /**
+   * Ada progres tersimpan. Menu lalu menampilkan "Lanjutkan" di atas dan
+   * mengganti "Mulai" jadi "Mulai ulang" — supaya pilihan yang membuang progres
+   * tidak tertukar dengan yang melanjutkannya.
+   */
+  adaProgres?: boolean;
+  /** Dipanggil saat siswa memilih "Lanjutkan". */
+  onLanjut?: () => void;
 };
 
 /** Pilihan menu, urut dari atas. `id` dipakai untuk aksi, bukan label. */
@@ -26,10 +34,19 @@ const PILIHAN = [
   { id: "keluar", label: "Keluar" },
 ] as const;
 
-type AksiMenu = (typeof PILIHAN)[number]["id"];
+/** Pilihan tambahan saat ada progres yang bisa dilanjutkan. */
+const PILIHAN_LANJUT = [
+  { id: "lanjut", label: "Lanjutkan" },
+  { id: "mulai", label: "Mulai ulang" },
+  { id: "pengaturan", label: "Pengaturan" },
+  { id: "kredit", label: "Kredit" },
+  { id: "keluar", label: "Keluar" },
+] as const;
+
+type AksiMenu = (typeof PILIHAN)[number]["id"] | "lanjut";
 
 /** Dialog yang bisa terbuka dari menu; satu dialog pada satu waktu. */
-type Dialog = Exclude<AksiMenu, "mulai"> | null;
+type Dialog = Exclude<AksiMenu, "mulai" | "lanjut"> | null;
 
 /**
  * Tim penyusun ClassQuest (LOGICODIX 2026). Ditulis di dalam kode, bukan diambil
@@ -154,19 +171,25 @@ const KELOPAK = [
 ] as const;
 
 /**
- * Menu utama game (`/game`) — docs/05-frontend/game-player.md → Menu utama.
+ * Menu utama game — docs/05-frontend/game-player.md → Menu utama.
  *
- * Ini pintu masuk demo: empat pilihan, bisa dijalankan penuh dengan keyboard
- * (panah/W-S memilih, Enter/Space menjalankan, Esc menutup dialog). Teks menu
- * diletakkan langsung di atas gambar desa — di bawah naungan pohon di kiri atas,
- * tempat gambar sudah gelap — bukan di dalam panel, supaya seluruh desa tetap
- * terlihat.
+ * Dipakai `GameShell` untuk semua route: `/demo` (demo) dan `/play/[storyId]`
+ * (tautan guru), jadi tampilan sebelum mulai selalu sama. Ini pintu masuk game:
+ * empat pilihan, bisa dijalankan penuh dengan keyboard (panah/W-S memilih,
+ * Enter/Space menjalankan, Esc menutup dialog). Teks menu diletakkan langsung di
+ * atas gambar desa — di bawah naungan pohon di kiri atas, tempat gambar sudah
+ * gelap — bukan di dalam panel, supaya seluruh desa tetap terlihat.
  *
- * "Mulai" menyerahkan kontrol ke `GameShell`, yang masih menampilkan layar judul
- * cerita. Progres `localStorage` belum ada, jadi tombol "Lanjutkan" sengaja
- * tidak ditampilkan: menu tidak boleh menjanjikan simpanan yang belum dibuat.
+ * "Mulai" langsung menyerahkan kontrol ke `GameShell`, yang menyalakan Phaser
+ * tanpa melewati layar judul cerita — menu ini satu-satunya layar menu. Bila ada
+ * progres tersimpan, "Lanjutkan" tampil di atas dan "Mulai" berganti jadi "Mulai
+ * ulang" (progres lama dibuang).
  */
-export function MainMenu({ onMulai }: MainMenuProps) {
+export function MainMenu({
+  onMulai,
+  adaProgres = false,
+  onLanjut,
+}: MainMenuProps) {
   // Perangkat sentuh tidak punya tombol panah/Enter: petunjuk keyboard
   // disembunyikan supaya tidak menyesatkan sekaligus menghemat tinggi papan —
   // lanskap ponsel hanya menyisakan ±300 px. Pola yang sama dengan `Keycap`.
@@ -174,6 +197,7 @@ export function MainMenu({ onMulai }: MainMenuProps) {
   const [aktif, setAktif] = useState(0);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [pesan, setPesan] = useState<string | null>(null);
+  const pilihan = adaProgres ? PILIHAN_LANJUT : PILIHAN;
 
   // Draf pengaturan. Nilai awalnya default — `localStorage` tidak ada saat
   // render server, jadi nilai tersimpan baru dibaca saat dialog dibuka
@@ -197,25 +221,32 @@ export function MainMenu({ onMulai }: MainMenuProps) {
     pesanTimer.current = setTimeout(() => setPesan(null), 2600);
   }, []);
 
-  const pilih = useCallback((indeks: number) => {
-    const jumlah = PILIHAN.length;
-    const berikut = (indeks + jumlah) % jumlah;
-    setAktif(berikut);
-    tombolRef.current[berikut]?.focus({ preventScroll: true });
-  }, []);
+  const pilih = useCallback(
+    (indeks: number) => {
+      const jumlah = pilihan.length;
+      const berikut = (indeks + jumlah) % jumlah;
+      setAktif(berikut);
+      tombolRef.current[berikut]?.focus({ preventScroll: true });
+    },
+    [pilihan.length],
+  );
 
   const tutupDialog = useCallback(() => {
     setDialog(null);
-    const indeks = PILIHAN.findIndex((pilihan) => pilihan.id === dialog);
+    const indeks = pilihan.findIndex((entri) => entri.id === dialog);
     tombolRef.current[indeks >= 0 ? indeks : aktif]?.focus({
       preventScroll: true,
     });
-  }, [aktif, dialog]);
+  }, [aktif, dialog, pilihan]);
 
   const jalankan = useCallback(
     (aksi: AksiMenu) => {
       if (aksi === "mulai") {
         onMulai();
+        return;
+      }
+      if (aksi === "lanjut") {
+        onLanjut?.();
         return;
       }
       // Dibaca tepat sebelum dialog dibuka: selalu mengikuti simpanan terakhir,
@@ -225,7 +256,7 @@ export function MainMenu({ onMulai }: MainMenuProps) {
       }
       setDialog(aksi);
     },
-    [onMulai],
+    [onLanjut, onMulai],
   );
 
   /**
@@ -258,7 +289,7 @@ export function MainMenu({ onMulai }: MainMenuProps) {
 
       if (event.key === "Home" || event.key === "End") {
         event.preventDefault();
-        pilih(event.key === "Home" ? 0 : PILIHAN.length - 1);
+        pilih(event.key === "Home" ? 0 : pilihan.length - 1);
         return;
       }
 
@@ -269,12 +300,12 @@ export function MainMenu({ onMulai }: MainMenuProps) {
       if (padaKontrol) return;
 
       event.preventDefault();
-      jalankan(PILIHAN[aktif].id);
+      jalankan(pilihan[aktif].id);
     }
 
     document.addEventListener("keydown", tanganiTombol);
     return () => document.removeEventListener("keydown", tanganiTombol);
-  }, [aktif, dialog, jalankan, pilih]);
+  }, [aktif, dialog, jalankan, pilih, pilihan]);
 
   function simpanPengaturan() {
     const aman = simpanPengaturanAudio(pengaturan, window.localStorage);
@@ -341,10 +372,10 @@ export function MainMenu({ onMulai }: MainMenuProps) {
 
           <nav aria-label="Menu utama" className="menu-nav mt-7">
             <ul className="menu-daftar grid gap-2">
-              {PILIHAN.map((pilihan, indeks) => {
+              {pilihan.map((entri, indeks) => {
                 const terpilih = indeks === aktif;
                 return (
-                  <li key={pilihan.id}>
+                  <li key={entri.id}>
                     <button
                       ref={(el) => {
                         tombolRef.current[indeks] = el;
@@ -362,7 +393,7 @@ export function MainMenu({ onMulai }: MainMenuProps) {
                           return;
                         }
                         setAktif(indeks);
-                        jalankan(pilihan.id);
+                        jalankan(entri.id);
                       }}
                       // `onFocus`/`onMouseEnter` dilewati di perangkat sentuh:
                       // peramban memancarkan keduanya sebelum `click` setelah
@@ -376,7 +407,7 @@ export function MainMenu({ onMulai }: MainMenuProps) {
                         aria-hidden="true"
                         className="menu-panah absolute top-1/2 -translate-y-1/2"
                       />
-                      {pilihan.label}
+                      {entri.label}
                     </button>
                   </li>
                 );
@@ -499,8 +530,9 @@ export function MainMenu({ onMulai }: MainMenuProps) {
           }
         >
           <p className="font-game text-sm leading-relaxed text-[#c5cbb9]">
-            Kamu akan kembali ke halaman pemilihan peran. Progres permainan
-            belum tersimpan, jadi cerita akan dimulai dari awal lagi.
+            Kamu akan kembali ke halaman pemilihan peran. Progresmu tersimpan di
+            peramban ini, jadi kamu bisa melanjutkannya lewat
+            &ldquo;Lanjutkan&rdquo;.
           </p>
         </PanelDialog>
       )}

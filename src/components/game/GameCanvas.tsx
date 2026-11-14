@@ -38,6 +38,11 @@ import {
   type EntriKonsep,
 } from "@/game/dialogLog";
 import type { DialogueView, GameBus } from "@/game/gameBus";
+import {
+  hapusProgres,
+  simpanProgres,
+  type KursorProgres,
+} from "@/game/progress";
 import type { QuestState } from "@/game/questLog";
 import type { GameHandle } from "@/game/types";
 import type { ArahGerak } from "@/game/world/karakter";
@@ -47,6 +52,13 @@ import type { Answer, PlayResult } from "@/story/scoring";
 type GameCanvasProps = {
   /** Cerita yang dimainkan; scene tidak lagi memuat fixture sendiri. */
   story: Story;
+  /**
+   * Kursor cerita yang dilanjutkan (LANJUTKAN setelah refresh). `null`/tidak
+   * diisi = mulai dari awal. Bentuknya sama dengan `PlayProgress` di
+   * docs/01-architecture/data-flow.md, minus jawaban yang diurus `GameCanvas`
+   * sendiri lewat event `progress`.
+   */
+  mulaiDari?: KursorProgres | null;
   /**
    * Dipanggil sekali saat cerita selesai. `answers` adalah jawaban percobaan
    * pertama yang dipakai layar hasil untuk menyimpan ke server.
@@ -63,6 +75,7 @@ type GameCanvasProps = {
 
 export function GameCanvas({
   story,
+  mulaiDari = null,
   onFinished,
   onBatal,
   aktif = true,
@@ -73,6 +86,11 @@ export function GameCanvas({
   const busRef = useRef<GameBus | null>(null);
   const tombolJedaRef = useRef<HTMLButtonElement>(null);
   const pernahJeda = useRef(false);
+  /**
+   * Titik lanjut sesi ini. Disimpan di ref supaya pergantian props tidak
+   * membuat Phaser dimuat ulang: kursor hanya dibaca sekali saat game dibuat.
+   */
+  const mulaiDariRef = useRef<KursorProgres | null>(mulaiDari);
   const [tantangan, setTantangan] = useState<ChallengeView | null>(null);
   const [hasil, setHasil] = useState<GradedView | null>(null);
   const [quest, setQuest] = useState<QuestState | null>(null);
@@ -196,7 +214,7 @@ export function GameCanvas({
     void import("@/game/createGame")
       .then(({ createGame }) => {
         if (cancelled) return;
-        const game = createGame(container, story);
+        const game = createGame(container, story, mulaiDariRef.current);
         container.focus({ preventScroll: true });
         gameRef.current = game;
         busRef.current = game.bus;
@@ -259,7 +277,19 @@ export function GameCanvas({
             setTantangan(null);
             setHasil(null);
             setSedangLewati(false);
+            // Cerita tamat: tidak ada lagi yang bisa dilanjutkan.
+            hapusProgres(window.localStorage, story.meta.id);
             onFinishedRef.current?.(result, answers);
+          }),
+        );
+        // Setiap kursor cerita bergerak (beat baru, jawaban baru, ulangi
+        // chapter) scene mengirim posisi terbaru. Menulis langsung ke
+        // `localStorage` — bukan di-throttle — karena perubahan beat mengikuti
+        // kecepatan pemain, dan refresh sedetik setelah beat terakhir tetap
+        // harus melanjutkan dari beat itu.
+        lepas.push(
+          game.bus.on("progress", ({ view }) => {
+            simpanProgres(window.localStorage, story, view);
           }),
         );
         lepas.push(

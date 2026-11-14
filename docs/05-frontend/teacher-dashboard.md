@@ -109,19 +109,38 @@ Tiga keadaan:
 Halaman ini menjawab satu pertanyaan: "setelah kelas memainkan game ini, siapa
 sudah paham dan bagian mana yang masih salah?"
 
-Alur: pilih **kelas** → pilih **game** → tabel siswa muncul. Kedua pilihan
-disimpan di query string (`?kelas=<id>&storyId=<id>`), jadi tautannya bisa
-dibagikan atau di-bookmark dan server yang menghitung agregatnya.
+Alur: buka halaman → data langsung tampil → persempit dengan **kelas** dan/atau
+**game**. Kedua pilihan **opsional** dan disimpan di query string
+(`?kelas=<id>&storyId=<id>`), jadi tautannya bisa dibagikan atau di-bookmark dan
+server yang menghitung agregatnya. Tanpa parameter sama sekali, tabel berisi
+agregat semua kelas × semua game terbit — halaman tidak pernah kosong hanya
+karena guru belum memilih apa pun.
+
+Matriks filter:
+
+| Kelas | Game | Yang ditampilkan                                 | Kolom Kelas | Kolom Game |
+| ----- | ---- | ------------------------------------------------ | ----------- | ---------- |
+| –     | –    | semua kelas × semua game terbit                  | ya          | ya         |
+| ada   | –    | satu kelas × semua game terbit                   | tidak       | ya         |
+| –     | ada  | semua kelas × satu game                          | ya          | tidak      |
+| ada   | ada  | satu kelas × satu game (+ siswa yang belum main) | tidak       | tidak      |
 
 Isi:
 
 - Empat kartu ringkasan: siswa bermain / total siswa, total percobaan,
-  rata-rata poin terbaik, dan jumlah konsep yang perlu diulang.
+  rata-rata poin terbaik, dan jumlah konsep yang perlu diulang. Saat lintas
+  game, kartu rata-rata hanya menampilkan angkanya karena tiap game punya poin
+  maksimum sendiri.
 - Tabel per siswa: nama (+ NIS), **poin terbaik**, percobaan terakhir, jumlah
-  percobaan, chip konsep yang sering salah, dan tanggal main terakhir.
+  percobaan, chip konsep yang sering salah, dan tanggal main terakhir. Kolom
+  **Kelas** dan **Game** muncul selama filter yang bersangkutan belum aktif,
+  supaya asal setiap baris tidak ambigu.
 - Siswa yang **belum bermain tetap tampil** dengan poin 0 dan label
   "Belum main" — guru perlu melihat yang tertinggal, bukan hanya yang sudah
-  mengerjakan.
+  mengerjakan. Ini hanya dilakukan saat satu kelas + satu game dipilih; di
+  tampilan gabungan tidak ada satu daftar siswa tunggal untuk dijadikan acuan.
+- Pilihan "Semua kelas" / "Semua game" menghapus parameter dari URL (bukan
+  menulis nilai kosong), sehingga tampilan gabungan bisa di-bookmark.
 - Tanpa ranking kompetitif dan tanpa perbandingan antar kelas; nadanya sama
   dengan layar hasil siswa.
 
@@ -130,12 +149,13 @@ Sumber data:
 - Satu-satunya sumber adalah `play_results` yang sudah dihubungkan ke
   `classrooms`/`students` saat hasil disimpan. Tidak ada tabel analytics
   terpisah dan tidak ada perhitungan skor ulang di halaman.
-- `getClassroomAnalytics()` (`src/server/analytics`) memfilter
-  `classrooms.teacher_id` **dan** `stories.teacher_id`; kelas atau game milik
-  guru lain dan yang tidak ada sama-sama `null`.
-- Satu baris = satu `student_id`. Nama bebas dikelompokkan per nama
-  (tanpa peduli huruf besar/kecil). Siswa yang sudah dihapus tetap tampil
-  dengan nama salinan di `play_results`.
+- `getClassroomAnalytics()` (`src/server/analytics`) menerima `classroomId`
+  dan `storyId` yang boleh `null` (= semua). Keduanya selalu difilter
+  `teacher_id`; kelas atau game yang **diminta secara eksplisit** tetapi tidak
+  ada / milik guru lain → `null`. Hanya game berstatus `published` yang ikut.
+- Satu baris = satu siswa di satu `classroom_id` untuk satu `story_id`. Nama
+  bebas dikelompokkan per nama (tanpa peduli huruf besar/kecil). Siswa yang
+  sudah dihapus tetap tampil dengan nama salinan di `play_results`.
 - Yang tersimpan hanya `weak_concepts`, bukan jawaban per opsi — halaman ini
   tidak mengarang detail jawaban yang tidak ada
   ([`../06-backend/persistence.md`](../06-backend/persistence.md#hasil-bermain)).

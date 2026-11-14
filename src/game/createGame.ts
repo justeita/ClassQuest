@@ -5,15 +5,22 @@ import type { Story } from "@/story/schema";
 import { createGameConfig } from "./config";
 import { GAME_HEIGHT, ukuranKanvas } from "./constants";
 import { GameBus } from "./gameBus";
+import type { KursorProgres } from "./progress";
 import type { GameHandle } from "./types";
 
 /**
  * Nyalakan Phaser untuk satu cerita. Cerita diberikan pemanggil (halaman
  * siswa atau halaman dev) — scene tidak lagi memuat fixture sendiri.
+ * `mulaiDari` melanjutkan progres tersimpan (LANJUTKAN setelah refresh);
+ * `null`/tidak diisi berarti cerita dimulai dari awal.
  */
-export function createGame(parent: HTMLElement, story: Story): GameHandle {
+export function createGame(
+  parent: HTMLElement,
+  story: Story,
+  mulaiDari?: KursorProgres | null,
+): GameHandle {
   const bus = new GameBus();
-  const game = new Phaser.Game(createGameConfig(parent, story, bus));
+  const game = new Phaser.Game(createGameConfig(parent, story, bus, mulaiDari));
 
   /**
    * Mode `Scale.NONE` tidak menyesuaikan diri sendiri seperti `FIT`: setelah

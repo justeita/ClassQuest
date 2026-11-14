@@ -24,6 +24,7 @@ type ClassFormValues = {
 };
 
 type StudentFormValues = {
+  nisn: string;
   nis: string;
   name: string;
 };
@@ -198,15 +199,16 @@ export function ClassesBrowser({ classes }: ClassesBrowserProps) {
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-slate-200 bg-slate-100 font-pixel text-slate-600">
                   <tr>
-                    <th className="p-3">No. Induk (NIS)</th>
-                    <th className="p-3">Nama Siswa</th>
+                    <th className="p-3">NISN</th>
+                    <th className="p-3">NIS</th>
+                    <th className="p-3">Nama Lengkap</th>
                     <th className="p-3">Bergabung</th>
                   </tr>
                 </thead>
                 <tbody className="guru-stagger-fade divide-y divide-slate-100">
                   {active.students.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="p-6 text-center">
+                      <td colSpan={4} className="p-6 text-center">
                         <p className="font-semibold text-slate-600">
                           Belum ada siswa di kelas ini.
                         </p>
@@ -223,6 +225,9 @@ export function ClassesBrowser({ classes }: ClassesBrowserProps) {
                         className="transition hover:bg-slate-50"
                       >
                         <td className="p-3 font-mono font-bold text-slate-700">
+                          {student.nisn ?? "—"}
+                        </td>
+                        <td className="p-3 font-mono font-bold text-slate-700">
                           {student.nis ?? "—"}
                         </td>
                         <td className="p-3 font-semibold text-slate-900">
@@ -237,6 +242,13 @@ export function ClassesBrowser({ classes }: ClassesBrowserProps) {
                 </tbody>
               </table>
             </div>
+
+            <p className="text-[11px] leading-relaxed text-slate-500">
+              Siswa masuk ke game lewat{" "}
+              <code className="rounded bg-slate-100 px-1">/play</code> dengan
+              kode kelas + <b>NIS</b>. NIS yang tidak ada di daftar ini tidak
+              bisa masuk, jadi pastikan NIS setiap murid sudah benar.
+            </p>
           </section>
 
           <section className="guru-pixel-card space-y-4 rounded-2xl bg-white p-5">
@@ -647,6 +659,7 @@ function AddStudentModal({
   onSubmit,
 }: AddStudentModalProps) {
   const [values, setValues] = useState<StudentFormValues>({
+    nisn: "",
     nis: "",
     name: "",
   });
@@ -659,7 +672,7 @@ function AddStudentModal({
 
     const nama = values.name.trim();
     if (nama === "") {
-      setError("Nama siswa wajib diisi.");
+      setError("Nama lengkap siswa wajib diisi.");
       return;
     }
 
@@ -669,6 +682,7 @@ function AddStudentModal({
     try {
       const message = await onSubmit({
         name: nama,
+        nisn: values.nisn.trim(),
         nis: values.nis.trim(),
       });
 
@@ -705,15 +719,45 @@ function AddStudentModal({
         <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600">
           Siswa akan ditambahkan ke kelas{" "}
           <b className="text-slate-900">{classroomName}</b>. Akun login siswa
-          belum dipakai di versi ini; siswa tetap bermain lewat tautan cerita.
+          belum dipakai di versi ini; siswa masuk ke game lewat{" "}
+          <code className="rounded bg-slate-200/70 px-1">/play</code> dengan
+          kode kelas + NIS.
         </p>
+
+        <div>
+          <label
+            htmlFor="studentNisn"
+            className="mb-1 block font-bold uppercase text-slate-700"
+          >
+            NISN — opsional
+          </label>
+          <input
+            id="studentNisn"
+            type="text"
+            maxLength={20}
+            value={values.nisn}
+            onChange={(event) =>
+              setValues((previous) => ({
+                ...previous,
+                nisn: event.target.value,
+              }))
+            }
+            placeholder="Contoh: 0091234567"
+            aria-describedby="studentNisnHint"
+            className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 px-3.5 py-2.5 font-mono focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+          <p id="studentNisnHint" className="mt-1.5 text-[11px] text-slate-500">
+            Nomor induk siswa nasional dari sekolah (biasanya 10 angka). Boleh
+            dikosongkan.
+          </p>
+        </div>
 
         <div>
           <label
             htmlFor="studentNis"
             className="mb-1 block font-bold uppercase text-slate-700"
           >
-            No. Induk (NIS) — opsional
+            NIS — opsional
           </label>
           <input
             id="studentNis"
@@ -732,7 +776,8 @@ function AddStudentModal({
           />
           <p id="studentNisHint" className="mt-1.5 text-[11px] text-slate-500">
             Huruf/angka tanpa spasi. Kalau dikosongkan, sistem memberi nomor
-            urut mulai 1001.
+            urut mulai 1001. NIS inilah yang diketik siswa untuk masuk di{" "}
+            <code className="rounded bg-slate-100 px-1">/play</code>.
           </p>
         </div>
 
@@ -741,7 +786,7 @@ function AddStudentModal({
             htmlFor="studentName"
             className="mb-1 block font-bold uppercase text-slate-700"
           >
-            Nama Siswa
+            Nama Lengkap
           </label>
           <input
             id="studentName"
@@ -758,6 +803,10 @@ function AddStudentModal({
             placeholder="Contoh: Andi Pratama"
             className="w-full rounded-xl border-2 border-slate-300 bg-slate-50 px-3.5 py-2.5 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
+          <p className="mt-1.5 text-[11px] text-slate-500">
+            Nama ini yang muncul di layar konfirmasi siswa setelah NIS-nya
+            cocok.
+          </p>
         </div>
 
         {error !== null ? (

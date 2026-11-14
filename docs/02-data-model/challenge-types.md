@@ -60,6 +60,9 @@ Aturan:
 - Panjang teks opsi ≤ 120 karakter.
 - Pengecoh harus masuk akal dan berasal dari kesalahpahaman umum **yang berkaitan
   dengan materi**, bukan asal salah.
+- Urutan `options` di JSON tidak menentukan urutan tampil: UI mengacaknya secara
+  deterministik per `challenge.id`, jadi jawaban benar tidak selalu di depan.
+  Jangan mengandalkan posisi opsi untuk menyusun penjelasan.
 
 Penilaian: `selectedId === correctOptionId`.
 
