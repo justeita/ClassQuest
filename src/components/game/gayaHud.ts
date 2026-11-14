@@ -2,24 +2,29 @@
  * Gaya tombol HUD dipakai bersama `Hud`, `QuestTracker`, dan `TombolLayarPenuh`
  * supaya ketiganya tampak satu keluarga (docs/05-frontend/game-player.md).
  *
- * Ada dua varian:
- * - `overlay`: di dalam bingkai kanvas, di atas dunia bergelap — latar gelap
- *   tembus pandang dengan teks terang.
- * - `bar`: di bar bawah di luar kanvas saat layar potret. Latar halaman di sana
- *   hitam, jadi tombolnya dibuat **cerah** (kertas terang + teks gelap) supaya
- *   tetap kontras dan mudah dibaca.
+ * Desainnya mengikuti **panel kotak dialog** (`DialogueBox`): latar navy gelap
+ * `#0f172b`, bingkai tipis putih transparan, sudut membulat, dan teks terang
+ * `#EFF2F7`. Jadi tombol HUD dan kotak dialog terbaca sebagai satu bahasa
+ * visual — berlaku di desktop maupun HP.
+ *
+ * Ada dua varian ukuran:
+ * - `overlay`: di dalam bingkai kanvas. Di **desktop** (`lg`, ≥1024px) tombol
+ *   sengaja diperbesar supaya nyaman diklik; di HP tetap seperti semula.
+ * - `bar`: bar bawah di luar kanvas saat layar potret. Ukurannya tetap di HP.
  */
 export type LetakHud = "overlay" | "bar";
 
-/** Tombol HUD yang menempel di atas kanvas. */
-export const KELAS_TOMBOL_HUD =
-  "flex items-center gap-1.5 border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide text-[#F7F4EC] hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]";
+/** Desain bersama semua tombol HUD (mengikuti panel kotak dialog). */
+const DESAIN_HUD =
+  "flex items-center rounded-lg border border-white/10 bg-[#0f172b]/95 uppercase tracking-wide text-[#EFF2F7] transition-colors hover:border-white/25 hover:bg-[#16223d] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#55D0A5]";
 
-/** Tombol HUD di bar bawah (latar hitam): cerah, kontras tinggi. */
-export const KELAS_TOMBOL_HUD_CERAH =
-  "flex items-center gap-1.5 border border-[#F7F4EC] bg-[#F7F4EC] px-3 py-2 text-[#14201a] uppercase tracking-wide hover:bg-[#E8A87C] hover:border-[#E8A87C] active:bg-[#E8A87C] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C]";
+/** Tombol HUD yang menempel di atas kanvas; membesar hanya di desktop. */
+export const KELAS_TOMBOL_HUD = `${DESAIN_HUD} gap-1.5 px-2.5 py-1.5 lg:gap-2 lg:px-4 lg:py-2.5 lg:text-lg`;
+
+/** Tombol HUD di bar bawah (layar potret): desain sama, ukuran HP tetap. */
+export const KELAS_TOMBOL_HUD_BAR = `${DESAIN_HUD} gap-1.5 px-3 py-2`;
 
 /** Tombol HUD sesuai letaknya. */
 export function kelasTombolHud(letak: LetakHud): string {
-  return letak === "bar" ? KELAS_TOMBOL_HUD_CERAH : KELAS_TOMBOL_HUD;
+  return letak === "bar" ? KELAS_TOMBOL_HUD_BAR : KELAS_TOMBOL_HUD;
 }

@@ -128,9 +128,13 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   memberi margin 8–24 px dan sudut membulat, jadi sisa ruang terbaca sebagai
   bingkai jendela, bukan kanvas yang menempel ke tepi.
 - Tombol buku quest di kiri atas (`Q` Quest): membuka jendela buku catatan ala Minecraft journal dengan 2 halaman perkamen yang menampilkan bab, judul scene, daftar tugas dengan status `Aktif`/`Selesai`/`Terkunci`, dan hitungan tantangan. Dapat dibuka/tutup dengan tombol `Q` atau `Esc`.
-- HUD kanan atas: tombol jeda dan tombol suara. Semua tombol HUD dan quest
-  menampilkan tombol keyboardnya sebagai keycap konsisten (`Tab`, `B`, `Q`,
-  `Esc`) lewat komponen `Keycap`. Judul chapter tidak menetap di
+- HUD kanan atas: tombol quest, percepat, musik, catatan, jeda, dan layar
+  penuh. Semua tombol HUD dan quest menampilkan tombol keyboardnya sebagai
+  keycap konsisten (`Tab`, `B`, `Q`, `Esc`) lewat komponen `Keycap`, dan
+  memakai satu **desain yang sama dengan panel kotak dialog** — navy gelap
+  `#0f172b`, sudut membulat, teks terang — supaya terlihat konsisten
+  (ADR 0026). Di desktop (`lg`, ≥1024px) ukuran tombolnya sengaja diperbesar
+  agar nyaman diklik; di HP tetap ringkas. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
 - **Pergantian bab berjalan otomatis.** Setelah beat terakhir sebuah bab selesai,
@@ -168,10 +172,9 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   kotak `Space` diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda tetap
   menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
   tantangan, atau menu jeda.
-- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
-  petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
-  ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti
-  time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
+- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog. Pola
+  tahan-tombol ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju
+  seperti time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
   (`SpeedLines`); dilepas, tempo kembali normal. Soal tidak bisa dilewati —
   tombol dan pintasan berhenti di beat tantangan, dan fade transisi tetap
   diputar. Di perangkat sentuh tombolnya didengarkan dari `window`
@@ -290,10 +293,11 @@ bingkai kanvas supaya dunia tidak ikut tergencet.
 
 Di ponsel potret tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar penuh)
 tidak lagi melayang di atas kanvas: semuanya dipindah ke **bar di bawah kanvas**.
-Latar halaman di sana hitam, jadi tombolnya memakai gaya cerah (kertas terang +
-teks gelap) agar kontras. Teks dialog juga diperkecil karena kotak 16:9 di potret
-hanya setinggi ±65 px. Gaya tombol dipakai bersama lewat `gayaHud.ts`, dan prop
-`letak` (`overlay` | `bar`) yang memilih variannya (ADR 0025).
+Tombolnya memakai desain yang sama dengan kotak dialog — navy gelap `#0f172b`
+dengan sudut membulat dan teks terang — jadi seragam di desktop maupun HP
+(ADR 0026). Teks dialog juga diperkecil karena kotak 16:9 di potret hanya
+setinggi ±65 px. Gaya tombol dipakai bersama lewat `gayaHud.ts`, dan prop `letak`
+(`overlay` | `bar`) yang memilih variannya (ADR 0025).
 
 Kontrol muncul hanya saat perangkat terbaca sentuh: penunjuk utama **kasar**
 (`pointer: coarse`) dan **tidak bisa hover** (`hover: none`). Laptop berlayar
@@ -305,7 +309,9 @@ Joystick mengirim **satu dari delapan arah** yang sama dipakai papan tombol
 (`movement.ts`), bukan vektor bebas — jadi aturan gerak, tabrakan, dan animasi
 tetap satu jalur. Tombol aksi besar berlabel "Bicara": menyala saat pemain di zona
 NPC, dan tampil redup tetapi tetap bisa ditekan saat belum ada warga, lalu
-memunculkan pesan "Dekati warga untuk bicara" (ADR 0023). Selama dialog joystick
+memunculkan pesan "Dekati warga untuk bicara" (ADR 0023). Di lanskap tombolnya
+digeser agak menjauh dari sudut kanan bawah supaya tidak terpotong tepi layar
+(ADR 0026). Selama dialog joystick
 dan tombol aksi disembunyikan supaya tidak menutupi teks; lanjut dialog cukup
 dengan mengetuk kotak dialog (ADR 0024). Rincian interaksinya di
 [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#input-sentuh).

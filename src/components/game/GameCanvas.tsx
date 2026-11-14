@@ -16,7 +16,6 @@ import { NpcHintLayer } from "@/components/game/NpcHintLayer";
 import { QuestToast } from "@/components/game/QuestToast";
 import { QuestTracker } from "@/components/game/QuestTracker";
 import { Hud } from "@/components/game/HUD";
-import { SkipHint } from "@/components/game/SkipHint";
 import { SpeedLines } from "@/components/game/SpeedLines";
 import { PauseMenu } from "@/components/game/PauseMenu";
 import {
@@ -81,7 +80,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [bingkai, setBingkai] = useState({ x: 0, y: 0, w: 0, h: 0 });
   const [jeda, setJeda] = useState(false);
   const [bukuQuest, setBukuQuest] = useState(false);
-  /** Time-lapse lewati sedang berjalan; memicu hint status. */
+  /** Time-lapse lewati sedang berjalan; memicu garis kecepatan. */
   const [sedangLewati, setSedangLewati] = useState(false);
   /** Pemain berada di zona NPC: tombol aksi sentuh jadi "Bicara". */
   const [promptAktif, setPromptAktif] = useState(false);
@@ -583,7 +582,6 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
             />
             {!jeda && !tantangan && <ChapterCard view={kartuChapter} />}
             {!jeda && !tantangan && <QuestToast title={toastQuest} />}
-            {!jeda && dialogTerlihat && <SkipHint berjalan={sedangLewati} />}
             {!jeda && dialogTerlihat && <SpeedLines aktif={sedangLewati} />}
             {/* DialogueBox tetap ter-render selama masih ada dialog/tantangan
                 terakhir: setelah `visible` jadi false ia masih perlu sekali

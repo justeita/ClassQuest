@@ -90,10 +90,10 @@ Aturan:
   kali. Tombol "Layar penuh" tetap tombol biasa: bisa difokuskan dan diaktifkan
   papan tombol, dan menghilang bila peramban tidak mendukungnya (ADR 0022).
 - **Di layar potret** tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar
-  penuh) dipindah ke bar di bawah kanvas, bukan melayang menutupi dunia. Latar
-  halamannya hitam, jadi tombol memakai gaya **cerah** (kertas terang + teks
-  gelap) supaya kontras (ADR 0025). Teks dialog juga diperkecil agar tidak
-  melimpah dari kotak 16:9 yang sempit.
+  penuh) dipindah ke bar di bawah kanvas, bukan melayang menutupi dunia.
+  Tombolnya memakai desain yang sama dengan kotak dialog (navy gelap `#0f172b`,
+  sudut membulat, teks terang), jadi seragam di desktop maupun HP (ADR 0026).
+  Teks dialog juga diperkecil agar tidak melimpah dari kotak 16:9 yang sempit.
 - Tombol "Percepat" di sentuh memantau pelepasan dari `window`
   (`pointerup`/`pointercancel`/`touchend`/`touchcancel`/`blur`) dan memakai
   `touchmove` non-passive selama ditahan, jadi peramban ponsel tidak bisa

@@ -45,7 +45,8 @@ export function TombolLayarPenuh({
       <svg
         aria-hidden="true"
         viewBox="0 0 16 16"
-        className="h-4 w-4"
+        // Ikon ikut membesar di desktop bersama tombol HUD lainnya.
+        className="h-4 w-4 lg:h-5 lg:w-5"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.6"

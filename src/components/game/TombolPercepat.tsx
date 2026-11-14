@@ -111,7 +111,7 @@ export function TombolPercepat({
       ref={ref}
       type="button"
       aria-keyshortcuts="Tab"
-      title="Tahan untuk mempercepat dialog — soal tetap muncul"
+      title="Percepat dialog — soal tetap muncul"
       className={`${kelas} touch-none select-none`}
       onPointerDown={(e) => {
         e.preventDefault();

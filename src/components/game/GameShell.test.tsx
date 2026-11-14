@@ -725,34 +725,10 @@ describe("GameShell — tombol percepat", () => {
     lepasBerhenti();
   });
 
-  it("hint tahan Tab muncul selama dialog dan berganti status saat mempercepat", async () => {
-    await mainkan();
-
-    expect(
-      screen.queryByText(/tahan untuk mempercepat/i),
-    ).not.toBeInTheDocument();
-
-    bus.emit({ type: "dialogue", view: dialog });
-    expect(
-      await screen.findByText(/tahan untuk mempercepat/i),
-    ).toBeInTheDocument();
-
-    bus.emit({ type: "skipping", aktif: true });
-    expect(await screen.findByText(/mempercepat/i)).toBeInTheDocument();
-    expect(
-      screen.queryByText(/tahan untuk mempercepat/i),
-    ).not.toBeInTheDocument();
-
-    bus.emit({ type: "skipping", aktif: false });
-    expect(
-      await screen.findByText(/tahan untuk mempercepat/i),
-    ).toBeInTheDocument();
-  });
-
   it("garis kecepatan memudar masuk saat mempercepat dan keluar saat berhenti", async () => {
     await mainkan();
     bus.emit({ type: "dialogue", view: dialog });
-    await screen.findByText(/tahan untuk mempercepat/i);
+    await screen.findByRole("button", { name: /percepat/i });
 
     // Selama fase dialog garis tetap terpasang tapi tak terlihat, supaya
     // masuk/keluarnya memudar halus alih-alih muncul-hilang mendadak.
@@ -765,19 +741,6 @@ describe("GameShell — tombol percepat", () => {
 
     bus.emit({ type: "skipping", aktif: false });
     await vi.waitFor(() => expect(garis).toHaveClass("opacity-0"));
-  });
-
-  it("hint disembunyikan saat soal tampil", async () => {
-    await mainkan();
-    bus.emit({ type: "dialogue", view: dialog });
-    await screen.findByText(/tahan untuk mempercepat/i);
-
-    bus.emit({ type: "challenge", view: challenge });
-    await screen.findByLabelText("Tantangan");
-
-    expect(
-      screen.queryByText(/tahan untuk mempercepat/i),
-    ).not.toBeInTheDocument();
   });
 
   it("tombol B membuka buku catatan meski data quest sudah terisi", async () => {
@@ -1126,10 +1089,10 @@ describe("GameShell — kontrol sentuh", () => {
     ).toBeInTheDocument();
     expect(dalam.getByRole("button", { name: /^jeda$/i })).toBeInTheDocument();
 
-    // Latar halaman di bawah kanvas hitam, jadi tombolnya dibuat cerah: kertas
-    // terang dengan teks gelap, bukan gaya overlay gelap.
-    expect(musik.className).toContain("bg-[#F7F4EC]");
-    expect(musik.className).toContain("text-[#14201a]");
+    // Desain HUD disatukan dengan kotak dialog: navy gelap dengan teks terang,
+    // sama seperti varian overlay (ADR 0026).
+    expect(musik.className).toContain("bg-[#0f172b]/95");
+    expect(musik.className).toContain("text-[#EFF2F7]");
   });
 
   it("menampilkan tombol Percepat di bar bawah saat dialog di layar potret", async () => {

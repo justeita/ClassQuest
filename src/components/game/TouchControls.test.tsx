@@ -174,4 +174,36 @@ describe("TouchControls — mode", () => {
     ).not.toBeNull();
     expect(container.querySelector('[data-kontrol-sentuh="dek"]')).toBeNull();
   });
+
+  it("menggeser tombol Bicara dari sudut saat mengapung, bukan di dek", () => {
+    const { container } = render(
+      <TouchControls
+        mode="mengapung"
+        onMove={() => {}}
+        onAksi={() => {}}
+        aksi="bicara"
+      />,
+    );
+
+    // Bicara diberi margin ke kiri & ke atas supaya tidak terpotong tepi layar
+    // di lanskap (ADR 0026).
+    const geser = container.querySelector('[data-tombol-aksi="geser"]');
+    expect(geser).not.toBeNull();
+    expect(geser?.className).toContain("mr-6");
+    expect(geser?.className).toContain("mb-6");
+
+    cleanup();
+
+    const dek = render(
+      <TouchControls
+        mode="dek"
+        onMove={() => {}}
+        onAksi={() => {}}
+        aksi="bicara"
+      />,
+    );
+    expect(
+      dek.container.querySelector('[data-tombol-aksi="geser"]'),
+    ).toBeNull();
+  });
 });

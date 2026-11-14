@@ -38,6 +38,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0023 | [Tombol aksi sentuh tetap hidup tanpa sasaran](0023-tombol-aksi-tanpa-sasaran.md)                                  | Accepted     | Game, aksesibilitas   |
 | 0024 | [Tombol Bicara dan kontrol yang hilang saat dialog](0024-tombol-bicara-dan-kontrol-saat-dialog.md)                 | Accepted     | Game, aksesibilitas   |
 | 0025 | [Jangkauan interaksi luas, menu jeda bergulir, dan bar HUD potret](0025-jangkauan-interaksi-dan-bar-hud-potret.md) | Accepted     | Game, aksesibilitas   |
+| 0026 | [Desain HUD seragam dengan kotak dialog dan tombol Bicara menjauh dari tepi](0026-desain-hud-dan-tombol-bicara.md) | Accepted     | Game, aksesibilitas   |
 
 ## Status
 

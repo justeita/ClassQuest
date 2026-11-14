@@ -4,7 +4,7 @@ import { useSentuh } from "@/components/game/useSentuh";
 
 /**
  * Keycap tombol keyboard yang dipakai konsisten di semua tombol overlay game
- * (HUD, QuestTracker, hint Percepat). Siswa langsung tahu tombol apa yang harus
+ * (HUD dan QuestTracker). Siswa langsung tahu tombol apa yang harus
  * ditekan tanpa menebak — `Tab`, `B`, `Q`, `Esc` terbaca di tempatnya.
  *
  * `aria-hidden` karena label tombol sudah cukup; keycap murni dekorasi visual
@@ -12,8 +12,8 @@ import { useSentuh } from "@/components/game/useSentuh";
  *
  * Di perangkat sentuh keycap tidak berarti apa-apa — tidak ada tombol fisik yang
  * bisa ditekan — jadi komponen ini tidak merender apa pun di sana. Semua pemakai
- * (HUD, QuestTracker, hint Percepat, pilihan jawaban) ikut bersih tanpa perlu
- * tahu soal perangkat.
+ * (HUD, QuestTracker, pilihan jawaban) ikut bersih tanpa perlu tahu soal
+ * perangkat.
  */
 export function Keycap({ children }: { children: string }) {
   const sentuh = useSentuh();

@@ -195,7 +195,11 @@ export function TouchControls({
       className="pointer-events-none absolute inset-0 z-30 flex items-end justify-between p-4"
     >
       {tongkat}
-      {tombol}
+      {/* Bicara digeser agak ke kiri & ke atas dari sudut kanan bawah supaya
+          tidak terpotong tepi layar di lanskap. Dek potret tetap di tempat. */}
+      <div data-tombol-aksi="geser" className="mr-6 mb-6">
+        {tombol}
+      </div>
     </div>
   );
 }
