@@ -342,10 +342,30 @@ describe("ChallengeOverlay — panel di atas dialog", () => {
 
     const tombolB = screen.getByRole("button", { name: /membeku$/i });
     fireEvent.mouseEnter(tombolB);
-    // Tombol B memiliki sorotan aktif konsisten dengan DialogueBox (#14201a + #F7F4EC)
-    expect(tombolB.className).toContain("border-[#F7F4EC]");
-    expect(tombolB.className).toContain("bg-[#14201a]");
-    expect(tombolB.className).toContain("text-[#F7F4EC]");
+    // Tombol B tersorot dengan desain kotak dialog aktif (#16223d + border putih)
+    expect(tombolB.className).toContain("border-white/60");
+    expect(tombolB.className).toContain("bg-[#16223d]");
+    expect(tombolB.className).toContain("text-white");
+  });
+
+  it("penunjuk segitiga tampil presisi di samping opsi yang aktif (HCI)", () => {
+    renderOverlay({
+      ...dasar,
+      id: "chl_01_01",
+      type: "multiple_choice",
+      options: [
+        { id: "opt_a", text: "Menguap" },
+        { id: "opt_b", text: "Membeku" },
+      ],
+    });
+
+    const tombolA = screen.getByRole("button", { name: /menguap$/i });
+    fireEvent.mouseEnter(tombolA);
+
+    // Penunjuk digambar dari border CSS (bukan glyph) dan ditandai agar jelas.
+    const penunjuk = tombolA.parentElement?.querySelector("[data-penunjuk]");
+    expect(penunjuk).not.toBeNull();
+    expect(penunjuk).toHaveAttribute("data-penunjuk", "aktif");
   });
 
   it("keyboard ordering: panah/WASD memindah dan menukar item lalu Enter mengirim", () => {

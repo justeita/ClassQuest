@@ -11,34 +11,35 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 
 ## Daftar
 
-| #    | Judul                                                                                                              | Status       | Dampak                |
-| ---- | ------------------------------------------------------------------------------------------------------------------ | ------------ | --------------------- |
-| 0001 | [Next.js App Router](0001-nextjs-app-router.md)                                                                    | Accepted     | Seluruh aplikasi      |
-| 0002 | [Story JSON sebagai kontrak](0002-story-json-as-contract.md)                                                       | Accepted     | AI, editor, game      |
-| 0003 | [Aset tetap dari manifest](0003-fixed-asset-library.md)                                                            | Accepted     | AI, game, aset        |
-| 0004 | [Phaser 4.2.1 sebagai engine](0004-phaser-4.md)                                                                    | Accepted     | Game                  |
-| 0005 | [Persistence dan storage](0005-persistence-and-storage.md)                                                         | **Proposed** | Backend               |
-| 0006 | [Provider AI](0006-ai-provider.md)                                                                                 | **Proposed** | Pipeline              |
-| 0007 | [UI hybrid Phaser + DOM](0007-hybrid-ui.md)                                                                        | Accepted     | Game, aksesibilitas   |
-| 0008 | [Gerak bebas top-down dalam scene](0008-top-down-movement.md)                                                      | Accepted     | Game                  |
-| 0009 | [Resolusi internal dan skala karakter](0009-resolution-and-scale.md)                                               | **Accepted** | Game, aset            |
-| 0010 | [Map data-driven dan kamera](0010-map-data-and-camera.md)                                                          | **Accepted** | Game                  |
-| 0011 | [Sub-collider prop besar](0011-large-prop-subcollider.md)                                                          | **Accepted** | Game                  |
-| 0012 | [Peta ruangan sebagai satu gambar](0012-room-map-image.md)                                                         | Accepted     | Game, aset            |
-| 0013 | [Hosting Vercel dan database Turso](0013-hosting-vercel-turso.md)                                                  | Accepted     | Deploy, backend       |
-| 0014 | [Auth akun guru dan siswa](0014-auth-akun-guru-siswa.md)                                                           | **Proposed** | Auth, backend         |
-| 0015 | [Tabel kelas dan siswa](0015-kelas-dan-siswa.md)                                                                   | **Proposed** | Kelas, backend        |
-| 0016 | [Obrolan singkat NPC di luar perannya](0016-obrolan-singkat-npc.md)                                                | Accepted     | Game, cerita          |
-| 0017 | [Anggaran pipeline per unit dan reasoning dimatikan](0017-anggaran-pipeline-per-unit.md)                           | Accepted     | AI, pipeline          |
-| 0018 | [Plafon output, batas eksplisit outline, dan reasoning default mati](0018-plafon-output-thinking.md)               | Accepted     | AI, pipeline          |
-| 0019 | [Percabangan konsekuensi jawaban salah](0019-branching-konsekuensi-jawaban-salah.md)                               | Accepted     | AI, validator, cerita |
-| 0020 | [Potret berekspresi ala Persona](0020-potret-ekspresi-persona.md)                                                  | Accepted     | Game, aset, cerita    |
-| 0021 | [Kontrol sentuh dan tata letak HP](0021-kontrol-sentuh-hp.md)                                                      | Accepted     | Game, aksesibilitas   |
-| 0022 | [Layar penuh, kunci lanskap, dan ketukan responsif](0022-layar-penuh-lanskap.md)                                   | Accepted     | Game, aksesibilitas   |
-| 0023 | [Tombol aksi sentuh tetap hidup tanpa sasaran](0023-tombol-aksi-tanpa-sasaran.md)                                  | Accepted     | Game, aksesibilitas   |
-| 0024 | [Tombol Bicara dan kontrol yang hilang saat dialog](0024-tombol-bicara-dan-kontrol-saat-dialog.md)                 | Accepted     | Game, aksesibilitas   |
-| 0025 | [Jangkauan interaksi luas, menu jeda bergulir, dan bar HUD potret](0025-jangkauan-interaksi-dan-bar-hud-potret.md) | Accepted     | Game, aksesibilitas   |
-| 0026 | [Desain HUD seragam dengan kotak dialog dan tombol Bicara menjauh dari tepi](0026-desain-hud-dan-tombol-bicara.md) | Accepted     | Game, aksesibilitas   |
+| #    | Judul                                                                                                                     | Status       | Dampak                |
+| ---- | ------------------------------------------------------------------------------------------------------------------------- | ------------ | --------------------- |
+| 0001 | [Next.js App Router](0001-nextjs-app-router.md)                                                                           | Accepted     | Seluruh aplikasi      |
+| 0002 | [Story JSON sebagai kontrak](0002-story-json-as-contract.md)                                                              | Accepted     | AI, editor, game      |
+| 0003 | [Aset tetap dari manifest](0003-fixed-asset-library.md)                                                                   | Accepted     | AI, game, aset        |
+| 0004 | [Phaser 4.2.1 sebagai engine](0004-phaser-4.md)                                                                           | Accepted     | Game                  |
+| 0005 | [Persistence dan storage](0005-persistence-and-storage.md)                                                                | **Proposed** | Backend               |
+| 0006 | [Provider AI](0006-ai-provider.md)                                                                                        | **Proposed** | Pipeline              |
+| 0007 | [UI hybrid Phaser + DOM](0007-hybrid-ui.md)                                                                               | Accepted     | Game, aksesibilitas   |
+| 0008 | [Gerak bebas top-down dalam scene](0008-top-down-movement.md)                                                             | Accepted     | Game                  |
+| 0009 | [Resolusi internal dan skala karakter](0009-resolution-and-scale.md)                                                      | **Accepted** | Game, aset            |
+| 0010 | [Map data-driven dan kamera](0010-map-data-and-camera.md)                                                                 | **Accepted** | Game                  |
+| 0011 | [Sub-collider prop besar](0011-large-prop-subcollider.md)                                                                 | **Accepted** | Game                  |
+| 0012 | [Peta ruangan sebagai satu gambar](0012-room-map-image.md)                                                                | Accepted     | Game, aset            |
+| 0013 | [Hosting Vercel dan database Turso](0013-hosting-vercel-turso.md)                                                         | Accepted     | Deploy, backend       |
+| 0014 | [Auth akun guru dan siswa](0014-auth-akun-guru-siswa.md)                                                                  | **Proposed** | Auth, backend         |
+| 0015 | [Tabel kelas dan siswa](0015-kelas-dan-siswa.md)                                                                          | **Proposed** | Kelas, backend        |
+| 0016 | [Obrolan singkat NPC di luar perannya](0016-obrolan-singkat-npc.md)                                                       | Accepted     | Game, cerita          |
+| 0017 | [Anggaran pipeline per unit dan reasoning dimatikan](0017-anggaran-pipeline-per-unit.md)                                  | Accepted     | AI, pipeline          |
+| 0018 | [Plafon output, batas eksplisit outline, dan reasoning default mati](0018-plafon-output-thinking.md)                      | Accepted     | AI, pipeline          |
+| 0019 | [Percabangan konsekuensi jawaban salah](0019-branching-konsekuensi-jawaban-salah.md)                                      | Accepted     | AI, validator, cerita |
+| 0020 | [Potret berekspresi ala Persona](0020-potret-ekspresi-persona.md)                                                         | Accepted     | Game, aset, cerita    |
+| 0021 | [Kontrol sentuh dan tata letak HP](0021-kontrol-sentuh-hp.md)                                                             | Accepted     | Game, aksesibilitas   |
+| 0022 | [Layar penuh, kunci lanskap, dan ketukan responsif](0022-layar-penuh-lanskap.md)                                          | Accepted     | Game, aksesibilitas   |
+| 0023 | [Tombol aksi sentuh tetap hidup tanpa sasaran](0023-tombol-aksi-tanpa-sasaran.md)                                         | Accepted     | Game, aksesibilitas   |
+| 0024 | [Tombol Bicara dan kontrol yang hilang saat dialog](0024-tombol-bicara-dan-kontrol-saat-dialog.md)                        | Accepted     | Game, aksesibilitas   |
+| 0025 | [Jangkauan interaksi luas, menu jeda bergulir, dan bar HUD potret](0025-jangkauan-interaksi-dan-bar-hud-potret.md)        | Accepted     | Game, aksesibilitas   |
+| 0026 | [Desain HUD seragam dengan kotak dialog dan tombol Bicara menjauh dari tepi](0026-desain-hud-dan-tombol-bicara.md)        | Accepted     | Game, aksesibilitas   |
+| 0027 | [Desain tantangan seragam dengan kotak dialog dan penunjuk pilihan yang presisi](0027-desain-tantangan-seragam-dialog.md) | Accepted     | Game, aksesibilitas   |
 
 ## Status
 

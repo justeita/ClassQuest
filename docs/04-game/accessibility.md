@@ -140,8 +140,13 @@ Catatan:
 
 - Jangan mengandalkan hijau/merah saja. Selalu ada ikon atau teks
   ("Tepat", "Belum tepat").
-- Teks dialog: `#1F1E28` di atas `#F4EFE6` (kontras tinggi) atau `#F7F4EC` di atas
-  `#14201A`.
+- Teks dialog, kotak jawaban tantangan, dan tombol HUD memakai bahasa visual yang
+  sama: teks terang `#EFF2F7` di atas navy kotak dialog `#0f172b`, dengan aksen
+  teal `#55D0A5` (ADR 0026, ADR 0027).
+- Segitiga penunjuk pilihan aktif digambar dari border CSS berwarna krem terang
+  `#F7F4EC` dengan bayangan gelap tipis, jadi tetap terbaca di atas dunia terang
+  maupun kotak navy; pilihan aktif juga dibedakan lewat latar yang terangkat,
+  bukan warna saja.
 - Border fokus: 2 px, warna aksen, offset 2 px.
 
 ## Ukuran teks

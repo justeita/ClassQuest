@@ -203,13 +203,14 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   - Opsi pendek (seperti "1", "2", "4"): ditata 1 baris horizontal di kanan atas dialog.
   - Opsi teks panjang: ditata bertumpuk vertikal di kanan atas dialog; lebar seluruh box seragam mengikuti opsi terpanjang.
   - Persoalan matematika / matriks: ditata sebagai kartu berjejer agar formula terlihat jelas.
-- Konsistensi visual HCI dengan DialogueBox:
-  - Gaya box jawaban dan kartu umpan balik setelah dijawab persis seperti DialogueBox (`bg-[#14201a]/95` dengan `border-2 border-[#F7F4EC]`), flat tanpa drop shadow.
-  - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar.
+- Konsistensi visual HCI dengan DialogueBox (ADR 0027):
+  - Kotak jawaban, kartu matriks, kartu umpan balik, tombol aksi, dan petunjuk pintasan memakai **token kotak dialog** yang sama (`gayaDialog.ts`): latar navy `#0f172b`/95, bingkai tipis putih transparan (`border-white/10`), sudut membulat (`rounded-lg`), teks terang `#EFF2F7`, aksen teal `#55D0A5`, flat tanpa drop shadow.
+  - Keadaan terpilih memakai `KOTAK_DIALOG_AKTIF` (bingkai putih lebih terang, latar sedikit terangkat); keadaan diam memakai `KOTAK_DIALOG` + hover. Dipilih dengan percabangan agar tidak menumpuk kelas warna yang bentrok.
+  - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar; bingkai kartu berwarna status (`#6F9B7A` benar, `#C9A227` belum tepat).
   - Ukuran huruf dan line-height opsi dan penjelasan umpan balik proporsional dan nyaman dibaca (`ukuranHuruf(13.5, 12, 20)` & `lineHeight: 1.3`).
-  - Segitiga kursor penunjuk `▶` berada di **luar box jawaban, di sebelah kirinya**, dan saat aktif diwarnai gelap/hitam (`#0b120e`) agar terlihat jelas dan kontras terhadap pemandangan dunia game.
-  - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya.
-  - Teks petunjuk tombol shortcut (`hints`) diberi latar gelap (`bg-[#0b120e]`) dengan font putih (`#F7F4EC`) untuk keterbacaan tinggi.
+  - Segitiga penunjuk pilihan aktif berada di **luar kotak** (di kiri untuk daftar, di atas untuk kartu) dan digambar dari **border CSS**, bukan glyph, sehingga tajam dan presisi. Warnanya krem terang `#F7F4EC` dengan bayangan gelap tipis agar tetap jelas di atas dunia terang maupun kotak navy; saat tidak aktif ia `opacity-0` agar tata letak tidak bergeser.
+  - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya dan memakai aksen teal `#55D0A5`.
+  - Teks petunjuk tombol shortcut (`hints`) memakai latar navy `#0f172b`/95 dengan teks terang `#EFF2F7` untuk keterbacaan tinggi.
 - Segitiga lanjut dialog `▼` diposisikan di **sudut kanan bawah kotak dialog**.
 - Tanpa background kotak pembungkus hitam luar (hanya baris pilihan yang memiliki latar), tanpa tombol jawab/lanjut terpisah. Memilih opsi langsung mengirim respon dialog, dan kartu umpan balik cerita dapat diklik atau ditekan Spasi/Enter untuk lanjut.
 - Kontrol keyboard-first meminimalkan ketergantungan mouse/touchpad:

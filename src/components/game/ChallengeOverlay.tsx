@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 
+import {
+  KOTAK_DIALOG,
+  KOTAK_DIALOG_AKTIF,
+  KOTAK_DIALOG_FOKUS,
+  KOTAK_DIALOG_HOVER,
+} from "@/components/game/gayaDialog";
 import type { ChallengeView } from "@/game/challengeView";
 import { GAME_HEIGHT } from "@/game/constants";
 import { CHALLENGE, cqw, TEXTBOX, ukuranHuruf } from "@/game/layout";
@@ -33,22 +39,24 @@ const BISA_DIJAWAB = new Set<ChallengeView["type"]>([
 /**
  * Overlay pilihan respon dialog di atas kotak dialog.
  *
- * Mengikuti estetika RPG 2D top-down (Undertale, Omori, RPG Maker) & prinsip konsistensi HCI:
+ * Mengikuti estetika RPG 2D top-down (Undertale, Omori, RPG Maker) & prinsip
+ * konsistensi HCI:
  * - Soal/pertanyaan berada di dalam kotak dialog NPC (DialogueBox).
- * - Yang melayang di atas kotak dialog HANYA pilihan responnya saat belum dinilai.
- * - Setelah menjawab (graded), seluruh box pilihan jawaban disembunyikan dan HANYA
- *   kartu umpan balik (tepat/belum tepat) yang tampil sehingga tidak memicu scrollbar.
- * - Desain box konsisten dengan DialogueBox:
- *   • Latar: #14201a (warna latar panel dialog).
- *   • Bingkai: border-2 solid #F7F4EC (bingkai panel dialog), tanpa drop shadow.
- *   • Ukuran huruf rapi dan proporsional (`ukuranHuruf(13.5, 12, 20)` & `lineHeight: 1.3`).
- * - Bentuk segitiga penunjuk (▶) berada di LUAR kotak jawaban di sebelah kiri,
- *   dan saat aktif berwarna gelap/hitam (#0b120e) agar kontras terhadap dunia game.
- * - Tombol aksi "Jawab" disejajarkan sempurna dengan kotak-kotak jawaban di atasnya.
- * - Teks petunjuk interaksi (keyboard shortcut/hints) dibungkus latar gelap (#0b120e)
- *   dengan font putih (#F7F4EC) agar selalu kontras di atas latar belakang permainan apa pun.
- * - Lebar seragam (fit text): bila salah satu opsi panjang, seluruh opsi dalam kolom
- *   menyesuaikan diri mengikuti lebar opsi yang paling panjang.
+ * - Yang melayang di atas kotak dialog HANYA pilihan responnya saat belum
+ *   dinilai; setelah dinilai (`graded`), pilihan disembunyikan dan hanya kartu
+ *   umpan balik yang tampil supaya tidak memicu scrollbar.
+ * - Seluruh UI jawaban memakai **desain kotak dialog** (`KOTAK_DIALOG` di
+ *   `gayaDialog.ts`): navy gelap `#0f172b`, bingkai tipis putih transparan,
+ *   sudut membulat, teks terang `#EFF2F7` — seragam dengan HUD dan DialogueBox
+ *   (ADR 0026).
+ * - Segitiga penunjuk pilihan aktif berada **di luar** kotak (di kiri untuk
+ *   daftar, di atas untuk kartu) dan digambar dari **border CSS**, bukan glyph,
+ *   supaya tajam dan presisi. Warnanya krem terang dengan bayangan gelap tipis,
+ *   jadi tetap jelas di atas dunia terang maupun kotak navy.
+ * - Tombol aksi "Jawab" disejajarkan sempurna dengan kotak di atasnya dan
+ *   memakai aksen teal `#55D0A5` yang sama dengan nama di kotak dialog.
+ * - Lebar seragam (fit text): bila salah satu opsi panjang, seluruh opsi dalam
+ *   kolom menyesuaikan diri mengikuti lebar opsi yang paling panjang.
  * - Navigasi keyboard penuh: mendukung panah, WASD, angka 1-N, dan Enter.
  */
 export function ChallengeOverlay({
@@ -326,7 +334,7 @@ export function ChallengeOverlay({
         aria-modal="true"
         aria-live="polite"
         onKeyDown={tanganiOpsi}
-        className="challenge-panel pointer-events-auto flex flex-col font-game text-[#F7F4EC] focus-visible:outline-none"
+        className="challenge-panel pointer-events-auto flex flex-col font-game text-[#EFF2F7] focus-visible:outline-none"
         style={{
           // Tepi kanan panel sejajar dengan tepi kanan dialog (dialog selalu
           // center), jadi panel terlihat menempel rapi di atasnya.
@@ -345,7 +353,7 @@ export function ChallengeOverlay({
           {!graded && view.hints && view.hints.length > 0 && (
             <div className="mb-2 flex justify-end">
               <p
-                className="inline-flex items-center gap-1.5 rounded-md border border-[#F7F4EC]/30 bg-[#0b120e]/95 px-2.5 py-1 font-medium text-[#F7F4EC]"
+                className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-[#0f172b]/95 px-2.5 py-1 font-medium text-[#EFF2F7]"
                 style={{
                   fontSize: ukuranHuruf(12, 11, 15),
                   lineHeight: 1.2,
@@ -410,30 +418,21 @@ export function ChallengeOverlay({
                       className="relative flex w-full items-center"
                     >
                       {/* Segitiga kursor ▶ berada di LUAR kotak di sebelah kiri */}
-                      <span
-                        aria-hidden="true"
-                        className={`mr-2 text-xs font-black transition-opacity select-none sm:text-sm ${
-                          disorot
-                            ? "scale-110 text-[#0b120e] opacity-100"
-                            : "opacity-0"
-                        }`}
-                      >
-                        ▶
-                      </span>
+                      <Penunjuk aktif={disorot} kelas="mr-2" />
 
-                      {/* Kotak item urutan konsisten dengan DialogueBox */}
+                      {/* Kotak item urutan memakai desain kotak dialog (ADR 0026) */}
                       <div
-                        className={`flex flex-1 items-center gap-2 rounded-lg border-2 px-3 py-1.5 transition-colors select-none ${
+                        className={`flex flex-1 items-center gap-2 px-3 py-1.5 transition-colors select-none ${
                           disorot
-                            ? "border-[#F7F4EC] bg-[#14201a] text-[#F7F4EC]"
-                            : "border-[#F7F4EC]/40 bg-[#14201a]/95 text-[#D9E4DA] hover:border-[#F7F4EC]"
+                            ? KOTAK_DIALOG_AKTIF
+                            : `${KOTAK_DIALOG} ${KOTAK_DIALOG_HOVER}`
                         }`}
                         style={{
                           fontSize: ukuranHuruf(13.5, 12, 20),
                           lineHeight: 1.3,
                         }}
                       >
-                        <span className="w-5 text-center font-bold text-[#F7F4EC]">
+                        <span className="w-5 text-center font-bold text-[#55D0A5]">
                           {index + 1}.
                         </span>
                         <span className="flex-1 leading-snug break-words">
@@ -449,7 +448,7 @@ export function ChallengeOverlay({
                             }}
                             disabled={graded !== null || index === 0}
                             aria-label={`Naikkan "${itemById.get(itemId)?.text ?? itemId}"`}
-                            className="rounded border border-[#F7F4EC]/50 bg-[#14201a] px-2 py-0.5 text-xs text-[#F7F4EC] hover:border-[#F7F4EC] hover:bg-[#1f3027] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-[#F7F4EC]"
+                            className="rounded border border-white/20 bg-[#16223d] px-2 py-0.5 text-xs text-[#EFF2F7] hover:border-white/40 hover:bg-[#1d2c4a] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-[#55D0A5]"
                           >
                             ▲
                           </button>
@@ -464,7 +463,7 @@ export function ChallengeOverlay({
                               graded !== null || index === urutan.length - 1
                             }
                             aria-label={`Turunkan "${itemById.get(itemId)?.text ?? itemId}"`}
-                            className="rounded border border-[#F7F4EC]/50 bg-[#14201a] px-2 py-0.5 text-xs text-[#F7F4EC] hover:border-[#F7F4EC] hover:bg-[#1f3027] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-[#F7F4EC]"
+                            className="rounded border border-white/20 bg-[#16223d] px-2 py-0.5 text-xs text-[#EFF2F7] hover:border-white/40 hover:bg-[#1d2c4a] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-[#55D0A5]"
                           >
                             ▼
                           </button>
@@ -479,16 +478,11 @@ export function ChallengeOverlay({
               <div className="space-y-1.5 pt-0.5">
                 {/* Tombol Jawab disejajarkan dengan kotak jawaban dengan spacer seimbang */}
                 <div className="flex w-full items-center">
-                  <span
-                    aria-hidden="true"
-                    className="mr-2 text-xs select-none opacity-0 sm:text-sm"
-                  >
-                    ▶
-                  </span>
+                  <Penunjuk aktif={false} kelas="mr-2" />
                   <button
                     type="button"
                     onClick={kirimJawabanManual}
-                    className="flex-1 rounded-lg border-2 border-[#F7F4EC] bg-[#14201a] py-1.5 font-bold uppercase tracking-wider text-[#F7F4EC] hover:bg-[#F7F4EC] hover:text-[#14201a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#F7F4EC]"
+                    className="flex-1 rounded-lg border border-[#55D0A5] bg-[#0f172b]/95 py-1.5 font-bold uppercase tracking-wider text-[#55D0A5] transition-colors hover:bg-[#55D0A5] hover:text-[#0f172b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#55D0A5]"
                     style={{
                       fontSize: ukuranHuruf(14, 12, 20),
                       lineHeight: 1.2,
@@ -498,10 +492,10 @@ export function ChallengeOverlay({
                   </button>
                 </div>
 
-                {/* Teks petunjuk berlatar gelap dengan font putih agar kontras maksimal */}
+                {/* Teks petunjuk berlatar navy dengan font terang agar selalu kontras */}
                 <div className="flex w-full items-center justify-center pt-0.5">
                   <p
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[#F7F4EC]/30 bg-[#0b120e]/95 px-3 py-1 font-medium text-[#F7F4EC]"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-[#0f172b]/95 px-3 py-1 font-medium text-[#EFF2F7]"
                     style={{
                       fontSize: ukuranHuruf(12, 11, 15),
                       lineHeight: 1.2,
@@ -516,8 +510,8 @@ export function ChallengeOverlay({
 
           {!graded && view.type === "short_answer" && (
             <div className="space-y-2">
-              <div className="relative rounded-lg border-2 border-[#F7F4EC]/60 bg-[#14201a]/95 focus-within:border-[#F7F4EC]">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[#F7F4EC]">
+              <div className="relative rounded-lg border border-white/25 bg-[#0f172b]/95 focus-within:border-[#55D0A5]">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[#55D0A5]">
                   &gt;
                 </span>
                 <input
@@ -539,7 +533,7 @@ export function ChallengeOverlay({
                   autoComplete="off"
                   maxLength={60}
                   placeholder="Ketik jawaban lalu tekan Enter..."
-                  className="w-full bg-transparent py-2 pl-7 pr-3 text-[#F7F4EC] placeholder:text-[#7C8A80] focus:outline-none disabled:opacity-60"
+                  className="w-full bg-transparent py-2 pl-7 pr-3 text-[#EFF2F7] placeholder:text-[#7C8A80] focus:outline-none disabled:opacity-60"
                   style={{
                     fontSize: ukuranHuruf(13.5, 12, 20),
                     lineHeight: 1.3,
@@ -552,7 +546,7 @@ export function ChallengeOverlay({
                   type="button"
                   onClick={kirimJawabanManual}
                   disabled={!bisaJawab}
-                  className="w-full rounded-lg border-2 border-[#F7F4EC] bg-[#14201a] py-1.5 font-bold uppercase tracking-wider text-[#F7F4EC] hover:bg-[#F7F4EC] hover:text-[#14201a] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#F7F4EC]"
+                  className="w-full rounded-lg border border-[#55D0A5] bg-[#0f172b]/95 py-1.5 font-bold uppercase tracking-wider text-[#55D0A5] transition-colors hover:bg-[#55D0A5] hover:text-[#0f172b] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#55D0A5]"
                   style={{
                     fontSize: ukuranHuruf(14, 12, 20),
                     lineHeight: 1.2,
@@ -563,7 +557,7 @@ export function ChallengeOverlay({
                 {/* Teks petunjuk berlatar gelap dengan font putih agar kontras maksimal */}
                 <div className="flex w-full items-center justify-center pt-0.5">
                   <p
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[#F7F4EC]/30 bg-[#0b120e]/95 px-3 py-1 font-medium text-[#F7F4EC]"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-[#0f172b]/95 px-3 py-1 font-medium text-[#EFF2F7]"
                     style={{
                       fontSize: ukuranHuruf(12, 11, 15),
                       lineHeight: 1.2,
@@ -580,7 +574,7 @@ export function ChallengeOverlay({
             <button
               type="button"
               onClick={onResolve}
-              className="w-full rounded-lg border-2 border-[#F7F4EC]/40 bg-[#14201a]/95 py-2 text-xs text-[#8FA396] hover:border-[#F7F4EC] hover:text-[#F7F4EC]"
+              className="w-full rounded-lg border border-white/15 bg-[#0f172b]/95 py-2 text-xs text-[#8FA396] transition-colors hover:border-white/35 hover:text-[#EFF2F7]"
             >
               Lewati (tipe soal belum didukung)
             </button>
@@ -600,10 +594,8 @@ export function ChallengeOverlay({
                 }
               }}
               aria-label="Lanjut"
-              className={`cursor-pointer rounded-lg border-2 p-3.5 transition-colors ${
-                graded.correct
-                  ? "border-[#6F9B7A] bg-[#14201a]/95 text-[#F7F4EC]"
-                  : "border-[#C9A227] bg-[#14201a]/95 text-[#F7F4EC]"
+              className={`cursor-pointer rounded-lg border-2 bg-[#0f172b]/95 p-3.5 text-[#EFF2F7] transition-colors ${
+                graded.correct ? "border-[#6F9B7A]" : "border-[#C9A227]"
               }`}
             >
               <p
@@ -619,7 +611,7 @@ export function ChallengeOverlay({
                 <span>{graded.correct ? "Tepat." : "Belum tepat."}</span>
               </p>
               <p
-                className="break-words whitespace-pre-wrap leading-relaxed text-[#D9E4DA]"
+                className="break-words whitespace-pre-wrap leading-relaxed text-[#EFF2F7]"
                 style={{
                   fontSize: ukuranHuruf(13.5, 12, 20),
                   lineHeight: 1.3,
@@ -627,7 +619,7 @@ export function ChallengeOverlay({
               >
                 {graded.explanation}
               </p>
-              <div className="mt-2.5 flex items-center justify-end gap-1 text-[11px] text-[#E8A87C]">
+              <div className="mt-2.5 flex items-center justify-end gap-1 text-[11px] text-[#55D0A5]">
                 <span className="animate-pulse">
                   Klik atau tekan Spasi untuk lanjut
                 </span>
@@ -687,6 +679,55 @@ export function acakDeterministik(ids: string[], seed: string): string[] {
   return hasil;
 }
 
+/**
+ * Segitiga penunjuk pilihan aktif.
+ *
+ * Digambar dari **border CSS**, bukan glyph `▶`, supaya tajam, ukurannya
+ * presisi, dan tidak bergantung pada metrik font. Warnanya krem terang dengan
+ * bayangan gelap tipis, jadi tetap terlihat baik di atas dunia terang maupun di
+ * atas kotak navy. Saat tidak aktif ia tetap memakan ruang (`opacity-0`) supaya
+ * tata letak tidak bergeser.
+ */
+function Penunjuk({
+  aktif,
+  arah = "kanan",
+  kelas = "",
+}: {
+  aktif: boolean;
+  arah?: "kanan" | "bawah";
+  /** Kelas tata letak tambahan, mis. `mr-2` atau `mb-1`. */
+  kelas?: string;
+}) {
+  const LEBAR = 10;
+  const TINGGI = 14;
+  const bentuk: CSSProperties =
+    arah === "kanan"
+      ? {
+          borderWidth: `${TINGGI / 2}px 0 ${TINGGI / 2}px ${LEBAR}px`,
+          borderColor: "transparent transparent transparent #F7F4EC",
+        }
+      : {
+          borderWidth: `${LEBAR}px ${TINGGI / 2}px 0 ${TINGGI / 2}px`,
+          borderColor: "#F7F4EC transparent transparent transparent",
+        };
+
+  return (
+    <span
+      aria-hidden="true"
+      data-penunjuk={aktif ? "aktif" : "diam"}
+      className={`shrink-0 border-solid transition-opacity select-none ${
+        aktif ? "opacity-100" : "opacity-0"
+      } ${kelas}`}
+      style={{
+        width: 0,
+        height: 0,
+        filter: "drop-shadow(0 0 1px rgba(11, 18, 14, 0.95))",
+        ...bentuk,
+      }}
+    />
+  );
+}
+
 type OpsiListProps = {
   opsi: { id: string; label: string }[];
   mode: "baris" | "kolom" | "kartu";
@@ -700,8 +741,12 @@ type OpsiListProps = {
 
 /**
  * Komponen daftar opsi dengan:
- * - Segitiga kursor (▶) di LUAR box jawaban (di sebelah kiri), warna gelap/hitam (#0b120e) saat aktif.
- * - Desain box konsisten dengan DialogueBox: border-2 solid #F7F4EC, bg #14201a, tanpa shadow.
+ * - Segitiga penunjuk pilihan aktif di LUAR kotak (kiri untuk daftar, atas untuk
+ *   kartu), digambar lewat komponen `Penunjuk` dari border CSS supaya tajam.
+ * - Desain kotak memakai token kotak dialog (`KOTAK_DIALOG*` di `gayaDialog.ts`):
+ *   navy gelap `#0f172b`, bingkai tipis putih transparan, teks terang `#EFF2F7`.
+ *   Keadaan terpilih dan keadaan diam dipilih dengan percabangan, bukan ditumpuk,
+ *   supaya tidak ada kelas warna Tailwind yang bentrok.
  * - Ukuran huruf proporsional dan nyaman dibaca (`ukuranHuruf(13.5, 12, 20)`).
  * - Lebar seragam (fit text): seluruh opsi dalam kolom melebar mengikuti opsi terpanjang.
  */
@@ -726,17 +771,8 @@ function OpsiList({
 
             return (
               <li key={option.id} className="relative flex w-full items-center">
-                {/* Segitiga kursor ▶ di luar box sebelah kiri, berwarna gelap/hitam pekat saat aktif */}
-                <span
-                  aria-hidden="true"
-                  className={`mr-2 text-xs font-black transition-opacity select-none sm:text-sm ${
-                    terpilih || disorot
-                      ? "scale-110 text-[#0b120e] opacity-100"
-                      : "opacity-0"
-                  }`}
-                >
-                  ▶
-                </span>
+                {/* Penunjuk pilihan aktif di luar kotak sebelah kiri */}
+                <Penunjuk aktif={terpilih || disorot} kelas="mr-2" />
 
                 <button
                   type="button"
@@ -744,10 +780,10 @@ function OpsiList({
                   onMouseEnter={() => !disabled && onSorot(index)}
                   disabled={disabled}
                   aria-pressed={terpilih}
-                  className={`group flex w-full flex-1 items-center justify-start rounded-lg border-2 px-4 py-2 text-left font-medium transition-colors select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#F7F4EC] disabled:cursor-default ${
+                  className={`group flex w-full flex-1 items-center justify-start px-4 py-2 text-left font-medium transition-colors select-none disabled:cursor-default ${KOTAK_DIALOG_FOKUS} ${
                     terpilih || disorot
-                      ? "border-[#F7F4EC] bg-[#14201a] text-[#F7F4EC]"
-                      : "border-[#F7F4EC]/40 bg-[#14201a]/95 text-[#D9E4DA] hover:border-[#F7F4EC] hover:bg-[#14201a] hover:text-[#F7F4EC]"
+                      ? KOTAK_DIALOG_AKTIF
+                      : `${KOTAK_DIALOG} ${KOTAK_DIALOG_HOVER}`
                   }`}
                   style={{
                     fontSize: ukuranHuruf(13.5, 12, 20),
@@ -777,16 +813,7 @@ function OpsiList({
 
           return (
             <li key={option.id} className="relative flex items-center">
-              <span
-                aria-hidden="true"
-                className={`mr-2 text-xs font-black transition-opacity select-none sm:text-sm ${
-                  terpilih || disorot
-                    ? "scale-110 text-[#0b120e] opacity-100"
-                    : "opacity-0"
-                }`}
-              >
-                ▶
-              </span>
+              <Penunjuk aktif={terpilih || disorot} kelas="mr-2" />
 
               <button
                 type="button"
@@ -794,10 +821,10 @@ function OpsiList({
                 onMouseEnter={() => !disabled && onSorot(index)}
                 disabled={disabled}
                 aria-pressed={terpilih}
-                className={`group flex min-w-[3.5rem] items-center justify-center rounded-lg border-2 px-4 py-1.5 text-center font-semibold transition-colors select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#F7F4EC] disabled:cursor-default ${
+                className={`group flex min-w-[3.5rem] items-center justify-center px-4 py-1.5 text-center font-semibold transition-colors select-none disabled:cursor-default ${KOTAK_DIALOG_FOKUS} ${
                   terpilih || disorot
-                    ? "border-[#F7F4EC] bg-[#14201a] text-[#F7F4EC]"
-                    : "border-[#F7F4EC]/40 bg-[#14201a]/95 text-[#D9E4DA] hover:border-[#F7F4EC] hover:bg-[#14201a] hover:text-[#F7F4EC]"
+                    ? KOTAK_DIALOG_AKTIF
+                    : `${KOTAK_DIALOG} ${KOTAK_DIALOG_HOVER}`
                 }`}
                 style={{
                   fontSize: ukuranHuruf(13.5, 12, 20),
@@ -823,16 +850,7 @@ function OpsiList({
 
         return (
           <li key={option.id} className="relative flex flex-col items-center">
-            <span
-              aria-hidden="true"
-              className={`mb-1 text-xs font-black transition-opacity select-none sm:text-sm ${
-                terpilih || disorot
-                  ? "scale-110 text-[#0b120e] opacity-100"
-                  : "opacity-0"
-              }`}
-            >
-              ▼
-            </span>
+            <Penunjuk aktif={terpilih || disorot} arah="bawah" kelas="mb-1.5" />
 
             <button
               type="button"
@@ -840,10 +858,10 @@ function OpsiList({
               onMouseEnter={() => !disabled && onSorot(index)}
               disabled={disabled}
               aria-pressed={terpilih}
-              className={`group flex min-h-[5.5rem] w-full items-center justify-center rounded-lg border-2 p-3 text-center transition-colors select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#F7F4EC] disabled:cursor-default ${
+              className={`group flex min-h-[5.5rem] w-full items-center justify-center p-3 text-center transition-colors select-none disabled:cursor-default ${KOTAK_DIALOG_FOKUS} ${
                 terpilih || disorot
-                  ? "border-[#F7F4EC] bg-[#14201a] text-[#F7F4EC]"
-                  : "border-[#F7F4EC]/40 bg-[#14201a]/95 text-[#D9E4DA] hover:border-[#F7F4EC] hover:bg-[#14201a] hover:text-[#F7F4EC]"
+                  ? KOTAK_DIALOG_AKTIF
+                  : `${KOTAK_DIALOG} ${KOTAK_DIALOG_HOVER}`
               }`}
               style={{
                 fontSize: ukuranHuruf(13.5, 12, 20),

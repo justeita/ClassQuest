@@ -1,11 +1,18 @@
+import {
+  KOTAK_DIALOG,
+  KOTAK_DIALOG_FOKUS,
+  KOTAK_DIALOG_HOVER,
+} from "@/components/game/gayaDialog";
+
 /**
  * Gaya tombol HUD dipakai bersama `Hud`, `QuestTracker`, dan `TombolLayarPenuh`
  * supaya ketiganya tampak satu keluarga (docs/05-frontend/game-player.md).
  *
- * Desainnya mengikuti **panel kotak dialog** (`DialogueBox`): latar navy gelap
- * `#0f172b`, bingkai tipis putih transparan, sudut membulat, dan teks terang
- * `#EFF2F7`. Jadi tombol HUD dan kotak dialog terbaca sebagai satu bahasa
- * visual — berlaku di desktop maupun HP.
+ * Desainnya mengikuti **panel kotak dialog** (`DialogueBox`) lewat token di
+ * `gayaDialog.ts`: latar navy gelap `#0f172b`, bingkai tipis putih transparan,
+ * sudut membulat, dan teks terang `#EFF2F7`. Jadi tombol HUD, kotak dialog, dan
+ * kotak pilihan tantangan terbaca sebagai satu bahasa visual — di desktop
+ * maupun HP (ADR 0026).
  *
  * Ada dua varian ukuran:
  * - `overlay`: di dalam bingkai kanvas. Di **desktop** (`lg`, ≥1024px) tombol
@@ -15,8 +22,7 @@
 export type LetakHud = "overlay" | "bar";
 
 /** Desain bersama semua tombol HUD (mengikuti panel kotak dialog). */
-const DESAIN_HUD =
-  "flex items-center rounded-lg border border-white/10 bg-[#0f172b]/95 uppercase tracking-wide text-[#EFF2F7] transition-colors hover:border-white/25 hover:bg-[#16223d] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#55D0A5]";
+const DESAIN_HUD = `${KOTAK_DIALOG} flex items-center uppercase tracking-wide transition-colors ${KOTAK_DIALOG_HOVER} ${KOTAK_DIALOG_FOKUS}`;
 
 /** Tombol HUD yang menempel di atas kanvas; membesar hanya di desktop. */
 export const KELAS_TOMBOL_HUD = `${DESAIN_HUD} gap-1.5 px-2.5 py-1.5 lg:gap-2 lg:px-4 lg:py-2.5 lg:text-lg`;
