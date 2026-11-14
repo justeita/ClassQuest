@@ -36,6 +36,9 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0021 | [Varian dialog per jawaban salah](0021-varian-dialog-per-jawaban-salah.md)                           | Accepted     | AI, validator, cerita |
 | 0022 | [Pemain mengucapkan jawabannya di dialog](0022-pemain-mengucapkan-jawaban-di-dialog.md)              | Accepted     | AI, game, cerita      |
 | 0023 | [Potret berekspresi ala Persona](0023-potret-ekspresi-persona.md)                                    | Accepted     | Game, aset, cerita    |
+| 0024 | [Emosi per varian jawaban](0024-emosi-per-varian-jawaban.md)                                         | Accepted     | AI, validator, cerita |
+| 0025 | [Pemilihan pembicara menurut keahlian](0025-pemilihan-pembicara-keahlian.md)                         | Accepted     | AI, prompt            |
+| 0026 | [Mode permainan dipilih guru](0026-mode-permainan.md)                                                | Accepted     | AI, cerita, backend   |
 
 ## Status
 

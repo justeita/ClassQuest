@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { toAssetManifest } from "../assets/manifest";
-import { FIXED_CAST } from "../story/cast";
+import { FIXED_CAST, CAST_EXPERTISE } from "../story/cast";
 import { MockProvider } from "./mock-provider";
 import {
   buildChapterPrompt,
@@ -266,6 +266,13 @@ describe("blok prompt dan urutannya", () => {
     expect(SYSTEM_PROMPT).toContain("SUARA DAN ROLEPLAY");
     expect(SYSTEM_PROMPT).toContain('Hindari "Anda" dan "Saya"');
     expect(SYSTEM_PROMPT).toContain("roleplay yang hidup");
+  });
+
+  it("system prompt mengarahkan dialog ke tokoh yang ahli di bidangnya", () => {
+    expect(SYSTEM_PROMPT).toContain("PEMILIHAN PEMBICARA");
+    expect(SYSTEM_PROMPT).toContain("Dialog tentang suatu bidang diberikan");
+    expect(SYSTEM_PROMPT).toContain("Elian, Elias, dan");
+    expect(SYSTEM_PROMPT).toContain("Clara memang gemar membaca");
   });
 
   it("TASK mengikuti nada guru dan mengingatkan suara roleplay", () => {
@@ -560,8 +567,8 @@ describe("repair", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("parameter generasi", () => {
-  it("memakai PROMPT_VERSION story-v8", () => {
-    expect(PROMPT_VERSION).toBe("story-v8");
+  it("memakai PROMPT_VERSION story-v10", () => {
+    expect(PROMPT_VERSION).toBe("story-v10");
   });
 
   it("BATAS OUTLINE menyebut batas konsep dan enum role", () => {
@@ -692,6 +699,26 @@ describe("roster tetap", () => {
     expect(user).toContain("Griselda");
     expect(user).toContain("berjubah marun bertongkat kayu");
     expect(user).toContain("Pelajar akademi bertopi biru tua");
+  });
+
+  it("CAST membawa kolom keahlian untuk setiap tokoh tetap", () => {
+    const { user } = buildOutlinePrompt(outlineInput());
+
+    expect(user).toContain("keahlian: ");
+    expect(user).toContain("jangan disalin ke keluaran JSON");
+
+    for (const [id, keahlian] of Object.entries(CAST_EXPERTISE)) {
+      expect(user).toContain(`- ${id} |`);
+      expect(user).toContain(`keahlian: ${keahlian}`);
+    }
+  });
+
+  it("keahlian pemilik topik jelas tercantum di CAST", () => {
+    const { user } = buildOutlinePrompt(outlineInput());
+
+    expect(user).toContain("keahlian: ikan, sungai, memancing, perahu, arus");
+    expect(user).toContain("keahlian: ladang, sawah, tanaman, panen, tanah");
+    expect(user).toContain("keahlian: menjaga, keamanan, aturan");
   });
 });
 

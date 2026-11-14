@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -77,8 +77,10 @@ Setiap karakter punya enam potret dialog di
 `angry`, `shocked`, dan `thinking` (kanvas 456×360 diseragamkan untuk semua
 karakter, tinggi kepala dinormalkan dan digeser satu nilai tetap agar potret
 tidak bergeser saat ekspresi berganti, latar transparan).
-Potret dirender DOM dan bukan bagian `PreloadScene` (ADR 0020). Kolom Potret di
+Potret dirender DOM dan bukan bagian `PreloadScene` (ADR 0023). Kolom Potret di
 bawah menunjuk foldernya; nama folder mengikuti berkas sumber, bukan id manifest.
+Persona lengkap tiap karakter (gender, usia, rambut, outfit, sifat) ada di
+[`cast-bible.md`](./cast-bible.md).
 
 | id            | Label                | Sprite                    | Potret (folder)            | Frame | Tags                                          | Status |
 | ------------- | -------------------- | ------------------------- | -------------------------- | ----- | --------------------------------------------- | ------ |
@@ -210,7 +212,7 @@ Satu lagu untuk seluruh permainan; chapter tidak berganti lagu.
 | `ui_portrait_frame` | Bingkai potret | `/assets/ui/portrait_frame.png` | potret, bingkai, karakter, frame | ready  |
 | `ui_default`        | UI default     | `/assets/ui/default.png`        | default, cadangan, panel, netral | ready  |
 
-Sejak ADR 0020, panel dialog digambar DOM, dan sejak rework kotak dialog ia
+Sejak ADR 0023, panel dialog digambar DOM, dan sejak rework kotak dialog ia
 menjadi kotak CSS navy gelap membulat (bukan `ui_textbox`), dan bingkai potret
 (`ui_portrait_frame`) tidak dipakai runtime karena potret digambar tanpa bingkai.
 Keduanya tetap ada di manifest supaya tidak ada aset yang hilang dari repo;

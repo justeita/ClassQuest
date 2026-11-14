@@ -23,13 +23,13 @@
  */
 
 import { ASSETS_BY_ID } from "../assets/manifest";
-import { FIXED_CAST } from "../story/cast";
+import { FIXED_CAST, CAST_EXPERTISE } from "../story/cast";
 import type { CharacterRole } from "../story/schema";
 import type { AssetManifest } from "../story/validate";
 import type { LlmRequest } from "./provider";
 
 /** Versi prompt. Naikkan setiap kali perilaku prompt berubah. */
-export const PROMPT_VERSION = "story-v8";
+export const PROMPT_VERSION = "story-v10";
 
 /**
  * Plafon output per panggilan. Reasoning model bisa memakai 6.000–14.000
@@ -74,6 +74,12 @@ export const MATERIAL_END = "<<<MATERIAL_END>>>";
  * varian `when.jawaban` supaya tiap pilihan salah dibalas berbeda (ADR 0021).
  * `story-v8` menambah pola wajib di blok `BRANCHING`: pemain mengucapkan
  * jawabannya lebih dulu, tokoh lain menanggapi (ADR 0022).
+ * `story-v9` membuat emosi menjadi bagian wajib percakapan: setiap beat
+ * `dialogue` harus punya `expression`, dan varian `textVariants` boleh membawa
+ * emosinya sendiri (ADR 0024).
+ * `story-v10` menambahkan blok `PEMILIHAN PEMBICARA`: dialog tentang bidang
+ * tertentu harus jatuh ke tokoh yang keahliannya cocok, dan blok `CAST` kini
+ * membawa kolom `keahlian` per tokoh (ADR 0025).
  */
 export const SYSTEM_PROMPT = `Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
 Tugasmu mengubah MATERI dari guru menjadi cerita yang bisa dimainkan.
@@ -89,10 +95,12 @@ ATURAN KERAS
 5. Setiap chapter minimal memiliki satu beat bertipe "challenge".
 6. Patuhi batas panjang teks: beat maksimal 240 karakter.
 7. Bahasa seluruh cerita mengikuti meta.language.
-8. Beat "dialogue" dan "narration" boleh memakai field "expression" untuk
-   memilih potret pembicara: neutral, happy, sad, angry, shocked, thinking.
+8. EMOSI WAJIB. Setiap beat "dialogue" wajib punya field "expression" berisi
+   salah satu dari: neutral, happy, sad, angry, shocked, thinking. Jangan
+   membiarkan percakapan tanpa emosi. Emosi mengikuti reaksi tokoh pada kalimat
+   itu, bukan dipilih acak atau diulang terus. Varian di "textVariants" boleh
+   punya "expression" sendiri supaya emosi bisa berbeda pada jawaban salah.
    Beat "narration" hanya boleh memakai "expression" bila punya "speakerId".
-   Pilih ekspresi yang cocok dengan isi kalimat; default-nya neutral.
 9. Keluaran HARUS JSON valid sesuai SCHEMA. Tanpa markdown, tanpa komentar,
    tanpa penjelasan tambahan.
 
@@ -103,6 +111,38 @@ GAYA
 - Suasana: hangat, sedikit misterius, aman untuk anak sekolah.
 - Tidak ada kekerasan, romansa, horor, atau tema depresi. Ketegangan hanya
   sebatas rasa penasaran.
+
+PEMILIHAN PEMBICARA
+- Setiap tokoh punya bidangnya sendiri; lihat kolom "keahlian" di blok CAST.
+  Dialog tentang suatu bidang diberikan kepada tokoh yang keahliannya cocok.
+- Jangan memberi dialog ahli kepada tokoh yang bukan ahlinya. Elian, Elias, dan
+  Clara memang gemar membaca, tetapi mereka pelajar: jangan jadikan mereka
+  sumber jawaban soal ikan, ladang, atau keamanan desa.
+- Topik desa dan alam punya pemiliknya: ikan, sungai, dan perahu → Marlow;
+  ladang, tanaman, dan panen → Theo; menjaga, aturan, dan keamanan → Leonhardt;
+  sejarah dan cerita lama desa → Eldric.
+- Konsep pelajaran tetap disampaikan Edric sebagai mentor, atau oleh tokoh yang
+  mengalami langsung. Tokoh ahli menjelaskan dari pengalamannya, bukan dari buku.
+- Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor. Jangan mengarang
+  keahlian baru untuk tokoh lain.
+
+EMOSI
+- Percakapan adalah adegan, dan adegan punya wajah. Setiap kali tokoh bicara,
+  pembaca harus bisa menebak perasaannya dari potretnya.
+- neutral — kalimat biasa, penjelasan, atau saat tokoh menahan diri.
+- happy — senang, bangga, menyambut, atau menguatkan temannya.
+- sad — kecewa, sedih, menyesal, atau kehilangan sesuatu.
+- angry — kesal atau tegas, tetapi tidak pernah kasar dan tidak pernah
+  mengancam. Marah di sini berarti "serius", bukan "berteriak".
+- shocked — kaget karena hal tak terduga, temuan, atau kejadian mendadak.
+- thinking — bingung, ragu, menimbang, atau sedang mencari jawaban. Ini emosi
+  utama saat tokoh mendengar jawaban siswa yang keliru.
+- Ganti emosi ketika reaksi tokoh berubah. Enam dialog berturut-turut dengan
+  emosi yang sama membuat adegan terasa mati.
+- Emosi harus cocok dengan kalimatnya. Jangan menulis "Aku tidak mengerti"
+  dengan emosi happy, dan jangan menulis kabar buruk dengan emosi happy.
+- Sesudah siswa menjawab salah, tokoh yang menanggapi memakai thinking, sad,
+  atau shocked sesuai karakternya; sesudah jawaban benar, pakai happy.
 
 SUARA DAN ROLEPLAY
 - Tulis seperti memandu roleplay yang hidup, bukan buku pelajaran dan bukan
@@ -457,7 +497,14 @@ const SECTION_SCHEMA_CHAPTER = `SCHEMA CHAPTER (ringkas)
             "type": "dialogue",
             "speakerId": "char_...",
             "text": "...",
-            "expression": "happy"
+            "expression": "happy",
+            "textVariants": [
+              {
+                "when": { "jawaban": "jawaban salah" },
+                "text": "balasan untuk jawaban itu",
+                "expression": "thinking"
+              }
+            ]
           }
         ]
       }
@@ -491,9 +538,17 @@ BEAT
 - { "type": "challenge", "challengeId": "chl_..." }
 - { "type": "transition", "effect": "fade" | "cut", "text": "..." }
 
-EXPRESSION (opsional; default "neutral")
+EXPRESSION
 - Nilai: neutral | happy | sad | angry | shocked | thinking.
-- Menentukan potret pembicara. Narration hanya boleh memakainya bersama speakerId.
+- WAJIB pada setiap beat "dialogue"; tanpa itu potret tokoh selalu netral dan
+  percakapan terasa datar.
+- Opsional pada "narration", dan hanya boleh dipakai bersama "speakerId".
+- Varian "textVariants" boleh punya "expression" sendiri. Varian yang tidak
+  menyebutkannya memakai emosi beat induk.
+- Sesudah siswa menjawab salah, tokoh yang menanggapi memakai thinking, sad,
+  atau shocked; sesudah jawaban benar, happy.
+- Pilih emosi dari reaksi tokoh pada kalimat itu, dan ganti bila reaksinya
+  berubah. Jangan mengulang emosi yang sama sepanjang scene.
 
 CHALLENGE
 - multiple_choice: options[2..5], correctOptionId
@@ -547,26 +602,29 @@ const SECTION_BRANCHING_RULES = `BRANCHING
 - Varian when.jawaban dipertimbangkan lebih dulu daripada when.flag, dan hanya
   berlaku untuk tantangan yang percobaan terakhirnya salah; dialog sesudah
   jawaban benar tetap memakai teks utama.
-- {{jawaban}} boleh dipakai di dalam teks varian; teks varian maksimal 120
-  karakter.
+- {{jawaban}} boleh dipakai di teks varian; teks varian maksimal 120 karakter.
+- Varian jawaban salah wajib punya expression sendiri (thinking/sad/shocked).
 - Flag id flg_[a-z0-9_]+; satu flag per tantangan; pakai ulang id yang ada.
 - Field di luar SCHEMA CHAPTER tidak boleh ditambah.
 
 CONTOH onWrong
 { "type": "challenge", "challengeId": "chl_x",
   "onWrong": { "setFlags": { "flg_salah_x": true } } }
-CONTOH dialog sesudah soal ("4 cangkir" dan "12 cangkir" diucapkan siswa, lalu
-dibalas berbeda oleh tokoh lain)
-{ "type": "dialogue", "speakerId": "char_mc", "text": "Jawabanku enam cangkir.",
+CONTOH dialog sesudah soal (emosi berbeda per varian; char_mc mengucap, tokoh lain menanggapi)
+{ "type": "dialogue", "speakerId": "char_mc", "text": "Jawabanku enam cangkir.", "expression": "neutral",
   "textVariants": [
-    { "when": { "jawaban": "4 cangkir" }, "text": "Jawabanku empat cangkir." },
-    { "when": { "jawaban": "12 cangkir" }, "text": "Jawabanku dua belas cangkir." },
-    { "when": { "flag": "flg_salah_x", "is": true }, "text": "Tadi aku menjawab {{jawaban}}." } ] }
+    { "when": { "jawaban": "4 cangkir" }, "text": "Jawabanku empat cangkir.", "expression": "thinking" },
+    { "when": { "jawaban": "12 cangkir" }, "text": "Jawabanku dua belas cangkir.", "expression": "thinking" },
+    { "when": { "flag": "flg_salah_x", "is": true }, "text": "Tadi aku menjawab {{jawaban}}.", "expression": "sad" } ] }
 { "type": "dialogue", "speakerId": "char_npc_1", "text": "Tepat, enam cangkir.",
+  "expression": "happy",
   "textVariants": [
-    { "when": { "jawaban": "4 cangkir" }, "text": "Empat cangkir? Masih kurang." },
-    { "when": { "jawaban": "12 cangkir" }, "text": "Dua belas cangkir? Kebanyakan." },
-    { "when": { "flag": "flg_salah_x", "is": true }, "text": "Belum tepat." } ] }`;
+    { "when": { "jawaban": "4 cangkir" }, "text": "Empat cangkir? Masih kurang.",
+      "expression": "thinking" },
+    { "when": { "jawaban": "12 cangkir" }, "text": "Dua belas cangkir? Kebanyakan.",
+      "expression": "shocked" },
+    { "when": { "flag": "flg_salah_x", "is": true }, "text": "Belum tepat.",
+      "expression": "thinking" } ] }`;
 
 const branchingSection = (usedFlags: readonly string[]): string => {
   const flags =
@@ -613,20 +671,24 @@ const assetSection = (assets: AssetManifest): string => {
 };
 
 /**
- * Blok roster tetap. Deskripsi penampilan ikut dikirim supaya model menulis
- * aksi dan dialog yang cocok dengan sprite (mis. nenek bertongkat atau pelajar
- * bertopi biru), bukan mengarang ciri fisik yang tidak ada.
+ * Blok roster tetap. Deskripsi penampilan dan keahlian ikut dikirim supaya model
+ * menulis aksi dan dialog yang cocok dengan sprite (mis. nenek bertongkat atau
+ * pelajar bertopi biru), dan memberi dialog bidang tertentu kepada tokoh yang
+ * memang ahli di bidang itu (ADR 0025).
  */
 const castSection = (): string => {
   const lines = FIXED_CAST.map((member) => {
     const smallTalk =
       member.smallTalk === undefined ? "" : ` | obrolan: "${member.smallTalk}"`;
-    return `- ${member.id} | ${member.name} | role: ${member.role} | sprite: ${member.spriteId} | deskripsi: ${member.description ?? "(tanpa deskripsi)"}${smallTalk}`;
+    const keahlian = CAST_EXPERTISE[member.id];
+    const bidang = keahlian === undefined ? "" : ` | keahlian: ${keahlian}`;
+    return `- ${member.id} | ${member.name} | role: ${member.role} | sprite: ${member.spriteId} | deskripsi: ${member.description ?? "(tanpa deskripsi)"}${bidang}${smallTalk}`;
   });
 
   return [
     "CAST",
     "Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role, spriteId, description, dan smallTalk dari daftar ini. Jangan menambah, mengurangi, atau mengganti nama tokoh.",
+    "Kolom keahlian hanya untuk memilih pembicara; jangan disalin ke keluaran JSON.",
     ...lines,
   ].join("\n");
 };
@@ -782,6 +844,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
       `Tulis chapter "${input.planned.id}" berjudul "${input.planned.title}" untuk konsep "${input.planned.concept}".`,
       metaContext(input.meta, language),
       'Tulis narasi dan dialog sebagai roleplay yang hidup: bahasa sehari-hari siswa, hindari "Anda/Saya" yang kaku, dan ikuti nada di atas.',
+      "Beri setiap beat dialogue field expression sesuai reaksinya, dan beri expression berbeda pada varian jawaban salah.",
       `Halaman materi untuk chapter ini: ${pageList(summary.pages)}.`,
       summary.droppedPages.length > 0
         ? `Materi dipotong pada batas ${MAX_MATERIAL_CHARS} karakter; halaman ${pageList(

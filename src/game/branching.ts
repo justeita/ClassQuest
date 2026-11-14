@@ -16,7 +16,9 @@ import type {
   DetourBeat,
   DialogueBeat,
   Story,
+  TextVariant,
 } from "@/story/schema";
+import type { Expression } from "@/story/expression";
 
 /** Nilai flag cerita saat berjalan; kunci = id flag (pola `flg_*`). */
 export type FlagState = Readonly<Record<string, boolean>>;
@@ -105,14 +107,45 @@ export function resolveDialogueText(
   flags: FlagState,
   jawaban?: string | null,
 ): string {
+  return resolveDialogueLine(beat, flags, jawaban).text;
+}
+
+/** Baris dialog terpilih: teks beserta emosi yang harus ditampilkan. */
+export type DialogueLine = {
+  text: string;
+  /** `undefined` berarti beat maupun variannya tidak menyebut emosi. */
+  expression: Expression | undefined;
+};
+
+/**
+ * Teks **dan** emosi dialog efektif.
+ *
+ * Emosi mengikuti sumber teks yang menang (ADR 0024): varian yang terpilih
+ * memakai `expression`-nya sendiri bila ada, dan jatuh ke emosi beat induk bila
+ * varian tidak menyebutkannya. Jadi tokoh bisa bingung (`thinking`) khusus pada
+ * balasan jawaban salah tanpa mengubah emosi pada jawaban benar.
+ *
+ * `resolveDialogueText` tetap ada untuk pemanggil yang hanya butuh teks; fungsi
+ * ini satu-satunya tempat urutan pemilihan varian didefinisikan.
+ */
+export function resolveDialogueLine(
+  beat: DialogueBeat,
+  flags: FlagState,
+  jawaban?: string | null,
+): DialogueLine {
   const variants = beat.textVariants ?? [];
   const kunci = normalisasiJawaban(jawaban ?? "");
+
+  const dari = (variant: TextVariant): DialogueLine => ({
+    text: substituteJawaban(variant.text, jawaban),
+    expression: variant.expression ?? beat.expression,
+  });
 
   if (kunci.length > 0) {
     for (const variant of variants) {
       if (!("jawaban" in variant.when)) continue;
       if (normalisasiJawaban(variant.when.jawaban) === kunci) {
-        return substituteJawaban(variant.text, jawaban);
+        return dari(variant);
       }
     }
   }
@@ -120,11 +153,14 @@ export function resolveDialogueText(
   for (const variant of variants) {
     if (!("flag" in variant.when)) continue;
     if (flags[variant.when.flag] === variant.when.is) {
-      return substituteJawaban(variant.text, jawaban);
+      return dari(variant);
     }
   }
 
-  return substituteJawaban(beat.text, jawaban);
+  return {
+    text: substituteJawaban(beat.text, jawaban),
+    expression: beat.expression,
+  };
 }
 
 /** Jumlah percobaan beat tantangan; default 1 (perilaku v1.0 biasa). */

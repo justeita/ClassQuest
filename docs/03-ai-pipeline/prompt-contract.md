@@ -9,7 +9,7 @@ owner: tim ClassQuest
 Prompt adalah kode. Ia punya versi, dites, dan tidak diubah diam-diam.
 
 - Implementasi: `src/ai/prompt.ts`
-- Versi saat ini: `PROMPT_VERSION = "story-v8"`
+- Versi saat ini: `PROMPT_VERSION = "story-v10"`
 - Aturan isi cerita: [`generation-rules.md`](./generation-rules.md)
 - Schema output: [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)
 
@@ -24,7 +24,7 @@ Selalu urutan ini. Instruksi sistem tidak boleh berada setelah data pengguna.
   1. SCHEMA (bentuk JSON yang harus dihasilkan)
   1b. BRANCHING (opsional; hanya bila AI_BRANCHING=on)
   2. ASSETS (daftar aset yang boleh dipakai)
-  3. CAST (roster tetap: id, nama, role, sprite, deskripsi penampilan)
+  3. CAST (roster tetap: id, nama, role, sprite, deskripsi penampilan, keahlian)
   4. OUTLINE (struktur yang sudah disepakati)
   5. CONTINUITY (ringkasan chapter sebelumnya)
   6. MATERIAL (teks materi, sebagai DATA)
@@ -35,7 +35,7 @@ Selalu urutan ini. Instruksi sistem tidak boleh berada setelah data pengguna.
 data, sehingga teks seperti "abaikan aturan di atas" di dalam PDF tidak terlihat
 seperti perintah baru.
 
-## System prompt (story-v5)
+## System prompt (story-v10)
 
 ```text
 Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
@@ -52,10 +52,12 @@ ATURAN KERAS
 5. Setiap chapter minimal memiliki satu beat bertipe "challenge".
 6. Patuhi batas panjang teks: beat maksimal 240 karakter.
 7. Bahasa seluruh cerita mengikuti meta.language.
-8. Beat "dialogue" dan "narration" boleh memakai field "expression" untuk
-   memilih potret pembicara: neutral, happy, sad, angry, shocked, thinking.
+8. EMOSI WAJIB. Setiap beat "dialogue" wajib punya field "expression" berisi
+   salah satu dari: neutral, happy, sad, angry, shocked, thinking. Jangan
+   membiarkan percakapan tanpa emosi. Emosi mengikuti reaksi tokoh pada kalimat
+   itu, bukan dipilih acak atau diulang terus. Varian di "textVariants" boleh
+   punya "expression" sendiri supaya emosi bisa berbeda pada jawaban salah.
    Beat "narration" hanya boleh memakai "expression" bila punya "speakerId".
-   Pilih ekspresi yang cocok dengan isi kalimat; default-nya neutral.
 9. Keluaran HARUS JSON valid sesuai SCHEMA. Tanpa markdown, tanpa komentar,
    tanpa penjelasan tambahan.
 
@@ -66,6 +68,38 @@ GAYA
 - Suasana: hangat, sedikit misterius, aman untuk anak sekolah.
 - Tidak ada kekerasan, romansa, horor, atau tema depresi. Ketegangan hanya
   sebatas rasa penasaran.
+
+PEMILIHAN PEMBICARA
+- Setiap tokoh punya bidangnya sendiri; lihat kolom "keahlian" di blok CAST.
+  Dialog tentang suatu bidang diberikan kepada tokoh yang keahliannya cocok.
+- Jangan memberi dialog ahli kepada tokoh yang bukan ahlinya. Elian, Elias, dan
+  Clara memang gemar membaca, tetapi mereka pelajar: jangan jadikan mereka
+  sumber jawaban soal ikan, ladang, atau keamanan desa.
+- Topik desa dan alam punya pemiliknya: ikan, sungai, dan perahu → Marlow;
+  ladang, tanaman, dan panen → Theo; menjaga, aturan, dan keamanan → Leonhardt;
+  sejarah dan cerita lama desa → Eldric.
+- Konsep pelajaran tetap disampaikan Edric sebagai mentor, atau oleh tokoh yang
+  mengalami langsung. Tokoh ahli menjelaskan dari pengalamannya, bukan dari buku.
+- Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor. Jangan mengarang
+  keahlian baru untuk tokoh lain.
+
+EMOSI
+- Percakapan adalah adegan, dan adegan punya wajah. Setiap kali tokoh bicara,
+  pembaca harus bisa menebak perasaannya dari potretnya.
+- neutral — kalimat biasa, penjelasan, atau saat tokoh menahan diri.
+- happy — senang, bangga, menyambut, atau menguatkan temannya.
+- sad — kecewa, sedih, menyesal, atau kehilangan sesuatu.
+- angry — kesal atau tegas, tetapi tidak pernah kasar dan tidak pernah
+  mengancam. Marah di sini berarti "serius", bukan "berteriak".
+- shocked — kaget karena hal tak terduga, temuan, atau kejadian mendadak.
+- thinking — bingung, ragu, menimbang, atau sedang mencari jawaban. Ini emosi
+  utama saat tokoh mendengar jawaban siswa yang keliru.
+- Ganti emosi ketika reaksi tokoh berubah. Enam dialog berturut-turut dengan
+  emosi yang sama membuat adegan terasa mati.
+- Emosi harus cocok dengan kalimatnya. Jangan menulis "Aku tidak mengerti"
+  dengan emosi happy, dan jangan menulis kabar buruk dengan emosi happy.
+- Sesudah siswa menjawab salah, tokoh yang menanggapi memakai thinking, sad,
+  atau shocked sesuai karakternya; sesudah jawaban benar, pakai happy.
 
 SUARA DAN ROLEPLAY
 - Tulis seperti memandu roleplay yang hidup, bukan buku pelajaran dan bukan
@@ -130,6 +164,23 @@ berbeda, dengan `when: { flag, is }` sebagai cadangan umum (lihat
 pembenaran, lalu tokoh lain menanggapi ucapan itu (lihat
 [ADR 0022](../09-decisions/0022-pemain-mengucapkan-jawaban-di-dialog.md)).
 
+`story-v9` menjadikan **emosi bagian wajib percakapan** (lihat
+[ADR 0024](../09-decisions/0024-emosi-per-varian-jawaban.md)). System prompt
+mendapat blok `EMOSI` (arti tiap ekspresi, larangan mengulang emosi, dan aturan
+"jawaban salah → thinking/sad/shocked, jawaban benar → happy"), aturan keras
+nomor 8 mewajibkan `expression` pada setiap beat `dialogue`, dan blok
+`BRANCHING` mewajibkan varian jawaban salah punya `expression` sendiri. Cerita
+lama tetap valid: `expression` pada varian opsional, dan validator hanya memberi
+peringatan `W_DIALOGUE_NO_EXPRESSION`.
+
+`story-v10` menambahkan blok `PEMILIHAN PEMBICARA` dan kolom `keahlian` di blok
+`CAST` (lihat
+[ADR 0025](../09-decisions/0025-pemilihan-pembicara-keahlian.md)). Tujuannya:
+dialog tentang bidang tertentu jatuh ke tokoh yang memang ahli — materi tentang
+ikan dijawab Marlow si nelayan, bukan pelajar yang gemar membaca. Tidak ada
+perubahan schema; keahlian hanya data prompt dari `CAST_EXPERTISE` di
+`src/story/cast.ts`. Sifatnya mengarahkan, bukan menjamin.
+
 ## Blok schema di prompt
 
 Ada dua panggilan berbeda, dan masing-masing mengirim schema yang berbeda. Jangan
@@ -182,9 +233,14 @@ BEAT
 - { "type": "challenge", "challengeId": "chl_x" }
 - { "type": "transition", "effect": "fade" }
 
-EXPRESSION (opsional; default "neutral")
+EXPRESSION
 - Nilai: neutral | happy | sad | angry | shocked | thinking.
-- Menentukan potret pembicara. Narration hanya boleh memakainya bersama speakerId.
+- WAJIB pada setiap beat "dialogue"; tanpa itu potret tokoh selalu netral.
+- Opsional pada "narration", dan hanya boleh dipakai bersama "speakerId".
+- Varian "textVariants" boleh punya "expression" sendiri; varian yang tidak
+  menyebutkannya memakai emosi beat induk.
+- Sesudah jawaban salah, penanggap memakai thinking/sad/shocked; sesudah
+  jawaban benar, happy.
 
 CHALLENGE
 - multiple_choice: options[2..5], correctOptionId
@@ -235,16 +291,22 @@ Sumbernya `src/story/cast.ts`; jangan menyalin nama ke prompt builder.
 CAST
 Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role,
 spriteId, description, dan smallTalk dari daftar ini. ...
+Kolom keahlian hanya untuk memilih pembicara; jangan disalin ke keluaran JSON.
 
-- char_mc | Kael | role: player | sprite: char_mc | deskripsi: Pemuda bersyal biru ...
-- char_npc_10 | Edric | role: mentor | sprite: char_npc_10 | deskripsi: Tetua desa ...
-- char_npc_5 | Griselda | role: npc | sprite: char_npc_5 | deskripsi: Tetua desa berambut putih tersanggul ...
+- char_mc | Kael | role: player | sprite: char_mc | deskripsi: Pemuda bersyal biru ... | keahlian: murid akademi; mengamati dan bertanya, bukan ahli topik
+- char_npc_10 | Edric | role: mentor | sprite: char_npc_10 | deskripsi: Tetua desa ... | keahlian: penasihat desa; pengetahuan umum, kebijaksanaan, adat, memimpin
+- char_npc_7 | Marlow | role: npc | sprite: char_npc_7 | deskripsi: Pemancing bertopi jerami ... | keahlian: ikan, sungai, memancing, perahu, arus
 ```
 
 Deskripsi **wajib** ikut karena menyebut ciri yang terlihat di sprite (topi,
 kacamata, jubah, tongkat). Tanpa itu model bisa menulis aksi yang tidak cocok
 dengan gambar. Pipeline tetap menimpa `outline.cast` dengan roster ini sebelum
 validasi, jadi model tidak bisa mengganti nama walaupun mengabaikan instruksi.
+
+Kolom `keahlian` berasal dari `CAST_EXPERTISE` (`src/story/cast.ts`), bukan dari
+schema cerita. Isinya menandai siapa yang berhak menjelaskan apa, supaya model
+tidak memilih pembicara hanya karena deskripsinya terdengar pintar. Kolom ini
+hanya untuk pemilihan pembicara; model dilarang menyalinnya ke JSON.
 
 ## Blok kontinuitas
 
@@ -292,6 +354,8 @@ Isinya mengajari model menulis konsekuensi jawaban salah, bukan pilihan dialog:
 - Varian `when.flag` hanya merujuk flag yang sudah di-set di beat sebelumnya.
 - `{{jawaban}}` boleh dipakai di dalam teks varian (maks 120 karakter); teks
   varian tetap dibatasi 240 karakter oleh schema.
+- Varian jawaban salah wajib punya `expression` sendiri yang berbeda dari teks
+  utama (ADR 0024): `thinking`, `sad`, atau `shocked`.
 - Flag id `flg_[a-z0-9_]+`, satu flag per tantangan, id konsisten lintas chapter
   (blok menyebutkan id yang sudah dipakai chapter sebelumnya).
 

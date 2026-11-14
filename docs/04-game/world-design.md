@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -215,7 +215,7 @@ terlihat.
 | Anchor      | Kaki di tengah bawah (`setOrigin(0.5, 1)`)                                 |
 | Skala       | tinggi diseragamkan ke 56 px di peta                                       |
 | Animasi     | idle selalu berputar; pemain menambah walk saat bergerak                   |
-| Portrait    | 64×64 px, tidak dibuat ulang dari sprite baru                              |
+| Portrait    | kanvas 456×360 px, enam ekspresi, dirender DOM (ADR 0023)                  |
 
 Animasi didaftarkan sekali per karakter di `GameScene` (kunci
 `<id>:<jenis>:<arah>`, `repeat: -1`), dari metadata
@@ -252,7 +252,7 @@ Font monospace sistem yang dulu dipakai (`textbox.ts`, `interaction.ts`) tidak
 cocok dengan pixel art dan, lebih penting, teks yang digambar di canvas 640×360
 selalu bergerigi setelah upscale `image-rendering: pixelated`.
 
-Keputusan (ADR 0007, diperluas ADR 0020): **teks permainan pindah ke DOM**.
+Keputusan (ADR 0007, diperluas ADR 0023): **teks permainan pindah ke DOM**.
 
 - Panel, potret, nama, isi dialog, dan indikator "lanjut" dirender React
   (`DialogueBox.tsx`). Panel bukan lagi gambar `ui_textbox`, melainkan kotak CSS
@@ -260,7 +260,7 @@ Keputusan (ADR 0007, diperluas ADR 0020): **teks permainan pindah ke DOM**.
   sisi kiri atas panel, MC (dicerminkan) di sisi kanan — dasarnya menempel
   tepi atas panel, dengan jarak masuk sedikit lebih besar dari radius sudut
   panel supaya siluetnya tidak terpotong lengkungan — dan berekspresi sesuai
-  field `expression` beat. Importer menormalkan tinggi kepala, menyusun potret
+  `expression` beat atau varian teks yang menang (ADR 0024). Importer menormalkan tinggi kepala, menyusun potret
   relatif ke satu patokan tanpa memotong sisinya, menaikkan skala karakter
   berbadan pendek supaya isinya menyentuh tepi bawah
   kanvas, dan memadatkan tepi bawah yang memudar jadi potongan rata; jadi

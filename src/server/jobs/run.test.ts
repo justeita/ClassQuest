@@ -374,7 +374,7 @@ describe("runJob — fallback dan error tak terduga", () => {
       fallbackReason?: string | null;
       diagnostics?: unknown;
     };
-    expect(log.promptVersion).toBe("story-v8");
+    expect(log.promptVersion).toBe("story-v10");
     expect(log.fallbackReason).not.toBeNull();
     expect(Array.isArray(log.diagnostics)).toBe(true);
 

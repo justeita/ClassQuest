@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -37,6 +37,39 @@ penampilan yang terlihat di sprite (topi, kacamata, jubah, tongkat), supaya aksi
 dan dialog cocok dengan gambar. Pipeline menimpa `outline.cast` sebelum validasi
 dan `assemble()` memakai roster yang sama, jadi nama tidak bisa berubah lewat
 keluaran model.
+
+Deskripsi yang dikirim ke model dibatasi 160 karakter per tokoh. Detail visual
+yang lebih kaya (rambut, outfit, pengait jubah, sifat) didokumentasikan di
+[`../07-assets/cast-bible.md`](../07-assets/cast-bible.md) untuk manusia, **bukan**
+untuk prompt. Kalau satu ciri wajib muncul di cerita, ciri itu harus masuk ke
+`description` di `src/story/cast.ts`.
+
+## Pemilihan pembicara
+
+Setiap tokoh punya bidangnya. Blok `CAST` membawa kolom `keahlian` dari
+`CAST_EXPERTISE` (`src/story/cast.ts`), dan system prompt punya blok
+`PEMILIHAN PEMBICARA` yang memerintahkan dialog bidang tertentu jatuh ke tokoh
+yang tepat (lihat
+[ADR 0025](../09-decisions/0025-pemilihan-pembicara-keahlian.md)).
+
+| Topik materi            | Pembicara yang tepat                           |
+| ----------------------- | ---------------------------------------------- |
+| Ikan, sungai, perahu    | Marlow (`char_npc_7`)                          |
+| Ladang, tanaman, panen  | Theo (`char_npc_9`)                            |
+| Menjaga, aturan, bahaya | Leonhardt (`char_npc_8`)                       |
+| Sejarah dan cerita lama | Eldric (`char_npc_6`)                          |
+| Nasihat dan adat desa   | Edric (`char_npc_10`), Griselda (`char_npc_5`) |
+| Konsep pelajaran umum   | Edric (`char_npc_10`) sebagai mentor           |
+
+Elian (`char_npc_1`), Elias (`char_npc_3`), dan Clara (`char_npc_4`) adalah
+pelajar yang gemar membaca. Mereka **bukan** sumber jawaban soal ikan, ladang,
+atau keamanan desa. Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor —
+jangan mengarang keahlian baru.
+
+Ini aturan prompt, bukan jaminan. Model masih bisa salah memilih pembicara,
+terutama bila materi mencampur banyak domain. Yang bisa diperiksa manusia:
+`speakerId` di setiap dialog harus masuk akal untuk topiknya, bukan hanya ada di
+cast.
 
 ## Struktur satu chapter (formula 5 scene)
 
@@ -128,6 +161,38 @@ Pak Bima: "Berarti airnya pergi ke suatu tempat. Ke mana?"
 
 Bedanya: yang kedua memberi **pengamatan**, bukan definisi. Definisi tetap muncul,
 tapi setelah siswa punya pengalaman.
+
+## Emosi percakapan
+
+Percakapan adalah adegan, dan adegan punya wajah. Setiap beat `dialogue` **wajib**
+punya `expression`, dan emosinya harus mengikuti reaksi tokoh pada kalimat itu —
+bukan dipilih acak, bukan diulang terus sepanjang scene (ADR 0024).
+
+| Ekspresi   | Kapan dipakai                                                 |
+| ---------- | ------------------------------------------------------------- |
+| `neutral`  | Kalimat biasa, penjelasan, atau saat tokoh menahan diri       |
+| `happy`    | Senang, bangga, menyambut, atau menguatkan teman              |
+| `sad`      | Kecewa, sedih, menyesal, atau kehilangan sesuatu              |
+| `angry`    | Kesal atau tegas — tidak pernah kasar, tidak pernah mengancam |
+| `shocked`  | Kaget karena hal tak terduga, temuan, atau kejadian mendadak  |
+| `thinking` | Bingung, ragu, menimbang, atau mencari jawaban                |
+
+Aturan yang paling sering dilanggar:
+
+- **Jangan menempelkan satu emosi ke seluruh scene.** Ganti emosi ketika reaksi
+  tokoh berubah; enam dialog dengan emosi sama membuat adegan terasa mati.
+- **Emosi harus cocok dengan kalimat.** Kalimat "Aku tidak mengerti" tidak boleh
+  memakai `happy`.
+- **Reaksi jawaban salah punya emosi sendiri.** `textVariants[]` boleh membawa
+  `expression`; itulah yang membuat tokoh bingung (`thinking`) hanya ketika siswa
+  menjawab keliru, lalu kembali senang (`happy`) pada teks utama untuk jawaban
+  benar.
+- **`narration` bukan percakapan.** Narasi hanya boleh memakai `expression` bila
+  punya `speakerId`, dan itu berarti memunculkan potret tanpa nama.
+
+Validator tidak memblokir dialog tanpa emosi — cerita tetap sah dan dimainkan
+dengan potret `neutral` — tetapi `W_DIALOGUE_NO_EXPRESSION` muncul per chapter
+supaya guru tahu percakapan mana yang masih datar.
 
 ## Suara, sudut pandang, dan nada
 

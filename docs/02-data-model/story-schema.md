@@ -143,6 +143,9 @@ Aturan:
   sembilan warga desa — untuk **semua** cerita. Model tidak boleh mengganti nama,
   id, role, sprite, deskripsi, atau obrolan tokoh. Schema tetap mengizinkan cast
   lain karena kontrak cerita tidak berubah; yang mengunci roster adalah pipeline.
+  Persona lengkap (gender, usia, rambut, outfit, sifat) ada di
+  [`../07-assets/cast-bible.md`](../07-assets/cast-bible.md) — dokumentasi saja,
+  tidak ikut ke prompt.
 
 ### `chapters`
 
@@ -203,6 +206,7 @@ type TextVariant = {
     | { jawaban: string } // balasan khusus satu jawaban salah (1..120 karakter)
     | { flag: string; is: boolean }; // flag harus ada di top-level flags
   text: string; // 1..240 karakter
+  expression?: Expression; // emosi khusus varian ini (ADR 0024)
 };
 
 type OnWrong = {
@@ -229,13 +233,13 @@ type DetourBeat =
 
 Aturan:
 
-| Field         | Aturan                                                      |
-| ------------- | ----------------------------------------------------------- |
-| `text`        | 1–240 karakter. Harus muat di textbox tanpa scroll.         |
-| `speakerId`   | Harus ada di `cast`.                                        |
-| `challengeId` | Harus ada di `challenges`.                                  |
-| `expression`  | Opsional; salah satu dari enam ekspresi, default `neutral`. |
-| `transition`  | Tidak boleh jadi beat terakhir sebuah scene.                |
+| Field         | Aturan                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `text`        | 1–240 karakter. Harus muat di textbox tanpa scroll.                                                                 |
+| `speakerId`   | Harus ada di `cast`.                                                                                                |
+| `challengeId` | Harus ada di `challenges`.                                                                                          |
+| `expression`  | Opsional; salah satu dari enam ekspresi, default `neutral`. Boleh juga di `textVariants[]` untuk emosi per jawaban. |
+| `transition`  | Tidak boleh jadi beat terakhir sebuah scene.                                                                        |
 
 `narration` = narator tanpa karakter. `dialogue` = karakter berbicara.
 
@@ -246,6 +250,24 @@ mana yang ditampilkan. `narration` boleh memunculkan potret **tanpa** nama
 pembicara lewat `speakerId` + `expression`; karena itu `expression` pada
 `narration` wajib disertai `speakerId`. Gaya tampilannya ada di
 [`../04-game/scene-format.md`](../04-game/scene-format.md) dan [ADR 0023](../09-decisions/0023-potret-ekspresi-persona.md).
+
+#### Emosi per varian jawaban
+
+`textVariants[]` boleh membawa `expression` sendiri (ADR 0024). Ini yang membuat
+tokoh berekspresi berbeda untuk tiap jawaban: bingung (`thinking`) saat siswa
+menjawab keliru, senang (`happy`) pada teks utama untuk jawaban benar.
+
+- Emosi mengikuti **sumber teks yang menang**: varian yang terpilih memakai
+  `expression`-nya sendiri; bila varian tidak menyebutkannya, game memakai emosi
+  beat induk.
+- Urutan pemilihan tetap sama seperti varian teks: `when.jawaban` menang atas
+  `when.flag`, lalu `text` utama.
+- `expression` pada varian **opsional**; cerita tanpa emosi varian tetap valid
+  dan berperilaku seperti v1.0.
+- Pipeline ClassQuest mewajibkan emosi pada setiap beat `dialogue` dan pada
+  setiap varian jawaban salah lewat prompt (`story-v9`). Validator tidak
+  memblokir, hanya memberi peringatan `W_DIALOGUE_NO_EXPRESSION` per chapter
+  yang percakapannya belum beremosi.
 
 #### Konsekuensi jawaban salah (opsional)
 
@@ -276,6 +298,9 @@ dan berperilaku seperti v1.0 biasa (`maxAttempts` efektif 1).
   - `{ when: { flag, is } }` — balasan umum saat nilai flag cocok.
     Varian `jawaban` selalu dipertimbangkan lebih dulu daripada varian `flag`,
     lalu `text` utama dipakai bila tidak ada yang cocok (ADR 0021).
+- Varian boleh membawa `expression` sendiri, sehingga potret pembicara ikut
+  berubah pada balasan itu — mis. `thinking` saat siswa menjawab salah
+  (ADR 0024). Lihat [Emosi per varian jawaban](#emosi-per-varian-jawaban).
 
 Contoh:
 

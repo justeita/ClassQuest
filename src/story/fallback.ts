@@ -417,6 +417,7 @@ const buildChapter = (
                         // `{{jawaban}}` diisi jawaban salah terakhir (ADR 0020),
                         // jadi cerita cadangan pun mengakui jawaban siswa.
                         text: "Kau menjawab {{jawaban}}. Tarik napas dulu, lalu baca ulang kalimat terakhir yang tadi kusebut.",
+                        expression: "thinking",
                       },
                     ],
                   },
@@ -443,6 +444,7 @@ const buildChapter = (
                         `Tidak apa-apa sempat menjawab {{jawaban}}. Kata kunci hari ini tetap ${concept}; sekarang kamu sudah menemukannya sendiri.`,
                         240,
                       ),
+                      expression: "sad",
                     },
                   ],
                 }
@@ -489,6 +491,7 @@ const buildChapter = (
                         type: "dialogue",
                         speakerId: mentorId,
                         text: "Tidak apa-apa. Lihat lagi catatan yang baru saja kamu tulis.",
+                        expression: "thinking",
                       },
                     ],
                   },
@@ -506,6 +509,7 @@ const buildChapter = (
                     {
                       when: { flag: FLAG_SALAH_CATATAN, is: true },
                       text: "Aku sempat lupa tadi, tapi sekarang catatanku sudah benar.",
+                      expression: "thinking",
                     },
                   ],
                 }

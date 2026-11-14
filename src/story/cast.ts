@@ -9,6 +9,10 @@
  * Deskripsi sengaja menyebut penampilan yang terlihat di sprite (topi, kacamata,
  * jubah, tongkat, dan sebagainya) supaya cerita yang ditulis model akurat saat
  * dipasangkan dengan gambar.
+ *
+ * Detail visual yang lebih lengkap (rambut, outfit, usia, sifat) didokumentasikan
+ * di `docs/07-assets/cast-bible.md`. Dokumen itu **tidak** dibaca runtime: yang
+ * sampai ke model hanya `description` di bawah, maksimal 160 karakter.
  */
 
 import type { Character } from "./schema";
@@ -54,7 +58,7 @@ export const FIXED_CAST: readonly Character[] = [
     role: "npc",
     spriteId: "char_npc_3",
     description:
-      "Pelajar akademi berkacamata persegi yang selalu membawa buku tebal bersampul hijau tua; tenang dan teliti.",
+      "Pelajar akademi berkacamata persegi panjang yang selalu membawa buku tebal bersampul hijau tua; tenang dan teliti.",
     smallTalk:
       "Aku suka mencatat hal-hal kecil. Kadang dari catatan yang paling sederhana, kita baru mengerti sesuatu yang besar.",
   },
@@ -124,6 +128,35 @@ export const FIXED_CAST: readonly Character[] = [
 export function fixedCast(): Character[] {
   return FIXED_CAST.map((member) => ({ ...member }));
 }
+
+/**
+ * Bidang keahlian tiap tokoh, **hanya untuk prompt**.
+ *
+ * `Character` di schema cerita sengaja tidak punya field ini: `description`
+ * dibatasi 160 karakter dan bercampur dengan ciri fisik, sehingga pekerjaan
+ * tokoh mudah tenggelam. Peta ini disalin ke blok `CAST` sebagai `keahlian:`
+ * supaya model tahu siapa yang berhak menjelaskan apa — mis. dialog tentang
+ * ikan jatuh ke Marlow (nelayan), bukan ke pelajar yang gemar membaca
+ * (ADR 0025).
+ *
+ * Isinya diturunkan dari pekerjaan di berkas persona ODT, tag aset karakter di
+ * manifest, dan `smallTalk`. Bukan kontrak: mengubahnya tidak mengubah schema
+ * cerita, hanya perilaku prompt. Rujukannya
+ * `docs/07-assets/cast-bible.md`.
+ */
+export const CAST_EXPERTISE: Readonly<Record<string, string>> = {
+  char_mc: "murid akademi; mengamati dan bertanya, bukan ahli topik",
+  char_npc_10:
+    "penasihat desa; pengetahuan umum, kebijaksanaan, adat, memimpin",
+  char_npc_1: "membaca, buku, hafalan, sihir ringan",
+  char_npc_3: "mencatat, ketelitian, hitungan, buku pelajaran",
+  char_npc_4: "membaca, menulis, belajar tekun",
+  char_npc_5: "nasihat, adat desa, merawat orang",
+  char_npc_6: "sejarah desa, cerita rakyat, pengetahuan lama",
+  char_npc_7: "ikan, sungai, memancing, perahu, arus",
+  char_npc_8: "menjaga, keamanan, aturan, keberanian, pos jaga",
+  char_npc_9: "ladang, sawah, tanaman, panen, tanah",
+};
 
 /** Id pemain tetap; dipakai fallback dan test. */
 export const PLAYER_ID = "char_mc";

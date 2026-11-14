@@ -15,7 +15,7 @@ import type { PortraitView } from "./textbox";
 /**
  * Isi kotak dialog. Panel, potret, nama, dan teks semuanya dirender DOM
  * (`DialogueBox.tsx`) supaya tajam; Phaser hanya memegang state typewriter
- * (ADR 0007 + ADR 0020).
+ * (ADR 0007 + ADR 0023).
  */
 export type DialogueView = {
   visible: boolean;

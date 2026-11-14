@@ -20,6 +20,21 @@ import { EXPRESSIONS } from "./expression";
 
 export const STORY_SCHEMA_VERSION = "1.0" as const;
 
+/**
+ * Mode permainan yang dipilih guru (ADR 0026).
+ *
+ * - `menjelaskan` — cerita utuh yang menjelaskan konsep.
+ * - `pertanyaan` — kuis padat dengan cerita tipis sebagai pengantar.
+ * - `mix` — gabungan keduanya, dengan cerita yang agak lebih panjang.
+ *
+ * Urutan array dipakai sebagai urutan pilihan di form guru.
+ */
+export const STORY_MODES = ["menjelaskan", "pertanyaan", "mix"] as const;
+
+export const storyModeSchema = z.enum(STORY_MODES);
+
+export type StoryMode = z.infer<typeof storyModeSchema>;
+
 /** Teks dengan batas bawah dan atas, dihitung per code point. */
 const boundedText = (min: number, max: number, label = "teks") =>
   z.string().superRefine((value, ctx) => {
@@ -77,6 +92,11 @@ export const storyMetaSchema = z.strictObject({
     message: 'Bahasa harus kode BCP-47 pendek, mis. "id" atau "en-US".',
   }),
   tone: boundedText(1, 60, "Nada cerita"),
+  /**
+   * Mode permainan yang dipilih guru (ADR 0026). Opsional supaya cerita lama
+   * tetap sah; yang tidak punya `mode` ditampilkan sebagai `mix`.
+   */
+  mode: storyModeSchema.optional(),
   synopsis: boundedText(40, 400, "Sinopsis"),
   estimatedMinutes: z.number().int().min(3).max(30),
 });
@@ -174,9 +194,18 @@ export const whenJawabanSchema = z.strictObject({
   jawaban: boundedText(1, 120, "Jawaban yang dicocokkan"),
 });
 
+/**
+ * Varian teks boleh membawa emosinya sendiri (ADR 0024). Ini yang membuat tokoh
+ * bisa berekspresi berbeda untuk tiap jawaban salah — mis. `thinking` saat siswa
+ * menjawab keliru dan `happy` pada teks utama untuk jawaban benar.
+ *
+ * Bila `expression` tidak diisi, game memakai emosi beat induknya, sehingga
+ * varian lama tetap berperilaku seperti sebelumnya.
+ */
 export const textVariantSchema = z.strictObject({
   when: z.union([whenJawabanSchema, whenFlagSchema]),
   text: boundedText(1, 240),
+  expression: expressionSchema.optional(),
 });
 
 export type TextVariant = z.infer<typeof textVariantSchema>;

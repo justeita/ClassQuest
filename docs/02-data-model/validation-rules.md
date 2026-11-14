@@ -197,6 +197,7 @@ dibatasi 120 karakter oleh schema (dijaga lapis struktural, bukan
 | `W_SHORT_ANSWER_ONLY`       | Chapter hanya punya `short_answer`                                 | Tambah tipe pilihan            |
 | `W_LONG_DIALOGUE_RUN`       | > 6 beat dialog/narasi tanpa interaksi                             | Pecah atau tambah challenge    |
 | `W_GAP_RECORDED`            | `source.gaps` tidak kosong                                         | Cek materi                     |
+| `W_DIALOGUE_NO_EXPRESSION`  | Ada dialog (termasuk `detour`) tanpa `expression` di chapter itu   | Isi emosi supaya potret hidup  |
 | `W_TEXT_VARIANT_FLAG_UNSET` | Varian `when.flag` membaca flag yang belum di-set (khusus chapter) | Pastikan flag diset lebih dulu |
 
 ## Kebijakan repair

@@ -158,6 +158,27 @@ describe("field opsional", () => {
     expect(storySchema.safeParse(story).success).toBe(true);
     expect(documentedAccepts(story)).toBe(true);
   });
+  it("menerima emosi berbeda per varian jawaban (ADR 0024)", () => {
+    const story = withExample((draft) => {
+      draft.flags = [{ id: "flg_salah_hitung", default: false }];
+
+      beatsOf(scenesOf(chapters(draft)[0])[1])[0].textVariants = [
+        {
+          when: { jawaban: "4 cangkir" },
+          text: "Empat cangkir? Masih kurang.",
+          expression: "thinking",
+        },
+        {
+          when: { flag: "flg_salah_hitung", is: true },
+          text: "Tidak apa-apa, kita coba sekali lagi.",
+          expression: "sad",
+        },
+      ];
+    });
+
+    expect(storySchema.safeParse(story).success).toBe(true);
+    expect(documentedAccepts(story)).toBe(true);
+  });
 });
 
 type InvalidCase = { name: string; story: JsonRecord };
@@ -475,6 +496,18 @@ const invalidCases: InvalidCase[] = [
         text: "Halo, Nara!",
         expression: "excited",
       };
+    }),
+  },
+  {
+    name: "ekspresi varian tidak dikenal",
+    story: withExample((draft) => {
+      beatsOf(scenesOf(chapters(draft)[0])[1])[0].textVariants = [
+        {
+          when: { jawaban: "4 cangkir" },
+          text: "Empat cangkir? Masih kurang.",
+          expression: "confused",
+        },
+      ];
     }),
   },
 ];

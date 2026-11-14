@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -37,25 +37,27 @@ UI, pakai "cerita" untuk hal yang bisa di-publish.
 
 ## Istilah teknis
 
-| Istilah              | Arti                                                                             |
-| -------------------- | -------------------------------------------------------------------------------- |
-| **Story schema**     | Kontrak bentuk JSON cerita, versi `1.0`. Lihat `02-data-model/story-schema.md`.  |
-| **`schemaVersion`**  | Versi schema di dalam JSON. Wajib ada. Perubahan breaking menaikkan versi.       |
-| **`assetId`**        | Id aset dari manifest, mis. `bg_classroom_day`, `char_nara`, `bgm_mystery`.      |
-| **`speakerId`**      | Id karakter dari `cast`, bukan nama tampilan.                                    |
-| **`conceptTag`**     | Label konsep materi pada tantangan; dipakai untuk ringkasan "perlu diulang".     |
-| **`beat`**           | Lihat tabel produk. Tipe: `narration`, `dialogue`, `challenge`, `transition`.    |
-| **Validator**        | Fungsi yang memeriksa JSON terhadap schema + aturan semantik.                    |
-| **Repair loop**      | Mengirim error validasi kembali ke AI untuk diperbaiki, dengan batas percobaan.  |
-| **Outline pass**     | Tahap AI pertama: menentukan chapter dan konsep sebelum menulis isi.             |
-| **Generate pass**    | Tahap AI kedua: menulis beat, dialog, dan tantangan per chapter.                 |
-| **Prompt contract**  | Aturan tetap yang selalu dikirim ke model, termasuk schema dan daftar aset.      |
-| **Job**              | Proses generasi yang berjalan di server dan punya status sendiri.                |
-| **Story version**    | Snapshot cerita setiap kali disimpan; publish menunjuk satu versi.               |
-| **ADR**              | Architecture Decision Record, catatan keputusan teknis di `09-decisions/`.       |
-| **Proxy**            | Di Next.js 16, pengganti `middleware.ts`. Nama file: `proxy.ts`.                 |
-| **Server Action**    | Fungsi server yang dipanggil dari client untuk mutasi. Lihat docs Next 16 lokal. |
-| **Cache Components** | Fitur Next 16 yang aktif di repo ini (`cacheComponents: true`).                  |
+| Istilah              | Arti                                                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Story schema**     | Kontrak bentuk JSON cerita, versi `1.0`. Lihat `02-data-model/story-schema.md`.                                            |
+| **`schemaVersion`**  | Versi schema di dalam JSON. Wajib ada. Perubahan breaking menaikkan versi.                                                 |
+| **`assetId`**        | Id aset dari manifest, mis. `bg_classroom_day`, `char_nara`, `bgm_mystery`.                                                |
+| **`speakerId`**      | Id karakter dari `cast`, bukan nama tampilan.                                                                              |
+| **`conceptTag`**     | Label konsep materi pada tantangan; dipakai untuk ringkasan "perlu diulang".                                               |
+| **`beat`**           | Lihat tabel produk. Tipe: `narration`, `dialogue`, `challenge`, `transition`.                                              |
+| **`expression`**     | Field opsional beat/varian yang memilih potret pembicara: `neutral`, `happy`, `sad`, `angry`, `shocked`, `thinking`.       |
+| **Varian teks**      | `textVariants` pada beat `dialogue`: kalimat alternatif untuk jawaban salah atau flag, boleh membawa `expression` sendiri. |
+| **Validator**        | Fungsi yang memeriksa JSON terhadap schema + aturan semantik.                                                              |
+| **Repair loop**      | Mengirim error validasi kembali ke AI untuk diperbaiki, dengan batas percobaan.                                            |
+| **Outline pass**     | Tahap AI pertama: menentukan chapter dan konsep sebelum menulis isi.                                                       |
+| **Generate pass**    | Tahap AI kedua: menulis beat, dialog, dan tantangan per chapter.                                                           |
+| **Prompt contract**  | Aturan tetap yang selalu dikirim ke model, termasuk schema dan daftar aset.                                                |
+| **Job**              | Proses generasi yang berjalan di server dan punya status sendiri.                                                          |
+| **Story version**    | Snapshot cerita setiap kali disimpan; publish menunjuk satu versi.                                                         |
+| **ADR**              | Architecture Decision Record, catatan keputusan teknis di `09-decisions/`.                                                 |
+| **Proxy**            | Di Next.js 16, pengganti `middleware.ts`. Nama file: `proxy.ts`.                                                           |
+| **Server Action**    | Fungsi server yang dipanggil dari client untuk mutasi. Lihat docs Next 16 lokal.                                           |
+| **Cache Components** | Fitur Next 16 yang aktif di repo ini (`cacheComponents: true`).                                                            |
 
 ## Istilah game
 

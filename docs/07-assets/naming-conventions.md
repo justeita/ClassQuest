@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -65,7 +65,7 @@ Aturan:
 - Nama file **harus** konsisten dengan `id`; test manifest memeriksa ini.
 - Pengecualian: potret memakai folder `<nama>/<ekspresi>.png` di
   `public/assets/portrait/`, dengan `<nama>` mengikuti berkas sumber (`mc`,
-  `npc_1`, …) dan `<ekspresi>` salah satu dari enam ekspresi (ADR 0020).
+  `npc_1`, …) dan `<ekspresi>` salah satu dari enam ekspresi (ADR 0023).
 - Jangan menambahkan suffix versi (`_v2`, `_final`, `_fix`). Ganti isi file, bukan
   namanya.
 - Jangan memakai nama orang nyata untuk karakter. Gunakan nama fiktif.
