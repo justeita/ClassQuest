@@ -72,8 +72,12 @@ const MUSIC_VOLUME = 0.35;
 const MUSIC_VOLUME_PAUSED = 0.12;
 const SFX_VOLUME = 0.6;
 
-/** Debounce input lanjut agar satu tekanan tidak melewati dua beat. */
-const DEBOUNCE_MS = 150;
+/**
+ * Jeda antar-langkah input lanjut. Satu tekanan = satu beat; jeda ini menjaga
+ * ketukan ganda atau tombol yang tidak sengaja tertekan dua kali tidak
+ * melompati dua beat sekaligus.
+ */
+const DEBOUNCE_MS = 250;
 
 /**
  * Jarak antar-beat saat mode lewati berjalan. Cukup cepat untuk terasa seperti
@@ -544,7 +548,10 @@ export class GameScene extends Phaser.Scene {
 
     this.perbaruiPetunjuk(dekat);
 
-    if (dekat && this.adaInputLanjut()) {
+    // Baca latch tiap frame, walau belum dekat warga: tekanan saat jauh tidak
+    // boleh menumpuk lalu tiba-tiba memulai obrolan begitu pemain mendekat.
+    const mauBicara = this.adaInputLanjut();
+    if (dekat && mauBicara) {
       this.mulaiInteraksiTerdekat();
     }
   }
@@ -558,8 +565,8 @@ export class GameScene extends Phaser.Scene {
     const dekat = this.npcZona;
     if (!dekat) return;
 
-    // Debounce yang sama dengan dialog: menahan Space tidak memicu obrolan
-    // berulang tiap frame setelah textbox ditutup.
+    // Jeda yang sama dengan dialog: satu tekanan tidak boleh memicu obrolan
+    // berulang, dan menahan Space tidak memulai obrolan lagi setelah ditutup.
     if (this.time.now - this.lastAdvance < DEBOUNCE_MS) return;
     this.lastAdvance = this.time.now;
 
@@ -790,12 +797,16 @@ export class GameScene extends Phaser.Scene {
     this.onLanjutInput();
   }
 
-  /** Ada tekanan Space/Enter segar (event) atau tombol yang masih ditahan. */
+  /** Ada tekanan Space/Enter baru sejak pemeriksaan terakhir. */
   private adaInputLanjut(): boolean {
     return this.lanjut?.lanjutDitekan() ?? false;
   }
 
-  /** Satu tekanan = satu langkah: mengetik → selesai; menunggu → lanjut. */
+  /**
+   * Satu tekanan = satu langkah: mengetik → selesai; menunggu → lanjut.
+   * Menahan tombol tidak memutar dialog terus-menerus — pemain harus melepas
+   * lalu menekan lagi untuk beat berikutnya.
+   */
   private onLanjutInput() {
     // Selama time-lapse, input manual diabaikan agar tidak melompat dua beat.
     if (this.lewatiDitahan) return;

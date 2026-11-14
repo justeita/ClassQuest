@@ -7,12 +7,15 @@ import { buatInputLanjut } from "./advanceInput";
  * `pancar()` meniru event `keydown-SPACE`/`keydown-ENTER` dari plugin asli.
  */
 function keyboardPalsu() {
-  const tombol = { space: { isDown: false }, enter: { isDown: false } };
   const pendengar = new Map<string, Array<() => void>>();
+  const didaftarkan: string[] = [];
 
   return {
-    tombol,
-    addKeys: () => tombol,
+    didaftarkan,
+    addKeys: (keys: string) => {
+      didaftarkan.push(keys);
+      return {};
+    },
     on: (event: string, listener: () => void) => {
       pendengar.set(event, [...(pendengar.get(event) ?? []), listener]);
     },
@@ -38,27 +41,34 @@ function buat(palsu: KeyboardPalsu) {
 }
 
 describe("input lanjut Space/Enter", () => {
-  it("melaporkan tombol yang masih ditahan", () => {
+  it("mendaftarkan Space/Enter supaya auto-repeat tidak jadi langkah baru", () => {
+    const palsu = keyboardPalsu();
+    buat(palsu);
+
+    expect(palsu.didaftarkan).toContain("space,enter");
+  });
+
+  it("mencatat satu tekanan sebagai satu langkah", () => {
     const palsu = keyboardPalsu();
     const input = buat(palsu);
 
     expect(input.lanjutDitekan()).toBe(false);
-    palsu.tombol.space.isDown = true;
+    palsu.pancar("keydown-SPACE");
+
     expect(input.lanjutDitekan()).toBe(true);
-    // Masih ditahan: menahan tombol tetap maju seperti perilaku lama.
-    expect(input.lanjutDitekan()).toBe(true);
+    expect(input.lanjutDitekan()).toBe(false);
   });
 
-  it("mencatat ketukan yang sudah lepas sebelum frame berikutnya", () => {
+  it("tidak menambah langkah selama tombol ditahan", () => {
     const palsu = keyboardPalsu();
     const input = buat(palsu);
 
-    // keydown lalu keyup tanpa frame di antaranya: `isDown` sudah `false` lagi,
-    // tetapi latch event tetap terbaca sekali.
+    // Satu tekanan fisik: Phaser hanya memancarkan `keydown-SPACE` sekali,
+    // walau tombol tetap ditahan. Latch habis dibaca, jadi tidak berulang.
     palsu.pancar("keydown-SPACE");
-    palsu.tombol.space.isDown = false;
-
     expect(input.lanjutDitekan()).toBe(true);
+
+    expect(input.lanjutDitekan()).toBe(false);
     expect(input.lanjutDitekan()).toBe(false);
   });
 
@@ -73,16 +83,13 @@ describe("input lanjut Space/Enter", () => {
     expect(input.lanjutDitekan()).toBe(false);
   });
 
-  it("membuang ketukan lewat `bersihkan` tanpa mengonsumsi tombol yang ditahan", () => {
+  it("membuang tekanan lewat `bersihkan`", () => {
     const palsu = keyboardPalsu();
     const input = buat(palsu);
 
     palsu.pancar("keydown-SPACE");
     input.bersihkan();
     expect(input.lanjutDitekan()).toBe(false);
-
-    palsu.tombol.enter.isDown = true;
-    expect(input.lanjutDitekan()).toBe(true);
   });
 
   it("berhenti mencatat setelah listener dilepas", () => {

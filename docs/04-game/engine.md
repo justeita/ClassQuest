@@ -238,8 +238,9 @@ ditandai `"use client"` dan diimpor dinamis.
 
 `GameScene` menjalankan siklus ADR 0008: fase `explore` (dunia dari `VILLAGE`,
 pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()`
-memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
-(Space/Enter/klik). State dialog dikirim ke React sebagai event `dialogue` dan
+memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan jeda 250 ms
+(Space/Enter/klik) — satu tekanan satu beat, menahan tombol tidak memutar
+dialog terus-menerus. State dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx` — panel kotak navy gelap membulat, potret
 ber-`expression` (beat atau varian teks yang menang, ADR 0023 + ADR 0032), nama,
 dan teks; React membalas command `advance`.

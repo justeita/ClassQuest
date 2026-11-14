@@ -126,7 +126,12 @@ tidak menyalin tipenya, hanya perilakunya.
 
 Aturan input:
 
-- **Debounce 150 ms** untuk klik/Spasi, agar satu tekanan tidak melewati dua beat.
+- **Jeda 250 ms** antar-langkah untuk klik/Spasi, agar satu tekanan (atau ketukan
+  ganda) tidak melewati dua beat.
+- **Satu tekanan = satu langkah; menahan tombol tidak memutar dialog.** `Space`/
+  `Enter` dibaca dari event `keydown`, bukan `isDown` per frame: ketukan yang
+  lepas sebelum frame berikutnya tetap terbaca, sementara tombol yang ditahan
+  tidak menambah beat — pemain harus lepas lalu menekan lagi (pola seperti OMORI).
 - Saat `explore`, gerak bebas; saat `dialog`/`challenge`, input gerak **terkunci**.
 - Saat `challenge`, input dialog **diabaikan**.
 - Saat transisi/fade, input diabaikan sampai selesai.
@@ -341,7 +346,8 @@ dengan papan tombol, bukan jalur gerak kedua:
 
 | Skenario                             | Perilaku yang benar                                                                       |
 | ------------------------------------ | ----------------------------------------------------------------------------------------- |
-| Siswa klik cepat 5x                  | Hanya 1 beat maju (debounce)                                                              |
+| Siswa klik cepat 5x                  | Hanya 1 beat maju (jeda 250 ms antar-langkah)                                             |
+| Siswa menahan Space/Enter            | Satu beat saja; beat berikutnya perlu tekanan baru (lepas lalu tekan lagi)                |
 | Siswa refresh saat tantangan         | Kembali ke awal scene, tantangan muncul lagi; skor tetap pakai percobaan pertama          |
 | Siswa tutup tab, buka besok          | Progres dipulihkan                                                                        |
 | Guru mengedit cerita saat siswa main | Siswa tetap di versi lamanya sampai reload                                                |
@@ -360,7 +366,7 @@ Tidak dikirim ke mana pun di MVP:
 
 ## Checklist implementasi
 
-- [ ] Debounce input 150 ms.
+- [ ] Jeda input 250 ms antar-langkah.
 - [ ] Input dialog diabaikan saat `challenge` dan transisi.
 - [ ] Penilaian lewat `src/story/scoring.ts` (tidak diduplikasi).
 - [ ] `explanation` tampil saat jawaban benar atau di percobaan terakhir.

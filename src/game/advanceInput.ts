@@ -1,25 +1,23 @@
 import type Phaser from "phaser";
 
 /**
- * Input lanjut dialog: `Space`/`Enter`.
+ * Input lanjut dialog: `Space`/`Enter`, satu tekanan = satu langkah.
  *
- * `isDown` (dan juga `JustDown`) dibaca per frame. Kalau tombol ditekan dan
- * sudah lepas sebelum frame berikutnya, keduanya sudah kembali `false` dan
- * ketukan itu hilang. Tekanan manusia normal bertahan jauh lebih lama dari satu
- * frame, jadi ini jarang terasa saat dimainkan — tetapi menggagalkan auto-test
- * yang mengirim `keydown` lalu `keyup` beruntun.
+ * `isDown` dibaca per frame. Kalau tombol ditekan dan sudah lepas sebelum frame
+ * berikutnya, ketukan itu terlewat; kalau tombol ditahan, `isDown` terus `true`
+ * sehingga dialog justru berputar sendiri tiap kali jeda habis. Karena itu input
+ * dibaca dari event `keydown` saja: satu tekanan fisik menghasilkan satu latch,
+ * dan menahan tombol tidak menambah langkah (pola seperti OMORI — harus lepas
+ * lalu tekan lagi untuk beat berikutnya).
  *
- * Karena itu tiap `keydown` Phaser (yang dipancarkan sinkron, sebelum
- * `update()` scene dijalankan) juga menyalakan latch `segar`. Pembacaan
- * menggabungkan latch itu dengan `isDown`, jadi menahan tombol tetap maju
- * seperti sebelumnya sementara ketukan cepat tidak terlewat. Auto-repeat tidak
- * ikut menyalakan latch: Phaser menahan `keydown-SPACE` berulang selama
+ * `Space`/`Enter` didaftarkan lewat `addKeys` supaya Phaser menekan auto-repeat:
+ * `keydown-SPACE` hanya dipancarkan sekali per tekanan fisik selama
  * `key.isDown` masih `true`.
  */
 export type AdvanceInput = {
-  /** `true` bila `Space`/`Enter` ditahan atau baru ditekan sejak pembacaan terakhir. */
+  /** `true` sekali untuk tiap tekanan baru sejak pembacaan terakhir. */
   lanjutDitekan(): boolean;
-  /** Buang ketukan yang belum dibaca (mis. selama tantangan memegang kendali). */
+  /** Buang tekanan yang belum dibaca (mis. selama tantangan memegang kendali). */
   bersihkan(): void;
   /** Lepas listener; panggil saat scene dimatikan. */
   lepas(): void;
@@ -28,8 +26,9 @@ export type AdvanceInput = {
 export function buatInputLanjut(
   keyboard?: Phaser.Input.Keyboard.KeyboardPlugin | null,
 ): AdvanceInput {
-  const keys = keyboard?.addKeys("space,enter") as
-    Record<"space" | "enter", Phaser.Input.Keyboard.Key> | undefined;
+  // Tanpa pendaftaran ini Phaser tidak punya `key.isDown` untuk dibandingkan,
+  // jadi tiap auto-repeat akan dianggap tekanan baru.
+  keyboard?.addKeys("space,enter");
 
   let segar = false;
   const catat = () => {
@@ -41,11 +40,9 @@ export function buatInputLanjut(
 
   return {
     lanjutDitekan() {
-      const ditahan =
-        (keys?.space.isDown ?? false) || (keys?.enter.isDown ?? false);
       const baru = segar;
       segar = false;
-      return ditahan || baru;
+      return baru;
     },
     bersihkan() {
       segar = false;
