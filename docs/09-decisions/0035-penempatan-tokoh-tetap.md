@@ -4,14 +4,14 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0029 — Penempatan Tokoh Tetap di Desa
+# 0035 — Penempatan Tokoh Tetap di Desa
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
 - **Menggantikan:** —
 - **Melanjutkan:** [0010](0010-map-data-and-camera.md),
-  [0025](0025-pemilihan-pembicara-keahlian.md)
+  [0033](0033-pemilihan-pembicara-keahlian.md)
 
 ## Konteks
 
@@ -68,7 +68,7 @@ prompt, validator, editor, dan game. Solusinya harus **aditif**.
    `continuity.characterStates[].location` harus memakai nama tempat dari blok
    `LOKASI`.
 
-`PROMPT_VERSION` naik ke `story-v12` (dari `story-v11` milik ADR 0028).
+`PROMPT_VERSION` naik ke `story-v12` (dari `story-v11` milik ADR 0034).
 
 Isi tempat diturunkan dari `map.txt` paket aset dan **diverifikasi** terhadap
 koordinat NPC di `village.json`: Elian 64 px dari bangku alun-alun, Elias 79 px
@@ -132,7 +132,7 @@ butuh ADR baru.
 ## Referensi
 
 - [`0010-map-data-and-camera.md`](0010-map-data-and-camera.md)
-- [`0025-pemilihan-pembicara-keahlian.md`](0025-pemilihan-pembicara-keahlian.md)
+- [`0033-pemilihan-pembicara-keahlian.md`](0033-pemilihan-pembicara-keahlian.md)
 - [`../03-ai-pipeline/prompt-contract.md`](../03-ai-pipeline/prompt-contract.md)
 - [`../04-game/world-design.md`](../04-game/world-design.md)
 - [`../07-assets/cast-bible.md`](../07-assets/cast-bible.md)

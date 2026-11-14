@@ -236,9 +236,13 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   memberi margin 8–24 px dan sudut membulat, jadi sisa ruang terbaca sebagai
   bingkai jendela, bukan kanvas yang menempel ke tepi.
 - Tombol buku quest di kiri atas (`Q` Quest): membuka jendela buku catatan ala Minecraft journal dengan 2 halaman perkamen yang menampilkan bab, judul scene, daftar tugas dengan status `Aktif`/`Selesai`/`Terkunci`, dan hitungan tantangan. Dapat dibuka/tutup dengan tombol `Q` atau `Esc`.
-- HUD kanan atas: tombol jeda dan tombol suara. Semua tombol HUD dan quest
-  menampilkan tombol keyboardnya sebagai keycap konsisten (`Tab`, `B`, `Q`,
-  `Esc`) lewat komponen `Keycap`. Judul chapter tidak menetap di
+- HUD kanan atas: tombol quest, percepat, musik, catatan, jeda, dan layar
+  penuh. Semua tombol HUD dan quest menampilkan tombol keyboardnya sebagai
+  keycap konsisten (`Tab`, `B`, `Q`, `Esc`) lewat komponen `Keycap`, dan
+  memakai satu **desain yang sama dengan panel kotak dialog** — gelap `#0b120e`
+  dengan bingkai dan aksen oranye `#E8A87C` serta teks krem terang `#F7F4EC`,
+  sudut membulat — supaya terlihat konsisten (ADR 0029, ADR 0031). Di desktop (`lg`, ≥1024px) ukuran tombolnya sengaja diperbesar
+  agar nyaman diklik; di HP tetap ringkas. Judul chapter tidak menetap di
   HUD; ia muncul sebentar sebagai `ChapterCard` saat bab berganti, dan
   `QuestToast` memberi tahu saat quest baru dimulai.
 - **Pergantian bab berjalan otomatis.** Setelah beat terakhir sebuah bab selesai,
@@ -271,21 +275,26 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   meluncur ke kanan, dan saat pemain pergi kotak standalone juga beranimasi
   keluar dengan halus (`animate-quest-pop-out`, atau meluncur kembali ke `!`
   untuk kotak quest yang tampil sendiri) — ditahan di DOM 200 ms oleh
-  `NpcHintLayer`. Zona interaksi memakai histeresis (masuk 30 px, keluar 38 px)
+  `NpcHintLayer`. Zona interaksi memakai histeresis (masuk 44 px, keluar 52 px)
   supaya kotak tidak berkedip di batas zona. Posisi papan nama, penanda, dan
   kotak `Space` diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda tetap
   menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
   tantangan, atau menu jeda.
-- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog, dengan
-  petunjuk "Tahan untuk mempercepat" di atas panel dialog. Pola tahan-tombol
-  ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju seperti
-  time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
+- Tombol `Percepat` (`Tab`) tampil di HUD hanya selama fase dialog. Pola
+  tahan-tombol ala Persona 3 Reload: selama ditahan, beat dialog/narasi maju
+  seperti time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
   (`SpeedLines`); dilepas, tempo kembali normal. Soal tidak bisa dilewati —
   tombol dan pintasan berhenti di beat tantangan, dan fade transisi tetap
-  diputar.
+  diputar. Di perangkat sentuh tombolnya didengarkan dari `window`
+  (`pointerup`/`pointercancel`/`touchend`/`touchcancel`), supaya peramban ponsel
+  yang mengubah ketukan-tahan jadi gestur gulir tidak mematikannya
+  (ADR 0028).
 - Tombol `Catatan` (`B`) membuka buku catatan dua halaman: riwayat dialog
   (dikelompokkan per scene, dengan chip nama pembicara) dan jurnal konsep
-  (conceptTag, status benar/perlu diulang, penjelasan). Dunia dibekukan
+  (conceptTag, status benar/perlu diulang, penjelasan). Jendelanya **kartu
+  membulat** dengan garis aksen oranye, dan area bacaannya memakai **scrollbar
+  bertema** (`scrollbar-tema` di `globals.css`) alih-alih scrollbar bawaan
+  peramban (ADR 0031). Dunia dibekukan
   selama buku terbuka; musik tetap diputar penuh. Buku dibersihkan saat
   "Ulangi chapter" atau sesi baru.
 - Tombol musik (`♪`) mengatur volume musik saja: nyala/mati. Efek suara
@@ -305,13 +314,17 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   - Opsi pendek (seperti "1", "2", "4"): ditata 1 baris horizontal di kanan atas dialog.
   - Opsi teks panjang: ditata bertumpuk vertikal di kanan atas dialog; lebar seluruh box seragam mengikuti opsi terpanjang.
   - Persoalan matematika / matriks: ditata sebagai kartu berjejer agar formula terlihat jelas.
-- Konsistensi visual HCI dengan DialogueBox:
-  - Gaya box jawaban dan kartu umpan balik setelah dijawab persis seperti DialogueBox (`bg-[#14201a]/95` dengan `border-2 border-[#F7F4EC]`), flat tanpa drop shadow.
-  - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar.
+- **Lebar kotak mengikuti isi (fit text), bukan lebar panel.** Opsi pilihan, baris pengurutan, input jawaban singkat, dan tombol `Jawab` dibungkus grup `w-fit` sehingga hanya selebar isinya; pada daftar kolom, semua opsi diseragamkan ke opsi terpanjang (tanpa lebar minimum tetap). Jadi jawaban pendek tidak lagi membentang penuh ke kanan. Baris petunjuk pintasan ditaruh di luar grup agar tidak ikut menentukan lebarnya. (ADR 0030)
+  - Pada `ordering`, daftar item dan tombol `Jawab` berbagi grup `w-fit` yang sama supaya tepi kanan keduanya rata.
+  - Pada `short_answer`, input `size` mengikuti panjang placeholder sehingga teks petunjuk muat tanpa terpotong, dan tombol `Jawab` selebar input.
+- Konsistensi visual HCI dengan DialogueBox (ADR 0030, ADR 0031):
+  - Kotak jawaban, kartu matriks, kartu umpan balik, tombol aksi, dan petunjuk pintasan memakai **token kotak dialog** yang sama (`gayaDialog.ts`): latar gelap `#0b120e`/95, bingkai tipis aksen oranye `#E8A87C`, sudut membulat (`rounded-lg`), teks krem terang `#F7F4EC`, aksen oranye `#E8A87C`, flat tanpa drop shadow.
+  - Keadaan terpilih memakai `KOTAK_DIALOG_AKTIF` (bingkai oranye penuh, latar sedikit terangkat); keadaan diam memakai `KOTAK_DIALOG` + hover. Dipilih dengan percabangan agar tidak menumpuk kelas warna yang bentrok.
+  - Setelah dijawab (`graded`), pilihan box jawaban disembunyikan dan hanya kartu umpan balik yang muncul agar tidak memicu scrollbar; bingkai kartu berwarna status (`#6F9B7A` benar, `#C9A227` belum tepat).
   - Ukuran huruf dan line-height opsi dan penjelasan umpan balik proporsional dan nyaman dibaca (`ukuranHuruf(13.5, 12, 20)` & `lineHeight: 1.3`).
-  - Segitiga kursor penunjuk `▶` berada di **luar box jawaban, di sebelah kirinya**, dan saat aktif diwarnai gelap/hitam (`#0b120e`) agar terlihat jelas dan kontras terhadap pemandangan dunia game.
-  - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya.
-  - Teks petunjuk tombol shortcut (`hints`) diberi latar gelap (`bg-[#0b120e]`) dengan font putih (`#F7F4EC`) untuk keterbacaan tinggi.
+  - Penunjuk pilihan aktif adalah **tangan menunjuk (glove) SVG** yang digambar sendiri (bukan glyph font atau emoji) di **luar kotak** — kiri untuk daftar, atas untuk kartu, dan di depan input `short_answer`. Telapak krem `#F7F4EC` dengan outline gelap dan manset oranye `#E8A87C`, jadi tetap jelas di atas dunia terang maupun kotak gelap; saat tidak aktif ia `opacity-0` agar tata letak tidak bergeser.
+  - Tombol aksi `Jawab` disejajarkan sempurna dengan kotak jawaban di atasnya dan memakai aksen oranye `#E8A87C`.
+  - Teks petunjuk tombol shortcut (`hints`) memakai latar gelap `#0b120e`/95 dengan teks krem terang `#F7F4EC` untuk keterbacaan tinggi.
 - Segitiga lanjut dialog `▼` diposisikan di **sudut kanan bawah kotak dialog**.
 - Tanpa background kotak pembungkus hitam luar (hanya baris pilihan yang memiliki latar), tanpa tombol jawab/lanjut terpisah. Memilih opsi langsung mengirim respon dialog, dan kartu umpan balik cerita dapat diklik atau ditekan Spasi/Enter untuk lanjut.
 - Kontrol keyboard-first meminimalkan ketergantungan mouse/touchpad:
@@ -340,6 +353,10 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
 
 - Lanjut, ulangi chapter, pengaturan suara (slider Musik dan Efek suara
   terpisah + tombol mute per baris), keluar.
+- Tampil sebagai satu **kartu gelap membulat** dengan garis aksen oranye; area
+  luarnya bisa digulir dan memakai **scrollbar bertema** (`scrollbar-tema`),
+  jadi di layar ponsel pendek menu tetap terjangkau tanpa scrollbar bawaan
+  peramban (ADR 0031).
 - Game di-pause (`scene.pause()`), input dialog berhenti.
 - Musik tidak dihentikan, hanya dikecilkan (volume 0,35 → 0,12) agar jeda tidak
   terasa memutus suasana; volume kembali saat lanjut atau ulangi chapter.
@@ -381,18 +398,63 @@ di [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#penanganan-
 
 ## Responsif
 
-| Layar             | Perilaku                                                     |
-| ----------------- | ------------------------------------------------------------ |
-| Desktop ≥ 1024 px | Kanvas mengisi bingkai (margin 24 px, sudut membulat)        |
-| Tablet            | Sama — margin 16 px, dunia tetap utuh                        |
-| HP landscape      | Kanvas mengisi bingkai, skala ±1×; HUD kecil                 |
-| HP portrait       | Saran "Putar layar untuk pengalaman terbaik" (bisa dilewati) |
+| Layar               | Perilaku                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| Desktop ≥ 1024 px   | Kanvas mengisi bingkai (margin 24 px, sudut membulat); kontrol keyboard              |
+| Tablet / HP lanskap | Kanvas mengisi bingkai; joystick dan tombol aksi **mengapung** di dalamnya           |
+| HP potret           | Panggung 16:9 di atas; **dek kontrol** (joystick + tombol aksi) dan bar HUD di bawah |
+| Sentuh              | Label `Space` berganti jadi "Sentuh"; semua keycap keyboard disembunyikan            |
+| Tombol layar penuh  | Ada di layar judul dan HUD; memenuhkan layar lalu mencoba mengunci lanskap           |
+
+Singkatnya: tidak ada lagi saran "putar layar". Di ponsel potret, kanvas tidak
+dipaksa memenuhi seluruh tinggi sehingga teksnya tetap terbaca — panggung game
+dikunci `aspect-video` di bagian atas, sisanya jadi dek kontrol yang jauh dari
+tepi bawah (tempat ibu jari beristirahat). Di lanskap, kontrol mengapung di dalam
+bingkai kanvas supaya dunia tidak ikut tergencet.
+
+Di ponsel potret tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar penuh)
+tidak lagi melayang di atas kanvas: semuanya dipindah ke **bar di bawah kanvas**.
+Tombolnya memakai desain yang sama dengan kotak dialog — gelap `#0b120e`
+dengan bingkai dan aksen oranye `#E8A87C` serta teks krem terang, sudut
+membulat — jadi seragam di desktop maupun HP (ADR 0029, ADR 0031). Teks dialog juga diperkecil karena kotak 16:9 di potret hanya
+setinggi ±65 px. Gaya tombol dipakai bersama lewat `gayaHud.ts`, dan prop `letak`
+(`overlay` | `bar`) yang memilih variannya (ADR 0028).
+
+Kontrol muncul hanya saat perangkat terbaca sentuh: penunjuk utama **kasar**
+(`pointer: coarse`) dan **tidak bisa hover** (`hover: none`). Laptop berlayar
+sentuh tetap memakai papan tombol dan tetikus — memunculkan joystick di sana cuma
+menutupi dunia. Deteksinya ada di `useSentuh.ts`; ringkasan keputusannya di
+[ADR 0024](../09-decisions/0024-kontrol-sentuh-hp.md).
+
+Joystick mengirim **satu dari delapan arah** yang sama dipakai papan tombol
+(`movement.ts`), bukan vektor bebas — jadi aturan gerak, tabrakan, dan animasi
+tetap satu jalur. Tombol aksi besar berlabel "Bicara": menyala saat pemain di zona
+NPC, dan tampil redup tetapi tetap bisa ditekan saat belum ada warga, lalu
+memunculkan pesan "Dekati warga untuk bicara" (ADR 0026). Di lanskap tombolnya
+digeser agak menjauh dari sudut kanan bawah supaya tidak terpotong tepi layar
+(ADR 0029). Selama dialog joystick
+dan tombol aksi disembunyikan supaya tidak menutupi teks; lanjut dialog cukup
+dengan mengetuk kotak dialog (ADR 0027). Rincian interaksinya di
+[`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#input-sentuh).
 
 Halaman game memakai seluruh viewport dengan margin 8–24 px dan bingkai bersudut
-membulat. Kanvas **selalu tampil utuh**: skala bulat dipakai bila sisa ruangnya
-≤6%, selain itu kanvas dibesarkan penuh mengikuti bingkai supaya tidak muncul bar
-gelap besar. Fullscreen API peramban tidak dipakai dan tidak dipaksa, jadi tidak
-ada konten yang terpotong di layar apa pun.
+membulat, ditambah **safe-area** (`env(safe-area-inset-*)`, lihat `.area-game` di
+`globals.css`) supaya HUD dan tombol sentuh tidak tertutup notch atau bar sistem.
+`viewport-fit=cover` di `layout.tsx` yang mengisi inset itu. Kanvas **selalu
+tampil utuh**: skala bulat dipakai bila sisa ruangnya ≤6%, selain itu kanvas
+dibesarkan penuh mengikuti bingkai supaya tidak muncul bar gelap besar.
+
+Tombol **"Layar penuh"** (layar judul pojok kanan atas, dan ikon di HUD)
+memenuhkan halaman lalu mencoba mengunci orientasi mendatar; keluar dari layar
+penuh melepas kunci itu lagi. Keduanya best-effort — di Safari iPhone tombolnya
+tidak dirender sama sekali, dan bila kunci orientasi ditolak pemain tetap dapat
+layar penuh. Keputusannya di
+[ADR 0025](../09-decisions/0025-layar-penuh-lanskap.md).
+
+Semua tombol dan tautan memakai `touch-action: manipulation`, dan akar
+`GameCanvas` `touch-manipulation`, supaya di Android ketukan langsung jadi klik
+dan tidak tertahan menunggu ketuk-dua-kali zoom. Hanya pad tongkat yang tetap
+`touch-none` (perlu menahan gulir saat jempol menggeser).
 
 ## Berbagi
 

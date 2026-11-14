@@ -31,7 +31,7 @@ system prompt, dan sebagian diperiksa validator.
 ## Mode permainan
 
 Guru memilih mode saat mengunggah, dan mode itu tersimpan di `meta.mode`
-([ADR 0028](../09-decisions/0028-mode-permainan.md)). Mode hanya mengubah jumlah
+([ADR 0034](../09-decisions/0034-mode-permainan.md)). Mode hanya mengubah jumlah
 chapter dan kepadatan tantangan; struktur schema dan aturan validasi tetap sama.
 
 | Mode          | Chapter | Tantangan per chapter | Ciri                                                                  |
@@ -67,7 +67,7 @@ Setiap tokoh punya bidangnya. Blok `CAST` membawa kolom `keahlian` dari
 `CAST_EXPERTISE` (`src/story/cast.ts`), dan system prompt punya blok
 `PEMILIHAN PEMBICARA` yang memerintahkan dialog bidang tertentu jatuh ke tokoh
 yang tepat (lihat
-[ADR 0025](../09-decisions/0025-pemilihan-pembicara-keahlian.md)).
+[ADR 0033](../09-decisions/0033-pemilihan-pembicara-keahlian.md)).
 
 | Topik materi            | Pembicara yang tepat                           |
 | ----------------------- | ---------------------------------------------- |
@@ -94,7 +94,7 @@ Peta desa adalah **satu peta tetap**: sembilan NPC punya koordinat di
 `src/game/world/village.json` dan `GameScene` memasangnya sekali. Model tidak
 menerima peta itu, jadi prompt membawa blok `LOKASI` dari `CAST_PLACES`
 (`src/story/cast.ts`) berisi tempat tiap tokoh dan batas tempatnya (lihat
-[ADR 0029](../09-decisions/0029-penempatan-tokoh-tetap.md)).
+[ADR 0035](../09-decisions/0035-penempatan-tokoh-tetap.md)).
 
 | Tokoh                    | Tempat tetap                                          |
 | ------------------------ | ----------------------------------------------------- |
@@ -218,7 +218,7 @@ tapi setelah siswa punya pengalaman.
 
 Percakapan adalah adegan, dan adegan punya wajah. Setiap beat `dialogue` **wajib**
 punya `expression`, dan emosinya harus mengikuti reaksi tokoh pada kalimat itu —
-bukan dipilih acak, bukan diulang terus sepanjang scene (ADR 0024).
+bukan dipilih acak, bukan diulang terus sepanjang scene (ADR 0032).
 
 | Ekspresi   | Kapan dipakai                                                 |
 | ---------- | ------------------------------------------------------------- |

@@ -4,7 +4,7 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0028 — Mode Permainan Dipilih Guru
+# 0034 — Mode Permainan Dipilih Guru
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
@@ -111,5 +111,5 @@ atau bila data pemakaian menunjukkan satu mode hampir tidak pernah dipilih.
 - [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)
 - [`../03-ai-pipeline/prompt-contract.md`](../03-ai-pipeline/prompt-contract.md)
 - [`../06-backend/api-contract.md`](../06-backend/api-contract.md)
-- [`0024-emosi-per-varian-jawaban.md`](0024-emosi-per-varian-jawaban.md) —
+- [`0032-emosi-per-varian-jawaban.md`](0032-emosi-per-varian-jawaban.md) —
   preseden field additive di schema.

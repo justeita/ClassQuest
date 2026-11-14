@@ -81,7 +81,10 @@ Yang penting dari konfigurasi ini:
   dipakai saat sisa ruangnya ≤6%; kalau tidak, skala **penuh** (mis. 1,83×) supaya
   kanvas mengisi bingkai dan tidak jadi strip kecil. `Scale.NONE` + `zoom`
   dipakai (bukan `FIT`) karena lebar internal ikut dihitung di sini.
-  `createGame.ts` menghitung ulang skala pada event `resize`. Angka dan warna ini
+  `createGame.ts` menghitung ulang skala pada event `resize` jendela **dan** lewat
+  `ResizeObserver` pada kontainer. Pengamat itu perlu karena tata letak sentuh
+  mengubah tinggi kontainer tanpa memicu `resize` — mis. panggung game menyusut
+  saat dek kontrol muncul di layar potret. Angka dan warna ini
   harus sama dengan [`game-design.md`](./game-design.md#resolusi-dan-skala) dan
   [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md).
 - **Tidak ada `physics`.** Gerak dan tabrakan dihitung sendiri oleh
@@ -238,7 +241,7 @@ pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). State dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx` — panel kotak navy gelap membulat, potret
-ber-`expression` (beat atau varian teks yang menang, ADR 0023 + ADR 0024), nama,
+ber-`expression` (beat atau varian teks yang menang, ADR 0023 + ADR 0032), nama,
 dan teks; React membalas command `advance`.
 Prompt interaksi
 memakai event `prompt`: kotak `Space` pemberi quest dirender `NpcMarker.tsx`
@@ -311,7 +314,7 @@ Karena `hint` sendiri tetap langsung `null`, paket penanda quest tetap memulai
 animasi keluarnya lewat `NpcMarker` tanpa jeda tambahan. Animasi hanya jalan
 sekali per kemunculan: React memakai ulang kotak yang sama saat koordinatnya
 berubah tiap frame. Zona interaksi
-memakai histeresis — masuk di 30 px, keluar di 38 px — supaya kotak tidak
+memakai histeresis — masuk di 44 px, keluar di 52 px — supaya kotak tidak
 berkedip saat pemain berdiri di batas zona. Speaker disorot, beat `transition`
 fade otomatis, beat `challenge` dibuka sebagai overlay React.
 
@@ -374,6 +377,7 @@ type GameEvent =
   | { type: "markers"; markers: NpcMarker[] }
   | { type: "nametags"; plates: NpcNameplate[] }
   | { type: "challenge"; view: ChallengeView }
+  | { type: "detour"; aktif: boolean }
   | {
       type: "graded";
       challengeId: string;
@@ -423,6 +427,8 @@ type GameCommand =
   | { type: "submit_answer"; challengeId: string; answer: Answer }
   | { type: "resolve_challenge"; challengeId: string; correct: boolean }
   | { type: "advance" }
+  | { type: "move"; arah: ArahGerak | null }
+  | { type: "interact" }
   | { type: "skip_start" }
   | { type: "skip_stop" }
   | { type: "pause" }
@@ -445,6 +451,13 @@ Aturan yang mengikat:
   biasa, lalu membuka ulang tantangan yang sama dengan teks soal ulang. `graded`
   — termasuk `explanation` — hanya dikirim sekali, untuk hasil final (benar atau
   percobaan terakhir).
+- **`detour` menutup overlay, bukan `dialogue`.** Saat detour mulai game mengirim
+  `detour` (`aktif: true`), dan saat soal dibuka ulang `aktif: false` disusul
+  `challenge`. React **tidak** boleh menutup overlay pada setiap `dialogue`:
+  dialog soal tantangan juga tiba sebagai `dialogue`, dan saat dinilai scene
+  mengganti potret pembicara lewat `textbox.setPortrait` — satu lagi `dialogue`.
+  Menutup overlay di sana menghapus kartu umpan balik dan menyangkutkan dialog di
+  fase `challenge` (tidak ada lagi jalan lanjut karena input dialog diabaikan).
 - Selama fase `challenge`, input dialog diabaikan sampai `resolve_challenge`
   diterima. `skip_start`/`skip_stop` memajukan beat bertahap ala tahan-tombol
   Persona (time-lapse 100 ms per beat selama ditahan) dan berhenti di beat soal;
@@ -453,6 +466,12 @@ Aturan yang mengikat:
   supaya DOM bisa menampilkan status.
 - `pause` membekukan loop scene dan mengecilkan musik; `freeze` (buku log)
   membekukan dunia tanpa mengecilkan musik.
+- `move` dan `interact` datang dari kontrol layar sentuh (`TouchControls.tsx`,
+  ADR 0024). `move` menggantikan tombol gerak papan tombol — scene menyimpannya
+  sebagai satu `ArahGerak` dan menggabungkannya di `arahGerak()` yang sama,
+  sehingga kecepatan, tabrakan, dan animasi tidak punya jalur kedua. `interact`
+  sama dengan `Space`/`Enter` di dekat NPC: memakai `mulaiInteraksiTerdekat()`
+  yang sama dengan debounce dan arah-hadap NPC yang sama.
 
 ## Alur state
 

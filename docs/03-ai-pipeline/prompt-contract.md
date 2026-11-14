@@ -178,7 +178,7 @@ pembenaran, lalu tokoh lain menanggapi ucapan itu (lihat
 [ADR 0022](../09-decisions/0022-pemain-mengucapkan-jawaban-di-dialog.md)).
 
 `story-v9` menjadikan **emosi bagian wajib percakapan** (lihat
-[ADR 0024](../09-decisions/0024-emosi-per-varian-jawaban.md)). System prompt
+[ADR 0032](../09-decisions/0032-emosi-per-varian-jawaban.md)). System prompt
 mendapat blok `EMOSI` (arti tiap ekspresi, larangan mengulang emosi, dan aturan
 "jawaban salah → thinking/sad/shocked, jawaban benar → happy"), aturan keras
 nomor 8 mewajibkan `expression` pada setiap beat `dialogue`, dan blok
@@ -188,14 +188,14 @@ peringatan `W_DIALOGUE_NO_EXPRESSION`.
 
 `story-v10` menambahkan blok `PEMILIHAN PEMBICARA` dan kolom `keahlian` di blok
 `CAST` (lihat
-[ADR 0025](../09-decisions/0025-pemilihan-pembicara-keahlian.md)). Tujuannya:
+[ADR 0033](../09-decisions/0033-pemilihan-pembicara-keahlian.md)). Tujuannya:
 dialog tentang bidang tertentu jatuh ke tokoh yang memang ahli — materi tentang
 ikan dijawab Marlow si nelayan, bukan pelajar yang gemar membaca. Tidak ada
 perubahan schema; keahlian hanya data prompt dari `CAST_EXPERTISE` di
 `src/story/cast.ts`. Sifatnya mengarahkan, bukan menjamin.
 
 `story-v11` menambahkan **instruksi per mode permainan** di blok `TASK` (lihat
-[ADR 0028](../09-decisions/0028-mode-permainan.md)). System prompt tidak berubah;
+[ADR 0034](../09-decisions/0034-mode-permainan.md)). System prompt tidak berubah;
 yang berubah hanya TASK:
 
 | Mode          | Instruksi outline                                        | Instruksi chapter                                                           |
@@ -211,7 +211,7 @@ memilih.
 
 `story-v12` menambahkan blok `LOKASI` dan aturan `PENEMPATAN TOKOH`, plus kolom
 `lokasi` di blok `CAST` (lihat
-[ADR 0029](../09-decisions/0029-penempatan-tokoh-tetap.md)). Tujuannya: model
+[ADR 0035](../09-decisions/0035-penempatan-tokoh-tetap.md)). Tujuannya: model
 tidak pernah melihat peta, jadi tanpa daftar ini chapter bisa menaruh Marlow di
 alun-alun padahal sprite-nya di jembatan sungai. Tempat berasal dari
 `CAST_PLACES` di `src/story/cast.ts` dan sudah dicocokkan dengan koordinat NPC di
@@ -415,7 +415,7 @@ Isinya mengajari model menulis konsekuensi jawaban salah, bukan pilihan dialog:
 - `{{jawaban}}` boleh dipakai di dalam teks varian (maks 120 karakter); teks
   varian tetap dibatasi 240 karakter oleh schema.
 - Varian jawaban salah wajib punya `expression` sendiri yang berbeda dari teks
-  utama (ADR 0024): `thinking`, `sad`, atau `shocked`.
+  utama (ADR 0032): `thinking`, `sad`, atau `shocked`.
 - Flag id `flg_[a-z0-9_]+`, satu flag per tantangan, id konsisten lintas chapter
   (blok menyebutkan id yang sudah dipakai chapter sebelumnya).
 

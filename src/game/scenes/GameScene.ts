@@ -191,6 +191,14 @@ export class GameScene extends Phaser.Scene {
   private tandaNama = "";
   /** Pemain sedang di zona NPC mana pun (dengan histeresis). */
   private npcDekat = false;
+  /** NPC di zona interaksi frame ini; dipakai tombol aksi sentuh. */
+  private npcZona: string | null = null;
+  /**
+   * Arah dari joystick layar sentuh; `null` saat tongkat dilepas. Digabung
+   * dengan tombol papan ketik di `gerakkanPemain`, jadi kedua jalur gerak
+   * memakai aturan tabrakan dan animasi yang sama.
+   */
+  private arahSentuh: ArahGerak | null = null;
   /** NPC yang sedang berbicara singkat di luar perannya; null bila tidak ada. */
   private obrolanAktif: string | null = null;
   /** Jadwal pembukaan bab berikutnya; dibatalkan saat "Ulangi chapter". */
@@ -254,6 +262,12 @@ export class GameScene extends Phaser.Scene {
     // Klik pada panel dialog DOM (atau tombol lanjut) masuk lewat jalur yang
     // sama dengan Space/Enter, jadi aturan "satu tekanan satu langkah" tetap.
     this.bus?.onCommand("advance", () => this.onLanjutInput());
+    // Joystick layar sentuh: hanya menggantikan tombol gerak.
+    this.bus?.onCommand("move", ({ arah }) => {
+      this.arahSentuh = arah;
+    });
+    // Tombol aksi sentuh: sama dengan Space/Enter di dekat NPC.
+    this.bus?.onCommand("interact", () => this.mulaiInteraksiTerdekat());
     // Tombol/pintasan Percepat: tahan untuk time-lapse, lepas untuk berhenti.
     this.bus?.onCommand("skip_start", () => this.mulaiLewati());
     this.bus?.onCommand("skip_stop", () => this.hentikanLewati());
@@ -301,6 +315,7 @@ export class GameScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       this.hentikanLewati();
       this.batalkanJadwalBab();
+      this.arahSentuh = null;
     });
   }
 
@@ -521,10 +536,23 @@ export class GameScene extends Phaser.Scene {
         )
       : null;
     this.npcDekat = dekat !== null;
+    this.npcZona = dekat;
 
     this.perbaruiPetunjuk(dekat);
 
-    if (!dekat || !this.lanjutKeysBaruDitekan()) return;
+    if (dekat && this.lanjutKeysBaruDitekan()) {
+      this.mulaiInteraksiTerdekat();
+    }
+  }
+
+  /**
+   * Buka interaksi dengan NPC di zona: dialog pemberi quest, atau obrolan
+   * singkat (ADR 0016). Dipakai bersama oleh Space/Enter dan tombol aksi sentuh
+   * supaya keduanya berbagi debounce, arah hadap NPC, dan henti langkah pemain.
+   */
+  private mulaiInteraksiTerdekat() {
+    const dekat = this.npcZona;
+    if (!dekat) return;
 
     // Debounce yang sama dengan dialog: menahan Space tidak memicu obrolan
     // berulang tiap frame setelah textbox ditutup.
@@ -588,7 +616,7 @@ export class GameScene extends Phaser.Scene {
     const sprite = this.player;
     if (!sprite) return;
 
-    const arah = arahGerak(this.keys);
+    const arah = arahGerak(this.keys) ?? this.arahSentuh;
     const dt = Math.min(delta / 1000, DT_MAKSIMUM);
     const tujuan = langkahPemain({
       x: sprite.x,
@@ -1152,6 +1180,11 @@ export class GameScene extends Phaser.Scene {
     };
     this.sembunyikanPetunjuk();
 
+    // Overlay tantangan menutup sendiri lewat event ini supaya detour terlihat.
+    // Tidak boleh mengandalkan `dialogue`: dialog soal tantangan juga memakai
+    // event itu, jadi menutup overlay di sana menghapus umpan balik jawaban.
+    this.bus?.emit({ type: "detour", aktif: true });
+
     if (this.detour.beats.length === 0) {
       this.bukaTantanganUlang();
       return;
@@ -1233,6 +1266,7 @@ export class GameScene extends Phaser.Scene {
     if (!detour) return;
 
     this.detour = null;
+    this.bus?.emit({ type: "detour", aktif: false });
     this.bukaTantangan(detour.challengeId, detour.retryQuestion);
   }
 

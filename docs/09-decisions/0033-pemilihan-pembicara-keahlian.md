@@ -4,7 +4,7 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0025 — Pemilihan Pembicara Menurut Keahlian
+# 0033 — Pemilihan Pembicara Menurut Keahlian
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14

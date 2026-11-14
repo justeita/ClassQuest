@@ -4,7 +4,7 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0024 — Emosi per Varian Jawaban
+# 0032 — Emosi per Varian Jawaban
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14

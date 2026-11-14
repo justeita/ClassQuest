@@ -65,7 +65,7 @@ Form minimal:
 | Mata pelajaran | Ya    | Teks bebas atau pilihan umum                                          |
 | Jenjang/kelas  | Ya    | Mis. "SMP 7"                                                          |
 | Bahasa         | Ya    | Default "id"                                                          |
-| Mode permainan | Ya    | `menjelaskan`, `pertanyaan`, atau `mix`; **tanpa default** (ADR 0028) |
+| Mode permainan | Ya    | `menjelaskan`, `pertanyaan`, atau `mix`; **tanpa default** (ADR 0034) |
 | Nada cerita    | Tidak | Default "hangat dan penasaran"                                        |
 
 Mode permainan wajib dipilih. Form tidak bisa dikirim dan server menolak

@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -29,6 +29,7 @@ diakses. Dokumen ini menetapkan batas jujur dan target minimum.
 | Gerak              | Hormati `prefers-reduced-motion`                   |
 | Audio              | Bisa dimatikan; tidak ada informasi hanya di audio |
 | Screen reader      | Overlay tantangan terbaca; canvas diberi label     |
+| Sentuh             | Semua aksi utama bisa diselesaikan tanpa keyboard  |
 
 ## Keyboard
 
@@ -55,6 +56,50 @@ Aturan:
 - **`Esc` tidak bisa dipakai untuk keluar dari soal yang belum dijawab.** Kalau
   overlay belum dijawab, `Esc` diabaikan (atau hanya mengumumkan "jawab dulu").
   Setelah dijawab, `Esc` sama dengan menekan "Lanjut".
+
+## Kontrol sentuh
+
+Setiap aksi yang bisa dilakukan keyboard juga punya jalur sentuh (ADR 0024),
+sehingga siswa di ponsel/tablet tidak ditinggalkan:
+
+| Aksi          | Sentuh                                   |
+| ------------- | ---------------------------------------- |
+| Gerak         | Joystick 8 arah di sudut kiri bawah      |
+| Bicara        | Tombol aksi besar di sudut kanan bawah   |
+| Lanjut dialog | Ketuk kotak dialog yang sedang tampil    |
+| Pilih jawaban | Ketuk opsi / tombol di overlay tantangan |
+| Menu jeda     | Tombol "Jeda" di HUD                     |
+| Layar penuh   | Tombol di layar judul / ikon di HUD      |
+
+Aturan:
+
+- Joystick dan tombol aksi hanya muncul saat perangkat terbaca sentuh
+  (`pointer: coarse` + `hover: none`), jadi tidak menutupi layar desktop.
+- Selama dialog, joystick dan tombol aksi **disembunyikan** (ADR 0027) supaya
+  tidak menutupi teks; lanjut dialog cukup dengan mengetuk kotak dialog.
+- Memakai pointer events + `setPointerCapture`, jadi jari yang menggeser keluar
+  pad tetap menahan tongkat sampai diangkat — tidak "nyangkut".
+- Label yang menyebut tombol fisik (`Space`, keycap `Tab`/`B`/`Esc`) diganti atau
+  disembunyikan di perangkat sentuh: menyebut tombol yang tidak ada itu menyesatkan.
+- Tombol aksi selalu berlabel "Bicara": menyala saat ada warga di jangkauan dan
+  tampil redup tetapi tetap bisa ditekan saat belum ada sasaran (ADR 0026);
+  menekannya lalu memunculkan pesan `role="status"` "Dekati warga untuk bicara"
+  alih-alih command "hantu".
+- `touch-action: manipulation` dipasang pada tombol/tautan dan `.area-game` supaya
+  ketukan di Android langsung jadi klik, bukan tertahan menunggu zoom ketuk-dua
+  kali. Tombol "Layar penuh" tetap tombol biasa: bisa difokuskan dan diaktifkan
+  papan tombol, dan menghilang bila peramban tidak mendukungnya (ADR 0025).
+- **Di layar potret** tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar
+  penuh) dipindah ke bar di bawah kanvas, bukan melayang menutupi dunia.
+  Tombolnya memakai desain yang sama dengan kotak dialog (gelap `#0b120e`,
+  bingkai dan aksen oranye `#E8A87C`, teks krem terang, sudut membulat), jadi
+  seragam di desktop maupun HP (ADR 0029, ADR 0031).
+  Teks dialog juga diperkecil agar tidak melimpah dari kotak 16:9 yang sempit.
+- Tombol "Percepat" di sentuh memantau pelepasan dari `window`
+  (`pointerup`/`pointercancel`/`touchend`/`touchcancel`/`blur`) dan memakai
+  `touchmove` non-passive selama ditahan, jadi peramban ponsel tidak bisa
+  mengambil alih ketukan-tahan sebagai gestur gulir dan mematikan time-lapse
+  (ADR 0028).
 
 ## Overlay tantangan (DOM)
 
@@ -96,8 +141,13 @@ Catatan:
 
 - Jangan mengandalkan hijau/merah saja. Selalu ada ikon atau teks
   ("Tepat", "Belum tepat").
-- Teks dialog: `#1F1E28` di atas `#F4EFE6` (kontras tinggi) atau `#F7F4EC` di atas
-  `#14201A`.
+- Teks dialog, kotak jawaban tantangan, dan tombol HUD memakai bahasa visual yang
+  sama: teks krem terang `#F7F4EC` di atas latar gelap `#0b120e`, dengan aksen
+  oranye `#E8A87C` (ADR 0029, ADR 0030, ADR 0031).
+- Penunjuk pilihan aktif adalah tangan menunjuk (glove) SVG berwarna krem terang
+  `#F7F4EC` dengan outline gelap dan manset oranye, jadi tetap terbaca di atas
+  dunia terang maupun kotak gelap; pilihan aktif juga dibedakan lewat latar yang
+  terangkat, bukan warna saja.
 - Border fokus: 2 px, warna aksen, offset 2 px.
 
 ## Ukuran teks
@@ -130,7 +180,7 @@ bergerigi bersama pixel art.
   layar sempit.
 - Isi dialog memakai **Patrick Hand** (OFL, lokal di `public/fonts/`, dimuat
   `next/font/local`); nama pembicara memakai huruf pixel **Pixelify Sans**
-  (`font-pixel`) berwarna teal. Keduanya punya ukuran minimum `clamp()` supaya
+  (`font-pixel`) berwarna oranye. Keduanya punya ukuran minimum `clamp()` supaya
   tetap terbaca di layar sempit — lihat
   [`world-design.md`](./world-design.md#teks-dan-font).
 
@@ -183,6 +233,7 @@ Mitigasi yang mungkin (backlog):
 ## Checklist sebelum demo
 
 - [ ] Seluruh alur bisa diselesaikan hanya dengan keyboard.
+- [ ] Seluruh alur bisa diselesaikan hanya dengan sentuh (ponsel).
 - [ ] Fokus terlihat dan tidak terjebak.
 - [ ] Feedback dibacakan (`aria-live`).
 - [ ] Benar/salah tidak hanya warna.

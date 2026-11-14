@@ -99,7 +99,7 @@ type StoryMeta = {
 ```
 
 `mode` adalah mode permainan yang dipilih guru saat mengunggah materi
-([ADR 0028](../09-decisions/0028-mode-permainan.md)). Nilainya salah satu dari:
+([ADR 0034](../09-decisions/0034-mode-permainan.md)). Nilainya salah satu dari:
 
 | Nilai         | Arti                                                                                          |
 | ------------- | --------------------------------------------------------------------------------------------- |
@@ -107,7 +107,7 @@ type StoryMeta = {
 | `pertanyaan`  | Kuis padat: 3 chapter, 3–4 tantangan per chapter, tiap tantangan didahului pengantar singkat. |
 | `mix`         | Gabungan: cerita agak lebih panjang, tantangan 2–3 per chapter.                               |
 
-Field ini **opsional** karena cerita yang dibuat sebelum ADR 0028 tidak
+Field ini **opsional** karena cerita yang dibuat sebelum ADR 0034 tidak
 memilikinya dan harus tetap sah. Pembaca yang menampilkannya memperlakukan cerita
 tanpa `mode` sebagai `mix`. Penulis cerita baru selalu mengisinya, karena form
 upload mewajibkan guru memilih.
@@ -221,7 +221,7 @@ type TextVariant = {
     | { jawaban: string } // balasan khusus satu jawaban salah (1..120 karakter)
     | { flag: string; is: boolean }; // flag harus ada di top-level flags
   text: string; // 1..240 karakter
-  expression?: Expression; // emosi khusus varian ini (ADR 0024)
+  expression?: Expression; // emosi khusus varian ini (ADR 0032)
 };
 
 type OnWrong = {
@@ -268,7 +268,7 @@ pembicara lewat `speakerId` + `expression`; karena itu `expression` pada
 
 #### Emosi per varian jawaban
 
-`textVariants[]` boleh membawa `expression` sendiri (ADR 0024). Ini yang membuat
+`textVariants[]` boleh membawa `expression` sendiri (ADR 0032). Ini yang membuat
 tokoh berekspresi berbeda untuk tiap jawaban: bingung (`thinking`) saat siswa
 menjawab keliru, senang (`happy`) pada teks utama untuk jawaban benar.
 
@@ -315,7 +315,7 @@ dan berperilaku seperti v1.0 biasa (`maxAttempts` efektif 1).
     lalu `text` utama dipakai bila tidak ada yang cocok (ADR 0021).
 - Varian boleh membawa `expression` sendiri, sehingga potret pembicara ikut
   berubah pada balasan itu — mis. `thinking` saat siswa menjawab salah
-  (ADR 0024). Lihat [Emosi per varian jawaban](#emosi-per-varian-jawaban).
+  (ADR 0032). Lihat [Emosi per varian jawaban](#emosi-per-varian-jawaban).
 
 Contoh:
 

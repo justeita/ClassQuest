@@ -135,6 +135,14 @@ Aturan input:
   beat dimajukan bertahap seperti time-lapse (100 ms per beat); dilepas, tempo
   kembali normal. Skip berhenti di beat `challenge`, dan fade transisi tetap
   diputar. Setiap beat yang dilewati tetap masuk buku catatan log.
+  Di perangkat sentuh, **pelepasan tombol dipantau dari `window`**
+  (`pointerup`/`pointercancel`/`touchend`/`touchcancel`, plus `blur`): peramban
+  ponsel sering menyulap ketukan-tahan jadi gestur gulir, memancarkan
+  `pointercancel` dan berhenti mengirim `pointerup`, sehingga tombol yang hanya
+  mengandalkan `pointerup` elemen terasa mati. Selama ditahan, listener
+  `touchmove` non-passive menahan gulir supaya gestur tidak diambil alih, dan
+  `pointerleave` tidak dipakai sama sekali agar jitter jempol tidak mematikan
+  time-lapse (ADR 0028).
 - Saat tab tidak aktif (`visibilitychange`), game pause otomatis.
 
 ## Alur tantangan
@@ -194,6 +202,11 @@ Detail penting:
   ada percobaan berikutnya, overlay tidak menampilkan `explanation` supaya soal
   ulang tetap bermakna; game baru mengirim `graded` (beserta penjelasan) untuk
   hasil final.
+- **Overlay tidak menutup saat dinilai.** Mengganti potret pembicara jadi
+  senang/marah adalah perubahan tampilan saja; kartu umpan balik tetap di
+  tempatnya sampai siswa menekan "Lanjut". Di luar aksi pemain, overlay hanya
+  ditutup oleh `detour` (soal diulang setelah detour selesai) — bukan oleh
+  sembarang dialog.
 - **Tanpa `onWrong`, perilaku lama berlaku.** `maxAttempts` efektif 1, jadi satu
   kemunculan soal hanya bisa dijawab sekali: overlay menampilkan jawaban benar +
   penjelasan, lalu "Lanjut". Ini yang membuat skor punya arti.
@@ -296,17 +309,46 @@ Browser memblokir audio sebelum interaksi pengguna. Karena itu:
 - Setelah overlay ditutup, fokus kembali ke canvas.
 - Jangan menangkap `Tab` secara global.
 
+## Input sentuh
+
+Perangkat sentuh (ADR 0024) memakai kontrol yang **mengirim command yang sama**
+dengan papan tombol, bukan jalur gerak kedua:
+
+- **Joystick** (`move`): tongkat analog disnap ke salah satu dari delapan
+  `ArahGerak` — sama persis dengan tombol gerak — lalu dijalankan
+  `gerakkanPemain()` yang sama. `null` saat tongkat dilepas berarti berhenti.
+- **Tombol aksi** (`interact`): satu tombol besar berlabel "Bicara" (sama dengan
+  `Space`/`Enter`). Di dekat NPC tombolnya menyala; saat belum ada warga di
+  jangkauan ia **tampil redup tetapi tetap bisa ditekan** (ADR 0026) - menekannya
+  hanya memunculkan pesan singkat "Dekati warga untuk bicara", dan command
+  `interact` tidak dikirim.
+- **Selama dialog** joystick dan tombol aksi disembunyikan (ADR 0027); lanjut
+  dialog dilakukan dengan mengetuk kotak dialog di layar. Tidak ada lagi tombol
+  sentuh "Lanjut".
+- Selama soal, kontrol gerak disembunyikan; pilihan jawaban punya tombolnya
+  sendiri di DOM.
+- Label prompt `Space` berganti jadi "Sentuh" dan semua keycap keyboard
+  disembunyikan (`Keycap` mengembalikan `null`), karena tidak ada tombol fisik di
+  perangkat itu.
+- **Tombol "Layar penuh"** (layar judul dan HUD) memenuhkan halaman lalu mencoba
+  mengunci orientasi mendatar (ADR 0025). Bukan bagian alur cerita: tidak ada
+  command bus, dan gagal memenuhkan layar tidak mengubah jalannya permainan.
+- Ketukan memakai `touch-action: manipulation` supaya tidak tertahan menunggu
+  ketuk-dua-kali zoom; akar `GameCanvas` `touch-manipulation`, hanya pad tongkat
+  yang `touch-none`.
+
 ## Skenario tepi
 
-| Skenario                             | Perilaku yang benar                                                                 |
-| ------------------------------------ | ----------------------------------------------------------------------------------- |
-| Siswa klik cepat 5x                  | Hanya 1 beat maju (debounce)                                                        |
-| Siswa refresh saat tantangan         | Kembali ke awal scene, tantangan muncul lagi; skor tetap pakai percobaan pertama    |
-| Siswa tutup tab, buka besok          | Progres dipulihkan                                                                  |
-| Guru mengedit cerita saat siswa main | Siswa tetap di versi lamanya sampai reload                                          |
-| Dua tab dibuka bersamaan             | Tab terakhir yang menulis progres menang (dokumentasikan, jangan diperbaiki di MVP) |
-| Layar sangat kecil (≤ 360 px)        | Canvas mengecil (FIT) dan teks jadi < 16 px; tampilkan saran putar layar atau zoom  |
-| Orientasi landscape di HP            | Disarankan; portrait menampilkan saran memutar layar                                |
+| Skenario                             | Perilaku yang benar                                                                       |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Siswa klik cepat 5x                  | Hanya 1 beat maju (debounce)                                                              |
+| Siswa refresh saat tantangan         | Kembali ke awal scene, tantangan muncul lagi; skor tetap pakai percobaan pertama          |
+| Siswa tutup tab, buka besok          | Progres dipulihkan                                                                        |
+| Guru mengedit cerita saat siswa main | Siswa tetap di versi lamanya sampai reload                                                |
+| Dua tab dibuka bersamaan             | Tab terakhir yang menulis progres menang (dokumentasikan, jangan diperbaiki di MVP)       |
+| Layar sangat kecil (≤ 360 px)        | Teks ikut `clamp()` (minimum tetap terbaca); di sentuh, kanvas dikunci 16:9 + dek kontrol |
+| HP lanskap                           | Kontrol sentuh mengapung di dalam bingkai kanvas, tidak memakan ruang dunia               |
+| HP potret                            | Panggung 16:9 di atas + dek kontrol di bawah - **tanpa** saran putar layar (ADR 0024)     |
 
 ## Metrik yang dicatat (lokal)
 

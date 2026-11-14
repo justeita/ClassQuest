@@ -38,12 +38,12 @@ Konsekuensi yang perlu diingat:
   kolom `keahlian:` di blok `CAST`; fungsinya memilih pembicara yang tepat
   (mis. topik ikan → Marlow), bukan menambah kontrak schema. Kalau kamu mengubah
   pekerjaan atau domain seorang tokoh di dokumen ini, perbarui `CAST_EXPERTISE`
-  juga — lihat [ADR 0025](../09-decisions/0025-pemilihan-pembicara-keahlian.md).
+  juga — lihat [ADR 0033](../09-decisions/0033-pemilihan-pembicara-keahlian.md).
 - **Tempat tokoh yang sampai ke model ada di `CAST_PLACES`.** Peta tetap di
   `src/game/world/village.json`, tetapi model tidak menerima koordinat. Lokasi
   dikirim sebagai kolom `lokasi:` di blok `CAST` plus blok `LOKASI` per tempat.
   Kalau peta desa berubah, perbarui `CAST_PLACES` juga — lihat
-  [ADR 0029](../09-decisions/0029-penempatan-tokoh-tetap.md) dan tabel di bawah.
+  [ADR 0035](../09-decisions/0035-penempatan-tokoh-tetap.md) dan tabel di bawah.
 - **Nama marga tidak dipakai di game.** Nama yang tampil di panel dialog adalah
   `cast.name` (`Kael`, `Edric`, …), bukan nama lengkap. `name` dibatasi 40
   karakter, dan panel dialog didesain untuk nama pendek.
@@ -551,7 +551,7 @@ Dunia desa adalah **satu peta tetap**. `GameScene` memasang sembilan NPC sekali
 di `src/game/world/village.json`, dan cerita tidak memindahkan mereka. Tabel ini
 adalah salinan kerja dari `map.txt` paket aset, sudah dicocokkan dengan koordinat
 NPC di peta; sumber yang dikirim ke model adalah `CAST_PLACES` di
-`src/story/cast.ts` (ADR 0029).
+`src/story/cast.ts` (ADR 0035).
 
 | Tokoh                    | Tempat tetap                                          | Koordinat kaki |
 | ------------------------ | ----------------------------------------------------- | -------------- |
@@ -620,5 +620,5 @@ Karakterisasi tiap ekspresi (berguna saat menulis dialog yang cocok):
 - [`asset-guide.md`](./asset-guide.md) — spesifikasi teknis potret dan spritesheet
 - [`../03-ai-pipeline/generation-rules.md`](../03-ai-pipeline/generation-rules.md) — aturan karakter konsisten
 - [`../09-decisions/0023-potret-ekspresi-persona.md`](../09-decisions/0023-potret-ekspresi-persona.md) — potret berekspresi di atas panel
-- [`../09-decisions/0025-pemilihan-pembicara-keahlian.md`](../09-decisions/0025-pemilihan-pembicara-keahlian.md) — keahlian tokoh untuk memilih pembicara
-- [`../09-decisions/0029-penempatan-tokoh-tetap.md`](../09-decisions/0029-penempatan-tokoh-tetap.md) — tempat tetap tokoh untuk menyusun adegan
+- [`../09-decisions/0033-pemilihan-pembicara-keahlian.md`](../09-decisions/0033-pemilihan-pembicara-keahlian.md) — keahlian tokoh untuk memilih pembicara
+- [`../09-decisions/0035-penempatan-tokoh-tetap.md`](../09-decisions/0035-penempatan-tokoh-tetap.md) — tempat tetap tokoh untuk menyusun adegan

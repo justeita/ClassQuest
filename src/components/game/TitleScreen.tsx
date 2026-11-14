@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { TombolLayarPenuh } from "@/components/game/TombolLayarPenuh";
 import type { Story } from "@/story/schema";
 
 type TitleScreenProps = {
@@ -79,32 +80,40 @@ export function TitleScreen({ story, onStart }: TitleScreenProps) {
       <div className="absolute inset-0 bg-gradient-to-r from-[#0b120e]/95 via-[#14201a]/85 to-[#14201a]/30" />
 
       <div className="relative flex h-full w-full flex-col justify-between gap-4 overflow-y-auto p-4 font-sans text-[#F7F4EC] sm:p-6">
-        <header className="max-w-xl">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[#E8A87C]">
-            ClassQuest
-          </p>
-          <h1 className="mt-2 text-xl leading-tight sm:text-2xl">
-            {meta.title}
-          </h1>
-          <p className="mt-3 max-w-md text-xs leading-relaxed text-[#D9E4DA]">
-            {meta.synopsis}
-          </p>
+        {/* Tombol layar penuh sebaris dengan kepala halaman, bukan di dalam menu
+            supaya urutan fokus papan tombol tetap Mulai → Kontrol → Kembali. Di
+            ponsel ia sekaligus jalan keluar dari bilah alamat yang memakan
+            tinggi layar. */}
+        <div className="flex items-start justify-between gap-3">
+          <header className="max-w-xl">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-[#E8A87C]">
+              ClassQuest
+            </p>
+            <h1 className="mt-2 text-xl leading-tight sm:text-2xl">
+              {meta.title}
+            </h1>
+            <p className="mt-3 max-w-md text-xs leading-relaxed text-[#D9E4DA]">
+              {meta.synopsis}
+            </p>
 
-          <ul className="mt-4 flex flex-wrap gap-2 text-[10px] uppercase tracking-wider">
-            <li className="border border-[#3D4B41] px-2 py-1 text-[#D9E4DA]">
-              {meta.subject}
-            </li>
-            <li className="border border-[#3D4B41] px-2 py-1 text-[#D9E4DA]">
-              {meta.gradeLevel}
-            </li>
-            <li className="border border-[#3D4B41] px-2 py-1 text-[#D9E4DA]">
-              {chapters.length} chapter
-            </li>
-            <li className="border border-[#3D4B41] px-2 py-1 text-[#D9E4DA]">
-              ± {meta.estimatedMinutes} menit
-            </li>
-          </ul>
-        </header>
+            <ul className="mt-4 flex flex-wrap gap-2 text-[10px] uppercase tracking-wider">
+              <li className="border border-[#3D4B41] px-2 py-1 text-[#D9E4DA]">
+                {meta.subject}
+              </li>
+              <li className="border border-[#3D4B41] px-2 py-1 text-[#D9E4DA]">
+                {meta.gradeLevel}
+              </li>
+              <li className="border border-[#3D4B41] px-2 py-1 text-[#D9E4DA]">
+                {chapters.length} chapter
+              </li>
+              <li className="border border-[#3D4B41] px-2 py-1 text-[#D9E4DA]">
+                ± {meta.estimatedMinutes} menit
+              </li>
+            </ul>
+          </header>
+
+          <TombolLayarPenuh className="shrink-0" />
+        </div>
 
         <div className="flex items-end justify-between gap-4">
           <div className="w-full max-w-xs">
