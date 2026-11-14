@@ -157,11 +157,16 @@ export type SavePlayResultOutcome =
  * `null`: akun login siswa belum dipakai, jadi siswa baru cukup punya nama
  * (dan NIS opsional). Tidak ada hasil bermain di sini — statistik per siswa
  * belum ada di MVP (`docs/05-frontend/teacher-dashboard.md`).
+ *
+ * `nisn` adalah nomor induk siswa **nasional** (dipakai sistem sekolah),
+ * berbeda dari `nis` yang nomor urut kelas dan dipakai siswa untuk masuk
+ * `/play` (ADR 0041). Keduanya boleh kosong.
  */
 export type StudentListItem = {
   id: string;
   classroomId: string | null;
   name: string;
+  nisn: string | null;
   nis: string | null;
   /** Username akun siswa; `null` = siswa tanpa akun login. */
   username: string | null;
@@ -200,8 +205,7 @@ export type PlayClassroom = {
   code: string;
 };
 
-/**
- * Satu siswa di layar masuk `/play/[storyId]?kelas=...`.
+/** Satu siswa di layar masuk `/play/[storyId]?kelas=...`.
  *
  * Hanya `id` dan `name` yang dibutuhkan siswa; NIS ikut supaya dua nama yang
  * sama bisa dibedakan tanpa menampilkan data lain.
@@ -212,9 +216,89 @@ export type PlayStudent = {
   nis: string | null;
 };
 
-/** Satu baris tabel analytics: agregat semua percobaan seorang siswa. */
+/**
+ * Identitas pemain yang sudah dikonfirmasi sebelum cerita dimulai.
+ *
+ * Satu definisi untuk semua layar masuk: `EntryScreen` (`/play/[storyId]`) dan
+ * gerbang kode kelas (`/play`). `studentId` hanya terisi bila server berhasil
+ * mencocokkan identitas dengan baris `students` kelas itu; selain itu pemain
+ * tercatat sebagai nama bebas (`nickname`) dan tidak masuk analytics kelas.
+ * Di gerbang `/play` identitas itu **wajib** NIS yang terdaftar (ADR 0041),
+ * jadi cabang nama bebas hanya dipakai jalur tautan `/play/[storyId]`.
+ */
+export type PlayPlayer = {
+  studentId: string | null;
+  name: string;
+};
+
+/** Satu game terbit milik guru kelas, untuk pemilih di gerbang `/play`. */
+export type JoinGame = {
+  storyId: string;
+  title: string;
+  subject: string;
+  gradeLevel: string;
+};
+
+/** Satu teman sekelas yang NIS-nya berbeda hanya pada titik/strip. */
+export type JoinNisCandidate = {
+  studentId: string;
+  name: string;
+  nis: string;
+};
+
+/**
+ * Alasan gerbang `/play` menolak masuk. Statis dan tanpa data dari input:
+ *
+ * - `invalid_code` — bentuk kode bukan `QST-XXXX`;
+ * - `not_found` — bentuk sah tetapi tidak ada kelas dengan kode itu;
+ * - `no_games` — kelas ada, tetapi gurunya belum menerbitkan game;
+ * - `invalid_nis` — NIS kosong / berisi karakter yang tidak sah;
+ * - `nis_not_found` — NIS itu tidak ada di daftar murid mana pun milik guru
+ *   kelas tersebut (ADR 0041);
+ * - `nis_ambiguous` — NIS cocok ke lebih dari satu murid setelah titik/strip
+ *   diabaikan; siswa harus memakai bentuk lengkapnya;
+ * - `story_not_found` — game yang dipilih bukan milik guru kelas itu;
+ * - `rate_limited` — terlalu banyak percobaan kode dari IP ini.
+ */
+export type JoinFailureReason =
+  | "invalid_code"
+  | "not_found"
+  | "no_games"
+  | "invalid_nis"
+  | "nis_not_found"
+  | "nis_ambiguous"
+  | "story_not_found"
+  | "rate_limited";
+
+/**
+ * Hasil `masukKelas` (Server Action gerbang `/play`).
+ *
+ * Tiga cabang: langsung main (satu game atau game sudah dipilih), siswa harus
+ * memilih game dulu (guru punya beberapa game terbit), atau ditolak. Penolakan
+ * `nis_ambiguous` membawa `candidates` supaya siswa bisa memilih NIS lengkapnya
+ * tanpa mengetik ulang semuanya.
+ */
+export type JoinOutcome =
+  | {
+      ok: true;
+      jenis: "main";
+      story: Story;
+      classroom: PlayClassroom;
+      students: PlayStudent[];
+      pemain: PlayPlayer;
+    }
+  | { ok: true; jenis: "pilih"; classroom: PlayClassroom; games: JoinGame[] }
+  | {
+      ok: false;
+      reason: "nis_ambiguous";
+      candidates: JoinNisCandidate[];
+    }
+  | { ok: false; reason: Exclude<JoinFailureReason, "nis_ambiguous"> };
+
+/** Satu baris tabel analytics: agregat semua percobaan seorang siswa di satu
+ * kelas untuk satu game. */
 export type AnalyticsStudentRow = {
-  /** `student_id`, atau `nickname:<huruf kecil>` untuk nama bebas. */
+  /** `classroom|story|student_id` (atau `nickname:<huruf kecil>` untuk nama bebas). */
   key: string;
   studentId: string | null;
   name: string;
@@ -235,20 +319,40 @@ export type AnalyticsStudentRow = {
   weakConcepts: string[];
   /** ISO-8601 percobaan terakhir. */
   lastPlayedAt: string;
-};
-
-/** Ringkasan analytics satu kelas untuk satu game. */
-export type ClassroomAnalytics = {
-  classroom: PlayClassroom;
+  /** Kelas asal baris; `null` bila hasil main tidak terkait kelas. */
+  classroomId: string | null;
+  classroomName: string | null;
+  /** Game asal baris. */
   storyId: string;
   storyTitle: string;
-  /** Jumlah siswa terdaftar di kelas (bukan hanya yang bermain). */
+};
+
+/** Satu kelas yang ikut dalam agregat. */
+export type AnalyticsClassroom = { id: string; name: string; code: string };
+
+/** Satu game yang ikut dalam agregat. */
+export type AnalyticsStory = { id: string; title: string };
+
+/**
+ * Ringkasan analytics hasil main siswa.
+ *
+ * Filter kelas dan game keduanya opsional: `null` berarti "semua". Jadi objek
+ * ini bisa mewakili satu kelas × satu game, semua kelas untuk satu game, satu
+ * kelas untuk semua game terbit, atau semuanya sekaligus.
+ */
+export type ClassroomAnalytics = {
+  /** Kelas yang ikut dalam agregat. */
+  classrooms: AnalyticsClassroom[];
+  /** Game yang ikut dalam agregat (hanya yang berstatus `published`). */
+  stories: AnalyticsStory[];
+  selectedClassroomId: string | null;
+  selectedStoryId: string | null;
+  /** Jumlah siswa terdaftar di kelas yang ikut dalam agregat. */
   studentsTotal: number;
-  /** Jumlah siswa yang punya minimal satu percobaan. */
+  /** Jumlah baris siswa (siswa × kelas × game) yang punya percobaan. */
   studentsPlayed: number;
   totalAttempts: number;
-  /** Rata-rata poin terbaik per siswa yang bermain; 0 bila belum ada. */
+  /** Rata-rata poin terbaik per baris siswa yang bermain; 0 bila belum ada. */
   averageBestPoints: number;
-  totalPoints: number;
   rows: AnalyticsStudentRow[];
 };

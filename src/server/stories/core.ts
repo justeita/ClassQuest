@@ -661,6 +661,69 @@ export type GetPublishedStoryInput = {
 };
 
 /**
+ * Batas jumlah game terbit yang dibaca untuk satu gerbang kelas. Satu guru
+ * demo hanya punya beberapa game; angka ini mencegah daftar raksasa di layar
+ * pemilih `/play` tanpa query tambahan.
+ */
+export const MAX_PUBLISHED_GAMES = 50;
+
+/** Satu game terbit milik guru kelas (gerbang `/play`). */
+export type PublishedGameListItem = {
+  storyId: string;
+  title: string;
+  subject: string;
+  gradeLevel: string;
+  /** ISO-8601 `updated_at` cerita; dipakai mengurutkan yang terbaru dulu. */
+  updatedAt: string;
+};
+
+/**
+ * Daftar game terbit milik satu guru, terbaru lebih dulu.
+ *
+ * Dipakai gerbang `/play`: kode kelas hanya menunjuk kelas + guru, jadi guru
+ * dengan satu game terbit bisa langsung dibukakan, sedangkan guru dengan
+ * beberapa game menampilkan pilihan. Cerita `draft`/`archived`/`failed` tidak
+ * pernah muncul — sama dengan aturan `getPublishedStory`.
+ *
+ * Yang keluar hanya metadata tampilan; isi cerita tetap diambil terpisah lewat
+ * `getPlayEntry` setelah siswa memilih.
+ */
+export async function listPublishedGames(
+  db: Pick<Client, "execute">,
+  input: { teacherId: string; limit?: number },
+): Promise<PublishedGameListItem[]> {
+  if (typeof input.teacherId !== "string" || input.teacherId === "") return [];
+
+  const limit = Math.min(
+    MAX_PUBLISHED_GAMES,
+    Math.max(1, Math.floor(input.limit ?? MAX_PUBLISHED_GAMES)),
+  );
+
+  const result = await db.execute({
+    sql: `select id, title, subject, grade_level, updated_at
+          from stories
+          where teacher_id = ? and status = 'published' and published_version is not null
+          order by updated_at desc
+          limit ?`,
+    args: [input.teacherId, limit],
+  });
+
+  const items: PublishedGameListItem[] = [];
+  for (const row of result.rows) {
+    const storyId = typeof row.id === "string" ? row.id : "";
+    if (storyId === "") continue;
+    items.push({
+      storyId,
+      title: typeof row.title === "string" ? row.title : "",
+      subject: typeof row.subject === "string" ? row.subject : "",
+      gradeLevel: typeof row.grade_level === "string" ? row.grade_level : "",
+      updatedAt: typeof row.updated_at === "string" ? row.updated_at : "",
+    });
+  }
+  return items;
+}
+
+/**
  * Cerita versi terbit untuk game siswa: `status = 'published'` dan baris
  * `story_versions` yang **menjadi versi terbit** (`published_version`), bukan
  * versi terbaru — guru bisa mengedit draft berikutnya tanpa mengubah yang

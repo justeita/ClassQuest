@@ -10,6 +10,7 @@
  * | `POST /api/upload`           | database    | **fail closed**    |
  * | `savePlayResult`             | database    | fail open          |
  * | `GET /api/stories/[storyId]` | memori      | fail open          |
+ * | Gerbang kode kelas `/play`   | memori      | fail open          |
  *
  * Login dan upload mahal (satu upload memicu generasi AI), jadi kalau
  * penghitungnya tidak bisa dipakai, permintaan ditolak dengan `500` generik.
@@ -31,6 +32,7 @@ import {
 } from "./identity";
 import {
   CLASSROOM_RATE_LIMIT,
+  JOIN_RATE_LIMIT,
   LOGIN_RATE_LIMIT,
   PLAY_RESULT_RATE_LIMIT,
   PUBLIC_STORY_RATE_LIMIT,
@@ -159,6 +161,29 @@ export async function guardPublicStoryRead(): Promise<RateLimitGate> {
       key,
       limit: PUBLIC_STORY_RATE_LIMIT.limit,
       windowSeconds: PUBLIC_STORY_RATE_LIMIT.windowSeconds,
+    });
+
+    return { response: rateLimitResponseIfBlocked(result), result };
+  } catch {
+    return ALLOWED;
+  }
+}
+
+/**
+ * Gerbang kode kelas `/play` — 30 percobaan per 10 menit per IP, di memori.
+ *
+ * Sama seperti baca cerita publik: tidak ada tulis database, dan kegagalan
+ * limiter diperlakukan sebagai izin (fail open) supaya siswa tidak tertahan
+ * karena masalah penghitung. Pemanggil (Server Action) tidak memakai
+ * `response` — ia hanya membaca `result.allowed`.
+ */
+export async function guardJoinClassCode(): Promise<RateLimitGate> {
+  try {
+    const key = await clientIpRateLimitKey(JOIN_RATE_LIMIT.name);
+    const result = memoryRateLimits.check({
+      key,
+      limit: JOIN_RATE_LIMIT.limit,
+      windowSeconds: JOIN_RATE_LIMIT.windowSeconds,
     });
 
     return { response: rateLimitResponseIfBlocked(result), result };

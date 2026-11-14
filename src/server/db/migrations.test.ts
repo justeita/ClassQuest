@@ -118,6 +118,7 @@ describe("migrate — skema awal", () => {
       "0004_accounts",
       "0005_classrooms_students",
       "0006_play_results_classroom",
+      "0007_students_nisn",
     ]);
     expect(await tableNames(db)).toContain("rate_limits");
   });
@@ -141,7 +142,8 @@ describe("migrate — skema awal", () => {
     const upTo0004 = MIGRATIONS.filter(
       (migration) =>
         migration.id !== "0005_classrooms_students" &&
-        migration.id !== "0006_play_results_classroom",
+        migration.id !== "0006_play_results_classroom" &&
+        migration.id !== "0007_students_nisn",
     );
     const result = await applyMigrations(db, upTo0004);
     expect(result.applied).toEqual(["0004_accounts"]);
@@ -178,7 +180,8 @@ describe("migrate — skema awal", () => {
     const before = MIGRATIONS.filter(
       (migration) =>
         migration.id !== "0005_classrooms_students" &&
-        migration.id !== "0006_play_results_classroom",
+        migration.id !== "0006_play_results_classroom" &&
+        migration.id !== "0007_students_nisn",
     );
 
     await applyMigrations(db, before);
@@ -194,6 +197,7 @@ describe("migrate — skema awal", () => {
     expect(result.applied).toEqual([
       "0005_classrooms_students",
       "0006_play_results_classroom",
+      "0007_students_nisn",
     ]);
 
     expect(await tableNames(db)).toContain("classrooms");

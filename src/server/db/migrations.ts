@@ -279,7 +279,7 @@ create unique index if not exists students_nis_idx on students (teacher_id, nis)
  *
  * Aturan yang dipegang:
  *
- * - Kedua kolom boleh `null`: tautan lama tanpa `?kelas=` dan `/game` (demo)
+ * - Kedua kolom boleh `null`: tautan lama tanpa `?kelas=` dan `/demo` (demo)
  *   tetap bisa menyimpan hasil, hanya tidak masuk analytics kelas.
  * - `on delete set null`: menghapus kelas/siswa tidak boleh menghapus riwayat
  *   hasil main. `nickname` tetap menyimpan nama saat bermain sebagai salinan.
@@ -296,6 +296,26 @@ create index if not exists play_results_classroom_idx
   on play_results (classroom_id, story_id, created_at desc);
 create index if not exists play_results_student_idx
   on play_results (student_id, created_at desc);
+`;
+
+/**
+ * Migrasi 0007: NISN (nomor induk siswa nasional).
+ *
+ * Daftar murid `/guru/kelas` menampilkan **NISN, NIS, dan nama lengkap**.
+ * Kolom `nis` yang sudah ada tetap dipakai siswa untuk masuk `/play`, sedangkan
+ * `nisn` adalah nomor dari sistem sekolah (Dapodik): boleh `null` karena tidak
+ * semua sekolah memakainya dan guru boleh menambah murid tanpa NISN.
+ *
+ * Aturan yang dipegang:
+ *
+ * - `alter table add column` saja, tanpa rebuild: kolom baru boleh `null` dan
+ *   murid yang sudah ada otomatis mendapat `null`.
+ * - Tidak ada index unik: NISN bukan kunci masuk, dan dua murid NISN-nya sama
+ *   (mis. salah ketik guru) tidak boleh membuat penyimpanan gagal.
+ * - NISN tidak pernah dikirim ke browser siswa; `/play` hanya memakai `nis`.
+ */
+const STUDENTS_NISN_SQL = `
+alter table students add column nisn text;
 `;
 
 /**
@@ -332,6 +352,11 @@ export const MIGRATIONS: readonly Migration[] = [
     id: "0006_play_results_classroom",
     name: "Hasil bermain terhubung ke kelas/siswa + total_points",
     sql: PLAY_RESULTS_CLASSROOM_SQL,
+  },
+  {
+    id: "0007_students_nisn",
+    name: "NISN siswa (daftar murid: NISN, NIS, nama lengkap)",
+    sql: STUDENTS_NISN_SQL,
   },
 ];
 
