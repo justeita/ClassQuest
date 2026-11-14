@@ -219,7 +219,7 @@ describe("GameShell", () => {
     });
     bus.emit({
       type: "nametags",
-      plates: [{ npcId: "char_npc_10", nama: "Pak Wira", x: 200, y: 126 }],
+      plates: [{ npcId: "char_npc_10", nama: "Edric", x: 200, y: 126 }],
     });
     bus.emit({
       type: "prompt",
@@ -227,7 +227,7 @@ describe("GameShell", () => {
     });
 
     expect(await screen.findByText("!")).toBeInTheDocument();
-    expect(screen.getByText("Pak Wira")).toBeInTheDocument();
+    expect(screen.getByText("Edric")).toBeInTheDocument();
     expect(screen.getByText("Space")).toBeInTheDocument();
   });
 
@@ -529,7 +529,7 @@ describe("GameShell", () => {
       type: "dialogue",
       view: {
         visible: true,
-        name: "Bu Ratna",
+        name: "Leonhardt",
         text: "Air di bumi tidak pernah hilang.",
         waiting: true,
         portrait: null,
@@ -827,7 +827,7 @@ describe("GameShell — soal di atas dialog", () => {
       type: "dialogue",
       view: {
         visible: true,
-        name: "Bu Ratna",
+        name: "Leonhardt",
         text: "Air di bumi tidak pernah hilang.",
         waiting: true,
         portrait: null,

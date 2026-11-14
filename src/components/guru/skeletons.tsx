@@ -157,3 +157,30 @@ export function StudioSkeleton() {
     </div>
   );
 }
+
+/** Kerangka analytics: header, dua penyaring, empat kartu ringkasan, tabel. */
+export function AnalyticsSkeleton() {
+  return (
+    <div className="mx-auto max-w-7xl space-y-6 pb-10" aria-hidden>
+      <div className="flex flex-col justify-between gap-4 border-b-2 border-slate-200 pb-4 sm:flex-row sm:items-center">
+        <div className="space-y-2">
+          <div className="guru-skeleton h-7 w-48 rounded-lg" />
+          <div className="guru-skeleton h-3 w-64 rounded" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="guru-skeleton h-20 rounded-2xl border-2 border-slate-200" />
+        <div className="guru-skeleton h-20 rounded-2xl border-2 border-slate-200" />
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div
+            key={index}
+            className="guru-skeleton h-[88px] rounded-2xl border-2 border-slate-200"
+          />
+        ))}
+      </div>
+      <div className="guru-skeleton h-72 rounded-2xl border-2 border-slate-200" />
+    </div>
+  );
+}

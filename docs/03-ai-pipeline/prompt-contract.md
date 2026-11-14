@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -9,7 +9,7 @@ owner: tim ClassQuest
 Prompt adalah kode. Ia punya versi, dites, dan tidak diubah diam-diam.
 
 - Implementasi: `src/ai/prompt.ts`
-- Versi saat ini: `PROMPT_VERSION = "story-v4"`
+- Versi saat ini: `PROMPT_VERSION = "story-v8"`
 - Aturan isi cerita: [`generation-rules.md`](./generation-rules.md)
 - Schema output: [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)
 
@@ -24,17 +24,18 @@ Selalu urutan ini. Instruksi sistem tidak boleh berada setelah data pengguna.
   1. SCHEMA (bentuk JSON yang harus dihasilkan)
   1b. BRANCHING (opsional; hanya bila AI_BRANCHING=on)
   2. ASSETS (daftar aset yang boleh dipakai)
-  3. OUTLINE (struktur yang sudah disepakati)
-  4. CONTINUITY (ringkasan chapter sebelumnya)
-  5. MATERIAL (teks materi, sebagai DATA)
-  6. TASK (chapter mana yang ditulis, batasan jumlah)
+  3. CAST (roster tetap: id, nama, role, sprite, deskripsi penampilan)
+  4. OUTLINE (struktur yang sudah disepakati)
+  5. CONTINUITY (ringkasan chapter sebelumnya)
+  6. MATERIAL (teks materi, sebagai DATA)
+  7. TASK (chapter mana yang ditulis, batasan jumlah)
 ```
 
 **Kenapa urutan ini:** materi diletakkan setelah instruksi dan dibungkus penanda
 data, sehingga teks seperti "abaikan aturan di atas" di dalam PDF tidak terlihat
 seperti perintah baru.
 
-## System prompt (story-v4)
+## System prompt (story-v5)
 
 ```text
 Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
@@ -45,7 +46,8 @@ ATURAN KERAS
    nama, atau teori yang tidak ada di materi.
 2. Jangan membuat aset baru. Semua backgroundId, musicId, dan spriteId harus
    diambil persis dari daftar ASSETS.
-3. Jangan membuat karakter di luar CAST pada OUTLINE.
+3. Cast sudah ditetapkan di blok CAST. Jangan membuat karakter di luar CAST,
+   dan jangan mengubah nama, id, role, spriteId, deskripsi, atau obrolan tokoh.
 4. Setiap chapter membahas tepat satu konsep dari OUTLINE.
 5. Setiap chapter minimal memiliki satu beat bertipe "challenge".
 6. Patuhi batas panjang teks: beat maksimal 240 karakter.
@@ -104,6 +106,29 @@ sedangkan nada konkret per-generasi dikirim lewat `TASK` (`meta.tone`), mis.
 — setiap item `concepts` maksimal 60 karakter, `cast[].role` wajib salah satu
 dari `"player"`, `"mentor"`, `"npc"`, `"antagonist"` — dan plafon output per
 panggilan naik ke 8.000 token (lihat ADR 0018).
+
+`story-v5` menambahkan aturan cast tetap. Nama, id, role, sprite, deskripsi
+penampilan, dan obrolan singkat tokoh berasal dari `src/story/cast.ts`, bukan
+dari model. Prompt tetap meminta model menyalin cast, tetapi pipeline menimpa
+`outline.cast` sebelum validasi dan `assemble()` selalu memakai roster tetap.
+Tujuannya: cerita dari PDF mana pun tetap menampilkan tokoh desa yang sama, dan
+deskripsi penampilan (mis. "nenek bertongkat") membuat aksi/dialog cocok dengan
+sprite.
+
+`story-v6` **tidak mengubah blok system prompt**. Yang berubah hanya blok
+`BRANCHING` (opsional): model kini diajari mengutip jawaban salah lewat
+`{{jawaban}}` dan boleh memakai `onWrong` berisi `setFlags` saja, tanpa
+percobaan ulang (lihat [ADR 0020](../09-decisions/0020-kutipan-jawaban-siswa-di-dialog.md)).
+
+`story-v7` juga **tidak mengubah blok system prompt**. Blok `BRANCHING` kini
+mengajarkan varian `when: { jawaban }` supaya setiap pilihan salah dibalas
+berbeda, dengan `when: { flag, is }` sebagai cadangan umum (lihat
+[ADR 0021](../09-decisions/0021-varian-dialog-per-jawaban-salah.md)).
+
+`story-v8` menambah **pola wajib** di blok `BRANCHING`: setelah soal, pemain
+(`char_mc`) mengucapkan jawabannya lebih dulu dalam satu kalimat pendek tanpa
+pembenaran, lalu tokoh lain menanggapi ucapan itu (lihat
+[ADR 0022](../09-decisions/0022-pemain-mengucapkan-jawaban-di-dialog.md)).
 
 ## Blok schema di prompt
 
@@ -201,6 +226,26 @@ tetap ditampilkan; tanpa itu model tidak punya pilihan sama sekali. Hanya
 adalah aset runtime dan tidak pernah ditawarkan. Perilaku ini dikunci
 `src/ai/prompt.test.ts`.
 
+## Blok cast di prompt
+
+Roster karakter tetap dikirim sebagai blok `CAST` tepat setelah `ASSETS`.
+Sumbernya `src/story/cast.ts`; jangan menyalin nama ke prompt builder.
+
+```text
+CAST
+Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role,
+spriteId, description, dan smallTalk dari daftar ini. ...
+
+- char_mc | Kael | role: player | sprite: char_mc | deskripsi: Pemuda bersyal biru ...
+- char_npc_10 | Edric | role: mentor | sprite: char_npc_10 | deskripsi: Tetua desa ...
+- char_npc_5 | Griselda | role: npc | sprite: char_npc_5 | deskripsi: Tetua desa berambut putih tersanggul ...
+```
+
+Deskripsi **wajib** ikut karena menyebut ciri yang terlihat di sprite (topi,
+kacamata, jubah, tongkat). Tanpa itu model bisa menulis aksi yang tidak cocok
+dengan gambar. Pipeline tetap menimpa `outline.cast` dengan roster ini sebelum
+validasi, jadi model tidak bisa mengganti nama walaupun mengabaikan instruksi.
+
 ## Blok kontinuitas
 
 ```text
@@ -223,15 +268,32 @@ prompt kembali **persis** seperti sebelum fitur ini — dikunci
 
 Isinya mengajari model menulis konsekuensi jawaban salah, bukan pilihan dialog:
 
-- Tidak semua challenge perlu `onWrong`; cukup 1–2 per chapter.
-- `onWrong` selalu bersama `maxAttempts` 2 atau 3.
-- `retryQuestions` berjumlah `maxAttempts - 1`, menanyakan soal yang **sama**
-  (konsep, jawaban benar, dan opsi tidak berubah) dengan kata-kata berbeda.
+- Setiap challenge boleh punya `onWrong`; yang dibatasi 1–2 per chapter adalah
+  `detour`.
+- `onWrong.setFlags` menandai "pernah salah" dan menyala di **setiap** jawaban
+  salah. `onWrong` boleh berisi `setFlags` saja, tanpa `maxAttempts`.
+- `retryQuestions` hanya bila `maxAttempts` 2 atau 3, berjumlah
+  `maxAttempts - 1`, menanyakan soal yang **sama** (konsep, jawaban benar, dan
+  opsi tidak berubah) dengan kata-kata berbeda.
 - `detour` 1–2 beat (maksimal 3) narasi/dialog, hanya speaker dari cast, tanpa
   beat challenge, dan tidak menyebut jawaban.
-- Flag id `flg_[a-z0-9_]+`, maksimal 2 flag per cerita, id konsisten lintas
-  chapter (blok menyebutkan id yang sudah dipakai chapter sebelumnya).
-- `textVariants` hanya merujuk flag yang sudah di-set di beat sebelumnya.
+- **Pola wajib setelah soal** (ADR 0022): pemain (`char_mc`) mengucapkan
+  jawabannya lebih dulu dalam satu kalimat pendek (≤ 60 karakter) tanpa
+  pembenaran, lalu tokoh lain menanggapi ucapan itu. Koreksi dan hitungan hanya
+  boleh muncul di mulut tokoh lain.
+- Dialog setelah soal bereaksi pada jawaban salah dengan dua bentuk varian:
+  - `when: { jawaban }` — teks jawaban yang persis (multiple_choice: teks opsi;
+    true_false: `Benar`/`Salah`; ordering: item berurutan dipisah `→`). Satu
+    varian per kemungkinan salah, dan balasannya berbeda-beda.
+  - `when: { flag, is }` — cadangan umum "pernah salah"; wajib untuk
+    `short_answer` karena teks ketikan siswa tidak bisa ditebak.
+- Varian `jawaban` dipertimbangkan lebih dulu daripada varian `flag`, dan hanya
+  berlaku untuk tantangan yang percobaan terakhirnya salah.
+- Varian `when.flag` hanya merujuk flag yang sudah di-set di beat sebelumnya.
+- `{{jawaban}}` boleh dipakai di dalam teks varian (maks 120 karakter); teks
+  varian tetap dibatasi 240 karakter oleh schema.
+- Flag id `flg_[a-z0-9_]+`, satu flag per tantangan, id konsisten lintas chapter
+  (blok menyebutkan id yang sudah dipakai chapter sebelumnya).
 
 Blok ini tidak mengubah blok `SCHEMA CHAPTER`: draft chapter tetap
 `{ chapter, challenges, continuity }`, dan deklarasi `flags` tingkat cerita

@@ -198,7 +198,7 @@ describe("validateChapter — kode error", () => {
       (draft) => {
         draft.chapter.scenes[0].beats[2] = {
           type: "narration",
-          text: "Nara mengangguk pelan.",
+          text: "Kael mengangguk pelan.",
         };
         draft.challenges = [];
       },
@@ -320,8 +320,8 @@ describe("validateChapter — kode error", () => {
       "E_ONWRONG_WITHOUT_ATTEMPTS",
       "chapter.scenes[0].beats[2].maxAttempts",
       (draft) => {
+        // Soal ulang tetap ada, tetapi percobaannya hanya satu: tidak masuk akal.
         delete draft.chapter.scenes[0].beats[2].maxAttempts;
-        delete draft.chapter.scenes[0].beats[2].onWrong.retryQuestions;
       },
     ],
     [
@@ -338,7 +338,7 @@ describe("validateChapter — kode error", () => {
       "chapter.scenes[0].beats[2].onWrong.detour",
       (draft) => {
         draft.chapter.scenes[0].beats[2].onWrong.detour.push(
-          { type: "narration", text: "Nara membaca ulang catatannya." },
+          { type: "narration", text: "Kael membaca ulang catatannya." },
           { type: "narration", text: "Pak Bima menunggu dengan sabar." },
         );
       },
@@ -356,6 +356,22 @@ describe("validateChapter — kode error", () => {
 
     expectIssue(result, "E_JSON_PARSE", "");
     expect(result.errors).toHaveLength(1);
+  });
+
+  it("menerima onWrong yang hanya menyalakan flag (tanpa soal ulang)", () => {
+    // ADR 0020: tantangan maxAttempts 1 boleh bereaksi pada jawaban salah lewat
+    // setFlags saja, supaya dialog sesudahnya bisa mengutip {{jawaban}}.
+    const draft = brokenChapter((value) => {
+      delete value.chapter.scenes[0].beats[2].maxAttempts;
+      delete value.chapter.scenes[0].beats[2].onWrong.retryQuestions;
+      delete value.chapter.scenes[0].beats[2].onWrong.detour;
+    });
+
+    const result = validateChapter(draft, chapterContext());
+
+    expect(codes(result.errors)).not.toContain("E_ONWRONG_WITHOUT_ATTEMPTS");
+    expect(codes(result.errors)).not.toContain("E_RETRY_COUNT");
+    expect(result.ok).toBe(true);
   });
 
   it("menolak format id flag yang salah sebagai E_SCHEMA", () => {
@@ -533,7 +549,7 @@ describe("warning", () => {
         for (let index = 0; index < 7; index += 1) {
           draft.chapter.scenes[0].beats.push({
             type: "narration",
-            text: `Nara mencatat pengamatan ke-${index + 1}.`,
+            text: `Kael mencatat pengamatan ke-${index + 1}.`,
           });
         }
       },
@@ -541,8 +557,9 @@ describe("warning", () => {
     [
       "W_TEXT_VARIANT_FLAG_UNSET",
       (draft) => {
-        draft.chapter.scenes[1].beats[1].textVariants[0].when.flag =
-          "flg_belum_diset";
+        const when = draft.chapter.scenes[1].beats[1].textVariants[0].when;
+        if (!("flag" in when)) throw new Error("fixture");
+        when.flag = "flg_belum_diset";
       },
     ],
   ];
@@ -556,8 +573,9 @@ describe("warning", () => {
 
   it("menerima flag textVariants yang sudah di-set chapter sebelumnya", () => {
     const draft = brokenChapter((value) => {
-      value.chapter.scenes[1].beats[1].textVariants[0].when.flag =
-        "flg_dari_chapter_lalu";
+      const when = value.chapter.scenes[1].beats[1].textVariants[0].when;
+      if (!("flag" in when)) throw new Error("fixture");
+      when.flag = "flg_dari_chapter_lalu";
     });
 
     const result = validateChapter(

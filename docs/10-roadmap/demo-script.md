@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
@@ -100,7 +100,7 @@ risiko yang diterima; lihat
 |        Ke Mana Perginya               |
 |          Genangan Itu?                |
 |                                       |
-|      Nara dan setetes air yang        |
+|      Kael dan setetes air yang        |
 |      ingin pulang ke langit           |
 |                                       |
 |            [ MULAI ]                  |
@@ -113,14 +113,14 @@ risiko yang diterima; lihat
 
 ```text
 +---------------------------------------+
-|  latar: kelas, siang                  |
+|  latar: halaman desa, pagi            |
 |                                       |
-|    (Pak Bima)            (Nara)       |
+|    (Edric)               (Kael)       |
 |                                       |
 |  +---------------------------------+  |
-|  | Pak Bima                        |  |
-|  | Genangan itu tadi pagi masih    |  |
-|  | penuh. Ke mana airnya?          |  |
+|  | Edric                           |  |
+|  | Genangan di jalan tadi pagi     |  |
+|  | masih penuh. Ke mana airnya?    |  |
 |  +---------------------------------+  |
 |   Bab 1/3                     (Esc)   |
 +---------------------------------------+
@@ -153,10 +153,10 @@ membedakan ClassQuest dari kuis biasa.
 +---------------------------------------+
 |           Cerita selesai              |
 |                                       |
-|           5 dari 6 benar              |
-|              60 poin                  |
+|           8 dari 9 benar              |
+|              130 poin                 |
 |                                       |
-|   Coba ulang bagian ini: Kondensasi   |
+|   Coba ulang bagian ini: Persentase   |
 |                                       |
 |      [ MAIN LAGI ]   [ KE AWAL ]      |
 +---------------------------------------+
@@ -165,11 +165,11 @@ membedakan ClassQuest dari kuis biasa.
 Tidak ada peringkat, tidak ada perbandingan dengan siswa lain. Itu keputusan
 produk, bukan fitur yang belum jadi.
 
-Soal angka: **jangan mengarang skor.** Poin mengikuti `points` tiap tantangan
-(default 10; di cerita contoh `ordering` dan `short_answer` bernilai 15). Dengan 6
-soal di `story.example.json`, total maksimumnya 70 — jadi "5 dari 6 benar" wajar
-menghasilkan 55–60 poin, bukan 80. Kalau nanti angkanya berubah, ubah cerita
-contohnya dulu, baru sketsa ini.
+Soal angka: **jangan mengarang skor.** Poin mengikuti `points` tiap tantangan di
+`story.example.json` (default 10; di cerita contoh `ordering` dan `short_answer`
+bervariasi 15–20). Cerita contoh punya **9 soal** dengan total maksimum **140 poin**
+— jadi "8 dari 9 benar" menghasilkan 130 poin, bukan 60. Kalau nanti angkanya
+berubah, ubah cerita contohnya dulu, baru sketsa ini.
 
 ## Kalau ada yang gagal
 

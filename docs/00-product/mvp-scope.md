@@ -35,16 +35,18 @@ MVP dianggap selesai jika alur ini berjalan tanpa intervensi manual:
 | Game              | Alur linear per chapter dengan eksplorasi top-down per scene (map dummy, ADR 0008), gerak 4 arah + collision, interaksi NPC memicu dialog, tantangan, hasil |
 | Aset              | Sprite karakter, background, musik, SFX, UI — jumlah terbatas                                                                                               |
 | Penyimpanan lokal | Progres siswa di `localStorage`                                                                                                                             |
-| Kelas & siswa     | Guru membuat kelas dan menambah siswa (nama + NIS opsional); kode `QST-XXXX` hanya label                                                                    |
+| Kelas & siswa     | Guru membuat kelas dan menambah siswa (nama + NIS opsional); kode `QST-XXXX` dipakai di tautan kelas                                                        |
 | Persistence       | Satu database libSQL/Turso; PDF tidak disimpan (ADR 0013)                                                                                                   |
-| Akses             | Tautan publik, tanpa akun siswa. Kode kelas hanya label; alur "siswa memasukkan kode": **backlog**                                                          |
+| Akses             | Tautan publik, tanpa akun siswa. Tautan per kelas `/play/[storyId]?kelas=QST-XXXX`; siswa memilih namanya dari daftar kelas                                 |
+| Analytics         | `/guru/analitik`: pilih kelas → pilih game → poin terbaik dan konsep lemah per siswa                                                                        |
 | Deployment        | Satu environment (production demo)                                                                                                                          |
 
 ## Out of scope (tegas)
 
 - Login/akun siswa, SSO sekolah, integrasi Google Classroom.
 - Multiplayer, leaderboard global, kelas real-time.
-- Nilai, rapor, analitik guru mendalam (hanya ringkasan hasil per sesi).
+- Nilai, rapor, dan analitik lintas kelas/semester (yang ada hanya agregat per
+  kelas + game: poin terbaik dan konsep lemah per siswa).
 - OCR untuk PDF hasil scan (boleh disebut sebagai backlog).
 - AI membuat gambar, musik, suara, atau animasi baru.
 - Voice-over / text-to-speech.

@@ -10,7 +10,7 @@ describe("NpcNameplate", () => {
   it("menulis nama NPC di atas kepalanya dengan gaya chip HUD", () => {
     render(
       <NpcNameplate
-        plate={{ npcId: "char_npc_10", nama: "Pak Wira", x: 200, y: 120 }}
+        plate={{ npcId: "char_npc_10", nama: "Edric", x: 200, y: 120 }}
       />,
     );
 
@@ -23,7 +23,7 @@ describe("NpcNameplate", () => {
     expect(pembungkus?.style.left).toBe(persenLebar(200));
     expect(pembungkus?.style.top).toBe(persenTinggi(120));
 
-    const nama = screen.getByText("Pak Wira");
+    const nama = screen.getByText("Edric");
     expect(nama.className).toContain("bg-[#0b120e]/85");
     expect(nama.className).toContain("border-[#3D4B41]");
     expect(nama.className).toContain("text-[#F7F4EC]");

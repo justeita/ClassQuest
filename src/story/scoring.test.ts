@@ -5,8 +5,10 @@ import { describe, expect, it } from "vitest";
 import type { Challenge, Story } from "./schema";
 import {
   DEFAULT_POINTS,
+  MAX_JAWABAN_CHARS,
   aggregateByConcept,
   isCorrect,
+  renderAnswer,
   scoreAnswer,
   scoreStory,
   totalScore,
@@ -551,6 +553,94 @@ describe("aggregateByConcept", () => {
     expect(aggregateByConcept(EXAMPLE, answers)).toEqual(
       aggregateByConcept(EXAMPLE, [...answers].reverse()),
     );
+  });
+});
+
+describe("renderAnswer", () => {
+  it("multiple_choice memakai teks opsi yang dipilih", () => {
+    const challenge = multipleChoice();
+    expect(
+      renderAnswer(challenge, {
+        challengeId: challenge.id,
+        type: "multiple_choice",
+        selectedId: "opt_b",
+      }),
+    ).toBe("Pilihan B");
+  });
+
+  it("multiple_choice memakai id apa adanya bila opsi tidak dikenal", () => {
+    const challenge = multipleChoice();
+    expect(
+      renderAnswer(challenge, {
+        challengeId: challenge.id,
+        type: "multiple_choice",
+        selectedId: "opt_hilang",
+      }),
+    ).toBe("opt_hilang");
+  });
+
+  it("true_false memakai kata Benar atau Salah", () => {
+    const challenge = trueFalse();
+    expect(
+      renderAnswer(challenge, {
+        challengeId: challenge.id,
+        type: "true_false",
+        answer: true,
+      }),
+    ).toBe("Benar");
+    expect(
+      renderAnswer(challenge, {
+        challengeId: challenge.id,
+        type: "true_false",
+        answer: false,
+      }),
+    ).toBe("Salah");
+  });
+
+  it("ordering memakai teks item sesuai urutan siswa", () => {
+    const challenge = ordering();
+    expect(
+      renderAnswer(challenge, {
+        challengeId: challenge.id,
+        type: "ordering",
+        order: ["itm_dua", "itm_satu", "itm_tiga"],
+      }),
+    ).toBe("Langkah dua → Langkah satu → Langkah tiga");
+  });
+
+  it("short_answer merapikan spasi berlebih", () => {
+    const challenge = shortAnswer();
+    expect(
+      renderAnswer(challenge, {
+        challengeId: challenge.id,
+        type: "short_answer",
+        text: "  dua   belas  ",
+      }),
+    ).toBe("dua belas");
+  });
+
+  it("memotong jawaban yang terlalu panjang agar kotak dialog muat", () => {
+    const challenge = shortAnswer();
+    const hasil = renderAnswer(challenge, {
+      challengeId: challenge.id,
+      type: "short_answer",
+      text: "a".repeat(MAX_JAWABAN_CHARS + 10),
+    });
+
+    expect([...hasil]).toHaveLength(MAX_JAWABAN_CHARS + 1);
+    expect(hasil.endsWith("…")).toBe(true);
+  });
+
+  it("tidak menilai jawaban: jawaban salah tetap diterjemahkan", () => {
+    const challenge = trueFalse({ correctAnswer: true });
+    const salah: Answer = {
+      challengeId: challenge.id,
+      type: "true_false",
+      answer: false,
+    };
+
+    expect(isCorrect(challenge, salah)).toBe(false);
+    expect(renderAnswer(challenge, salah)).toBe("Salah");
   });
 });
 

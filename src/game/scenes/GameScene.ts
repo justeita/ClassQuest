@@ -2,7 +2,7 @@ import Phaser from "phaser";
 
 import { CHARACTER_FRAMES } from "@/assets/characterFrames";
 import { DEFAULT_EXPRESSION, type Expression } from "@/story/expression";
-import { scoreAnswer, type Answer } from "@/story/scoring";
+import { renderAnswer, scoreAnswer, type Answer } from "@/story/scoring";
 import type { DetourBeat, Story } from "@/story/schema";
 
 import { clampVolume } from "../audioSettings";
@@ -37,7 +37,9 @@ import { StoryRunner, akhirBab, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import {
   BranchingRun,
+  challengeSebelumnya,
   resolveDialogueText,
+  substituteJawaban,
   type RetryPlan,
 } from "../branching";
 import { buildChallengeView } from "../challengeView";
@@ -879,7 +881,13 @@ export class GameScene extends Phaser.Scene {
     this.kirimQuest();
 
     const hasil = scoreAnswer(challenge, answer);
-    const outcome = this.branching.grade(beat, hasil.isCorrect);
+    // Jawaban salah disimpan sebagai teks supaya dialog berikutnya bisa
+    // mengutipnya lewat `{{jawaban}}` (story-schema.md, ADR 0020).
+    const outcome = this.branching.grade(
+      beat,
+      hasil.isCorrect,
+      renderAnswer(challenge, answer),
+    );
     this.mainkanSfx(hasil.isCorrect ? "sfx_correct" : "sfx_wrong");
     // Umpan balik visual: potret pembicara soal berubah senang saat benar dan
     // marah saat salah (docs/04-game/scene-format.md).
@@ -903,6 +911,26 @@ export class GameScene extends Phaser.Scene {
       correct: hasil.isCorrect,
       explanation: challenge.explanation,
     });
+  }
+
+  /**
+   * Jawaban salah yang relevan untuk beat yang sedang tampil.
+   *
+   * - Di dalam detour: jawaban tantangan yang memicunya.
+   * - Di beat biasa: jawaban tantangan terdekat sebelumnya, supaya varian
+   *   `when.jawaban` hanya bereaksi pada soal yang memang barusan dikerjakan.
+   * - Sebelum tantangan apa pun: `null`, sehingga varian jawaban tidak pernah
+   *   dipakai.
+   */
+  private jawabanUntukBeat(): string | null {
+    if (this.detour) {
+      return this.branching.jawabanSalahUntuk(this.detour.challengeId);
+    }
+
+    const sebelumnya = challengeSebelumnya(this.story, this.runner.getState());
+    if (sebelumnya === null) return null;
+
+    return this.branching.jawabanSalahUntuk(sebelumnya);
   }
 
   /** Tampilkan beat aktif sesuai fase runner. */
@@ -945,9 +973,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     let view: BeatView;
+    const jawaban = this.jawabanUntukBeat();
     if (beat.type === "dialogue") {
-      // Varian teks dipilih dari nilai flag saat ini (story-schema.md).
-      const text = resolveDialogueText(beat, this.branching.flags());
+      // Varian teks dipilih dari jawaban salah tantangan terdekat, lalu flag
+      // (story-schema.md, ADR 0020).
+      const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;
       // Ingat NPC yang bicara supaya potretnya tetap tampil (meredup) saat MC
       // mengambil giliran berikutnya.
@@ -970,7 +1000,7 @@ export class GameScene extends Phaser.Scene {
       this.sorotSpeaker(null);
       view = {
         name: null,
-        text: beat.text,
+        text: substituteJawaban(beat.text, jawaban),
         portrait: this.potretUntuk(beat.speakerId ?? null, beat.expression),
         pendamping: this.potretLawan(beat.speakerId ?? null),
       };
@@ -1079,9 +1109,12 @@ export class GameScene extends Phaser.Scene {
 
     // Soal ulang hanya mengganti teks soal; opsi dan jawaban benar tetap sama.
     const prompt = promptOverride ?? challenge.prompt;
+    // Instruksi dan pernyataan dipisah satu baris saja: panel dialog tingginya
+    // tetap (104 px internal), jadi baris kosong akan mendorong pernyataan ke
+    // tepi bawah kotak.
     const text =
       challenge.type === "true_false" && challenge.statement
-        ? `${prompt}\n\n"${challenge.statement}"`
+        ? `${prompt}\n"${challenge.statement}"`
         : prompt;
 
     this.textbox?.show({
@@ -1132,8 +1165,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     let view: BeatView;
+    const jawaban = this.jawabanUntukBeat();
     if (beat.type === "dialogue") {
-      const text = resolveDialogueText(beat, this.branching.flags());
+      const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;
       if (beat.speakerId !== this.playerId) {
         this.lawanBicaraTerakhir = beat.speakerId;
@@ -1152,7 +1186,7 @@ export class GameScene extends Phaser.Scene {
       this.sorotSpeaker(null);
       view = {
         name: null,
-        text: beat.text,
+        text: substituteJawaban(beat.text, jawaban),
         portrait: this.potretUntuk(beat.speakerId ?? null, beat.expression),
         pendamping: this.potretLawan(beat.speakerId ?? null),
       };

@@ -4,7 +4,7 @@ last_reviewed: 2026-11-13
 owner: tim ClassQuest
 ---
 
-# 0020 — Potret Berekspresi, Dipasang di Atas Kotak Dialog
+# 0023 — Potret Berekspresi, Dipasang di Atas Kotak Dialog
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-13

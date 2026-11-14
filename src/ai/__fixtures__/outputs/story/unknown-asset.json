@@ -7,7 +7,7 @@
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat dan penasaran",
-    "synopsis": "Nara mengamati daun di kelas dan halaman sekolah. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
+    "synopsis": "Kael mengamati daun di kelas dan halaman sekolah. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
     "estimatedMinutes": 7
   },
   "source": {
@@ -19,7 +19,7 @@
   "cast": [
     {
       "id": "char_mc",
-      "name": "Nara",
+      "name": "Kael",
       "role": "player",
       "spriteId": "char_mc",
       "description": "Siswa yang suka mengamati tanaman."
@@ -36,7 +36,7 @@
       "name": "Tirta",
       "role": "npc",
       "spriteId": "char_npc_1",
-      "description": "Roh air yang membantu Nara melihat hal kecil."
+      "description": "Roh air yang membantu Kael melihat hal kecil."
     }
   ],
   "chapters": [
@@ -44,7 +44,7 @@
       "id": "ch_01",
       "title": "Daun yang Bekerja",
       "concept": "Fotosintesis",
-      "summary": "Nara memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
+      "summary": "Kael memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
       "backgroundId": "bg_lab",
       "musicId": "bgm_default",
       "scenes": [
@@ -54,7 +54,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Bel istirahat berbunyi. Nara berdiri di depan pot tanaman di kelas dan memperhatikan daun yang basah oleh embun."
+              "text": "Bel istirahat berbunyi. Kael berdiri di depan pot tanaman di kelas dan memperhatikan daun yang basah oleh embun."
             },
             {
               "type": "dialogue",
@@ -69,11 +69,11 @@
         },
         {
           "id": "sc_01_02",
-          "title": "Pertanyaan Nara",
+          "title": "Pertanyaan Kael",
           "beats": [
             {
               "type": "narration",
-              "text": "Nara menempelkan telapak tangan di dekat daun. Permukaannya terasa dingin dan sedikit lembap."
+              "text": "Kael menempelkan telapak tangan di dekat daun. Permukaannya terasa dingin dan sedikit lembap."
             },
             {
               "type": "dialogue",
@@ -92,7 +92,7 @@
       "id": "ch_02",
       "title": "Warna Hijau Rahasia",
       "concept": "Klorofil",
-      "summary": "Di halaman sekolah, Nara menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
+      "summary": "Di halaman sekolah, Kael menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
@@ -102,7 +102,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Di halaman sekolah, Nara memetik sehelai daun rumput dan mengangkatnya ke arah cahaya."
+              "text": "Di halaman sekolah, Kael memetik sehelai daun rumput dan mengangkatnya ke arah cahaya."
             },
             {
               "type": "dialogue",
@@ -121,7 +121,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Nara menggosok daun itu dengan jarinya. Ada bercak hijau tipis yang tertinggal di kulit."
+              "text": "Kael menggosok daun itu dengan jarinya. Ada bercak hijau tipis yang tertinggal di kulit."
             },
             {
               "type": "dialogue",
@@ -130,7 +130,7 @@
             },
             {
               "type": "narration",
-              "text": "Angin menggerakkan daun-daun di sekitarnya, seolah menjawab pertanyaan Nara."
+              "text": "Angin menggerakkan daun-daun di sekitarnya, seolah menjawab pertanyaan Kael."
             }
           ]
         }
@@ -140,7 +140,7 @@
       "id": "ch_03",
       "title": "Makanan dari Cahaya",
       "concept": "Glukosa",
-      "summary": "Nara memahami bahwa fotosintesis menghasilkan glukosa, makanan bagi tumbuhan.",
+      "summary": "Kael memahami bahwa fotosintesis menghasilkan glukosa, makanan bagi tumbuhan.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
@@ -150,7 +150,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Kembali di kelas, Nara menggambar daun di buku catatannya. Ia menulis panah dari matahari menuju daun."
+              "text": "Kembali di kelas, Kael menggambar daun di buku catatannya. Ia menulis panah dari matahari menuju daun."
             },
             {
               "type": "dialogue",
@@ -178,7 +178,7 @@
             },
             {
               "type": "narration",
-              "text": "Nara menatap gambar daunnya. Untuk pertama kali, daun itu terlihat seperti dapur kecil yang bekerja diam-diam."
+              "text": "Kael menatap gambar daunnya. Untuk pertama kali, daun itu terlihat seperti dapur kecil yang bekerja diam-diam."
             }
           ]
         }

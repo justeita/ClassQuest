@@ -32,6 +32,7 @@
  * cerita itu sendiri. Tidak ada klaim faktual tentang materi asli.
  */
 
+import { fixedCast } from "./cast";
 import type {
   Challenge,
   Chapter,
@@ -60,7 +61,12 @@ export type StoryMetaInput = {
   estimatedMinutes?: number;
 };
 
-/** Karakter dari outline, dipakai ulang bila outline sempat jadi. */
+/**
+ * Bentuk cast dari outline yang sempat jadi.
+ *
+ * Field-nya tetap diterima agar pemanggil lama tidak perlu berubah, tetapi
+ * fallback mengabaikan nama/id di sini dan selalu memakai roster tetap desa.
+ */
 export type FallbackCastSeed = {
   id?: string;
   name?: string;
@@ -89,53 +95,20 @@ const BACKGROUNDS = ["bg_default"] as const;
 /** Musik yang dipakai bergiliran antar chapter. */
 const MUSIC = ["bgm_default"] as const;
 
-/** Sprite karakter yang boleh dipakai fallback. */
-const CHARACTER_SPRITES = new Set([
-  "char_mc",
-  "char_npc_1",
-  "char_npc_3",
-  "char_npc_4",
-  "char_npc_5",
-  "char_npc_6",
-  "char_npc_7",
-  "char_npc_8",
-  "char_npc_9",
-  "char_npc_10",
-]);
+const FIXED_ROSTER: readonly Character[] = fixedCast();
 
-const SPRITE_BY_ROLE: Record<CharacterRole, string> = {
-  player: "char_mc",
-  mentor: "char_npc_10",
-  npc: "char_npc_1",
-  antagonist: "char_npc_4",
-};
+const DEFAULT_PLAYER: Character =
+  FIXED_ROSTER.find((character) => character.role === "player") ??
+  FIXED_ROSTER[0];
 
-const ROLES: readonly CharacterRole[] = [
-  "player",
-  "mentor",
-  "npc",
-  "antagonist",
-];
-
-const DEFAULT_PLAYER: Character = {
-  id: "char_mc",
-  name: "Nara",
-  role: "player",
-  spriteId: "char_mc",
-};
-
-const DEFAULT_MENTOR: Character = {
-  id: "char_npc_10",
-  name: "Pak Wira",
-  role: "mentor",
-  spriteId: "char_npc_10",
-};
+const DEFAULT_MENTOR: Character =
+  FIXED_ROSTER.find((character) => character.role === "mentor") ??
+  FIXED_ROSTER[1];
 
 /* -------------------------------------------------------------------------- */
 /* Batas schema (docs/02-data-model/story.schema.json)                        */
 /* -------------------------------------------------------------------------- */
 
-const MAX_CAST = 10;
 const MIN_CHAPTERS = 3;
 const MAX_CHAPTERS = 6;
 const MAX_CONCEPTS = 12;
@@ -148,7 +121,6 @@ const DEFAULT_TONE = "sederhana dan ramah";
 const DEFAULT_LANGUAGE = "id";
 const DEFAULT_MINUTES = 6;
 const LANGUAGE_PATTERN = /^[a-z]{2}(-[A-Z]{2})?$/;
-const CHARACTER_ID_PATTERN = /^char_[a-z0-9_]+$/;
 
 /* -------------------------------------------------------------------------- */
 /* Bantuan teks                                                               */
@@ -239,91 +211,16 @@ const normalizeConcepts = (input: unknown): string[] => {
 /* Cast                                                                       */
 /* -------------------------------------------------------------------------- */
 
-const toRole = (value: unknown): CharacterRole =>
-  typeof value === "string" && (ROLES as readonly string[]).includes(value)
-    ? (value as CharacterRole)
-    : "npc";
-
-const spriteFor = (id: string, role: CharacterRole): string =>
-  CHARACTER_SPRITES.has(id) ? id : SPRITE_BY_ROLE[role];
-
 /**
- * Ubah `castSeed` menjadi cast yang sah: 2–10 karakter, tepat satu `player`,
- * minimal satu `mentor`, id unik, dan sprite dari inventory.
+ * Cast cerita cadangan selalu roster tetap (`src/story/cast.ts`).
  *
- * Seed berasal dari outline yang bisa saja gagal, jadi semua cacat diperbaiki
- * di sini, bukan dilempar ke pemanggil.
+ * `input` masih diterima supaya kontrak pemanggil lama tetap jalan, tetapi nama,
+ * id, dan role dari outline yang gagal **diabaikan**. Dengan begitu fallback
+ * tidak bisa memperkenalkan tokoh yang tidak ada di dunia desa.
  */
 const normalizeCast = (input: unknown): Character[] => {
-  const seeds = Array.isArray(input) ? input.slice(0, MAX_CAST) : [];
-  const entries: Character[] = [];
-  const usedIds = new Set<string>();
-
-  const freeId = (base: string): string => {
-    if (!usedIds.has(base)) return base;
-    let suffix = 2;
-    while (usedIds.has(`${base}_${suffix}`)) suffix += 1;
-    return `${base}_${suffix}`;
-  };
-
-  for (const seed of seeds) {
-    if (!isRecord(seed)) continue;
-
-    const name = clip(clean(seed.name), 40);
-    if (name.length === 0) continue;
-
-    const rawId = clean(seed.id);
-    const id = freeId(
-      CHARACTER_ID_PATTERN.test(rawId)
-        ? rawId
-        : `char_cast_${entries.length + 1}`,
-    );
-
-    usedIds.add(id);
-    entries.push({ id, name, role: toRole(seed.role), spriteId: id });
-  }
-
-  if (entries.length === 0) {
-    return [{ ...DEFAULT_PLAYER }, { ...DEFAULT_MENTOR }];
-  }
-
-  // Tepat satu player: pemain pertama menang, sisanya jadi npc.
-  const players = entries.filter((entry) => entry.role === "player");
-  if (players.length === 0) {
-    entries[0].role = "player";
-  } else {
-    for (const extra of players.slice(1)) extra.role = "npc";
-  }
-
-  // Minimal satu mentor: ubah npc/antagonist, atau tambah bila masih muat.
-  if (!entries.some((entry) => entry.role === "mentor")) {
-    const convertible = entries.find((entry) => entry.role !== "player");
-    if (entries.length < MAX_CAST) {
-      const id = freeId(DEFAULT_MENTOR.id);
-      usedIds.add(id);
-      entries.push({
-        ...DEFAULT_MENTOR,
-        id,
-        spriteId: DEFAULT_MENTOR.spriteId,
-      });
-    } else if (convertible) {
-      convertible.role = "mentor";
-    } else {
-      entries[0].role = "mentor";
-    }
-  }
-
-  // Minimal dua karakter (schema `minItems: 2`).
-  if (entries.length === 1) {
-    const id = freeId(DEFAULT_PLAYER.id);
-    usedIds.add(id);
-    entries.push({ ...DEFAULT_PLAYER, id, spriteId: DEFAULT_PLAYER.spriteId });
-  }
-
-  return entries.map((entry) => ({
-    ...entry,
-    spriteId: spriteFor(entry.id, entry.role),
-  }));
+  void input;
+  return fixedCast();
 };
 
 const idForRole = (cast: readonly Character[], role: CharacterRole): string =>
@@ -517,7 +414,9 @@ const buildChapter = (
                       {
                         type: "dialogue",
                         speakerId: mentorId,
-                        text: "Tarik napas dulu. Baca ulang kalimat terakhir yang tadi kusebut.",
+                        // `{{jawaban}}` diisi jawaban salah terakhir (ADR 0020),
+                        // jadi cerita cadangan pun mengakui jawaban siswa.
+                        text: "Kau menjawab {{jawaban}}. Tarik napas dulu, lalu baca ulang kalimat terakhir yang tadi kusebut.",
                       },
                     ],
                   },
@@ -541,7 +440,7 @@ const buildChapter = (
                     {
                       when: { flag: FLAG_SALAH_PAPAN, is: true },
                       text: clip(
-                        `Tidak apa-apa sempat ragu. Kata kunci hari ini tetap ${concept}; sekarang kamu sudah menemukannya sendiri.`,
+                        `Tidak apa-apa sempat menjawab {{jawaban}}. Kata kunci hari ini tetap ${concept}; sekarang kamu sudah menemukannya sendiri.`,
                         240,
                       ),
                     },

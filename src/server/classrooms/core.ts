@@ -132,6 +132,21 @@ export function generateClassCode(random: () => number = Math.random): string {
   return `QST-${suffix}`;
 }
 
+/** Bentuk baku kode kelas yang diterima tautan siswa. */
+export const CLASS_CODE_PATTERN = /^QST-[A-Z0-9]{4}$/;
+
+/**
+ * Normalisasi kode kelas dari query string: buang spasi tepi, jadikan huruf
+ * besar, lalu pastikan bentuknya `QST-XXXX`. Nilai lain → `null` (bukan
+ * ditebak atau dipotong), supaya tautan yang salah ketik tidak diam-diam
+ * mengarah ke kelas lain.
+ */
+export function normalizeClassCode(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const code = value.trim().toUpperCase();
+  return CLASS_CODE_PATTERN.test(code) ? code : null;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Query                                                                      */
 /* -------------------------------------------------------------------------- */
@@ -246,6 +261,48 @@ export async function getClassroom(
     row as ClassroomRow,
     await readStudents(db, teacherId, classroomId),
   );
+}
+
+/** Kelas + pemiliknya, dipakai server untuk mencocokkan tautan siswa. */
+export type ClassroomWithOwner = ClassroomDetail & { teacherId: string };
+
+/**
+ * Satu kelas dari kode `QST-XXXX` (tautan siswa), atau `null` bila kode tidak
+ * sah / tidak ada.
+ *
+ * Tidak memfilter guru: pemanggil (`getPlayEntry`) yang memastikan kelas ini
+ * milik guru pemilik cerita. Fungsi ini tetap mengembalikan `teacherId` supaya
+ * pengecekan itu tidak perlu query kedua.
+ */
+export async function getClassroomByCode(
+  db: Client,
+  code: unknown,
+): Promise<ClassroomWithOwner | null> {
+  const normalized = normalizeClassCode(code);
+  if (normalized === null) return null;
+
+  const result = await db.execute({
+    sql: `select id, teacher_id, name, subject, grade_level, code, academic_year, created_at
+          from classrooms
+          where code = ?
+          limit 1`,
+    args: [normalized],
+  });
+
+  const row = result.rows[0];
+  if (row === undefined) return null;
+
+  const classroomRow = row as ClassroomRow;
+  const teacherId = toText(classroomRow.teacher_id);
+  if (teacherId === "") return null;
+
+  return {
+    ...toClassroom(
+      classroomRow,
+      await readStudents(db, teacherId, toText(classroomRow.id)),
+    ),
+    teacherId,
+  };
 }
 
 export type CreateClassroomInput = {

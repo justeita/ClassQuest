@@ -17,7 +17,7 @@ afterEach(cleanup);
 
 const bicara: DialogueView = {
   visible: true,
-  name: "Bu Ratna",
+  name: "Leonhardt",
   text: "Air di bumi tidak pernah benar-benar hilang.",
   waiting: true,
   portrait: null,
@@ -27,7 +27,7 @@ describe("DialogueBox", () => {
   it("menampilkan nama dan teks dialog", () => {
     render(<DialogueBox view={bicara} onAdvance={() => {}} />);
 
-    expect(screen.getByText("Bu Ratna")).toBeInTheDocument();
+    expect(screen.getByText("Leonhardt")).toBeInTheDocument();
     expect(
       screen.getByText(/Air di bumi tidak pernah benar-benar hilang/),
     ).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe("DialogueBox", () => {
       <DialogueBox view={{ ...bicara, visible: false }} onAdvance={() => {}} />,
     );
 
-    expect(screen.queryByText("Bu Ratna")).not.toBeInTheDocument();
+    expect(screen.queryByText("Leonhardt")).not.toBeInTheDocument();
   });
 
   it("klik panel mengirim satu langkah dialog", () => {
@@ -70,7 +70,7 @@ describe("DialogueBox", () => {
       <DialogueBox view={{ ...bicara, name: null }} onAdvance={() => {}} />,
     );
 
-    expect(screen.queryByText("Bu Ratna")).not.toBeInTheDocument();
+    expect(screen.queryByText("Leonhardt")).not.toBeInTheDocument();
     expect(screen.getByText(/Air di bumi/)).toBeInTheDocument();
   });
 
@@ -104,7 +104,7 @@ describe("DialogueBox", () => {
           ...bicara,
           portrait: {
             src: "/assets/portrait/npc_1/neutral.png",
-            alt: "Potret Bu Ratna",
+            alt: "Potret Leonhardt",
           },
         }}
         onAdvance={() => {}}
@@ -112,7 +112,7 @@ describe("DialogueBox", () => {
     );
 
     const slot = screen
-      .getByAltText("Potret Bu Ratna")
+      .getByAltText("Potret Leonhardt")
       .closest('[data-slot="potret"]') as HTMLElement;
     expect(slot.style.left).toBe(cqw(PORTRAIT.inset));
     expect(slot.style.right).toBe("");
@@ -149,14 +149,14 @@ describe("DialogueBox", () => {
           waiting: true,
           portrait: {
             src: "/assets/portrait/npc_1/happy.png",
-            alt: "Potret Bu Ratna",
+            alt: "Potret Leonhardt",
           },
         }}
         onAdvance={() => {}}
       />,
     );
 
-    expect(screen.getByAltText("Potret Bu Ratna").className).toContain(
+    expect(screen.getByAltText("Potret Leonhardt").className).toContain(
       "animate-portrait-bicara",
     );
   });
@@ -172,7 +172,7 @@ describe("DialogueBox", () => {
           },
           pendamping: {
             src: "/assets/portrait/npc_1/neutral.png",
-            alt: "Potret Bu Ratna",
+            alt: "Potret Leonhardt",
           },
         }}
         onAdvance={() => {}}
@@ -182,7 +182,7 @@ describe("DialogueBox", () => {
     expect(screen.getByAltText("Potret Nara").className).toContain(
       "animate-portrait-bicara",
     );
-    const npc = screen.getByAltText("Potret Bu Ratna");
+    const npc = screen.getByAltText("Potret Leonhardt");
     expect(npc.className).not.toContain("animate-portrait-bicara");
     expect(npc.className).toContain("brightness-50");
 
@@ -192,7 +192,7 @@ describe("DialogueBox", () => {
           ...bicara,
           portrait: {
             src: "/assets/portrait/npc_1/neutral.png",
-            alt: "Potret Bu Ratna",
+            alt: "Potret Leonhardt",
           },
           pendamping: {
             src: "/assets/portrait/mc/neutral.png",
@@ -203,7 +203,7 @@ describe("DialogueBox", () => {
       />,
     );
 
-    expect(screen.getByAltText("Potret Bu Ratna").className).toContain(
+    expect(screen.getByAltText("Potret Leonhardt").className).toContain(
       "animate-portrait-bicara",
     );
     const mc = screen.getByAltText("Potret Nara");
@@ -227,13 +227,13 @@ describe("DialogueBox", () => {
       );
 
       // Masih tampil supaya panel dan potret sempat beranimasi keluar.
-      expect(screen.getByText("Bu Ratna")).toBeInTheDocument();
+      expect(screen.getByText("Leonhardt")).toBeInTheDocument();
       expect(document.querySelector(".animate-crt-keluar")).not.toBeNull();
 
       act(() => {
         vi.advanceTimersByTime(400);
       });
-      expect(screen.queryByText("Bu Ratna")).not.toBeInTheDocument();
+      expect(screen.queryByText("Leonhardt")).not.toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }
@@ -246,14 +246,14 @@ describe("DialogueBox", () => {
           ...bicara,
           portrait: {
             src: "/assets/portrait/npc_1/neutral.png",
-            alt: "Potret Bu Ratna",
+            alt: "Potret Leonhardt",
           },
         }}
         onAdvance={() => {}}
       />,
     );
 
-    const gambar = screen.getByAltText("Potret Bu Ratna");
+    const gambar = screen.getByAltText("Potret Leonhardt");
     expect(gambar.parentElement?.className).toContain("animate-potret-masuk");
   });
 });

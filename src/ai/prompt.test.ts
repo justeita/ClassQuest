@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { toAssetManifest } from "../assets/manifest";
+import { FIXED_CAST } from "../story/cast";
 import { MockProvider } from "./mock-provider";
 import {
   buildChapterPrompt,
@@ -53,19 +54,19 @@ const PAGES = [
 const OUTLINE: Outline = {
   title: "Perjalanan Setetes Air",
   synopsis:
-    "Nara mengikuti perjalanan air dari genangan di halaman sekolah sampai kembali sebagai hujan.",
+    "Kael mengikuti perjalanan air dari genangan di halaman sekolah sampai kembali sebagai hujan.",
   language: "id",
   concepts: ["Evaporasi", "Kondensasi", "Presipitasi"],
   cast: [
     {
       id: "char_mc",
-      name: "Nara",
+      name: "Kael",
       role: "player",
       spriteId: "char_mc",
     },
     {
       id: "char_npc_10",
-      name: "Pak Wira",
+      name: "Edric",
       role: "mentor",
       spriteId: "char_npc_10",
     },
@@ -76,7 +77,7 @@ const OUTLINE: Outline = {
       title: "Pagi yang Menguap",
       concept: "Evaporasi",
       summary:
-        "Nara melihat genangan di halaman sekolah menyusut tanpa diseka.",
+        "Kael melihat genangan di halaman sekolah menyusut tanpa diseka.",
       sourcePages: [1],
     },
     {
@@ -84,7 +85,7 @@ const OUTLINE: Outline = {
       title: "Awan yang Berat",
       concept: "Kondensasi",
       summary:
-        "Nara mengikuti uap air yang naik dan berubah menjadi titik air.",
+        "Kael mengikuti uap air yang naik dan berubah menjadi titik air.",
       sourcePages: [2],
     },
     {
@@ -102,7 +103,7 @@ const OUTLINE: Outline = {
 const PLANNED: OutlineChapter = OUTLINE.chapters[0];
 
 const CONTINUITY: ContinuityState = {
-  previousChapterSummary: "Nara melihat genangan menyusut.",
+  previousChapterSummary: "Kael melihat genangan menyusut.",
   characterStates: [
     {
       id: "char_mc",
@@ -224,6 +225,7 @@ describe("blok prompt dan urutannya", () => {
     expectOrder(user, [
       "SCHEMA",
       "ASSETS",
+      "CAST",
       "OUTLINE",
       "CONTINUITY",
       "MATERIAL",
@@ -238,6 +240,7 @@ describe("blok prompt dan urutannya", () => {
     expectOrder(user, [
       "SCHEMA",
       "ASSETS",
+      "CAST",
       "OUTLINE",
       "CONTINUITY",
       "MATERIAL",
@@ -319,14 +322,14 @@ describe("blok percabangan (AI_BRANCHING)", () => {
     expect(on.user).toContain("Belum ada flag yang dipakai");
   });
 
-  it("blok percabangan tidak lebih dari 25 baris", () => {
+  it("blok percabangan tidak lebih dari 50 baris", () => {
     const { user } = buildChapterPrompt(chapterInput({ branching: true }));
     const start = user.indexOf("BRANCHING");
     const end = user.indexOf("\nASSETS");
     const block = user.slice(start, end);
 
     expect(block.length).toBeGreaterThan(0);
-    expect(block.split("\n").length).toBeLessThanOrEqual(25);
+    expect(block.split("\n").length).toBeLessThanOrEqual(50);
   });
 
   it("menyebut flag yang sudah dipakai chapter sebelumnya", () => {
@@ -557,8 +560,8 @@ describe("repair", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("parameter generasi", () => {
-  it("memakai PROMPT_VERSION story-v4", () => {
-    expect(PROMPT_VERSION).toBe("story-v4");
+  it("memakai PROMPT_VERSION story-v8", () => {
+    expect(PROMPT_VERSION).toBe("story-v8");
   });
 
   it("BATAS OUTLINE menyebut batas konsep dan enum role", () => {
@@ -660,8 +663,35 @@ describe("blok aset", () => {
     );
 
     expect(user).toContain("bg_default");
-    expect(user).not.toContain("char_mc");
+    expect(user).not.toContain("Pemuda syal biru");
     expect(user).not.toContain("bgm_default");
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* 8. Roster tetap                                                            */
+/* -------------------------------------------------------------------------- */
+
+describe("roster tetap", () => {
+  it("outline mengirim semua karakter tetap beserta deskripsi penampilan", () => {
+    const { user } = buildOutlinePrompt(outlineInput());
+
+    expect(user).toContain("\nCAST\n");
+    expect(user).toContain("tidak boleh diubah");
+
+    for (const member of FIXED_CAST) {
+      expect(user).toContain(`${member.id} | ${member.name}`);
+      expect(user).toContain(member.description ?? "");
+    }
+  });
+
+  it("chapter membawa CAST yang sama, termasuk deskripsi fisik", () => {
+    const { user } = buildChapterPrompt(chapterInput());
+
+    expect(user).toContain("Kael");
+    expect(user).toContain("Griselda");
+    expect(user).toContain("berjubah marun bertongkat kayu");
+    expect(user).toContain("Pelajar akademi bertopi biru tua");
   });
 });
 

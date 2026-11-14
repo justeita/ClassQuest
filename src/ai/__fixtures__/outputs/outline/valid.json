@@ -1,12 +1,12 @@
 {
   "title": "Rahasia Daun Hijau",
-  "synopsis": "Nara mengamati daun di kelas dan halaman sekolah. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
+  "synopsis": "Kael mengamati daun di kelas dan halaman sekolah. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
   "language": "id",
   "concepts": ["Fotosintesis", "Klorofil", "Glukosa"],
   "cast": [
     {
       "id": "char_mc",
-      "name": "Nara",
+      "name": "Kael",
       "role": "player",
       "spriteId": "char_mc"
     },
@@ -28,21 +28,21 @@
       "id": "ch_01",
       "title": "Daun yang Bekerja",
       "concept": "Fotosintesis",
-      "summary": "Nara memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
+      "summary": "Kael memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
       "sourcePages": [1]
     },
     {
       "id": "ch_02",
       "title": "Warna Hijau Rahasia",
       "concept": "Klorofil",
-      "summary": "Di halaman sekolah, Nara menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
+      "summary": "Di halaman sekolah, Kael menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
       "sourcePages": [2]
     },
     {
       "id": "ch_03",
       "title": "Makanan dari Cahaya",
       "concept": "Glukosa",
-      "summary": "Nara memahami bahwa fotosintesis menghasilkan glukosa, makanan bagi tumbuhan.",
+      "summary": "Kael memahami bahwa fotosintesis menghasilkan glukosa, makanan bagi tumbuhan.",
       "sourcePages": [3]
     }
   ],

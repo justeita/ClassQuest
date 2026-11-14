@@ -28,6 +28,7 @@ const NAV: NavItem[] = [
   { href: "/guru/materi", label: "Learning Materials", icon: "fa-book-open" },
   { href: "/guru/kelas", label: "My Classes", icon: "fa-users" },
   { href: "/guru/game", label: "My Games", icon: "fa-gamepad" },
+  { href: "/guru/analitik", label: "Analytics", icon: "fa-chart-column" },
 ];
 
 /** Judul header per halaman; nilai sama dengan teks desain awal. */
@@ -48,6 +49,10 @@ const TITLES: { match: (path: string) => boolean; title: string }[] = [
   {
     match: (path) => path.startsWith("/guru/game"),
     title: "My Educational Games",
+  },
+  {
+    match: (path) => path.startsWith("/guru/analitik"),
+    title: "Class Analytics",
   },
 ];
 
@@ -167,18 +172,6 @@ export function PortalShell({
                     </Link>
                   );
                 })}
-
-                <button
-                  type="button"
-                  onClick={() => showToast("Menu Analytics dibuka", "info")}
-                  className="guru-press flex items-center gap-3 rounded-xl px-3.5 py-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 md:w-full"
-                >
-                  <i
-                    className="fa-solid fa-chart-column w-4 shrink-0 text-sm"
-                    aria-hidden
-                  />
-                  <span>Analytics</span>
-                </button>
               </nav>
             </div>
           </div>

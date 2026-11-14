@@ -72,6 +72,32 @@ const storedRow = async () => {
   return rows.rows[0] ?? null;
 };
 
+/**
+ * Kelas + satu siswa untuk menguji identitas pemain. `code` tetap `QST-DEMO`
+ * karena index-nya unik; kelas guru lain memakai kode berbeda.
+ */
+async function seedClassroom(input: {
+  teacherId: string;
+  studentId: string;
+  classroomId?: string;
+  code?: string;
+}): Promise<void> {
+  const classroomId = input.classroomId ?? "cls_demo";
+  const code = input.code ?? "QST-DEMO";
+
+  await db.execute({
+    sql: `insert into classrooms
+            (id, teacher_id, name, subject, grade_level, code, academic_year)
+          values (?, ?, 'Kelas 5A', 'IPA', 'Kelas 5', ?, '2026/2027')`,
+    args: [classroomId, input.teacherId, code],
+  });
+  await db.execute({
+    sql: `insert into students (id, teacher_id, classroom_id, nis, display_name)
+          values (?, ?, ?, '1001', 'Andi Pratama')`,
+    args: [input.studentId, input.teacherId, classroomId],
+  });
+}
+
 describe("savePlayResult", () => {
   it("menyimpan hasil dengan skor yang dihitung server", async () => {
     const result = await savePlayResult(db, {
@@ -97,6 +123,7 @@ describe("savePlayResult", () => {
     expect(JSON.parse(String(row?.weak_concepts))).toEqual([]);
     expect(row?.nickname).toBe("Sari");
     expect(Object.keys(row as object).sort()).toEqual([
+      "classroom_id",
       "correct_count",
       "created_at",
       "earned_points",
@@ -104,7 +131,9 @@ describe("savePlayResult", () => {
       "nickname",
       "story_id",
       "story_version",
+      "student_id",
       "total_count",
+      "total_points",
       "weak_concepts",
     ]);
   });
@@ -254,6 +283,7 @@ describe("savePlayResult", () => {
     expect(row?.nickname).toBeNull();
     // Tidak ada kolom jawaban per-opsi, IP, atau user agent.
     expect(Object.keys(row as object).sort()).toEqual([
+      "classroom_id",
       "correct_count",
       "created_at",
       "earned_points",
@@ -261,7 +291,9 @@ describe("savePlayResult", () => {
       "nickname",
       "story_id",
       "story_version",
+      "student_id",
       "total_count",
+      "total_points",
       "weak_concepts",
     ]);
   });
@@ -273,5 +305,71 @@ describe("savePlayResult", () => {
     });
     const row = await storedRow();
     expect(row?.nickname).toBe("Ri a n");
+  });
+
+  /* ---------------------------------------------------------------------- */
+  /* Identitas pemain dari daftar kelas (layar masuk)                        */
+  /* ---------------------------------------------------------------------- */
+
+  it("studentId mengisi student_id, classroom_id, dan nama dari baris students", async () => {
+    await seedClassroom({ teacherId: "teacher_demo", studentId: "stu_andi" });
+
+    const result = await savePlayResult(db, {
+      storyId: STORY_ID,
+      // Nickname dari klien tidak boleh menang atas nama di daftar kelas.
+      result: {
+        studentId: "stu_andi",
+        nickname: "Nama Palsu",
+        answers: allCorrectAnswers(),
+      },
+    });
+
+    expect(result).toEqual({ ok: true });
+    const row = await storedRow();
+    expect(row?.student_id).toBe("stu_andi");
+    expect(row?.classroom_id).toBe("cls_demo");
+    expect(row?.nickname).toBe("Andi Pratama");
+    expect(Number(row?.total_points)).toBe(
+      scoreStory(story, allCorrectAnswers()).totalPoints,
+    );
+  });
+
+  it("studentId milik guru lain ditolak sebagai invalid", async () => {
+    await db.execute(
+      "insert into teachers (id, display_name) values ('teacher_lain', 'Guru Lain')",
+    );
+    await seedClassroom({
+      teacherId: "teacher_lain",
+      studentId: "stu_orang_lain",
+    });
+
+    const result = await savePlayResult(db, {
+      storyId: STORY_ID,
+      result: { studentId: "stu_orang_lain", answers: allCorrectAnswers() },
+    });
+
+    expect(result).toEqual({ ok: false, reason: "invalid" });
+    expect(await storedRow()).toBeNull();
+  });
+
+  it("studentId yang tidak ada ditolak sebagai invalid", async () => {
+    const result = await savePlayResult(db, {
+      storyId: STORY_ID,
+      result: { studentId: "stu_tidak_ada", answers: allCorrectAnswers() },
+    });
+
+    expect(result).toEqual({ ok: false, reason: "invalid" });
+    expect(await storedRow()).toBeNull();
+  });
+
+  it("tanpa identitas tetap tersimpan, classroom_id dan student_id kosong", async () => {
+    await savePlayResult(db, {
+      storyId: STORY_ID,
+      result: { answers: allCorrectAnswers() },
+    });
+
+    const row = await storedRow();
+    expect(row?.student_id).toBeNull();
+    expect(row?.classroom_id).toBeNull();
   });
 });

@@ -62,7 +62,7 @@ Aturan:
    dirender sebagian, jadi semuanya dimuat sekali di awal.
 2. **Aset cerita** lewat `collectStoryAssets(story)`: background chapter +
    override scene, musik chapter + override scene, dan `spriteId` setiap `cast`.
-   Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0020).
+   Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0023).
 3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `sfx_click`,
    `sfx_page`, `sfx_correct`, `sfx_wrong`). Panel dan potret dialog tidak dimuat
    Phaser.
@@ -140,7 +140,7 @@ bebas bergerak.
 | Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)                                                                                                                                                                                                                                                                                                                                                                  |
 | Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                                                                                                                                                                                                                                                                                                                                                                         |
 
-> **Semua di DOM (ADR 0007 + ADR 0020).** Phaser hanya memegang state typewriter
+> **Semua di DOM (ADR 0007 + ADR 0023).** Phaser hanya memegang state typewriter
 > (`textbox.ts`); panel, potret, nama, isi dialog, dan indikator "lanjut" dirender
 > `DialogueBox.tsx`. Panel **bukan lagi** gambar `ui_textbox`: ia kotak CSS navy
 > gelap membulat (gaya Persona) supaya sudut dan warnanya tajam di resolusi layar
@@ -241,7 +241,7 @@ terjadi sebelum beat pertama scene.
   untuk yang tidak. **Ingat:** `setTintFill()` sudah dihapus di Phaser 4.
 - Potret diambil dari `portraits[expression]` milik karakter; `expression`
   opsional dan default `neutral`. Potret digambar DOM **di atas** panel, dasar
-  sejajar tepi atasnya, tanpa bingkai (ADR 0020).
+  sejajar tepi atasnya, tanpa bingkai (ADR 0023).
 
 ### `challenge`
 
@@ -298,24 +298,32 @@ Chapter 1, scene `sc_01_02` ("Tiga Kali Resep"):
     {
       "type": "dialogue",
       "speakerId": "char_npc_10",
-      "text": "Sebelum mulai, ayo pastikan takarannya benar. Salah takaran, kue pesta bisa gagal.",
+      "text": "Sebelum mulai, pastikan takarannya benar. Salah sedikit, warna spanduk bisa pucat dan pesta jadi kurang meriah.",
       "expression": "thinking"
     },
-    { "type": "challenge", "challengeId": "chl_01_01" },
+    {
+      "type": "challenge",
+      "challengeId": "chl_01_01"
+    },
     {
       "type": "dialogue",
       "speakerId": "char_npc_1",
-      "text": "Benar, sembilan cangkir tepung butuh enam cangkir gula. Kamu sudah paham perbandingan.",
+      "text": "Benar, sembilan cangkir tinta biru butuh enam cangkir tinta emas. Kau sudah paham perbandingan.",
       "expression": "happy"
     },
     {
       "type": "narration",
-      "text": "Nara menuang bahan dengan hati-hati. Aroma kue mulai memenuhi dapur."
+      "text": "Kael menuang tinta dengan hati-hati. Biru dan emas perlahan melebur di atas palet kayu."
     },
     {
       "type": "dialogue",
       "speakerId": "char_mc",
-      "text": "Jadi selama perbandingannya tetap, rasa kue juga tetap enak."
+      "text": "Jadi selama perbandingannya tetap, warnanya juga tetap sama, ya?"
+    },
+    {
+      "type": "dialogue",
+      "speakerId": "char_npc_10",
+      "text": "Tepat. Perbandingan menjaga hasil tetap sama, berapa pun besar adonannya."
     }
   ]
 }
@@ -325,14 +333,14 @@ Yang terjadi:
 
 1. Musik chapter tetap `bgm_default` (tidak berganti).
 2. Dunia desa tidak berubah; pemain tetap di posisi terakhirnya.
-3. Pemberi quest scene ini adalah Pak Wira (`char_npc_10`); dekati dia → `Space`.
-4. Pak Wira tampil, textbox berisi nama + kalimat, dengan potret `thinking`.
+3. Pemberi quest scene ini adalah Edric (`char_npc_10`); dekati dia → `Space`.
+4. Edric tampil, textbox berisi nama + kalimat, dengan potret `thinking`.
 5. Klik → beat tantangan → dialog pause, overlay `chl_01_01` muncul.
-6. Siswa menjawab → potret Pak Wira berganti `happy`/`angry`, lalu feedback +
+6. Siswa menjawab → potret Edric berganti `happy`/`angry`, lalu feedback +
    penjelasan → overlay tertutup.
-7. Bu Sri (`char_npc_1`) tampil, dialog.
+7. Elian (`char_npc_1`) tampil, dialog.
 8. Narasi tanpa nama.
-9. Scene selesai → `sc_01_03`.
+9. Scene selesai → kembali ke dunia (`explore`), lanjut ke bab berikutnya.
 
 ## Data yang dikirim ke React
 

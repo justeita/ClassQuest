@@ -86,8 +86,8 @@ bawah menunjuk foldernya; nama folder mengikuti berkas sumber, bukan id manifest
 | `char_npc_1`  | Pelajar bertopi biru | `/assets/char/npc_1.png`  | `/assets/portrait/npc_1/`  | 33×61 | pelajar, topi, biru, desa, remaja, warga      | ready  |
 | `char_npc_3`  | Pelajar berkacamata  | `/assets/char/npc_3.png`  | `/assets/portrait/npc_3/`  | 33×62 | pelajar, kacamata, desa, remaja, warga, siswa | ready  |
 | `char_npc_4`  | Gadis berjubah biru  | `/assets/char/npc_4.png`  | `/assets/portrait/npc_4/`  | 34×62 | gadis, jubah, biru, desa, warga, remaja       | ready  |
-| `char_npc_5`  | Nenek bertongkat     | `/assets/char/npc_5.png`  | `/assets/portrait/npc_5/`  | 40×62 | nenek, tongkat, tua, desa, warga, bijak       | ready  |
-| `char_npc_6`  | Kakek berjubah hijau | `/assets/char/npc_6.png`  | `/assets/portrait/npc_6/`  | 36×61 | kakek, jubah, hijau, desa, warga, tua         | ready  |
+| `char_npc_5`  | Tetua bertongkat     | `/assets/char/npc_5.png`  | `/assets/portrait/npc_5/`  | 40×62 | tetua, tongkat, tua, desa, warga, bijak       | ready  |
+| `char_npc_6`  | Tetua berjubah hijau | `/assets/char/npc_6.png`  | `/assets/portrait/npc_6/`  | 36×61 | tetua, jubah, hijau, desa, warga, tua         | ready  |
 | `char_npc_7`  | Nelayan desa         | `/assets/char/npc_7.png`  | `/assets/portrait/npc_7/`  | 52×63 | nelayan, perahu, ikan, desa, warga, sungai    | ready  |
 | `char_npc_8`  | Penjaga desa         | `/assets/char/npc_8.png`  | `/assets/portrait/npc_8/`  | 48×62 | penjaga, jaga, desa, warga, aman, pos         | ready  |
 | `char_npc_9`  | Petani desa          | `/assets/char/npc_9.png`  | `/assets/portrait/npc_9/`  | 44×61 | petani, sawah, tani, desa, warga, panen       | ready  |

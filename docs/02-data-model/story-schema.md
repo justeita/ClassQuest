@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -136,6 +136,13 @@ Aturan:
   saat bukan pemberi quest scene aktif: satu kalimat di textbox, tanpa mengubah
   urutan cerita. Karakter tanpa `smallTalk` tetap diam. Pipeline AI tidak wajib
   mengisinya.
+- `description` **opsional**, tetapi di ClassQuest selalu diisi roster tetap dan
+  ikut dikirim ke prompt. Isinya menjelaskan penampilan yang terlihat di sprite
+  (topi, kacamata, jubah, tongkat) supaya aksi dan dialog cocok dengan gambar.
+- Pipeline ClassQuest memakai roster tetap di `src/story/cast.ts` — Kael dan
+  sembilan warga desa — untuk **semua** cerita. Model tidak boleh mengganti nama,
+  id, role, sprite, deskripsi, atau obrolan tokoh. Schema tetap mengizinkan cast
+  lain karena kontrak cerita tidak berubah; yang mengunci roster adalah pipeline.
 
 ### `chapters`
 
@@ -192,7 +199,9 @@ type Expression =
   "neutral" | "happy" | "sad" | "angry" | "shocked" | "thinking";
 
 type TextVariant = {
-  when: { flag: string; is: boolean }; // flag harus ada di top-level flags
+  when:
+    | { jawaban: string } // balasan khusus satu jawaban salah (1..120 karakter)
+    | { flag: string; is: boolean }; // flag harus ada di top-level flags
   text: string; // 1..240 karakter
 };
 
@@ -236,7 +245,7 @@ manifest karakter (`portraits`, satu berkas per ekspresi di
 mana yang ditampilkan. `narration` boleh memunculkan potret **tanpa** nama
 pembicara lewat `speakerId` + `expression`; karena itu `expression` pada
 `narration` wajib disertai `speakerId`. Gaya tampilannya ada di
-[`../04-game/scene-format.md`](../04-game/scene-format.md) dan ADR 0020.
+[`../04-game/scene-format.md`](../04-game/scene-format.md) dan [ADR 0023](../09-decisions/0023-potret-ekspresi-persona.md).
 
 #### Konsekuensi jawaban salah (opsional)
 
@@ -245,19 +254,28 @@ dan berperilaku seperti v1.0 biasa (`maxAttempts` efektif 1).
 
 - `maxAttempts` — jumlah percobaan menjawab, 1–3. Default 1.
 - `onWrong` — dijalankan setelah jawaban salah:
+  - `setFlags` — menyalakan/mematikan flag cerita **pada setiap jawaban salah**,
+    termasuk percobaan terakhir yang tidak punya soal ulang. Artinya flag
+    berbunyi "pernah salah". Setiap id flag harus dideklarasikan di top-level
+    [`flags`](#flags).
   - `detour` — maksimal **3 beat** `narration`/`dialogue` yang ditampilkan
     sebelum soal yang sama ditanyakan ulang. Detour **tidak boleh** berisi
     `challenge`.
-  - `setFlags` — menyalakan/mematikan flag cerita. Setiap id flag harus
-    dideklarasikan di top-level [`flags`](#flags).
   - `retryQuestions` — teks soal pengganti untuk percobaan berikutnya. Jumlahnya
     **harus tepat** `maxAttempts - 1`; percobaan ke-_n_ memakai
     `retryQuestions[n - 1]`.
+- `onWrong` boleh berisi `setFlags` saja, tanpa `retryQuestions` dan tanpa
+  `maxAttempts`. Bentuk itu dipakai untuk bereaksi pada jawaban salah tanpa
+  mengulang soal; `retryQuestions` baru menuntut `maxAttempts` 2 atau 3.
 - Retry **hanya** mengganti teks soal. `options` dan `correctOptionId` (atau
   `correctAnswer`/`correctOrder`/`acceptedAnswers`) tidak berubah, jadi jawaban
   benar tetap sama di semua percobaan.
-- `textVariants` pada beat `dialogue` memilih teks alternatif saat flag cocok:
-  `{ when: { flag, is } }`. Kalau tidak ada varian yang cocok, `text` dipakai.
+- `textVariants` pada beat `dialogue` memilih teks alternatif. Dua bentuk kondisi:
+  - `{ when: { jawaban } }` — balasan khusus untuk satu jawaban salah yang
+    **persis** teks itu, sehingga pilihan berbeda menghasilkan balasan berbeda;
+  - `{ when: { flag, is } }` — balasan umum saat nilai flag cocok.
+    Varian `jawaban` selalu dipertimbangkan lebih dulu daripada varian `flag`,
+    lalu `text` utama dipakai bila tidak ada yang cocok (ADR 0021).
 
 Contoh:
 
@@ -269,21 +287,143 @@ Contoh:
   "onWrong": {
     "setFlags": { "flg_salah_hitung": true },
     "retryQuestions": [
-      "Coba baca ulang resepnya. Kalau 3 bagian tepung menjadi 9 cangkir, berapa bagian gula?"
+      "Coba baca ulang resepnya. Kalau 3 bagian tinta biru menjadi 9 cangkir, berapa bagian tinta emas?"
     ],
     "detour": [
       {
         "type": "narration",
-        "text": "Nara mencoret hitungan pertamanya dan menarik napas."
+        "text": "Kael mencoret hitungan pertamanya dan menarik napas."
       },
       {
         "type": "dialogue",
         "speakerId": "char_npc_1",
-        "text": "Tidak apa-apa, kita hitung pelan-pelan lagi."
+        "text": "Kau menjawab {{jawaban}}. Tidak apa-apa, kita hitung pelan-pelan lagi."
       }
     ]
   }
 }
+```
+
+#### Mengutip jawaban siswa (`{{jawaban}}`)
+
+Teks narasi/dialog boleh memuat token `{{jawaban}}`. Saat dimainkan, token itu
+diganti jawaban salah siswa untuk **tantangan terdekat sebelumnya** dalam bentuk
+yang bisa dibaca:
+
+| Tipe tantangan    | Isi pengganti                              | Contoh                    |
+| ----------------- | ------------------------------------------ | ------------------------- |
+| `multiple_choice` | teks opsi yang dipilih                     | `4 cangkir`               |
+| `true_false`      | `Benar` atau `Salah`                       | `Salah`                   |
+| `ordering`        | teks item sesuai urutan siswa, dipisah `→` | `1/4 bagian → 1/2 bagian` |
+| `short_answer`    | teks yang diketik siswa, spasi dirapikan   | `dua belas`               |
+
+Aturan:
+
+- Token berlaku di `narration.text`, `dialogue.text`,
+  `dialogue.textVariants[].text`, dan semua beat `onWrong.detour`. Token
+  **tidak** berlaku di `prompt`, `explanation`, `hints`, atau `retryQuestions`
+  karena teks itu dirender overlay tantangan, bukan kotak dialog.
+- Jawaban dipotong maksimal **60 code point** lalu diakhiri `…` supaya kotak
+  dialog tidak meluber. Teks yang memuat token sebaiknya ≤ 120 karakter.
+- Token harus muncul setelah minimal satu beat `challenge`; kalau tidak, tidak
+  ada jawaban yang bisa dikutip (`E_JAWABAN_WITHOUT_CHALLENGE`).
+- Token berarti jawaban salah **tantangan terdekat sebelumnya**, bukan jawaban
+  salah terakhir lintas cerita. Tantangan yang tidak pernah dijawab salah tidak
+  mengutip jawaban lama dari soal lain; token menjadi kosong dan spasinya
+  dirapikan. Di dalam `detour`, token memakai jawaban tantangan yang memicunya.
+- Varian salah sebaiknya memakai flag yang dinyalakan tantangan tepat sebelumnya.
+  Satu flag per tantangan menghindari kalimat yang mengutip jawaban soal lain.
+
+Contoh dialog reaksi (dipakai pada beat setelah `challenge`):
+
+```json
+{
+  "type": "dialogue",
+  "speakerId": "char_npc_1",
+  "text": "Benar, sembilan cangkir tinta biru butuh enam cangkir tinta emas.",
+  "textVariants": [
+    {
+      "when": { "jawaban": "4 cangkir" },
+      "text": "Empat cangkir kurang. Sembilan itu tiga kali tiga, jadi tinta emasnya enam cangkir."
+    },
+    {
+      "when": { "jawaban": "12 cangkir" },
+      "text": "Dua belas cangkir kebanyakan. Sembilan dibagi tiga jadi tiga, lalu dikali dua jadi enam."
+    },
+    {
+      "when": { "flag": "flg_salah_tinta", "is": true },
+      "text": "Kau menjawab {{jawaban}}. Tidak apa-apa. Sembilan cangkir biru tetap butuh enam cangkir emas."
+    }
+  ]
+}
+```
+
+#### Balasan berbeda untuk tiap jawaban salah
+
+Varian `when.jawaban` membuat dialog benar-benar bercabang menurut pilihan siswa,
+bukan satu kalimat yang hanya mengganti kutipan jawaban. Aturannya:
+
+- **Pemain mengucapkan jawabannya dulu.** Sesudah beat `challenge`, beat dialog
+  pertama adalah pemain (`char_mc`) yang **hanya** mengucapkan jawabannya, satu
+  kalimat pendek tanpa pembenaran atau hitungan. Tokoh lain menanggapi ucapan itu
+  di beat berikutnya (ADR 0022). Contoh urutannya:
+  `challenge → char_mc "Jawabanku empat cangkir." → Elian "Empat cangkir? Masih kurang."`
+- **Teks utama = jawaban benar.** `text` beat pemain dipakai saat siswa menjawab
+  benar; varian `when.jawaban` mengisi versi jawaban salah. Untuk
+  `short_answer`/`ordering` yang jawabannya tak bisa ditebak, pakai satu varian
+  `when.flag` berisi `{{jawaban}}`.
+- **Cocok persis setelah normalisasi.** Pencocokan memakai NFC, huruf kecil, dan
+  spasi dirapikan; tanda baca tidak dibuang (jadi `20%` ≠ `20`).
+- **Teks harus sama dengan yang dilihat siswa.** `multiple_choice` → teks opsi;
+  `true_false` → `Benar`/`Salah`; `ordering` → item sesuai urutan siswa dipisah
+  `→`. Untuk `short_answer`, teks ketikan tidak bisa ditebak, jadi pakai
+  `when.flag`.
+- **Prioritas.** Varian `jawaban` menang atas varian `flag`; urutan penulisan di
+  JSON tidak menentukan. Varian `flag` tetap berguna sebagai cadangan umum.
+- **Hanya hasil akhir.** Varian `jawaban` mencocokkan percobaan **terakhir**.
+  Kalau siswa salah lalu menjawab benar di soal ulang, dialog memakai `text`
+  utama (jawaban benar), bukan varian kesalahan yang sudah diperbaiki.
+- **Satu varian per kemungkinan salah.** Varian yang tidak pernah cocok tidak
+  error, hanya tidak terpakai.
+- **Cakupan tantangan.** Varian `jawaban` hanya mencocokkan jawaban tantangan
+  terdekat sebelumnya. Varian ini harus berada setelah minimal satu `challenge`;
+  kalau tidak, `E_JAWABAN_WITHOUT_CHALLENGE`.
+
+Contoh lengkap dua beat (pemain lalu tokoh lain), memakai soal `chl_01_01`:
+
+```json
+[
+  {
+    "type": "dialogue",
+    "speakerId": "char_mc",
+    "text": "Jawabanku enam cangkir.",
+    "textVariants": [
+      {
+        "when": { "jawaban": "4 cangkir" },
+        "text": "Jawabanku empat cangkir."
+      },
+      {
+        "when": { "jawaban": "12 cangkir" },
+        "text": "Jawabanku dua belas cangkir."
+      }
+    ]
+  },
+  {
+    "type": "dialogue",
+    "speakerId": "char_npc_1",
+    "text": "Tepat, enam cangkir.",
+    "textVariants": [
+      {
+        "when": { "jawaban": "4 cangkir" },
+        "text": "Empat cangkir? Masih kurang."
+      },
+      {
+        "when": { "jawaban": "12 cangkir" },
+        "text": "Dua belas cangkir? Kebanyakan."
+      }
+    ]
+  }
+]
 ```
 
 ### `challenges`
@@ -333,7 +473,7 @@ itu `E_ASSET_USAGE_MISMATCH`.
 ### `flags`
 
 Penanda cerita opsional yang bisa dinyalakan oleh jawaban salah dan dibaca oleh
-`textVariants`.
+varian `when.flag` pada `textVariants`.
 
 ```ts
 type Flag = {
@@ -344,8 +484,12 @@ type Flag = {
 
 - `flags` boleh tidak ada; artinya cerita tidak memakai flag.
 - Setiap id yang muncul di `onWrong.setFlags` atau `textVariants[].when.flag`
-  harus dideklarasikan di sini (`E_FLAG_UNDECLARED`).
+  harus dideklarasikan di sini (`E_FLAG_UNDECLARED`). Varian `when.jawaban` tidak
+  membutuhkan flag, jadi tidak menambah deklarasi.
 - Id flag harus unik (`E_DUPLICATE_ID`).
+- Flag yang dinyalakan `onWrong.setFlags` menyala pada **setiap** jawaban salah
+  dan tidak pernah dimatikan otomatis. Artinya flag berarti "pernah salah",
+  bukan "sedang salah".
 
 ### `scoring`
 
@@ -372,7 +516,7 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat dan penasaran",
-    "synopsis": "Nara mengikuti perjalanan setetes air dari halaman sekolah sampai kembali lagi ke bumi.",
+    "synopsis": "Kael mengikuti perjalanan setetes air dari halaman sekolah sampai kembali lagi ke bumi.",
     "estimatedMinutes": 8
   },
   "source": {
@@ -383,7 +527,7 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
   "cast": [
     {
       "id": "char_nara",
-      "name": "Nara",
+      "name": "Kael",
       "role": "player",
       "spriteId": "char_nara"
     },
@@ -399,7 +543,7 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
       "id": "ch_01",
       "title": "Pagi yang Menguap",
       "concept": "Evaporasi",
-      "summary": "Nara memperhatikan genangan di halaman sekolah yang menyusut tanpa diseka.",
+      "summary": "Kael memperhatikan genangan di halaman sekolah yang menyusut tanpa diseka.",
       "backgroundId": "bg_classroom_day",
       "musicId": "bgm_school_calm",
       "scenes": [
@@ -440,25 +584,26 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
 
 ## Aturan yang tidak boleh dilanggar
 
-| Aturan                                      | Kode error                  |
-| ------------------------------------------- | --------------------------- |
-| `schemaVersion` harus `"1.0"`               | `E_SCHEMA_VERSION`          |
-| 3–6 chapter                                 | `E_CHAPTER_COUNT`           |
-| 2–6 scene per chapter                       | `E_SCENE_COUNT`             |
-| 3–10 beat per scene                         | `E_BEAT_COUNT`              |
-| Tiap chapter minimal 1 beat `challenge`     | `E_CHAPTER_NO_CHALLENGE`    |
-| Tiap tantangan dirujuk minimal satu kali    | `E_ORPHAN_CHALLENGE`        |
-| Tiap tantangan dirujuk maksimal satu kali   | `E_DUPLICATE_CHALLENGE_REF` |
-| Tidak ada `assetId` di luar manifest        | `E_UNKNOWN_ASSET`           |
-| Tidak ada `speakerId` di luar `cast`        | `E_UNKNOWN_SPEAKER`         |
-| `expression` narasi wajib punya `speakerId` | `E_SCHEMA`                  |
-| `expression` ∈ enam ekspresi potret         | `E_SCHEMA`                  |
-| `concept`/`conceptTag` ∈ `source.concepts`  | `E_UNKNOWN_CONCEPT`         |
-| Semua id unik                               | `E_DUPLICATE_ID`            |
-| Teks tidak melebihi batas                   | `E_TEXT_TOO_LONG`           |
-| Flag di `setFlags`/`textVariants` terdaftar | `E_FLAG_UNDECLARED`         |
-| `retryQuestions` = `maxAttempts` − 1        | `E_RETRY_COUNT`             |
-| Detour maksimal 3 beat tanpa challenge      | `E_DETOUR_TOO_LONG`         |
+| Aturan                                                | Kode error                    |
+| ----------------------------------------------------- | ----------------------------- |
+| `schemaVersion` harus `"1.0"`                         | `E_SCHEMA_VERSION`            |
+| 3–6 chapter                                           | `E_CHAPTER_COUNT`             |
+| 2–6 scene per chapter                                 | `E_SCENE_COUNT`               |
+| 3–10 beat per scene                                   | `E_BEAT_COUNT`                |
+| Tiap chapter minimal 1 beat `challenge`               | `E_CHAPTER_NO_CHALLENGE`      |
+| Tiap tantangan dirujuk minimal satu kali              | `E_ORPHAN_CHALLENGE`          |
+| Tiap tantangan dirujuk maksimal satu kali             | `E_DUPLICATE_CHALLENGE_REF`   |
+| Tidak ada `assetId` di luar manifest                  | `E_UNKNOWN_ASSET`             |
+| Tidak ada `speakerId` di luar `cast`                  | `E_UNKNOWN_SPEAKER`           |
+| `expression` narasi wajib punya `speakerId`           | `E_SCHEMA`                    |
+| `expression` ∈ enam ekspresi potret                   | `E_SCHEMA`                    |
+| `concept`/`conceptTag` ∈ `source.concepts`            | `E_UNKNOWN_CONCEPT`           |
+| Semua id unik                                         | `E_DUPLICATE_ID`              |
+| Teks tidak melebihi batas                             | `E_TEXT_TOO_LONG`             |
+| Flag di `setFlags`/`textVariants` terdaftar           | `E_FLAG_UNDECLARED`           |
+| `retryQuestions` = `maxAttempts` − 1                  | `E_RETRY_COUNT`               |
+| Detour maksimal 3 beat tanpa challenge                | `E_DETOUR_TOO_LONG`           |
+| `{{jawaban}}`/`when.jawaban` setelah beat `challenge` | `E_JAWABAN_WITHOUT_CHALLENGE` |
 
 Daftar lengkap + contoh pesan: [`validation-rules.md`](./validation-rules.md).
 

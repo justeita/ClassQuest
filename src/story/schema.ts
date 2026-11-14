@@ -154,11 +154,28 @@ export const narrationBeatSchema = z.strictObject({
   expression: expressionSchema.optional(),
 });
 
+/**
+ * Kondisi varian teks. Dua bentuk, keduanya aditif terhadap kontrak v1.0:
+ *
+ * - `{ flag, is }` — varian karena nilai flag cerita ("pernah salah").
+ * - `{ jawaban }` — varian karena jawaban salah siswa **persis** teks itu,
+ *   sehingga pilihan yang berbeda menghasilkan balasan tokoh yang berbeda.
+ *
+ * Varian `jawaban` selalu dipertimbangkan lebih dulu daripada varian `flag`
+ * (lihat `resolveDialogueText` di `src/game/branching.ts`), supaya balasan
+ * khusus tidak tertutup kalimat umum "pernah salah".
+ */
+export const whenFlagSchema = z.strictObject({
+  flag: flagIdSchema,
+  is: z.boolean(),
+});
+
+export const whenJawabanSchema = z.strictObject({
+  jawaban: boundedText(1, 120, "Jawaban yang dicocokkan"),
+});
+
 export const textVariantSchema = z.strictObject({
-  when: z.strictObject({
-    flag: flagIdSchema,
-    is: z.boolean(),
-  }),
+  when: z.union([whenJawabanSchema, whenFlagSchema]),
   text: boundedText(1, 240),
 });
 

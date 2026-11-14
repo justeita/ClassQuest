@@ -45,7 +45,7 @@ demo berkisah tentang siklus air: genangan di halaman sekolah yang menyusut.
 - Ruangan `lorong_sekolah`, `kelas_a`, `halaman_sekolah` dan `RoomData` per
   `roomId`: digantikan satu dunia desa (`VILLAGE`).
 - Nama-nama karakter demo (Nino, Rani, Pak Bima, Tirta): diganti cast **Pesta
-  Panen Desa** (Nara, Pak Wira, Bu Sri, dan warga lain) — lihat
+  Panen Desa** (Kael, Edric, Elian, dan warga lain) — lihat
   [`../02-data-model/story.example.json`](../02-data-model/story.example.json).
 
 ## Di mana ceritanya sekarang

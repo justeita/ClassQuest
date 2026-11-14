@@ -46,6 +46,8 @@ erDiagram
     teachers ||--o{ stories : membuat
     teachers ||--o{ classrooms : memiliki
     classrooms ||--o{ students : berisi
+    classrooms ||--o{ play_results : mencatat
+    students ||--o{ play_results : mengerjakan
     stories ||--o{ story_versions : punya_versi
     stories ||--o{ jobs : punya_proses
     stories ||--o{ play_results : dimainkan
@@ -95,7 +97,10 @@ erDiagram
     play_results {
         text id PK
         text story_id FK
+        text classroom_id FK "boleh null"
+        text student_id FK "boleh null"
         integer correct_count
+        integer total_points "poin maksimum cerita"
         text weak_concepts "array teks"
     }
 ```
@@ -196,21 +201,48 @@ create table jobs (
 
 create index jobs_story_idx on jobs (story_id, started_at desc);
 
--- Hasil main (opsional di MVP)
+-- Hasil main
 create table play_results (
   id             text primary key,
   story_id       text not null references stories(id) on delete cascade,
   story_version  integer not null,
-  nickname       text,                          -- opsional, tanpa identitas asli
+  classroom_id   text references classrooms(id) on delete set null,
+  student_id     text references students(id) on delete set null,
+  nickname       text,                          -- nama saat bermain, tanpa identitas asli
   correct_count  integer not null,
   total_count    integer not null,
+  total_points   integer not null default 0,    -- poin maksimum cerita versi itu
   earned_points  integer not null,
   weak_concepts  text[] not null default '{}',
   created_at     timestamptz not null default now()
 );
 
 create index play_results_story_idx on play_results (story_id, created_at desc);
+create index play_results_classroom_idx on play_results (classroom_id, story_id, created_at desc);
+create index play_results_student_idx on play_results (student_id, created_at desc);
 ```
+
+### Hasil bermain
+
+`play_results` adalah satu-satunya sumber halaman `/guru/analitik`. Aturannya:
+
+- **`classroom_id` dan `student_id` boleh `null`.** Tautan tanpa `?kelas=` dan
+  `/game` (demo) tetap menyimpan hasil, hanya tidak masuk analytics kelas.
+- **`classroom_id` diturunkan dari `students`, bukan dari klien.** Siswa hanya
+  mengirim `studentId` (atau `nickname` bebas); server membaca baris `students`
+  dan menyalin `classroom_id` + `display_name`. Kelas yang dikirim klien tidak
+  pernah dipercaya.
+- **`nickname` tetap disimpan sebagai salinan.** Kalau siswa/kelas dihapus
+  (`on delete set null`), riwayat main tidak hilang dan analytics masih bisa
+  menampilkan nama terakhir yang dipakai.
+- **`total_points` disimpan saat hasil masuk** supaya analytics tidak perlu
+  membuka JSON cerita untuk tahu poin maksimum. Baris lama (sebelum migrasi
+  `0006_play_results_classroom`) bernilai 0.
+- **Agregat, bukan jawaban per opsi.** Halaman analytics mengelompokkan per
+  `student_id`, mengambil poin terbaik, percobaan terakhir, dan gabungan
+  `weak_concepts` — tidak ada tabel jawaban baru.
+- Index `play_results_classroom_idx` melayani query "satu kelas + satu game"
+  yang menjadi bentuk utama halaman analytics.
 
 ### Catatan desain
 

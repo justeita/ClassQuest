@@ -144,7 +144,7 @@ describe("field opsional", () => {
         retryQuestions: [
           "Coba baca ulang resepnya. Kalau 3 bagian tepung menjadi 9 cangkir, berapa bagian gula?",
         ],
-        detour: [{ type: "narration", text: "Nara mengulang hitungannya." }],
+        detour: [{ type: "narration", text: "Kael mengulang hitungannya." }],
       };
 
       beatsOf(scenesOf(chapters(draft)[0])[1])[0].textVariants = [

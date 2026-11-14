@@ -7,7 +7,7 @@
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat dan penasaran",
-    "synopsis": "Nara mengikuti perjalanan setetes air dari halaman sekolah, naik ke awan, lalu kembali ke bumi. Di sepanjang perjalanan, ia belajar tentang evaporasi, kondensasi, dan infiltrasi.",
+    "synopsis": "Kael mengikuti perjalanan setetes air dari halaman sekolah, naik ke awan, lalu kembali ke bumi. Di sepanjang perjalanan, ia belajar tentang evaporasi, kondensasi, dan infiltrasi.",
     "estimatedMinutes": "delapan"
   },
   "source": {
@@ -19,7 +19,7 @@
   "cast": [
     {
       "id": "char_mc",
-      "name": "Nara",
+      "name": "Kael",
       "role": "player",
       "spriteId": "char_mc",
       "description": "Siswa yang penasaran dan suka mengamati hal kecil."
@@ -36,7 +36,7 @@
       "name": "Tirta",
       "role": "npc",
       "spriteId": "char_npc_1",
-      "description": "Perwujudan setetes air yang menemani Nara."
+      "description": "Perwujudan setetes air yang menemani Kael."
     }
   ],
   "chapters": [
@@ -44,7 +44,7 @@
       "id": "ch_01",
       "title": "Pagi yang Menguap",
       "concept": "Evaporasi",
-      "summary": "Nara memperhatikan genangan di halaman sekolah yang menyusut tanpa diseka siapa pun.",
+      "summary": "Kael memperhatikan genangan di halaman sekolah yang menyusut tanpa diseka siapa pun.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
@@ -68,7 +68,7 @@
             },
             {
               "type": "narration",
-              "text": "Nara menatap atap kelas. Ada titik-titik air di sana, tapi tidak ada hujan."
+              "text": "Kael menatap atap kelas. Ada titik-titik air di sana, tapi tidak ada hujan."
             }
           ]
         },
@@ -92,7 +92,7 @@
             },
             {
               "type": "narration",
-              "text": "Nara mengikuti arah naiknya uap, meski matanya tidak bisa melihat apa pun."
+              "text": "Kael mengikuti arah naiknya uap, meski matanya tidak bisa melihat apa pun."
             }
           ]
         },
@@ -126,7 +126,7 @@
       "id": "ch_02",
       "title": "Naik ke Langit",
       "concept": "Kondensasi",
-      "summary": "Di atas awan, Nara melihat uap air berkumpul dan berubah menjadi titik-titik air.",
+      "summary": "Di atas awan, Kael melihat uap air berkumpul dan berubah menjadi titik-titik air.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
@@ -136,7 +136,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Nara berdiri di atas awan. Udara terasa dingin dan basah."
+              "text": "Kael berdiri di atas awan. Udara terasa dingin dan basah."
             },
             {
               "type": "dialogue",
@@ -185,7 +185,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Tetesan pertama jatuh dari awan dan melewati wajah Nara."
+              "text": "Tetesan pertama jatuh dari awan dan melewati wajah Kael."
             },
             {
               "type": "dialogue",
@@ -209,7 +209,7 @@
       "id": "ch_03",
       "title": "Kembali ke Bumi",
       "concept": "Infiltrasi",
-      "summary": "Hujan turun di lereng gunung. Nara belajar bahwa air bisa mengalir di permukaan atau meresap ke dalam tanah.",
+      "summary": "Hujan turun di lereng gunung. Kael belajar bahwa air bisa mengalir di permukaan atau meresap ke dalam tanah.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
@@ -252,7 +252,7 @@
             },
             {
               "type": "narration",
-              "text": "Nara melihat akar pohon menyerap air, lalu daun-daunnya terlihat lebih segar."
+              "text": "Kael melihat akar pohon menyerap air, lalu daun-daunnya terlihat lebih segar."
             },
             {
               "type": "dialogue",
@@ -268,7 +268,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Bel berbunyi lagi. Nara kembali di halaman sekolah, di depan genangan yang hampir kering."
+              "text": "Bel berbunyi lagi. Kael kembali di halaman sekolah, di depan genangan yang hampir kering."
             },
             {
               "type": "dialogue",
