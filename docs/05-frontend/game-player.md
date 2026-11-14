@@ -177,7 +177,11 @@ dari guru langsung melihat judul cerita, bukan menu.
   [`../../src/game/audioSettings.ts`](../../src/game/audioSettings.ts). Nilai
   dibaca saat dialog dibuka (bukan saat mount) supaya render server dan client
   tidak berbeda. `Simpan` menutup dialog dan memberi tahu lewat `role="status"`.
-- `Kredit` berisi asal-usul cerita dan lisensi font. `Keluar` membuka konfirmasi
+- `Kredit` berisi asal-usul cerita, daftar tim penyusun (nama, peran, kampus,
+  tautan GitHub), dan lisensi font. Daftarnya ditulis di dalam kode (bukan
+  diambil dari server) dan ditampilkan bertumpuk, bukan tabel empat kolom, agar
+  nama panjang tetap terbaca di panel dialog yang sempit. `Keluar` membuka
+  konfirmasi
   yang menautkan ke `/` (halaman pemilihan peran) — bukan menutup tab, karena
   `window.close()` tidak diizinkan peramban.
 - Kelopak sakura ditulis dengan nilai tetap (bukan `Math.random()`) agar render

@@ -31,6 +31,39 @@ type AksiMenu = (typeof PILIHAN)[number]["id"];
 type Dialog = Exclude<AksiMenu, "mulai"> | null;
 
 /**
+ * Tim penyusun ClassQuest (LOGICODIX 2026). Ditulis di dalam kode, bukan diambil
+ * dari server: menu utama dirender statis dan kredit tidak berubah. Ditampilkan
+ * sebagai daftar bertumpuk (bukan tabel empat kolom) karena panel dialog sempit
+ * di ponsel — nama panjang akan terpotong kalau dipaksa satu baris.
+ */
+const TIM_KREDIT = [
+  {
+    nama: "Marson Arya Bagas Prasetyo",
+    peran: "Ketua tim",
+    kampus: "Universitas Negeri Surabaya",
+    github: "github.com/justeita",
+  },
+  {
+    nama: "Muhammad Geral Herpavy",
+    peran: "Anggota 1",
+    kampus: "Universitas Negeri Surabaya",
+    github: "github.com/Gerraldd",
+  },
+  {
+    nama: "Fadhlurrahman Akwa Qinthara",
+    peran: "Anggota 2",
+    kampus: "Universitas Negeri Surabaya",
+    github: "github.com/akwaqinthara",
+  },
+  {
+    nama: "Davita Syalom Maria Attira Pandjaitan",
+    peran: "Anggota 3",
+    kampus: "Universitas Negeri Surabaya",
+    github: "github.com/davitapandjaitan",
+  },
+] as const;
+
+/**
  * Kelopak sakura yang berguguran. Nilainya ditulis tetap (bukan
  * `Math.random()`) supaya render server dan client sama — kelopak acak akan
  * memicu hydration mismatch. Semua posisi berada di paruh kanan layar, tempat
@@ -386,6 +419,28 @@ export function MainMenu({ onMulai }: MainMenuProps) {
             mengubah materi pelajaran menjadi game pixel bercerita. Dibuat oleh
             tim ClassQuest untuk LOGICODIX 2026.
           </p>
+
+          {/* Tim penyusun. Daftar bertumpuk, bukan tabel empat kolom, supaya
+              nama panjang dan tautan GitHub tetap terbaca di panel sempit. */}
+          <ul className="mt-4 space-y-3 border-t border-[#9e7833]/40 pt-4">
+            {TIM_KREDIT.map((orang) => (
+              <li key={orang.github} className="font-game">
+                <p className="text-sm text-[#f4e8c4]">{orang.nama}</p>
+                <p className="text-xs text-[#a7b39e]">
+                  {orang.peran} · {orang.kampus}
+                </p>
+                <a
+                  href={`https://${orang.github}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-[#e7c45d] underline underline-offset-2 hover:text-[#f7ebc9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e7c45d]"
+                >
+                  {orang.github}
+                </a>
+              </li>
+            ))}
+          </ul>
+
           <p className="mt-3 font-game text-sm leading-relaxed text-[#c5cbb9]">
             Peta desa, karakter, dan musik disiapkan di awal dan dipakai ulang
             oleh semua cerita; teks game memakai Patrick Hand (SIL Open Font
@@ -509,7 +564,7 @@ function PanelDialog({ judul, children, aksi, onTutup }: PanelDialogProps) {
             onTutup();
           }
         }}
-        className="w-full max-w-sm border-2 border-[#9e7833] bg-gradient-to-br from-[#17271c] to-[#0a150f] p-6 shadow-[0_0_0_1px_rgb(0_0_0_/_0.6),0_18px_40px_rgb(0_0_0_/_0.5)]"
+        className="max-h-[85vh] w-full max-w-sm overflow-y-auto border-2 border-[#9e7833] bg-gradient-to-br from-[#17271c] to-[#0a150f] p-6 shadow-[0_0_0_1px_rgb(0_0_0_/_0.6),0_18px_40px_rgb(0_0_0_/_0.5)]"
       >
         <h2
           id="judul-dialog-menu"

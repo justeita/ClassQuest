@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -181,6 +187,26 @@ describe("MainMenu", () => {
     expect(
       screen.queryByRole("dialog", { name: "Kredit" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("Kredit mencantumkan tim penyusun beserta tautan GitHub", () => {
+    render(<MainMenu onMulai={vi.fn()} />);
+
+    fireEvent.click(tombol(/^kredit$/i));
+    const dialog = screen.getByRole("dialog", { name: "Kredit" });
+
+    // Keempat anggota tim tampil dengan nama dan perannya.
+    const daftar = within(dialog);
+    expect(daftar.getByText("Marson Arya Bagas Prasetyo")).toBeInTheDocument();
+    expect(
+      daftar.getByText("Davita Syalom Maria Attira Pandjaitan"),
+    ).toBeInTheDocument();
+    expect(daftar.getAllByText(/Universitas Negeri Surabaya/)).toHaveLength(4);
+
+    // Tautan GitHub terbuka di tab baru dengan alamat yang benar.
+    const tautan = daftar.getByRole("link", { name: "github.com/justeita" });
+    expect(tautan).toHaveAttribute("href", "https://github.com/justeita");
+    expect(tautan).toHaveAttribute("target", "_blank");
   });
 
   it("Keluar menawarkan jalan kembali ke pemilihan peran, bukan menutup tab", () => {
