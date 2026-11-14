@@ -247,6 +247,7 @@ export function GameShell({
           mulaiDari={lanjutan}
           onFinished={selesai}
           onBatal={batalMain}
+          aktif={layar === "main"}
         />
       )}
       {layar === "hasil" && hasil && (

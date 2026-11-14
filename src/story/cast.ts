@@ -17,7 +17,7 @@
  * schema) ditambah tiga peta prompt-only — `CAST_EXPERTISE` (bidang),
  * `CAST_TRAITS` (sifat khas), dan `CAST_VOICE` (cara bicara). Ketiganya **bukan**
  * bagian schema cerita; mengubahnya hanya mengubah isi blok `CAST`, tidak
- * mengubah bentuk `Story` (ADR 0038).
+ * mengubah bentuk `Story` (ADR 0041).
  */
 
 import type { Character } from "./schema";
@@ -169,7 +169,7 @@ export const CAST_EXPERTISE: Readonly<Record<string, string>> = {
  * Berbeda dari `description` yang harus memuat ciri fisik, peta ini khusus
  * watak: bagaimana tokoh bereaksi, apa yang ia hindari, dan apa yang membuatnya
  * terasa berbeda dari tokoh lain. Model memakainya untuk memilih emosi dan
- * sikap, bukan untuk menyebut "sifat" secara harfiah di dialog (ADR 0038).
+ * sikap, bukan untuk menyebut "sifat" secara harfiah di dialog (ADR 0041).
  */
 export const CAST_TRAITS: Readonly<Record<string, string>> = {
   char_mc: "tenang, pendiam, sederhana, penuh rasa ingin tahu",
@@ -189,7 +189,7 @@ export const CAST_TRAITS: Readonly<Record<string, string>> = {
  *
  * Tanpa kolom ini, semua tokoh menulis kalimat dengan pola yang sama dan cerita
  * terasa seperti satu orang berbicara dengan banyak nama. Isinya pola konkret
- * (panjang kalimat, kebiasaan, perumpamaan), bukan sekadar kata sifat (ADR 0038).
+ * (panjang kalimat, kebiasaan, perumpamaan), bukan sekadar kata sifat (ADR 0041).
  */
 export const CAST_VOICE: Readonly<Record<string, string>> = {
   char_mc: "kalimat pendek, banyak bertanya, jarang berpendapat panjang",

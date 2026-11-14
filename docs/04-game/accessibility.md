@@ -46,10 +46,16 @@ Aturan:
 
 - Urutan fokus logis: prompt → opsi → tombol jawab → feedback → lanjut.
 - Jangan memasang `tabindex` positif.
-- Jangan menangkap `Tab`; biarkan browser memindahkan fokus. **Pengecualian:**
-  hanya selama fase `dialog`, `Tab` dipakai untuk "Percepat" dan diambil alih
-  (`preventDefault`). Di semua fase lain — termasuk saat soal — `Tab` kembali
-  memindahkan fokus seperti biasa.
+- **`Tab` dimatikan selama bermain.** Saat eksplorasi dan saat soal, `Tab`/
+  `Shift+Tab` dicegah (`preventDefault`) dan fokus ditarik kembali ke area
+  permainan, jadi fokus tidak pindah ke tombol HUD maupun lompat ke bilah
+  peramban. Alasannya: tombol bicara ke warga adalah `Space`/`Enter`, sehingga
+  tombol HUD tidak boleh terpilih lebih dulu — kalau tidak, `Space` berikutnya
+  justru mengaktifkan tombol HUD itu, bukan memulai dialog. `Ctrl+Tab`/`Alt+Tab`
+  tetap milik peramban. Saat soal, panel tantangan memegang fokusnya sendiri,
+  jadi `Tab` cukup ditahan tanpa menarik fokus keluar dari panel.
+- `Tab` baru hidup kembali saat `dialog` (pintasan "Percepat" — lihat tabel) dan
+  di menu jeda/buku yang memang butuh navigasi papan ketik biasa.
 - Saat panel tantangan muncul, fokus pindah ke panel itu sendiri (`tabIndex={-1}`).
 - Saat panel ditutup, fokus kembali ke area permainan (canvas), bukan hilang ke
   `body`.
@@ -62,14 +68,14 @@ Aturan:
 Setiap aksi yang bisa dilakukan keyboard juga punya jalur sentuh (ADR 0024),
 sehingga siswa di ponsel/tablet tidak ditinggalkan:
 
-| Aksi          | Sentuh                                   |
-| ------------- | ---------------------------------------- |
-| Gerak         | Joystick 8 arah di sudut kiri bawah      |
-| Bicara        | Tombol aksi besar di sudut kanan bawah   |
-| Lanjut dialog | Ketuk kotak dialog yang sedang tampil    |
-| Pilih jawaban | Ketuk opsi / tombol di overlay tantangan |
-| Menu jeda     | Tombol "Jeda" di HUD                     |
-| Layar penuh   | Ikon di HUD                              |
+| Aksi          | Sentuh                                           |
+| ------------- | ------------------------------------------------ |
+| Gerak         | Joystick 8 arah di sudut kiri bawah              |
+| Bicara        | Tombol aksi besar di sudut kanan bawah           |
+| Lanjut dialog | Ketuk kotak dialog yang sedang tampil            |
+| Pilih jawaban | Ketuk opsi untuk memindah glove, lalu "Jawab"    |
+| Menu jeda     | Tombol "Jeda" di HUD                             |
+| Layar penuh   | Kartu "Arena Siswa" / tombol judul / ikon di HUD |
 
 Aturan:
 
@@ -144,10 +150,15 @@ Catatan:
 - Teks dialog, kotak jawaban tantangan, dan tombol HUD memakai bahasa visual yang
   sama: teks krem terang `#F7F4EC` di atas latar gelap `#0b120e`, dengan aksen
   oranye `#E8A87C` (ADR 0029, ADR 0030, ADR 0031).
-- Penunjuk pilihan aktif adalah tangan menunjuk (glove) SVG berwarna krem terang
-  `#F7F4EC` dengan outline gelap dan manset oranye, jadi tetap terbaca di atas
-  dunia terang maupun kotak gelap; pilihan aktif juga dibedakan lewat latar yang
-  terangkat, bukan warna saja.
+- Penunjuk pilihan aktif adalah tangan menunjuk (glove) pixel-art SVG berwarna
+  krem terang `#F7F4EC` dengan outline gelap dan bayangan abu, jadi tetap terbaca
+  di atas dunia terang maupun kotak gelap; ukurannya dibatasi `clamp(15px, …,
+22px)` agar tidak menabrak margin kotak pilihan. Pilihan aktif juga dibedakan
+  lewat latar yang terangkat, bukan warna saja.
+- Di desktop glove mengikuti hover tetikus; di perangkat sentuh ia mengikuti
+  ketukan pada opsi. Karena HP tidak punya hover, ketukan pertama memilih opsi
+  dan tombol "Jawab" mengonfirmasi, sehingga jari yang salah tekan tidak
+  langsung menjawab (desktop tetap klik-langsung).
 - Border fokus: 2 px, warna aksen, offset 2 px.
 
 ## Ukuran teks

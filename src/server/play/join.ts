@@ -2,9 +2,9 @@
  * Gerbang kode kelas `/play` — siswa masuk tanpa tautan guru.
  *
  * Kontrak: `docs/05-frontend/game-player.md` bagian "Gerbang kode kelas" dan
- * `docs/09-decisions/0039-kode-kelas-masuk-game.md`.
+ * `docs/09-decisions/0042-kode-kelas-masuk-game.md`.
  *
- * Alur (ADR 0041):
+ * Alur (ADR 0044):
  *
  * ```text
  * kode QST-XXXX ─► kelas + guru ─► NIS terdaftar milik guru itu?
@@ -22,7 +22,7 @@
  * - **Kelas menentukan guru, bukan sebaliknya.** Game yang boleh dibuka hanya
  *   game terbit milik guru pemilik kelas itu, jadi kode kelas satu guru tidak
  *   pernah membuka cerita guru lain.
- * - **Identitas dari NIS, bukan nama** (ADR 0041). NIS dibandingkan dengan NIS
+ * - **Identitas dari NIS, bukan nama** (ADR 0044). NIS dibandingkan dengan NIS
  *   murid milik guru kelas itu — bukan hanya kelas ini — karena NIS memang unik
  *   per guru. Titik dan strip diabaikan saat membandingkan supaya `2026.001`
  *   dan `2026001` dianggap sama. NIS yang tidak ada di daftar **ditolak
@@ -197,7 +197,7 @@ export function cleanPlayerNis(value: unknown): string {
  * milik guru kelas itu ditolak `story_not_found`, bukan diam-diam diganti.
  *
  * NIS diperiksa **sebelum** siswa diminta memilih game: siswa yang NIS-nya
- * tidak ada di daftar guru itu tidak boleh masuk sama sekali (ADR 0041).
+ * tidak ada di daftar guru itu tidak boleh masuk sama sekali (ADR 0044).
  */
 export async function startJoin(
   db: Client,

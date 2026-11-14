@@ -121,6 +121,18 @@ typewriter dibekukan selama fase `challenge`, dan baris terakhir tetap terlihat.
   boleh menutup dialog (fallback) agar soal tetap terbaca.
 - Fokus pindah ke panel saat muncul dan kembali ke area game saat ditutup.
 
+## Pembaruan 2026-11-14 — soal tantangan diketik, potret tetap tampil
+
+**Masalah.** Soal tantangan dulu tampil utuh sekaligus dengan pilihan
+jawabannya, sehingga ritme mesin tik dialog hilang. Potret pembicara juga
+disembunyikan selama soal.
+
+**Keputusan.** Dialog tetap dipause, tetapi soalnya **diketik** lewat textbox
+yang sama; pilihan jawaban baru muncul setelah ketikan tuntas, potret pembicara
+soal tetap terlihat, dan area jawaban beranimasi masuk/keluar. Panel tetap DOM
+dan posisinya tidak berubah. Rincian di
+[ADR 0038](0038-soal-diketik-lalu-jawaban.md).
+
 ## Referensi
 
 - [`../04-game/engine.md`](../04-game/engine.md)

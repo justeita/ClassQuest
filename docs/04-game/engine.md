@@ -239,8 +239,9 @@ ditandai `"use client"` dan diimpor dinamis.
 
 `GameScene` menjalankan siklus ADR 0008: fase `explore` (dunia dari `VILLAGE`,
 pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()`
-memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
-(Space/Enter/klik). State dialog dikirim ke React sebagai event `dialogue` dan
+memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan jeda 250 ms
+(Space/Enter/klik) — satu tekanan satu beat, menahan tombol tidak memutar
+dialog terus-menerus. State dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx` — panel kotak navy gelap membulat, potret
 ber-`expression` (beat atau varian teks yang menang, ADR 0023 + ADR 0032), nama,
 dan teks; React membalas command `advance`.
@@ -328,10 +329,12 @@ cerita atau saat "Ulangi chapter".
 
 ## Pemuatan aset
 
-`PreloadScene` memuat **seluruh aset dunia** (kind `world`: peta, 80 potongan
-objek, 10 spritesheet karakter, dan musik default) karena dunia tidak bisa
-dirender sebagian. Aset cerita ditambahkan di atasnya lewat
-`collectStoryAssets(story)` di `src/game/sceneAssets.ts`:
+`PreloadScene` memuat **seluruh aset dunia** (kind `world`: peta dan 80 potongan
+objek) karena dunia tidak bisa dirender sebagian, plus **aset runtime**
+(`RUNTIME_ASSET_IDS`: latar default, dua track BGM, dan SFX). Kedua BGM selalu
+dimuat supaya track awal yang terpilih acak dan track berikutnya dalam rotasi
+pasti tersedia. Aset cerita ditambahkan
+di atasnya lewat `collectStoryAssets(story)` di `src/game/sceneAssets.ts`:
 
 ```ts
 const dipakai = new Set<string>(RUNTIME_ASSET_IDS);

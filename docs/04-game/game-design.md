@@ -115,13 +115,13 @@ Menambah entri `RAMP` berarti menambah baris di tabel ini pada PR yang sama.
 
 ## Suasana dan pacing
 
-| Elemen         | Keputusan                                                          |
-| -------------- | ------------------------------------------------------------------ |
-| Durasi         | 5–10 menit per cerita                                              |
-| Ritme          | Dialog pendek, satu tantangan setiap 1–2 menit                     |
-| Musik          | Satu track per chapter (default, hemat aset); scene boleh override |
-| Transisi       | Fade 300 ms; cut hanya untuk kejutan kecil                         |
-| Kecepatan teks | Typewriter 30–40 karakter/detik, bisa dipercepat dengan klik       |
+| Elemen         | Keputusan                                                         |
+| -------------- | ----------------------------------------------------------------- |
+| Durasi         | 5–10 menit per cerita                                             |
+| Ritme          | Dialog pendek, satu tantangan setiap 1–2 menit                    |
+| Musik          | Dua track latar bergantian per sesi; scene/chapter boleh override |
+| Transisi       | Fade 300 ms; cut hanya untuk kejutan kecil                        |
+| Kecepatan teks | Typewriter 30–40 karakter/detik, bisa dipercepat dengan klik      |
 
 Aturan pacing:
 

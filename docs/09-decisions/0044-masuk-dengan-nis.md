@@ -4,17 +4,17 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0041 — Masuk Game dengan NIS dan Konfirmasi Nama Lengkap
+# 0044 — Masuk Game dengan NIS dan Konfirmasi Nama Lengkap
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
-- **Menggantikan:** bagian "Identitas dari nama" pada [0039](0039-kode-kelas-masuk-game.md)
-- **Melanjutkan:** [0015](0015-kelas-dan-siswa.md), [0039](0039-kode-kelas-masuk-game.md)
+- **Menggantikan:** bagian "Identitas dari nama" pada [0042](0042-kode-kelas-masuk-game.md)
+- **Melanjutkan:** [0015](0015-kelas-dan-siswa.md), [0042](0042-kode-kelas-masuk-game.md)
 
 ## Konteks
 
-[ADR 0039](0039-kode-kelas-masuk-game.md) membuka jalan masuk `/play` dengan
+[ADR 0042](0042-kode-kelas-masuk-game.md) membuka jalan masuk `/play` dengan
 **kode kelas + nama**. Nama bebas selalu diterima: nama yang tidak cocok dengan
 daftar siswa tetap boleh bermain, hanya hasilnya tidak masuk analytics kelas.
 Akibatnya guru tidak pernah bisa yakin bahwa baris di analytics benar-benar milik
@@ -36,7 +36,7 @@ sekolah punya nomor yang bisa memisahkan siswa tanpa menambah akun/password.
    jadi sama, server menjawab `nis_ambiguous` beserta daftar calon, bukan menebak.
 3. **NIS yang tidak ada di daftar ditolak** (`nis_not_found`). Siswa melihat
    pesan "NIS tidak ada di daftar murid guru" di form dan **tidak bisa masuk**.
-   Ini berbeda dari perilaku 0039: tidak ada lagi nama bebas.
+   Ini berbeda dari perilaku 0042: tidak ada lagi nama bebas.
 4. **NIS yang cocok berhenti di layar konfirmasi.** Server mengirim nama lengkap
    dari baris `students`; UI menampilkan NIS, nama lengkap, dan kelas lalu
    bertanya "Ini kamu, benar?". "Benar, lanjut main" memasang `GameShell` dengan
@@ -72,7 +72,7 @@ sekolah punya nomor yang bisa memisahkan siswa tanpa menambah akun/password.
 - **NISN sebagai nomor masuk.** NISN nasional unik, tetapi tidak semua sekolah
   punya/mengetahui NISN murid, dan NISN lebih panjang untuk diketik anak SD.
   NIS tetap nomor yang dibagikan guru di kelas; NISN hanya ditampilkan.
-- **Tetap menerima nama bebas sebagai cadangan.** Mengembalikan masalah 0039:
+- **Tetap menerima nama bebas sebagai cadangan.** Mengembalikan masalah 0042:
   hasil bisa tercatat atas nama orang lain dan guru tidak bisa membedakan siswa
   bernama sama.
 - **Konfirmasi di sisi klien saja.** Client tidak boleh dipercaya; nama yang

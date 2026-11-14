@@ -37,7 +37,7 @@ MVP dianggap selesai jika alur ini berjalan tanpa intervensi manual:
 | Penyimpanan lokal | Progres siswa di `localStorage`                                                                                                                                                                                                            |
 | Kelas & siswa     | Guru membuat kelas dan menambah siswa (nama + NIS opsional); kode `QST-XXXX` dipakai di tautan kelas dan sebagai jalan masuk `/play`                                                                                                       |
 | Persistence       | Satu database libSQL/Turso; PDF tidak disimpan (ADR 0013)                                                                                                                                                                                  |
-| Akses             | Tautan publik, tanpa akun siswa. Tautan per kelas `/play/[storyId]?kelas=QST-XXXX`; siswa memilih namanya dari daftar kelas. Tanpa tautan, siswa masuk lewat `/play` dengan kode kelas + NIS lalu konfirmasi nama lengkap (ADR 0039, 0041) |
+| Akses             | Tautan publik, tanpa akun siswa. Tautan per kelas `/play/[storyId]?kelas=QST-XXXX`; siswa memilih namanya dari daftar kelas. Tanpa tautan, siswa masuk lewat `/play` dengan kode kelas + NIS lalu konfirmasi nama lengkap (ADR 0042, 0044) |
 | Analytics         | `/guru/analitik`: poin terbaik dan konsep lemah per siswa; filter kelas/game opsional (kosong = semua)                                                                                                                                     |
 | Deployment        | Satu environment (production demo)                                                                                                                                                                                                         |
 
@@ -67,7 +67,7 @@ Korbankan dari atas, bukan dari bawah.
 1. `short_answer` dan `ordering` → sisakan `multiple_choice` + `true_false`.
 2. Preview terpisah → cukup tombol "mainkan versi draft".
 3. Ringkasan hasil di server → cukup tampil lokal.
-4. Musik per scene → satu musik per chapter.
+4. Musik per scene → satu rotasi musik latar per sesi (dua track bergantian, mulai acak).
 5. Animasi transisi → cut/fade sederhana.
 6. Edit urutan scene → cukup edit teks & soal.
 7. Ringkasan `weakConcepts` lintas sesi → cukup ringkasan per sesi.

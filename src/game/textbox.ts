@@ -58,10 +58,21 @@ export type Textbox = {
 };
 
 /**
+ * Kait opsional pemanggil. `onKetik` dipanggil tiap `tick()` membuka karakter
+ * baru, dengan potongan teks yang baru muncul — dipakai memutar efek mesin tik.
+ * Modul tetap bebas Phaser: ia tidak tahu apa pun soal audio.
+ */
+export type TextboxHooks = {
+  onKetik?: (baru: string) => void;
+};
+
+/**
  * @param onPerubahan Dipanggil saat isi dialog berubah, untuk dikirim ke DOM.
+ * @param hooks Kait opsional (mis. suara mesin tik).
  */
 export function createTextbox(
   onPerubahan: (state: DialogueState) => void,
+  hooks: TextboxHooks = {},
 ): Textbox {
   let typewriter = new Typewriter("");
   let terlihat = false;
@@ -101,7 +112,10 @@ export function createTextbox(
     },
     tick(deltaMs) {
       if (typewriter.isDone()) return;
+      const sebelum = typewriter.current().length;
       typewriter.tick(deltaMs);
+      const sesudah = typewriter.current();
+      if (sesudah.length > sebelum) hooks.onKetik?.(sesudah.slice(sebelum));
       kirim();
     },
     complete() {

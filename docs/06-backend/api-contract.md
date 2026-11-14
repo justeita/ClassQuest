@@ -330,7 +330,7 @@ Aturan:
 - `nis` opsional. Kosong → server memberi nomor urut mulai `1001` (melewati
   nomor terpakai). Diisi → dinormalisasi ke huruf besar, pola
   `[A-Za-z0-9._-]{1,20}`, dan harus unik per guru. `nis` inilah yang diketik
-  siswa untuk masuk `/play` (ADR 0041), jadi daftar murid `/guru/kelas`
+  siswa untuk masuk `/play` (ADR 0044), jadi daftar murid `/guru/kelas`
   menampilkannya bersama `nisn` dan nama lengkap.
 - `nisn` opsional (migrasi `0007_students_nisn`). Dinormalisasi dengan aturan
   yang sama seperti `nis`, **tidak** unik, dan tidak dipakai untuk masuk. Kosong
@@ -402,7 +402,7 @@ Aturan:
 
 ### Bentuk input & hasil `masukKelas`
 
-Gerbang `/play` (ADR 0039 + ADR 0041). Memetakan kode kelas ke kelas + guru,
+Gerbang `/play` (ADR 0042 + ADR 0044). Memetakan kode kelas ke kelas + guru,
 memeriksa NIS, lalu ke game terbit guru itu.
 
 ```ts
@@ -449,7 +449,7 @@ Aturan:
 - **Satu game vs banyak.** Tanpa `storyId`, satu game terbit langsung dijawab
   `jenis: "main"`, sedangkan lebih dari satu dijawab `jenis: "pilih"` supaya
   siswa tidak masuk ke tugas yang salah.
-- **Identitas dari NIS, bukan nama** (ADR 0041). NIS dinormalisasi `cleanNis`
+- **Identitas dari NIS, bukan nama** (ADR 0044). NIS dinormalisasi `cleanNis`
   lalu dibandingkan tanpa memandang huruf besar/kecil serta tanpa titik/strip
   ke **seluruh murid guru pemilik kelas** (`students.teacher_id`), karena NIS
   unik per guru. Tepat satu murid → `pemain = { studentId, name }` dengan nama

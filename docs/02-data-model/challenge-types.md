@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -163,11 +163,16 @@ Penilaian: jawaban ternormalisasi ada di `acceptedAnswers` ternormalisasi.
 Satu fungsi murni di `src/story/scoring.ts`:
 
 ```ts
-export type Answer =
-  | { challengeId: string; type: "multiple_choice"; selectedId: string }
-  | { challengeId: string; type: "true_false"; answer: boolean }
-  | { challengeId: string; type: "ordering"; order: string[] }
-  | { challengeId: string; type: "short_answer"; text: string };
+export type Answer = {
+  challengeId: string;
+  /** Siswa membuka hint sebelum menjawab; poin benar dipotong setengah. */
+  usedHint?: boolean;
+} & (
+  | { type: "multiple_choice"; selectedId: string }
+  | { type: "true_false"; answer: boolean }
+  | { type: "ordering"; order: string[] }
+  | { type: "short_answer"; text: string }
+);
 
 export function isCorrect(challenge: Challenge, answer: Answer): boolean;
 export function scoreStory(story: Story, answers: Answer[]): PlayResult;
@@ -176,6 +181,10 @@ export function scoreStory(story: Story, answers: Answer[]): PlayResult;
 Aturan skor (MVP):
 
 - Benar: `points` (default 10). Salah: 0.
+- **Memakai hint memotong poin benar menjadi setengah, dibulatkan ke bawah**
+  (10 → 5, 15 → 7, 20 → 10). Jawaban salah tetap 0. `usedHint` ikut di jawaban
+  mentah supaya server menghitung ulang dengan potongan yang sama. Hint yang
+  tidak dipakai tidak pernah mengubah apa pun.
 - Tidak ada pengurangan untuk mencoba lagi.
 - `PlayResult` memuat `totalPoints`, `earnedPoints`, `correctCount`,
   `totalChallenges`, dan `weakConcepts` (dari `conceptTag` yang salah).

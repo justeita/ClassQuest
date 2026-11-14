@@ -374,7 +374,7 @@ const collectFlags = (
  * Id NPC yang sudah bicara di chapter-chapter sebelumnya.
  *
  * Dipakai prompt chapter berikutnya supaya giliran pembicara bergilir
- * (ADR 0036). Pemain tidak dihitung: ia memang selalu hadir. Urutan mengikuti
+ * (ADR 0039). Pemain tidak dihitung: ia memang selalu hadir. Urutan mengikuti
  * kemunculan pertama sehingga hasilnya deterministik. Nilai yang bentuknya
  * rusak diabaikan, karena chapter yang belum lolos validasi masih bisa sampai
  * ke sini.

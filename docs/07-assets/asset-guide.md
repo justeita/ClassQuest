@@ -21,11 +21,11 @@ dalam waktu hackathon.
 Aset di `public/assets/` datang dari dua jalur yang tidak saling menimpa:
 
 1. **Generator repo** — `bun run assets:generate`. Membuat aset generik: latar
-   default 640×360, panel UI, dan empat efek suara. Gambar digambar tanpa
+   default 640×360, panel UI, dan lima efek suara. Gambar digambar tanpa
    dependensi di `scripts/lib/`.
 2. **Impor dunia desa** — `bun run assets:world` (`scripts/import-world.mjs`).
-   Menyalin peta, potongan objek, dan lagu dari paket aset proyek di luar repo,
-   lalu membangkitkan `src/assets/worldAssets.ts` dan
+   Menyalin peta, potongan objek, dan dua lagu dari paket aset proyek di luar
+   repo, lalu membangkitkan `src/assets/worldAssets.ts` dan
    `src/game/world/village.json`.
 3. **Impor karakter beranimasi** — `bun run assets:characters`
    (`scripts/import-characters.mjs`). Menyusun spritesheet 8 arah dari folder
@@ -118,14 +118,19 @@ Karena potret dirender DOM, berkasnya tidak dimuat `PreloadScene`.
 
 ### Musik
 
-| Properti    | Nilai                              |
-| ----------- | ---------------------------------- |
-| Format      | **MP3** (satu lagu: `bgm_default`) |
-| Pemakaian   | Diputar di seluruh permainan, loop |
-| Ukuran file | ≈ 4 MB                             |
-| Lokasi      | `public/assets/music/default.mp3`  |
+| Properti    | Nilai                                                 |
+| ----------- | ----------------------------------------------------- |
+| Format      | **MP3** (dua track: `bgm_default`, `bgm_vellore`)     |
+| Pemakaian   | Diputar bergantian selama permainan, mulai track acak |
+| Ukuran file | ≈ 4 MB per track                                      |
+| Lokasi      | `public/assets/music/default.mp3`, `.../vellore.mp3`  |
 
-Chapter **tidak** berganti lagu: seluruh cerita memakai satu musik.
+Chapter **tidak** berganti lagu: seluruh cerita memakai rotasi dua track. Cerita
+hanya menyebut `bgm_default`; saat permainan dimulai, game memilih satu track
+acak dari dua BGM yang tersedia (`GAMEPLAY_MUSIC_IDS`), lalu memutar track
+berikutnya tiap lagu selesai dan kembali ke pilihan awal. Track kedua
+(`bgm_vellore`) bertanda `runtime` di manifest — tidak ditawarkan ke AI, hanya
+dipakai game.
 
 ### SFX
 
@@ -288,8 +293,8 @@ Aset dunia desa — peta, 80 potongan objek, spritesheet karakter, potret, dan l
 dari game komersial.
 
 - Repo hanya memuat **berkas jadi** yang dipakai game (`map_village.jpg`,
-  `world/*.png`, `char/*.png`, `portrait/*.png`, `music/default.mp3`), bukan
-  berkas mentah atau `project.json` editor.
+  `world/*.png`, `char/*.png`, `portrait/*.png`, `music/default.mp3`,
+  `music/vellore.mp3`), bukan berkas mentah atau `project.json` editor.
 - Regenerasi dunia membutuhkan folder paket proyek di luar repo
   (`Asset/assets_classquest`, atau `CLASSQUEST_WORLD_SOURCE`), lalu
   `bun run assets:world`. Spritesheet karakter dibuat terpisah dengan

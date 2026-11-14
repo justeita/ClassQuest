@@ -4,7 +4,7 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0036 — Sebaran Pembicara Antar Tokoh
+# 0039 — Sebaran Pembicara Antar Tokoh
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14

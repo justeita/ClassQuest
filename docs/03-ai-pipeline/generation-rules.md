@@ -61,7 +61,7 @@ yang lebih kaya (rambut, outfit, pengait jubah) didokumentasikan di
 tetap sampai ke prompt tanpa mengubah schema adalah peta prompt-only di
 `src/story/cast.ts`: `CAST_TRAITS` (sifat) dan `CAST_VOICE` (cara bicara), di
 samping `CAST_EXPERTISE` dan `CAST_PLACES` (lihat
-[ADR 0038](../09-decisions/0038-profil-tokoh-untuk-prompt.md)). Blok `CAST`
+[ADR 0041](../09-decisions/0041-profil-tokoh-untuk-prompt.md)). Blok `CAST`
 mengirimnya sebagai baris `penampilan`, `sifat`, `bicara`, `keahlian`, dan
 `lokasi` per tokoh.
 
@@ -78,7 +78,7 @@ dan tidak pernah mengganti latar saat chapter berganti
 ([`../04-game/scene-format.md`](../04-game/scene-format.md)). Karena itu:
 
 - System prompt punya blok `TEMPAT DAN WAKTU`, dan pesan pengguna punya blok
-  `DUNIA` (lihat [ADR 0037](../09-decisions/0037-latar-dunia-desa-di-prompt.md)).
+  `DUNIA` (lihat [ADR 0040](../09-decisions/0040-latar-dunia-desa-di-prompt.md)).
 - Ruangan di dalam gedung (kelas, koridor, laboratorium, kantor, aula) **tidak
   boleh** dipakai sebagai latar, dan kata "kelas", "papan tulis", "bel sekolah",
   serta "halaman sekolah" dilarang muncul.
@@ -124,7 +124,7 @@ Keahlian memilih **siapa yang menjelaskan inti konsep**, bukan siapa satu-satuny
 yang boleh bicara. Materi pelajaran umum mudah membuat model menyerahkan semua
 dialog ke Edric; hasilnya cerita terasa seperti monolog satu NPC dan tokoh lain
 tidak pernah muncul. `story-v13` menambahkan blok `SEBARAN PEMBICARA` untuk
-mencegahnya (lihat [ADR 0036](../09-decisions/0036-sebaran-pembicara.md)):
+mencegahnya (lihat [ADR 0039](../09-decisions/0039-sebaran-pembicara.md)):
 
 - Setiap chapter memakai minimal tiga tokoh berbeda: Kael dan minimal dua NPC.
 - Satu NPC tidak memegang lebih dari separuh beat dialog chapter.

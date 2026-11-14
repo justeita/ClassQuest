@@ -95,9 +95,10 @@ bebas berjalan. NPC tanpa `smallTalk` tetap berdiri sebagai penghalang dan tidak
 memunculkan prompt.
 
 Saat interaksi dimulai — baik dialog cerita maupun obrolan singkat — NPC yang
-diajak bicara **berbalik menghadap pemain**, sesuai posisi pemain relatif NPC
-(mis. pemain di selatan → NPC menghadap selatan). Arah hadap itu dihitung
-`arahKe()` di `karakter.ts` dan tidak mengubah posisi cerita.
+diajak bicara **berbalik menghadap pemain**, dan MC juga **berbalik menghadap
+NPC**, sesuai posisi masing-masing (mis. pemain di selatan NPC → NPC menghadap
+selatan dan pemain menghadap utara). Arah hadap itu dihitung `arahKe()` di
+`karakter.ts` dan tidak mengubah posisi cerita.
 
 Scene dan ruangan adalah dua hal berbeda. Scene adalah unit cerita, ruangan
 adalah unit peta (`roomId`). Beberapa scene boleh terjadi di ruangan yang sama;
@@ -126,7 +127,15 @@ tidak menyalin tipenya, hanya perilakunya.
 
 Aturan input:
 
-- **Debounce 150 ms** untuk klik/Spasi, agar satu tekanan tidak melewati dua beat.
+- **Jeda 250 ms** antar-langkah untuk klik/Spasi, agar satu tekanan (atau ketukan
+  ganda) tidak melewati dua beat.
+- **Satu tekanan = satu langkah; menahan tombol tidak memutar dialog.** `Space`/
+  `Enter` dibaca dari event `keydown`, bukan `isDown` per frame: ketukan yang
+  lepas sebelum frame berikutnya tetap terbaca, sementara tombol yang ditahan
+  tidak menambah beat — pemain harus lepas lalu menekan lagi (pola seperti OMORI).
+- **Auto-repeat diabaikan di overlay tantangan.** `keydown` berulang dari tombol
+  yang ditahan tidak memilih/mengirim jawaban atau melanjutkan kartu umpan balik;
+  satu tekanan fisik = satu aksi, sama seperti dialog.
 - Saat `explore`, gerak bebas; saat `dialog`/`challenge`, input gerak **terkunci**.
 - Saat `challenge`, input dialog **diabaikan**.
 - Saat transisi/fade, input diabaikan sampai selesai.
@@ -148,10 +157,10 @@ Aturan input:
 ## Alur tantangan
 
 ```text
-1. Phaser kirim { type: "challenge", challengeId }
-2. React menampilkan panel di atas dialog (dialog tetap terlihat, typewriter
-   dibekukan):
-   - prompt
+1. Phaser mengetik soal lewat textbox (tanpa complete) lalu kirim
+   { type: "challenge", challengeId } — potret pembicara soal tetap terlihat.
+2. Selama soal diketik, React menahan pilihan jawaban. Setelah `waiting`
+   textbox true, panel di atas dialog menampilkan:
    - opsi/statement/item/input
    - tombol "Jawab" (disabled sampai ada pilihan)
 3. Siswa memilih → tombol aktif
@@ -219,6 +228,12 @@ Detail penting:
   ulang, dan daftar itu ikut dipulihkan saat resume. `weakConcepts` di layar
   hasil memakai data yang sama, jadi mengulang tidak menghapus catatan bahwa
   konsep itu sempat salah.
+- **Hint opsional, poin dipotong bila dipakai.** Bila soal punya `hints`, overlay
+  menampilkan tombol "Lihat hint" di bawah pilihan jawaban. Hint tetap tersembunyi
+  sampai siswa mengonfirmasi; setelah itu jawaban membawa `usedHint: true` dan
+  `scoreAnswer` memotong poin benar menjadi setengah (dibulatkan ke bawah).
+  Hint tidak mengubah benar/salah maupun `weakConcepts`, dan tidak pernah
+  ditampilkan sebelum siswa memintanya.
 - **Batasan yang diketahui:** "Ulangi chapter" **tidak** me-reset jumlah
   percobaan atau nilai flag konsekuensi jawaban salah. Tantangan yang sudah
   memakai percobaan tetap begitu setelah chapter diulang, jadi jawaban salah
@@ -297,6 +312,9 @@ Isi:
 - Pengaturan suara: slider **Musik** dan **Efek suara** terpisah (0–100%, step 5) + tombol mute per baris
 - Keluar (kembali ke halaman awal)
 
+Di lanskap ponsel yang pendek, isi menu dibagi dua kolom (pengaturan suara di
+kiri, aksi di kanan) supaya semua pilihan terlihat tanpa menggulir (ADR 0036).
+
 Saat menu terbuka: game pause, musik **volume turun** (bukan berhenti), input
 dialog diabaikan. Nilai tersimpan di `localStorage`
 (`classquest:settings:v1`) dan dipakai lagi saat game dibuat. Mute musik tidak
@@ -329,10 +347,13 @@ Browser memblokir audio sebelum interaksi pengguna. Karena itu:
 
 ## Fokus dan keyboard
 
-- Canvas diberi `tabindex="0"` dan `aria-label` singkat.
+- Area permainan diberi `tabindex="-1"` dan `aria-label` singkat.
 - Overlay tantangan memakai focus trap sederhana.
-- Setelah overlay ditutup, fokus kembali ke canvas.
-- Jangan menangkap `Tab` secara global.
+- Setelah overlay ditutup, fokus kembali ke area permainan.
+- Saat bermain tanpa dialog, `Tab`/`Shift+Tab` dimatikan (dicegah) dan fokus
+  ditarik kembali ke area permainan sehingga tidak pindah ke tombol HUD maupun
+  keluar ke bilah peramban. `Ctrl+Tab`/`Alt+Tab` tidak disentuh, dan selama
+  `dialog` `Tab` tetap dipakai untuk "Percepat".
 
 ## Input sentuh
 
@@ -366,7 +387,8 @@ dengan papan tombol, bukan jalur gerak kedua:
 
 | Skenario                             | Perilaku yang benar                                                                       |
 | ------------------------------------ | ----------------------------------------------------------------------------------------- |
-| Siswa klik cepat 5x                  | Hanya 1 beat maju (debounce)                                                              |
+| Siswa klik cepat 5x                  | Hanya 1 beat maju (jeda 250 ms antar-langkah)                                             |
+| Siswa menahan Space/Enter            | Satu beat saja; beat berikutnya perlu tekanan baru (lepas lalu tekan lagi)                |
 | Siswa refresh saat tantangan         | Kembali ke awal scene, tantangan muncul lagi; skor tetap pakai percobaan pertama          |
 | Siswa tutup tab, buka besok          | Progres dipulihkan                                                                        |
 | Guru mengedit cerita saat siswa main | Siswa tetap di versi lamanya sampai reload                                                |
@@ -385,7 +407,7 @@ Tidak dikirim ke mana pun di MVP:
 
 ## Checklist implementasi
 
-- [ ] Debounce input 150 ms.
+- [ ] Jeda input 250 ms antar-langkah.
 - [ ] Input dialog diabaikan saat `challenge` dan transisi.
 - [ ] Penilaian lewat `src/story/scoring.ts` (tidak diduplikasi).
 - [ ] `explanation` tampil saat jawaban benar atau di percobaan terakhir.

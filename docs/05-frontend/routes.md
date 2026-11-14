@@ -97,7 +97,7 @@ Catatan wiring:
   bukan milik guru pemilik cerita diperlakukan seperti kode salah — siswa tetap
   bisa bermain, tetapi hasilnya tidak masuk analytics kelas.
 
-`/play` adalah jalan masuk tanpa tautan guru (ADR 0039 + ADR 0041). Halaman ini
+`/play` adalah jalan masuk tanpa tautan guru (ADR 0042 + ADR 0044). Halaman ini
 statis: ia hanya memasang `PlayGate`, lalu Server Action `masukKelas` yang
 mencari kelas, mengambil **game terbit milik guru kelas itu**, dan memeriksa
 **NIS** di daftar murid guru tersebut. Kolom kode kelas berada di atas kolom
@@ -118,7 +118,10 @@ state itu. Lihat [`game-player.md`](./game-player.md).
 sama dipakai `/play` dan `/play/[storyId]`; "Mulai" di sana langsung memuat
 `DEMO_STORY` di Phaser, tanpa `storyId`, dan tanpa otorisasi. Gerbang `/play`
 menautkannya sebagai "Coba demo tanpa kode kelas".
-Landing menautkan kartu "Arena Siswa" ke `/play` (bukan `/demo`); target siswa
+Landing menautkan kartu "Arena Siswa" ke `/play` (bukan `/demo`), memakai
+`TautanLayarPenuh` (`src/components/landing/TautanLayarPenuh.tsx`): di ponsel,
+ketukan meminta layar penuh + kunci lanskap lebih dulu, lalu berpindah ke `/play`
+lewat navigasi App Router yang tidak mengganti dokumen (ADR 0037). Target siswa
 yang membawa tautan guru tetap `/play/[storyId]?kelas=QST-XXXX`.
 
 Landing `/` memakai route group `src/app/(landing)/` supaya punya layout sendiri

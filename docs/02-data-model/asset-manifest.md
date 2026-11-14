@@ -98,6 +98,10 @@ editor, dan game.
   `world_map_*` memakai `width`/`height` kelipatan 16 agar sejajar grid collider
   (ADR 0012). Sumbernya dicatat di
   [`../07-assets/inventory.md`](../07-assets/inventory.md).
+- `runtime: true` menandai aset sisi game lain yang **tidak ditawarkan ke AI**,
+  walau kind-nya ada di `STORY_ASSET_KINDS`. Dipakai track musik latar tambahan
+  (`bgm_vellore`) yang ikut rotasi musik game. `toAssetManifest()` melewatkan
+  aset bertanda ini, jadi cerita yang merujuknya dianggap memakai aset asing.
 
 ## Aset fallback
 
@@ -161,6 +165,8 @@ yang paling dekat dan mencatatnya di `source.gaps`, bukan mengarang id.
    [`../07-assets/asset-guide.md`](../07-assets/asset-guide.md)).
 7. `width`/`height` peta `world_map_*` kelipatan 16 dan sesuai ukuran ruangannya
    (ADR 0012).
+8. Aset bertanda `runtime` tidak ikut `toAssetManifest()`, jadi AI tidak pernah
+   bisa memilihnya.
 
 Test ini yang membuat "aset hilang" ketahuan saat `bun run test`, bukan saat demo.
 

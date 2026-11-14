@@ -4,7 +4,7 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0039 — Kode Kelas sebagai Jalan Masuk Game
+# 0042 — Kode Kelas sebagai Jalan Masuk Game
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
@@ -66,12 +66,12 @@ bukan ke alur siswa yang sesungguhnya.
 6. **Kartu siswa di landing menunjuk `/play`.** `/demo` tetap menjadi demo
    Phaser, sekarang ditautkan dari dalam gerbang ("Coba demo tanpa kode kelas"),
    bukan sebagai pintu utama siswa. (Nama route-nya dipindah dari `/game` ke
-   `/demo`; lihat [0040](0040-route-demo-ke-demo.md).)
+   `/demo`; lihat [0043](0043-route-demo-ke-demo.md).)
 
 ## Status keputusan identitas
 
 Poin **3** (identitas dari nama yang diketik) dan poin **4** (satu layar tanpa
-konfirmasi) **digantikan** oleh [ADR 0041](0041-masuk-dengan-nis.md): gerbang
+konfirmasi) **digantikan** oleh [ADR 0044](0044-masuk-dengan-nis.md): gerbang
 `/play` sekarang meminta **NIS** dan menampilkan konfirmasi nama lengkap sebelum
 bermain. Sisanya (kode kelas sebagai kunci masuk, game milik guru kelas itu,
 satu layar tanpa navigasi, rate limit, kartu landing) tetap berlaku.

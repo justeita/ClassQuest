@@ -88,7 +88,7 @@ Guru masuk dengan **akun guru** (username + sandi). Tabel `students` dan akun
 siswa demo sudah ada, tetapi siswa **belum** diminta login: cukup memakai
 **tautan yang dibagikan** atau mengetik **kode kelas** di `/play`. Guru bisa
 membuat kelas dan menambah siswa di `/guru/kelas`; kode kelas (`QST-XXXX`)
-sekarang menjadi jalan masuk siswa (ADR 0039), bukan sekadar label.
+sekarang menjadi jalan masuk siswa (ADR 0042), bukan sekadar label.
 
 | Aksi                    | Guru | Siswa (punya tautan) | Tanpa tautan |
 | ----------------------- | ---- | -------------------- | ------------ |
@@ -104,7 +104,7 @@ sekarang menjadi jalan masuk siswa (ADR 0039), bukan sekadar label.
 "Tanpa tautan" berarti tidak tahu `storyId`; halaman `/play/[storyId]` hanya
 melayani cerita `published`, dan endpoint publik menolak selain itu. Siswa tanpa
 tautan tetap bisa masuk bila gurunya memberi **kode kelas**: `/play` mencari
-game terbit milik guru kelas itu (ADR 0039). Tanpa tautan **dan** tanpa kode
+game terbit milik guru kelas itu (ADR 0042). Tanpa tautan **dan** tanpa kode
 kelas, tidak ada jalan masuk. Ini bukan keamanan sungguhan untuk data rahasia —
 hanya pembatas agar siswa tidak menemukan cerita yang belum siap.
 

@@ -88,7 +88,7 @@ export const WARNING_CODES = [
   "W_GAP_RECORDED",
   // Semua dialog di satu chapter dipegang satu tokoh (atau hanya pemain).
   // Cerita tetap sah dan bisa dimainkan, tetapi terasa seperti monolog. Lihat
-  // ADR 0036.
+  // ADR 0039.
   "W_SINGLE_SPEAKER",
   // Dialog tanpa emosi: cerita tetap sah (schemaVersion 1.0), tetapi potretnya
   // selalu `neutral` sehingga percakapan terasa datar. Lihat ADR 0024.
@@ -1370,7 +1370,7 @@ const collectWarnings = (story: Story): ValidationIssue[] => {
     }
   });
 
-  // Sebaran pembicara (ADR 0036). Cerita yang seluruh dialognya dipegang satu
+  // Sebaran pembicara (ADR 0039). Cerita yang seluruh dialognya dipegang satu
   // NPC tetap sah dan bisa dimainkan, tetapi terasa seperti monolog dan membuat
   // delapan tokoh lain tidak pernah muncul. Peringatan ini tidak memblokir
   // publish; ia hanya memberi tahu guru bahwa dialognya belum tersebar.

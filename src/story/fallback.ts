@@ -24,7 +24,7 @@
  *   dipakai cerita ini.
  * - **Banyak suara.** Setiap chapter memakai mentor dan dua NPC pendamping yang
  *   bergiliran dari roster desa, jadi dialog tidak dipegang satu tokoh
- *   (ADR 0036). Dialog pendamping tidak mengklaim keahlian atau fakta baru.
+ *   (ADR 0039). Dialog pendamping tidak mengklaim keahlian atau fakta baru.
  * - **Jujur.** Tidak mengarang fakta tentang PDF. Teks hanya menyebut *nama*
  *   konsep; penjelasan isi tetap tugas guru lewat editor. Penanda
  *   `usedFallback` hidup di record job, bukan di dalam `Story`
@@ -36,7 +36,7 @@
  *
  * Latarnya mengikuti satu-satunya peta game: tempat tetap mentor di desa
  * (`locationOf`). Cerita cadangan tidak boleh bercerita di kelas, karena latar
- * runtime selalu peta desa (`docs/04-game/scene-format.md`, ADR 0037).
+ * runtime selalu peta desa (`docs/04-game/scene-format.md`, ADR 0040).
  */
 
 import { fixedCast, locationOf } from "./cast";
@@ -242,7 +242,7 @@ const idForRole = (cast: readonly Character[], role: CharacterRole): string =>
  * Dua NPC pendamping untuk satu chapter, berputar mengikuti nomor chapter.
  *
  * Cerita cadangan dulu hanya memakai mentor, sehingga seluruh dialog dipegang
- * satu tokoh (ADR 0036). Giliran ini membuat minimal tiga tokoh bicara per
+ * satu tokoh (ADR 0039). Giliran ini membuat minimal tiga tokoh bicara per
  * chapter tanpa mengarang nama baru: pool-nya tetap roster desa. Kalau pool
  * hanya berisi satu tokoh, tokoh itu dipakai sekali saja supaya tidak ada
  * speaker ganda.
@@ -453,7 +453,7 @@ const buildChapter = (
             expression: "happy",
           },
           // Pendamping pertama: bukan ahli topik, hanya ikut mengamati. Dialog
-          // ini yang membuat chapter tidak menjadi monolog mentor (ADR 0036).
+          // ini yang membuat chapter tidak menjadi monolog mentor (ADR 0039).
           ...(companionA === undefined
             ? []
             : [

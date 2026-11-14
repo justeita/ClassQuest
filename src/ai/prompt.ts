@@ -101,12 +101,12 @@ export const MATERIAL_END = "<<<MATERIAL_END>>>";
  * `story-v13` menambahkan blok `SEBARAN PEMBICARA`: dialog satu chapter harus
  * dibagi ke beberapa NPC, bukan dipegang satu tokoh saja. Prompt chapter juga
  * menerima daftar pembicara chapter sebelumnya supaya giliran tokoh bergilir
- * (ADR 0036).
+ * (ADR 0039).
  * `story-v14` menambahkan blok `TEMPAT DAN WAKTU` di system prompt dan blok
  * `DUNIA` di pesan pengguna: seluruh cerita terjadi di peta desa, bukan di
  * ruang kelas atau gedung sekolah. Blok `CAST` kini membawa `sifat` dan `bicara`
- * per tokoh supaya dialog tidak terdengar sama untuk semua orang (ADR 0037,
- * ADR 0038).
+ * per tokoh supaya dialog tidak terdengar sama untuk semua orang (ADR 0040,
+ * ADR 0041).
  */
 export const SYSTEM_PROMPT = `Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
 Tugasmu mengubah MATERI dari guru menjadi cerita yang bisa dimainkan.
@@ -369,7 +369,7 @@ export type ChapterPromptInput = {
   /**
    * Id NPC yang sudah bicara di chapter sebelumnya. Prompt memakainya untuk
    * mengingatkan model supaya giliran pembicara bergilir, bukan menumpuk di
-   * tokoh yang sama (ADR 0036). Pemain (`char_mc`) tidak perlu dimasukkan.
+   * tokoh yang sama (ADR 0039). Pemain (`char_mc`) tidak perlu dimasukkan.
    */
   usedSpeakers?: readonly string[];
 };
@@ -775,7 +775,7 @@ const assetSection = (assets: AssetManifest): string => {
  * aksi dan dialog yang cocok dengan sprite (mis. nenek bertongkat atau pelajar
  * bertopi biru), memberi dialog bidang tertentu kepada tokoh yang memang ahli,
  * menempatkan tokoh di tempat yang sama dengan posisinya di peta (ADR 0025,
- * ADR 0029), dan membedakan suara tiap tokoh (ADR 0038).
+ * ADR 0029), dan membedakan suara tiap tokoh (ADR 0041).
  */
 const castSection = (): string => {
   const entry = (member: (typeof FIXED_CAST)[number]): string[] => {
@@ -817,7 +817,7 @@ const castSection = (): string => {
  *
  * Tanpa blok ini, model mengikuti kebiasaan buku pelajaran dan menulis adegan
  * "di kelas" walaupun latar runtime selalu peta desa (`scene-format.md`,
- * ADR 0037).
+ * ADR 0040).
  */
 const worldSection = (): string => {
   return [
@@ -963,7 +963,7 @@ const chapterModeTask = (mode: StoryMode): string => {
  *
  * Daftar `usedSpeakers` berasal dari chapter yang sudah ditulis. Tanpa
  * pengingat ini, model cenderung memakai mentor yang sama di semua chapter,
- * sehingga cerita terasa seperti monolog satu tokoh (ADR 0036).
+ * sehingga cerita terasa seperti monolog satu tokoh (ADR 0039).
  */
 const speakerTask = (usedSpeakers: readonly string[]): string => {
   const nama = new Map(FIXED_CAST.map((member) => [member.id, member.name]));

@@ -8,6 +8,9 @@ import {
   collectStoryAssets,
   DEFAULT_BACKGROUND_ID,
   DEFAULT_MUSIC_ID,
+  GAMEPLAY_MUSIC_IDS,
+  musikSesiBerikutnya,
+  pilihMusikAcak,
   resolveSceneLook,
 } from "./sceneAssets";
 
@@ -52,6 +55,61 @@ describe("resolveSceneLook", () => {
   });
 });
 
+describe("pilihMusikAcak", () => {
+  it("selalu mengembalikan track dari daftar permainan", () => {
+    for (const nilai of [0, 0.25, 0.5, 0.75, 0.999]) {
+      expect(GAMEPLAY_MUSIC_IDS).toContain(pilihMusikAcak(() => nilai));
+    }
+  });
+
+  it("memetakan angka acak ke track pertama dan terakhir", () => {
+    expect(pilihMusikAcak(() => 0)).toBe(GAMEPLAY_MUSIC_IDS[0]);
+    expect(pilihMusikAcak(() => 0.999)).toBe(
+      GAMEPLAY_MUSIC_IDS[GAMEPLAY_MUSIC_IDS.length - 1],
+    );
+  });
+
+  it("menjepit angka di luar rentang dan tetap aman untuk daftar kosong", () => {
+    expect(pilihMusikAcak(() => -1)).toBe(GAMEPLAY_MUSIC_IDS[0]);
+    expect(pilihMusikAcak(() => 1)).toBe(
+      GAMEPLAY_MUSIC_IDS[GAMEPLAY_MUSIC_IDS.length - 1],
+    );
+    expect(pilihMusikAcak(() => Number.NaN)).toBe(GAMEPLAY_MUSIC_IDS[0]);
+    expect(pilihMusikAcak(() => 0.5, [])).toBe(DEFAULT_MUSIC_ID);
+  });
+
+  it("berisi dua BGM termasuk track runtime", () => {
+    expect(GAMEPLAY_MUSIC_IDS).toHaveLength(2);
+    expect(GAMEPLAY_MUSIC_IDS).toContain(DEFAULT_MUSIC_ID);
+    expect(GAMEPLAY_MUSIC_IDS).toContain("bgm_vellore");
+  });
+});
+
+describe("musikSesiBerikutnya", () => {
+  it("bergantian antara dua track lalu kembali ke pilihan awal", () => {
+    const [pertama, kedua] = GAMEPLAY_MUSIC_IDS;
+
+    expect(musikSesiBerikutnya(pertama!)).toBe(kedua);
+    expect(musikSesiBerikutnya(kedua!)).toBe(pertama);
+  });
+
+  it("mengikuti urutan pool dan berputar di ujung", () => {
+    const pool = ["a", "b", "c"];
+
+    expect(musikSesiBerikutnya("a", pool)).toBe("b");
+    expect(musikSesiBerikutnya("b", pool)).toBe("c");
+    expect(musikSesiBerikutnya("c", pool)).toBe("a");
+  });
+
+  it("memulai dari track pertama untuk id di luar pool", () => {
+    expect(musikSesiBerikutnya("bgm_override")).toBe(GAMEPLAY_MUSIC_IDS[0]);
+  });
+
+  it("aman untuk daftar kosong", () => {
+    expect(musikSesiBerikutnya("bgm_default", [])).toBe(DEFAULT_MUSIC_ID);
+  });
+});
+
 describe("collectStoryAssets", () => {
   const aset = collectStoryAssets(DEMO_STORY);
   const ids = aset.map((entry) => entry.id);
@@ -71,6 +129,13 @@ describe("collectStoryAssets", () => {
     );
   });
 
+  it("memuat kedua track musik permainan walau cerita hanya menyebut default", () => {
+    expect(
+      DEMO_STORY.chapters.some((chapter) => chapter.musicId === "bgm_vellore"),
+    ).toBe(false);
+    expect(ids).toEqual(expect.arrayContaining([...GAMEPLAY_MUSIC_IDS]));
+  });
+
   it("memuat semua karakter cast dan SFX runtime", () => {
     expect(ids).toEqual(
       expect.arrayContaining([
@@ -88,6 +153,7 @@ describe("collectStoryAssets", () => {
         "sfx_correct",
         "sfx_wrong",
         "sfx_page",
+        "sfx_type",
       ]),
     );
   });
@@ -114,6 +180,7 @@ describe("collectStoryAssets", () => {
         DEFAULT_BACKGROUND_ID,
         DEFAULT_MUSIC_ID,
         "sfx_click",
+        "sfx_type",
       ]),
     );
   });

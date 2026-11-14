@@ -632,8 +632,9 @@ paket aset gratis maupun dari game komersial. Rincian per berkas dicatat di
 
 Spritesheet karakter desa memakai gaya delapan arah. Potret dialog memakai gaya
 anime dengan enam ekspresi (`neutral`, `happy`, `sad`, `angry`, `shocked`,
-`thinking`) per karakter, disalin dari paket aset anime proyek. Musik
-`bgm_default` adalah satu lagu berlatar desa yang ikut dalam paket aset proyek.
+`thinking`) per karakter, disalin dari paket aset anime proyek. Dua track musik
+berlatar desa (`bgm_default` dan `bgm_vellore`) ikut dalam paket aset proyek;
+game memilih salah satunya secara acak setiap sesi dimulai.
 
 Font Patrick Hand memakai lisensi SIL OFL 1.1 (`public/fonts/OFL.txt`).
 

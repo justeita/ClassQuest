@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useSentuh } from "@/components/game/useSentuh";
 import {
   bacaPengaturanAudio,
   clampVolume,
@@ -46,6 +47,39 @@ type AksiMenu = (typeof PILIHAN)[number]["id"] | "lanjut";
 
 /** Dialog yang bisa terbuka dari menu; satu dialog pada satu waktu. */
 type Dialog = Exclude<AksiMenu, "mulai" | "lanjut"> | null;
+
+/**
+ * Tim penyusun ClassQuest (LOGICODIX 2026). Ditulis di dalam kode, bukan diambil
+ * dari server: menu utama dirender statis dan kredit tidak berubah. Ditampilkan
+ * sebagai daftar bertumpuk (bukan tabel empat kolom) karena panel dialog sempit
+ * di ponsel — nama panjang akan terpotong kalau dipaksa satu baris.
+ */
+const TIM_KREDIT = [
+  {
+    nama: "Marson Arya Bagas Prasetyo",
+    peran: "Ketua tim",
+    kampus: "Universitas Negeri Surabaya",
+    github: "github.com/justeita",
+  },
+  {
+    nama: "Muhammad Geral Herpavy",
+    peran: "Anggota 1",
+    kampus: "Universitas Negeri Surabaya",
+    github: "github.com/Gerraldd",
+  },
+  {
+    nama: "Fadhlurrahman Akwa Qinthara",
+    peran: "Anggota 2",
+    kampus: "Universitas Negeri Surabaya",
+    github: "github.com/akwaqinthara",
+  },
+  {
+    nama: "Davita Syalom Maria Attira Pandjaitan",
+    peran: "Anggota 3",
+    kampus: "Universitas Negeri Surabaya",
+    github: "github.com/davitapandjaitan",
+  },
+] as const;
 
 /**
  * Kelopak sakura yang berguguran. Nilainya ditulis tetap (bukan
@@ -156,6 +190,10 @@ export function MainMenu({
   adaProgres = false,
   onLanjut,
 }: MainMenuProps) {
+  // Perangkat sentuh tidak punya tombol panah/Enter: petunjuk keyboard
+  // disembunyikan supaya tidak menyesatkan sekaligus menghemat tinggi papan —
+  // lanskap ponsel hanya menyisakan ±300 px. Pola yang sama dengan `Keycap`.
+  const sentuh = useSentuh();
   const [aktif, setAktif] = useState(0);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [pesan, setPesan] = useState<string | null>(null);
@@ -308,7 +346,7 @@ export function MainMenu({
           `<main>`, dan menu ini hanya satu fase di dalamnya. */}
       <section
         aria-label="Menu utama Class Quest"
-        className="absolute inset-0 z-20 flex flex-col justify-start px-6 pt-[max(1.75rem,5vh)] pb-6 sm:px-10 lg:pt-[9vh] lg:pl-[clamp(2.5rem,6vw,6rem)]"
+        className="menu-isi absolute inset-0 z-20 flex flex-col justify-start overflow-y-auto px-6 pt-[max(1.75rem,5vh)] pb-6 sm:px-10 lg:pt-[9vh] lg:pl-[clamp(2.5rem,6vw,6rem)]"
       >
         <div className="menu-panel w-[min(78vw,320px)]">
           <h1
@@ -325,15 +363,15 @@ export function MainMenu({
 
           <div
             aria-hidden="true"
-            className="mt-2.5 flex w-full items-center gap-2 text-[#e7c45d]"
+            className="menu-dekor mt-2.5 flex w-full items-center gap-2 text-[#e7c45d]"
           >
             <i className="menu-garis h-0.5 w-8" />
             <b className="menu-bintang text-base leading-none font-normal">✦</b>
             <i className="menu-garis h-0.5 w-8" />
           </div>
 
-          <nav aria-label="Menu utama" className="mt-7">
-            <ul className="grid gap-2">
+          <nav aria-label="Menu utama" className="menu-nav mt-7">
+            <ul className="menu-daftar grid gap-2">
               {pilihan.map((entri, indeks) => {
                 const terpilih = indeks === aktif;
                 return (
@@ -345,11 +383,24 @@ export function MainMenu({
                       type="button"
                       aria-current={terpilih ? "true" : "false"}
                       onClick={() => {
+                        // Di perangkat sentuh tidak ada hover: ketukan pertama
+                        // memindahkan segitiga penunjuk ke pilihan ini, ketukan
+                        // berikutnya baru menjalankannya. Kalau tidak, aksi
+                        // langsung jalan (dialog terbuka / permainan mulai)
+                        // sehingga penunjuk tak pernah terlihat berpindah.
+                        if (sentuh && indeks !== aktif) {
+                          setAktif(indeks);
+                          return;
+                        }
                         setAktif(indeks);
                         jalankan(entri.id);
                       }}
-                      onFocus={() => setAktif(indeks)}
-                      onMouseEnter={() => setAktif(indeks)}
+                      // `onFocus`/`onMouseEnter` dilewati di perangkat sentuh:
+                      // peramban memancarkan keduanya sebelum `click` setelah
+                      // sebuah ketukan, dan itu akan langsung mengonfirmasi
+                      // pilihan sebelum penunjuknya sempat terlihat.
+                      onFocus={sentuh ? undefined : () => setAktif(indeks)}
+                      onMouseEnter={sentuh ? undefined : () => setAktif(indeks)}
                       className="menu-item relative flex min-h-11 w-full items-center text-left"
                     >
                       <span
@@ -364,12 +415,20 @@ export function MainMenu({
             </ul>
           </nav>
 
-          <p className="menu-kredit mt-5">
-            <span aria-hidden="true">↑ ↓</span> pilih · Enter konfirmasi
+          <p className="menu-kredit menu-petunjuk mt-5">
+            {sentuh ? (
+              <>Ketuk pilih · ketuk lagi konfirmasi</>
+            ) : (
+              <>
+                <span aria-hidden="true">↑ ↓</span> pilih · Enter konfirmasi
+              </>
+            )}
           </p>
         </div>
 
-        <p className="menu-kredit mt-auto pt-6">Class Quest • Menu utama</p>
+        <p className="menu-kredit menu-versi mt-auto pt-6">
+          Class Quest • Menu utama
+        </p>
       </section>
 
       {dialog === "pengaturan" && (
@@ -417,6 +476,28 @@ export function MainMenu({
             mengubah materi pelajaran menjadi game pixel bercerita. Dibuat oleh
             tim ClassQuest untuk LOGICODIX 2026.
           </p>
+
+          {/* Tim penyusun. Daftar bertumpuk, bukan tabel empat kolom, supaya
+              nama panjang dan tautan GitHub tetap terbaca di panel sempit. */}
+          <ul className="mt-4 space-y-3 border-t border-[#9e7833]/40 pt-4">
+            {TIM_KREDIT.map((orang) => (
+              <li key={orang.github} className="font-game">
+                <p className="text-sm text-[#f4e8c4]">{orang.nama}</p>
+                <p className="text-xs text-[#a7b39e]">
+                  {orang.peran} · {orang.kampus}
+                </p>
+                <a
+                  href={`https://${orang.github}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-[#e7c45d] underline underline-offset-2 hover:text-[#f7ebc9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e7c45d]"
+                >
+                  {orang.github}
+                </a>
+              </li>
+            ))}
+          </ul>
+
           <p className="mt-3 font-game text-sm leading-relaxed text-[#c5cbb9]">
             Peta desa, karakter, dan musik disiapkan di awal dan dipakai ulang
             oleh semua cerita; teks game memakai Patrick Hand (SIL Open Font
@@ -489,11 +570,14 @@ function Dunia() {
         className="object-cover object-[62%_center]"
       />
 
-      {/* Kabut tipis di sisi kiri, tempat teks menu berdiri. Di gambar aslinya
-          area itu sudah teduh di bawah pohon; lapisan ini menstabilkannya
-          untuk layar kecil, tempat papan teks memakan hampir separuh layar. */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#04120b]/85 via-[#04120b]/45 to-transparent md:hidden" />
-      <div className="absolute inset-0 hidden bg-gradient-to-br from-[#04120b]/75 via-[#04120b]/20 to-transparent to-[55%] md:block" />
+      {/* Kabut gelap untuk teks menu. Satu lapisan saja, membentang dari tepi
+          kiri ke tepi kanan kanvas: gelap di sisi kiri tempat teks berdiri,
+          memudar habis tepat di tepi kanan. Dulu ada dua lapisan dan yang
+          layar lebar dipotong di tengah (`to-[55%]`), jadi menyisakan garis
+          batas yang terlihat; sekarang gradien berjalan penuh 0→100%. Di
+          layar lebar bayangan pohon di gambar sudah menambah teduh, jadi
+          sisinya lebih tipis. */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#04120b]/85 via-[#04120b]/45 to-transparent md:from-[#04120b]/75 md:via-[#04120b]/25" />
       {/* Sedikit gelap di tepi bawah supaya label versi tetap terbaca. */}
       <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[#05130c]/55 to-transparent" />
     </div>
@@ -541,7 +625,7 @@ function PanelDialog({ judul, children, aksi, onTutup }: PanelDialogProps) {
             onTutup();
           }
         }}
-        className="w-full max-w-sm border-2 border-[#9e7833] bg-gradient-to-br from-[#17271c] to-[#0a150f] p-6 shadow-[0_0_0_1px_rgb(0_0_0_/_0.6),0_18px_40px_rgb(0_0_0_/_0.5)]"
+        className="scrollbar-tema max-h-[85vh] w-full max-w-sm overflow-y-auto border-2 border-[#9e7833] bg-gradient-to-br from-[#17271c] to-[#0a150f] p-6 shadow-[0_0_0_1px_rgb(0_0_0_/_0.6),0_18px_40px_rgb(0_0_0_/_0.5)]"
       >
         <h2
           id="judul-dialog-menu"

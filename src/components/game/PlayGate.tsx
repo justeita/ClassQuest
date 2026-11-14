@@ -63,7 +63,7 @@ type Konfirmasi = {
 
 /**
  * Gerbang siswa di `/play` — docs/05-frontend/game-player.md → Gerbang kode
- * kelas, dan ADR 0041.
+ * kelas, dan ADR 0044.
  *
  * Siswa yang tidak membawa tautan guru mengetik **kode kelas** (paling atas)
  * lalu **NIS**-nya. Server mencari kelas itu, mencocokkan NIS dengan daftar

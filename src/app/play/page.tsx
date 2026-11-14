@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 /**
  * `/play` — gerbang siswa tanpa tautan guru (docs/05-frontend/game-player.md →
- * Gerbang kode kelas, ADR 0039).
+ * Gerbang kode kelas, ADR 0042).
  *
  * Berbeda dari `/play/[storyId]`: route ini tidak menerima `storyId` dan tidak
  * menyentuh database sama sekali. Ia hanya memasang `PlayGate`; pencarian

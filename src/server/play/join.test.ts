@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  *
  * Yang dijaga: kode → kelas → **game terbit milik guru kelas itu** saja, satu
  * game langsung dibuka, beberapa game harus dipilih, dan **NIS** yang diketik
- * hanya diterima bila terdaftar sebagai murid guru itu (ADR 0041). Database
+ * hanya diterima bila terdaftar sebagai murid guru itu (ADR 0044). Database
  * tetap libSQL in-memory dengan migrasi asli; hanya `@/server/db` yang
  * di-mock karena `getPlayEntry` membuka koneksi sendiri.
  */

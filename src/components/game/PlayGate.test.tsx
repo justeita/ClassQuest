@@ -8,7 +8,7 @@ import type { JoinGame, JoinOutcome, PlayClassroom } from "@/server/contracts";
 /**
  * Gerbang siswa `/play` (`PlayGate`).
  *
- * Yang dijaga (ADR 0041): kolom **kode kelas di atas** kolom **NIS**, kode +
+ * Yang dijaga (ADR 0044): kolom **kode kelas di atas** kolom **NIS**, kode +
  * NIS dikirim ke Server Action `masukKelas` tanpa nama, NIS yang tidak
  * terdaftar dijawab "NIS tidak ada" dan siswa **tidak** masuk, NIS yang cocok
  * berhenti di **konfirmasi nama lengkap** sebelum `GameShell` dipasang, guru

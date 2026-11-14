@@ -4,7 +4,7 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0037 — Latar Dunia Desa di Prompt
+# 0040 — Latar Dunia Desa di Prompt
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14

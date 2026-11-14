@@ -160,7 +160,7 @@ export type SavePlayResultOutcome =
  *
  * `nisn` adalah nomor induk siswa **nasional** (dipakai sistem sekolah),
  * berbeda dari `nis` yang nomor urut kelas dan dipakai siswa untuk masuk
- * `/play` (ADR 0041). Keduanya boleh kosong.
+ * `/play` (ADR 0044). Keduanya boleh kosong.
  */
 export type StudentListItem = {
   id: string;
@@ -223,7 +223,7 @@ export type PlayStudent = {
  * gerbang kode kelas (`/play`). `studentId` hanya terisi bila server berhasil
  * mencocokkan identitas dengan baris `students` kelas itu; selain itu pemain
  * tercatat sebagai nama bebas (`nickname`) dan tidak masuk analytics kelas.
- * Di gerbang `/play` identitas itu **wajib** NIS yang terdaftar (ADR 0041),
+ * Di gerbang `/play` identitas itu **wajib** NIS yang terdaftar (ADR 0044),
  * jadi cabang nama bebas hanya dipakai jalur tautan `/play/[storyId]`.
  */
 export type PlayPlayer = {
@@ -254,7 +254,7 @@ export type JoinNisCandidate = {
  * - `no_games` — kelas ada, tetapi gurunya belum menerbitkan game;
  * - `invalid_nis` — NIS kosong / berisi karakter yang tidak sah;
  * - `nis_not_found` — NIS itu tidak ada di daftar murid mana pun milik guru
- *   kelas tersebut (ADR 0041);
+ *   kelas tersebut (ADR 0044);
  * - `nis_ambiguous` — NIS cocok ke lebih dari satu murid setelah titik/strip
  *   diabaikan; siswa harus memakai bentuk lengkapnya;
  * - `story_not_found` — game yang dipilih bukan milik guru kelas itu;

@@ -4,7 +4,7 @@
  * `masukKelas` — gerbang kode kelas `/play` (Server Action).
  *
  * Kontrak: `docs/06-backend/api-contract.md` bagian "Server Actions" dan
- * `docs/09-decisions/0041-masuk-dengan-nis.md`.
+ * `docs/09-decisions/0044-masuk-dengan-nis.md`.
  *
  * Action tipis: rate limit lebih dulu, lalu seluruh keputusan diserahkan ke
  * `src/server/play/join.ts` (kode → kelas → NIS terdaftar → game terbit guru

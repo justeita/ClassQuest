@@ -201,8 +201,8 @@ Siswa membuka tautan itu, **atau** membuka `/play` lalu mengetik kode kelas +
 bisa masuk); setelah cocok, siswa melihat konfirmasi nama lengkapnya lalu
 memilih game bila gurunya menerbitkan lebih dari satu. Tidak perlu akun.
 Detail: [`../05-frontend/game-player.md`](../05-frontend/game-player.md#gerbang-kode-kelas-play),
-[ADR 0039](../09-decisions/0039-kode-kelas-masuk-game.md), dan
-[ADR 0041](../09-decisions/0041-masuk-dengan-nis.md).
+[ADR 0042](../09-decisions/0042-kode-kelas-masuk-game.md), dan
+[ADR 0044](../09-decisions/0044-masuk-dengan-nis.md).
 
 ## Langkah 9 — Siswa bermain
 

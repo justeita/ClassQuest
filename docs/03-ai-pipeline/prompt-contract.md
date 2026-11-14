@@ -239,7 +239,7 @@ alun-alun padahal sprite-nya di jembatan sungai. Tempat berasal dari
 
 `story-v13` menambahkan blok `SEBARAN PEMBICARA` dan mengubah dua butir
 `PEMILIHAN PEMBICARA` (lihat
-[ADR 0036](../09-decisions/0036-sebaran-pembicara.md)). Tujuannya: materi
+[ADR 0039](../09-decisions/0039-sebaran-pembicara.md)). Tujuannya: materi
 pelajaran umum cenderung menumpuk seluruh dialog pada mentor, sehingga cerita
 terasa seperti monolog satu NPC. Aturan barunya: setiap chapter memakai minimal
 tiga tokoh berbeda (Kael + dua NPC), satu NPC tidak memegang lebih dari separuh
@@ -249,8 +249,8 @@ Tidak ada perubahan schema; cerita lama tetap valid, dan validator hanya
 memberi peringatan `W_SINGLE_SPEAKER`.
 
 `story-v14` menambahkan dua blok yang mengunci latar dan memperkaya profil
-tokoh (lihat [ADR 0037](../09-decisions/0037-latar-dunia-desa-di-prompt.md) dan
-[ADR 0038](../09-decisions/0038-profil-tokoh-untuk-prompt.md)):
+tokoh (lihat [ADR 0040](../09-decisions/0040-latar-dunia-desa-di-prompt.md) dan
+[ADR 0041](../09-decisions/0041-profil-tokoh-untuk-prompt.md)):
 
 - **System prompt `TEMPAT DAN WAKTU`** menyatakan bahwa seluruh cerita terjadi
   di Desa Sukamaju, mendaftar tempat yang ada di peta, dan melarang ruangan di
@@ -426,7 +426,7 @@ digambar oleh game ini: jangan menulisnya.
 
 Alasannya ada di [`../04-game/scene-format.md`](../04-game/scene-format.md):
 `backgroundId` tidak mengganti latar di dalam game, karena latar runtime selalu
-peta desa. Lihat [ADR 0037](../09-decisions/0037-latar-dunia-desa-di-prompt.md).
+peta desa. Lihat [ADR 0040](../09-decisions/0040-latar-dunia-desa-di-prompt.md).
 
 ## Blok lokasi di prompt
 

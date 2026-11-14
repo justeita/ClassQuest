@@ -11,6 +11,7 @@ import { createElement } from "react";
 
 import { GameBus } from "@/game/gameBus";
 import { DEMO_STORY } from "@/game/demoStory";
+import { KUNCI_PENGATURAN } from "@/game/audioSettings";
 import { persenLebar } from "@/game/layout";
 import {
   bacaProgres,
@@ -106,6 +107,9 @@ afterEach(cleanup);
 
 beforeEach(() => {
   bus = new GameBus();
+  // Pengaturan audio persist di localStorage; bersihkan supaya tes tidak
+  // saling mewarisi volume.
+  window.localStorage.clear();
   // Semua pembaruan state React di tes ini berasal dari `bus.emit`, yang
   // dipanggil di luar `act`. React lalu menunda flush efek pasif, sehingga
   // listener jendela (Tab/Esc) dan efek fokus kadang belum terpasang saat tes
@@ -424,6 +428,61 @@ describe("GameShell", () => {
     lepas();
   });
 
+  it("mengirim pengaturan audio tersimpan tepat saat scene siap", async () => {
+    window.localStorage.setItem(
+      KUNCI_PENGATURAN,
+      JSON.stringify({ music: 0, sfx: 0.4 }),
+    );
+    await masukMain();
+
+    const audio = vi.fn();
+    const lepas = bus.onCommand("set_audio", audio);
+    // `ready` menandai scene berdiri; pendengar `set_audio`-nya sudah terpasang.
+    bus.emit({ type: "ready" });
+
+    expect(audio).toHaveBeenCalledWith({
+      type: "set_audio",
+      music: 0,
+      sfx: 0.4,
+    });
+    lepas();
+  });
+
+  it("tombol musik menyimpan preferensi supaya tetap mati saat dibuka lagi", async () => {
+    await mainkan();
+    fireEvent.click(screen.getByRole("button", { name: /musik nyala/i }));
+
+    expect(
+      JSON.parse(window.localStorage.getItem(KUNCI_PENGATURAN) ?? "null"),
+    ).toEqual({ music: 0, sfx: 1 });
+
+    // Buka game lagi dari nol, seperti setelah refresh.
+    cleanup();
+    await mainkan();
+
+    expect(
+      screen.getByRole("button", { name: /musik mati/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("menu jeda menampilkan volume tersimpan setelah dibuka lagi", async () => {
+    await mainkan();
+    bukaJeda();
+    fireEvent.change(screen.getByLabelText("Musik"), {
+      target: { value: "40" },
+    });
+    fireEvent.change(screen.getByLabelText("Efek suara"), {
+      target: { value: "70" },
+    });
+
+    cleanup();
+    await mainkan();
+    bukaJeda();
+
+    expect(screen.getByLabelText("Musik")).toHaveValue("40");
+    expect(screen.getByLabelText("Efek suara")).toHaveValue("70");
+  });
+
   it("buku log mencatat dialog dan jurnal konsep", async () => {
     await mainkan();
 
@@ -490,6 +549,15 @@ describe("GameShell", () => {
     expect(
       screen.getByText("Coba ulang bagian ini: Kondensasi"),
     ).toBeInTheDocument();
+  });
+
+  it("Tab tidak dijebak saat layar hasil menutupi permainan", async () => {
+    await mainkan();
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
+    await screen.findByText(/Perjalanan ini sudah sampai ujung/i);
+
+    // Layar hasil punya tombol sendiri; Tab harus bebas menjangkaunya.
+    expect(fireEvent.keyDown(window, { key: "Tab" })).toBe(true);
   });
 
   it("menyimpan hasil main lewat server action tanpa mengirim skor", async () => {
@@ -745,7 +813,7 @@ describe("GameShell — tombol percepat", () => {
     const lepasMulai = bus.onCommand("skip_start", mulai);
     const lepasBerhenti = bus.onCommand("skip_stop", berhenti);
 
-    // Belum ada dialog: Tab tidak diambil alih (fokus browser tetap jalan).
+    // Belum ada dialog: Tab dimatikan (bukan "Percepat").
     fireEvent.keyDown(window, { key: "Tab" });
     expect(mulai).not.toHaveBeenCalled();
 
@@ -767,6 +835,69 @@ describe("GameShell — tombol percepat", () => {
     expect(mulai).toHaveBeenCalledTimes(1);
     lepasMulai();
     lepasBerhenti();
+  });
+
+  it("Tab dimatikan saat eksplorasi: fokus tidak pindah ke tombol HUD", async () => {
+    await mainkan();
+    const area = screen.getByRole("region", {
+      name: "Area permainan ClassQuest",
+    });
+    const tombolMusik = screen.getByRole("button", { name: /musik/i });
+
+    // Fokus awal dipasang di area permainan saat Phaser dibuat.
+    expect(area).toHaveFocus();
+
+    // Tab dicegah dan fokus tetap di area permainan, bukan tombol HUD. Ini
+    // menjaga `Space` (tombol bicara) tetap memulai dialog warga alih-alih
+    // mengaktifkan tombol HUD yang sempat terpilih Tab.
+    for (let putaran = 0; putaran < 6; putaran += 1) {
+      expect(fireEvent.keyDown(window, { key: "Tab" })).toBe(false);
+      expect(document.activeElement).toBe(area);
+      expect(tombolMusik).not.toHaveFocus();
+    }
+
+    // Fokus yang sempat nyangkut di tombol HUD ditarik kembali ke area.
+    tombolMusik.focus();
+    expect(tombolMusik).toHaveFocus();
+    expect(fireEvent.keyDown(tombolMusik, { key: "Tab" })).toBe(false);
+    expect(document.activeElement).toBe(area);
+  });
+
+  it("Tab dimatikan saat soal: fokus tetap di panel tantangan", async () => {
+    await mainkan();
+    bus.emit({ type: "challenge", view: challenge });
+    const panel = await screen.findByLabelText("Tantangan");
+    expect(panel).toHaveFocus();
+
+    expect(fireEvent.keyDown(window, { key: "Tab" })).toBe(false);
+    expect(document.activeElement).toBe(panel);
+  });
+
+  it("Ctrl+Tab dan Alt+Tab tetap milik peramban", async () => {
+    await mainkan();
+    const area = screen.getByRole("region", {
+      name: "Area permainan ClassQuest",
+    });
+    const fokusAwal = document.activeElement;
+
+    expect(fireEvent.keyDown(area, { key: "Tab", ctrlKey: true })).toBe(true);
+    expect(document.activeElement).toBe(fokusAwal);
+
+    expect(fireEvent.keyDown(area, { key: "Tab", altKey: true })).toBe(true);
+    expect(document.activeElement).toBe(fokusAwal);
+  });
+
+  it("Tab menarik fokus kembali saat aktifElement jatuh ke body", async () => {
+    await mainkan();
+    const area = screen.getByRole("region", {
+      name: "Area permainan ClassQuest",
+    });
+    // Tombol HUD memanggil `blur()`; fokus lalu ada di body.
+    (document.activeElement as HTMLElement | null)?.blur();
+    expect(document.activeElement).toBe(document.body);
+
+    expect(fireEvent.keyDown(window, { key: "Tab" })).toBe(false);
+    expect(area.contains(document.activeElement)).toBe(true);
   });
 
   it("garis kecepatan memudar masuk saat mempercepat dan keluar saat berhenti", async () => {
@@ -888,7 +1019,7 @@ describe("GameShell — soal di atas dialog", () => {
     expect(screen.queryByText("▼")).not.toBeInTheDocument();
   });
 
-  it("menyembunyikan potret selama soal dan menampilkannya lagi setelah dinilai", async () => {
+  it("menampilkan potret pembicara soal selama soal diketik", async () => {
     await mainkan();
     bus.emit({
       type: "dialogue",
@@ -907,17 +1038,65 @@ describe("GameShell — soal di atas dialog", () => {
 
     bus.emit({ type: "challenge", view: challenge });
     await screen.findByLabelText("Tantangan");
-    // Soal belum dijawab: potret disembunyikan supaya tidak menutupi pilihan.
-    expect(screen.queryByAltText("Potret Bu Ratna")).not.toBeInTheDocument();
+    // Potret tetap tampil selama soal: panel jawaban sengaja duduk di kanan
+    // atas agar sisi kiri (potret NPC) tetap terlihat (ADR 0038).
+    expect(screen.getByAltText("Potret Bu Ratna")).toBeInTheDocument();
+  });
 
+  it("menunggu soal selesai diketik sebelum menampilkan pilihan jawaban", async () => {
+    await mainkan();
+    const potret = {
+      src: "/assets/portrait/npc_1/neutral.png",
+      alt: "Potret Bu Ratna",
+    };
+    // Scene mengirim dialog soal lewat `textbox.show` sebelum event challenge:
+    // selama diketik, `text` baru sepotong dan `waiting` masih false.
     bus.emit({
-      type: "graded",
-      challengeId: "chl_01_01",
-      correct: true,
-      explanation: "Benar.",
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Uap air naik",
+        waiting: false,
+        portrait: potret,
+      },
     });
-    // Setelah dinilai, potret tampil lagi untuk umpan balik senang/marah.
-    expect(await screen.findByAltText("Potret Bu Ratna")).toBeInTheDocument();
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    // Soal masih diketik: pilihan jawaban belum boleh muncul.
+    expect(
+      screen.queryByRole("button", { name: /\bbenar$/i }),
+    ).not.toBeInTheDocument();
+    // Potret pembicara soal sudah terlihat lebih dulu.
+    expect(screen.getByAltText("Potret Bu Ratna")).toBeInTheDocument();
+
+    // Textbox menuntaskan ketikan (`waiting` true): pilihan jawaban menyusul.
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: 'Uap air naik karena lebih ringan.\n"Uap air lebih ringan daripada air cair."',
+        waiting: true,
+        portrait: potret,
+      },
+    });
+    expect(
+      await screen.findByRole("button", { name: /\bbenar$/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("langsung menampilkan pilihan jawaban bila soal tidak diketik dialog", async () => {
+    await mainkan();
+    // Event challenge bisa datang tanpa dialog soal (mis. ujian/event khusus);
+    // overlay harus langsung siap supaya soal tidak tersangkut.
+    bus.emit({ type: "challenge", view: challenge });
+    await screen.findByLabelText("Tantangan");
+
+    expect(
+      await screen.findByRole("button", { name: /\bbenar$/i }),
+    ).toBeInTheDocument();
   });
 
   it("umpan balik tetap tampil walau potret soal berubah setelah dinilai", async () => {

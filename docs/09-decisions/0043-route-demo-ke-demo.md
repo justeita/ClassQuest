@@ -4,18 +4,18 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0040 — Route Demo Dipindah ke `/demo`
+# 0043 — Route Demo Dipindah ke `/demo`
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
 - **Pengambil keputusan:** tim ClassQuest
 - **Menggantikan:** —
-- **Melanjutkan:** [0039](0039-kode-kelas-masuk-game.md)
+- **Melanjutkan:** [0042](0042-kode-kelas-masuk-game.md)
 
 ## Konteks
 
 Halaman demo Phaser tinggal di `/game` sejak awal, ketika route itu juga menjadi
-satu-satunya pintu siswa. Setelah [ADR 0039](0039-kode-kelas-masuk-game.md),
+satu-satunya pintu siswa. Setelah [ADR 0042](0042-kode-kelas-masuk-game.md),
 pintu siswa adalah `/play` dan `/play/[storyId]`; `/game` tinggal demo. Nama itu
 sekarang membingungkan karena tiga hal memakai kata "game":
 

@@ -4,7 +4,7 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0038 — Profil Tokoh untuk Prompt
+# 0041 — Profil Tokoh untuk Prompt
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14

@@ -68,6 +68,12 @@ export type AssetEntry = {
   /** Hanya untuk kind `character`: ukuran satu frame spritesheet. */
   frameWidth?: number;
   frameHeight?: number;
+  /**
+   * Aset sisi game yang **tidak** ditawarkan ke AI dan tidak boleh dirujuk
+   * cerita. Dipakai untuk aset yang dikelola runtime, mis. track musik latar
+   * tambahan yang ikut rotasi musik game (`toAssetManifest` melewatkannya).
+   */
+  runtime?: boolean;
 };
 
 /**
@@ -182,13 +188,25 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     portraits: potret("npc_10"),
     ...karakterFrames("npc_10"),
   },
-  /* Musik: satu lagu untuk seluruh permainan. */
+  /* Musik: dua track latar. Cerita memakai `bgm_default`; game memilih satu
+     track acak dari keduanya saat sesi dimulai, lalu memutarnya bergantian
+     (lihat `pilihMusikAcak`/`musikSesiBerikutnya`). */
   {
     id: "bgm_default",
     kind: "music",
     path: "/assets/music/default.mp3",
     label: "Musik desa",
     tags: ["desa", "tenang", "hangat", "pengantar", "musik"],
+  },
+  {
+    // Track kedua hanya untuk runtime: game memilihnya acak, AI tidak pernah
+    // menawarkannya ke cerita (`runtime`).
+    id: "bgm_vellore",
+    kind: "music",
+    path: "/assets/music/vellore.mp3",
+    label: "Musik Vellore",
+    tags: ["vellore", "desa", "tenang", "perjalanan", "musik"],
+    runtime: true,
   },
 
   /* SFX */
@@ -219,6 +237,14 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/sfx/page.ogg",
     label: "Ganti scene",
     tags: ["transisi", "halaman", "pindah", "page"],
+  },
+  {
+    // Blip mesin tik saat teks dialog muncul (lihat `GameScene.ketikSfx`).
+    id: "sfx_type",
+    kind: "sfx",
+    path: "/assets/sfx/type.wav",
+    label: "Ketik dialog",
+    tags: ["ketik", "dialog", "teks", "typewriter"],
   },
 
   /* UI */
@@ -272,9 +298,14 @@ export const STORY_ASSET_KINDS: readonly string[] = [
   "ui",
 ];
 
+/**
+ * Manifest yang boleh dirujuk cerita. Aset bertanda `runtime` (mis. track musik
+ * latar tambahan) dilewati supaya AI tidak pernah memilihnya; kind `world` juga
+ * sudah tersaring lewat `STORY_ASSET_KINDS`.
+ */
 export function toAssetManifest(
-  assets: readonly AssetEntry[] = ASSETS.filter((asset) =>
-    STORY_ASSET_KINDS.includes(asset.kind),
+  assets: readonly AssetEntry[] = ASSETS.filter(
+    (asset) => STORY_ASSET_KINDS.includes(asset.kind) && !asset.runtime,
   ),
 ): AssetManifest {
   return assets.map((asset) => ({
