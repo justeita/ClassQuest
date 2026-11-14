@@ -320,8 +320,13 @@ describe("ChallengeOverlay — tipe lain", () => {
     });
 
     const pintasan = screen.getByText(/Pilih/);
+    const hint = screen.getByRole("button", { name: /lihat hint/i });
+    // Chip pintasan dan tombol hint berbagi satu baris rata kanan, dengan
+    // pintasan tepat di sebelah kiri tombol hint.
     expect(pintasan.parentElement).toHaveClass("justify-end");
-    expect(screen.getByRole("button", { name: /lihat hint/i })).toBeEnabled();
+    expect(pintasan.parentElement).toBe(hint.parentElement);
+    expect(pintasan.nextElementSibling).toBe(hint);
+    expect(hint).toBeEnabled();
   });
 
   it("petunjuk Enter jawaban singkat sejajar dengan tombol hint", () => {
@@ -331,8 +336,11 @@ describe("ChallengeOverlay — tipe lain", () => {
     });
 
     const pintasan = screen.getByText(/Kirim Jawaban/);
+    const hint = screen.getByRole("button", { name: /lihat hint/i });
     expect(pintasan.parentElement).toHaveClass("justify-end");
-    expect(screen.getByRole("button", { name: /lihat hint/i })).toBeEnabled();
+    expect(pintasan.parentElement).toBe(hint.parentElement);
+    expect(pintasan.nextElementSibling).toBe(hint);
+    expect(hint).toBeEnabled();
   });
 
   it("keyboard: angka memilih opsi, Enter mengirim", () => {

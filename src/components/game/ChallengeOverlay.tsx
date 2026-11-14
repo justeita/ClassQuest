@@ -62,6 +62,8 @@ const BISA_DIJAWAB = new Set<ChallengeView["type"]>([
  * - Hint tidak pernah terbuka sendiri: tombol "Lihat hint" di bawah pilihan
  *   jawaban membuka konfirmasi, dan hanya setelah dikonfirmasi teks hint tampil
  *   sambil menandai jawaban dengan `usedHint` (skor soal dipotong setengah).
+ * - Chip pintasan keyboard duduk di **sebelah kiri** tombol hint pada baris yang
+ *   sama, rata kanan, supaya petunjuk tombol dan aksi hint terbaca satu pandang.
  */
 export function ChallengeOverlay({
   view,
@@ -197,6 +199,18 @@ export function ChallengeOverlay({
   const modeLayout = tentukanLayoutOpsi(
     opsiPilihan.map((o) => ({ id: o.id, label: o.text })),
   );
+
+  /**
+   * Teks pintasan keyboard untuk tipe soal yang memilikinya. Ditampilkan di
+   * sebelah kiri tombol hint supaya keduanya satu baris; `null` untuk tipe yang
+   * tidak punya pintasan khusus.
+   */
+  const pintasanKeyboard =
+    view.type === "ordering" ? (
+      <>[↑/↓] Pilih &nbsp; [←/→] Geser &nbsp; [Enter] Jawab</>
+    ) : view.type === "short_answer" ? (
+      <>[Enter] Kirim Jawaban</>
+    ) : null;
 
   /**
    * Navigasi keyboard ala RPG (minimalkan penggunaan mouse/touchpad):
@@ -509,21 +523,6 @@ export function ChallengeOverlay({
                   </div>
                 </div>
               </div>
-
-              {/* Teks petunjuk berlatar navy dengan font terang agar selalu kontras;
-                  ditaruh di luar grup agar tidak menentukan lebar kotak, dan
-                  diratakan ke kanan bersama opsi, tombol Jawab, dan hint. */}
-              <div className="flex w-full items-center justify-end pt-0.5">
-                <p
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[#E8A87C]/25 bg-[#0b120e]/95 px-3 py-1 font-medium text-[#F7F4EC]"
-                  style={{
-                    fontSize: ukuranHuruf(12, 11, 15),
-                    lineHeight: 1.2,
-                  }}
-                >
-                  [↑/↓] Pilih &nbsp; [←/→] Geser &nbsp; [Enter] Jawab
-                </p>
-              </div>
             </div>
           )}
 
@@ -582,21 +581,6 @@ export function ChallengeOverlay({
                   </button>
                 </div>
               </div>
-
-              {/* Teks petunjuk berlatar navy dengan font terang agar selalu kontras;
-                  ditaruh di luar grup agar tidak menentukan lebar kotak, dan
-                  diratakan ke kanan bersama opsi, tombol Jawab, dan hint. */}
-              <div className="flex w-full items-center justify-end pt-0.5">
-                <p
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[#E8A87C]/25 bg-[#0b120e]/95 px-3 py-1 font-medium text-[#F7F4EC]"
-                  style={{
-                    fontSize: ukuranHuruf(12, 11, 15),
-                    lineHeight: 1.2,
-                  }}
-                >
-                  [Enter] Kirim Jawaban
-                </p>
-              </div>
             </div>
           )}
 
@@ -610,28 +594,43 @@ export function ChallengeOverlay({
             </button>
           )}
 
-          {/* Hint sengaja di bawah pilihan jawaban dan tersembunyi sampai
-              siswa mengonfirmasi. Memakai hint menandai jawaban dengan
-              `usedHint`, jadi skor soal ini dipotong setengah (`scoreAnswer`). */}
-          {!graded && daftarHint.length > 0 && (
+          {/* Baris bawah: chip pintasan keyboard di sebelah kiri tombol hint,
+              keduanya rata kanan. Hint sengaja tersembunyi sampai siswa
+              mengonfirmasi; memakai hint menandai jawaban dengan `usedHint`,
+              jadi skor soal ini dipotong setengah (`scoreAnswer`). */}
+          {!graded && (pintasanKeyboard !== null || daftarHint.length > 0) && (
             <div data-hint-ui className="mt-2 flex flex-col items-end gap-1.5">
-              {!hintTerbuka && !konfirmasiHint && (
-                <button
-                  type="button"
-                  onClick={() => setKonfirmasiHint(true)}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-[#E8A87C]/40 bg-[#0b120e]/95 px-2.5 py-1 font-medium text-[#E8A87C] transition-colors hover:border-[#E8A87C] hover:bg-[#1c2a22] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#E8A87C]"
-                  style={{
-                    fontSize: ukuranHuruf(12, 11, 15),
-                    lineHeight: 1.2,
-                  }}
-                >
-                  <span aria-hidden="true">💡</span>
-                  <span>Lihat hint</span>
-                  <span className="text-[#8FA396]">(poin dipotong)</span>
-                </button>
-              )}
+              <div className="flex w-full flex-wrap items-center justify-end gap-2">
+                {pintasanKeyboard !== null && (
+                  <p
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[#E8A87C]/25 bg-[#0b120e]/95 px-3 py-1 font-medium text-[#F7F4EC]"
+                    style={{
+                      fontSize: ukuranHuruf(12, 11, 15),
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {pintasanKeyboard}
+                  </p>
+                )}
 
-              {konfirmasiHint && !hintTerbuka && (
+                {daftarHint.length > 0 && !hintTerbuka && !konfirmasiHint && (
+                  <button
+                    type="button"
+                    onClick={() => setKonfirmasiHint(true)}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[#E8A87C]/40 bg-[#0b120e]/95 px-2.5 py-1 font-medium text-[#E8A87C] transition-colors hover:border-[#E8A87C] hover:bg-[#1c2a22] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#E8A87C]"
+                    style={{
+                      fontSize: ukuranHuruf(12, 11, 15),
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    <span aria-hidden="true">💡</span>
+                    <span>Lihat hint</span>
+                    <span className="text-[#8FA396]">(poin dipotong)</span>
+                  </button>
+                )}
+              </div>
+
+              {daftarHint.length > 0 && konfirmasiHint && !hintTerbuka && (
                 <div
                   role="group"
                   aria-label="Konfirmasi hint"
@@ -679,7 +678,7 @@ export function ChallengeOverlay({
                 </div>
               )}
 
-              {hintTerbuka && (
+              {daftarHint.length > 0 && hintTerbuka && (
                 <div
                   aria-live="polite"
                   className="w-full rounded-md border border-[#E8A87C]/25 bg-[#0b120e]/95 px-2.5 py-1.5 text-[#F7F4EC]"
