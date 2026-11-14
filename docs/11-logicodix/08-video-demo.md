@@ -85,7 +85,7 @@ Total target 3 menit 40 detik. Isi waktu dengan demo nyata, bukan penjelasan.
 | 3:30 – 3:40 | Penutup: tautan repo dan nama tim                                | Teks di layar                             |
 
 Sesuaikan dengan fitur yang benar-benar selesai. **Jangan merekam fitur yang masih
-placeholder** — yang ada di `/game` saat ini baru shell kosong.
+placeholder** — yang ada di `/demo` saat ini baru shell kosong.
 
 ## Persiapan merekam
 

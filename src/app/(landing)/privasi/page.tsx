@@ -60,7 +60,7 @@ export default function PrivasiPage() {
               <ul className="list-disc space-y-1 pl-5">
                 <li>
                   Kelas: nama, mata pelajaran, jenjang, tahun ajaran, dan kode
-                  label <code>QST-XXXX</code>.
+                  kelas <code>QST-XXXX</code>.
                 </li>
                 <li>
                   Siswa: nama tampilan dan NIS opsional (unik per guru, bukan
@@ -68,8 +68,11 @@ export default function PrivasiPage() {
                 </li>
               </ul>
               <p>
-                Siswa tidak membuat akun dan tidak memasukkan kode kelas. Kode
-                kelas hanya label tampilan.
+                Siswa tidak membuat akun. Untuk masuk tanpa tautan guru, siswa
+                mengetik kode kelas <code>QST-XXXX</code> beserta nama
+                tampilannya. Nama itu hanya dicocokkan dengan daftar siswa kelas
+                yang bersangkutan; kode dan nama tidak disimpan di cookie atau
+                penyimpanan peramban.
               </p>
             </>
           ),

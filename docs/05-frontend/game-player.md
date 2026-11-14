@@ -17,7 +17,7 @@ src/app/play/[storyId]/page.tsx        (Server Component)
   ├─ notFound() bila tidak ada
   └─ <GameShell story={story} />       (Client Component)
         ├─ <EntryScreen />             (DOM, layar masuk: pilih nama)
-        ├─ <TitleScreen />             (DOM, sebelum Mulai)
+        ├─ <MainMenu />                (DOM, menu utama sebelum Mulai)
         ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
         │    └─ <LoadingScreen />      (DOM, menutup layar sampai scene pertama siap)
         ├─ <ChallengeOverlay />        (DOM)
@@ -33,7 +33,7 @@ src/app/play/[storyId]/page.tsx        (Server Component)
 Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
-> **Yang ada hari ini:** `EntryScreen`, `TitleScreen`, `GameShell`, `GameCanvas`,
+> **Yang ada hari ini:** `EntryScreen`, `MainMenu`, `GameShell`, `GameCanvas`,
 > `LoadingScreen`, `ChallengeOverlay`, `QuestTracker`, `NpcHintLayer` (berisi
 > `NpcMarker` dan `InteractHint`), `ChapterCard`, `QuestToast`, `HUD`,
 > `PauseMenu`, dan `ResultScreen` sudah ada.
@@ -43,7 +43,9 @@ menyerahkan JSON ke client.
 > `status = 'published'` dengan `published_version` yang dilayani; status lain,
 > id tidak dikenal, dan id tidak valid → 404. Id demo `st_demo_siklus_air` tetap
 > memakai fixture `src/game/demoStory.ts` supaya pengembangan frontend tidak
-> butuh database. Progres `localStorage` dan layar "Lanjutkan" **belum** ada.
+> butuh database. Progres `localStorage` dan tombol "Lanjutkan" ada di
+> `src/game/progress.ts` + `GameShell`; siswa yang me-refresh melanjutkan dari
+> awal scene terakhir.
 
 ## Layar masuk
 
@@ -73,6 +75,37 @@ Aturan:
   password hash, tahun ajaran, atau data guru.
 - Tidak ada akun siswa, cookie identitas, atau penyimpanan nama di
   `localStorage`. Nama hanya hidup di state `GameShell` selama sesi main.
+  (`localStorage` hanya menyimpan progres cerita dan pengaturan audio.)
+
+### Gerbang kode kelas (`/play`)
+
+Siswa yang tidak membawa tautan guru membuka `/play` (ADR 0039 + ADR 0041).
+Halaman itu statis dan hanya memasang `PlayGate`; tidak ada `storyId` di URL.
+
+1. **Form kode + NIS** — kolom kode kelas paling atas, lalu **NIS**. Nama atau
+   username **tidak** lagi diminta di sini. Server Action
+   `masukKelas({ kode, nis })` mencari kelas, **game terbit milik guru pemilik
+   kelas itu**, dan NIS di daftar murid guru tersebut.
+2. **NIS tidak ada di daftar → tidak bisa masuk.** Pesan "NIS itu tidak ada di
+   daftar murid gurumu" tampil di form, dan tidak ada layar berikutnya. Murid
+   tanpa NIS atau yang NIS-nya salah ketik harus memperbaikinya lewat guru.
+3. **NIS cocok → konfirmasi nama lengkap.** Server mengirim nama dari baris
+   `students`; layar konfirmasi menampilkan NIS, nama lengkap, dan kelas lalu
+   bertanya "Ini kamu, benar?". Tombol **"Benar, lanjut main"** memasang
+   `GameShell`; **"Bukan saya"** kembali ke kolom NIS yang kosong.
+4. **Satu game terbit** → konfirmasi lalu langsung dimainkan. **Beberapa game** →
+   siswa memilih dulu dari daftar game guru itu
+   (`masukKelas({ kode, nis, storyId })`), tetap **sesudah** NIS diperiksa.
+   Kelas tanpa game terbit dijawab "belum punya game".
+5. **Tanpa navigasi.** Kode dan NIS tidak masuk URL atau `sessionStorage`; refresh
+   kembali ke form, progres cerita tetap di `localStorage`.
+6. **Batas tebak kode** 30 percobaan per 10 menit per IP (memori, fail open).
+7. **Demo tetap di `/demo`**, ditautkan dari form sebagai "Coba demo tanpa kode
+   kelas".
+
+Jalur tautan guru (`/play/[storyId]?kelas=QST-XXXX`) **tidak berubah**: siswa
+memilih namanya dari daftar kelas dan nama bebas masih boleh. Aturan NIS wajib
+hanya berlaku di gerbang `/play`.
 
 ## Pengambilan data
 
@@ -117,7 +150,7 @@ Aturan:
 
 ```ts
 type GameShellState =
-  | { phase: "judul" }
+  | { phase: "menu" }
   | { phase: "loading" }
   | { phase: "ready" }
   | { phase: "playing"; chapterIndex: number; sceneIndex: number }
@@ -131,7 +164,7 @@ Ini **state layar**, bukan state cerita. Soal yang sedang terbuka dilacak oleh
 `GameShell` hanya menampilkan overlay-nya. Pemetaan lengkap ada di
 [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#dua-state-bukan-satu).
 
-Implementasi sekarang memegang `menu | judul | main | hasil` di `GameShell`,
+Implementasi sekarang memegang `masuk | menu | main | hasil` di `GameShell`;
 sedangkan `paused` dipegang `GameCanvas` karena menu jeda hanya relevan selama
 sesi permainan aktif. Fase `loading | ready` dipetakan ke overlay `LoadingScreen`
 di dalam `GameCanvas`: `loading` = progres aset belum penuh atau scene pertama
@@ -150,9 +183,11 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 
 ### Menu utama
 
-Dipakai `/game` (`menuUtama` di `GameShell`): pintu masuk demo sebelum layar
-judul cerita. `/play/[storyId]` **tidak** memakainya — siswa yang membuka tautan
-dari guru langsung melihat judul cerita, bukan menu.
+Dipakai `GameShell` untuk **semua** route: `/demo` (demo) dan `/play/[storyId]`
+(tautan guru). Dulu `/play` punya layar judul sendiri (`TitleScreen`, latar
+`map_village` + ringkasan cerita); layar itu sudah dihapus supaya tampilan
+sebelum mulai sama di mana pun siswa masuk. `/play` tetap membuka `EntryScreen`
+lebih dulu bila siswa perlu memilih nama, lalu menu ini.
 
 - Satu gambar desa utuh (`public/menu/desa.webp`) memenuhi layar. Teks menu
   berdiri **langsung di atas gambar**, di bawah naungan pohon kiri atas, tanpa
@@ -162,13 +197,20 @@ dari guru langsung melihat judul cerita, bukan menu.
 - Isi papan: judul "CLASS QUEST" (serif tebal), garis emas berhiaskan bintang,
   empat pilihan — `Mulai`, `Pengaturan`, `Kredit`, `Keluar` — petunjuk tombol, dan
   label versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas.
+  Bila ada progres tersimpan, daftar menjadi lima: `Lanjutkan` di paling atas,
+  lalu `Mulai ulang`, `Pengaturan`, `Kredit`, `Keluar`.
 - Keyboard-first: `↑`/`↓` (atau `W`/`S`) memindahkan sorotan dan memindahkan
   fokus DOM, `Home`/`End` ke ujung daftar, `Enter`/`Space` menjalankan pilihan.
   `Tab` tidak pernah diambil alih. Selama dialog terbuka, panah tidak menggerakkan
   menu karena fokus milik dialog.
-- `Mulai` menyerahkan kontrol ke `GameShell`, yang masih menampilkan layar judul
-  cerita. Tidak ada "Lanjutkan": progres `localStorage` belum ada, jadi menu tidak
-  menjanjikan simpanan yang belum pernah dibuat.
+- `Mulai` langsung menyalakan permainan (`GameCanvas`) tanpa layar perantara —
+  judul sudah diwakili menu ini, dan dua menu berurutan membingungkan. Bila ada
+  progres sah, `Lanjutkan` melanjutkan dari awal scene terakhir dan `Mulai`
+  berganti label jadi `Mulai ulang` (menghapus progres lalu mulai dari bab 1).
+- Progres datang dari `useSyncExternalStore` (`src/game/progressStore.ts`):
+  snapshot server `null` supaya HTML server dan render klien pertama sama, lalu
+  React membacanya setelah hydration. Kursor hasil pilihan itu diberikan ke
+  `GameCanvas` sebagai `mulaiDari`.
 - `Pengaturan` membuka dialog berisi slider **Musik** dan **Efek suara** terpisah,
   membaca dan menulis `classquest:settings:v1` yang sama dengan
   [`../../src/game/audioSettings.ts`](../../src/game/audioSettings.ts). Nilai
@@ -207,25 +249,13 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   (jeda 320 ms + pudar 320 ms), jadi tidak ada kanvas kosong yang sempat
   terlihat. `PreloadScene` sengaja tidak mengirim `ready`: di sana canvas masih
   kosong.
-- Tombol "Batal" mengembalikan siswa ke layar sebelumnya lewat prop `onBatal`:
-  menu utama di `/game`, layar judul cerita di `/play/[storyId]`. Tidak menutup
-  tab (`window.close()` tidak diizinkan peramban).
+- Tombol "Batal" mengembalikan siswa ke menu utama lewat prop `onBatal` — sama
+  di `/demo` maupun `/play/[storyId]`. Tidak menutup tab (`window.close()` tidak
+  diizinkan peramban).
 - Bintang ditulis dengan nilai tetap (bukan `Math.random()`) agar render server
   dan client sama. Semua `animation` berada di dalam
   `@media (prefers-reduced-motion: no-preference)`; dengan `reduce`, bintang
   berhenti di satu tingkat terang dan bilah tidak beranimasi.
-
-### Ready / judul
-
-- Layar penuh dengan latar `bg_mountain_night` dan sprite pemain dari `cast`.
-- Judul, synopsis singkat, mata pelajaran, kelas, jumlah chapter, perkiraan
-  durasi.
-- Tombol "Mulai", "Kontrol", dan "Kembali". Panah atas/bawah memindahkan
-  fokus, Enter menjalankan pilihan.
-- Phaser **baru** dipasang setelah "Mulai" ditekan; sebelum itu tidak ada
-  kanvas yang berjalan di latar belakang.
-- Tombol "Lanjutkan" (bila ada progres valid) belum ditampilkan karena progres
-  `localStorage` belum ada.
 
 ### Playing
 
@@ -340,7 +370,10 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   [`../04-game/accessibility.md`](../04-game/accessibility.md#keyboard).
 - Keempat tipe soal punya UI jawaban sendiri:
   - `multiple_choice` / `true_false`: daftar opsi; angka `1`–`5` memilih,
-    panah atas/bawah memindah sorotan, `Enter` mengirim.
+    panah atas/bawah memindah sorotan, `Enter` mengirim. Opsi pilihan ganda
+    sudah dikirim `buildChallengeView` dalam urutan teracak deterministik per
+    `challenge.id` (lihat [`../04-game/scene-format.md`](../04-game/scene-format.md#data-yang-dikirim-ke-react)),
+    jadi jawaban benar tidak selalu di posisi pertama.
   - `ordering`: tombol naik/turun per item (bukan drag), urutan awal diacak
     deterministik per `challengeId` agar tidak sama dengan urutan cerita.
   - `short_answer`: satu input teks; `Enter` atau tombol "Jawab" mengirim.
@@ -377,7 +410,7 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   `classroom_id`. Layar hasil tampil tanpa menunggu simpan; statusnya ditulis
   jujur di bawah ringkasan: "Menyimpan hasil main…", "Hasil main tersimpan.",
   atau "Hasil main belum tersimpan.".
-- Cerita demo (`/game` dan `/play/st_demo_siklus_air`) dibaca tanpa database,
+- Cerita demo (`/demo` dan `/play/st_demo_siklus_air`) dibaca tanpa database,
   jadi tidak punya baris `stories` untuk dirujuk `play_results`. Di sana action
   menjawab `not_found` dan status berbunyi "belum tersimpan" — bukan bug
   tampilan. Untuk menguji penyimpanan, mainkan cerita terbit lewat
@@ -404,7 +437,7 @@ di [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#penanganan-
 | Tablet / HP lanskap | Kanvas mengisi bingkai; joystick dan tombol aksi **mengapung** di dalamnya           |
 | HP potret           | Panggung 16:9 di atas; **dek kontrol** (joystick + tombol aksi) dan bar HUD di bawah |
 | Sentuh              | Label `Space` berganti jadi "Sentuh"; semua keycap keyboard disembunyikan            |
-| Tombol layar penuh  | Ada di layar judul dan HUD; memenuhkan layar lalu mencoba mengunci lanskap           |
+| Tombol layar penuh  | Ada di HUD; memenuhkan layar lalu mencoba mengunci lanskap                           |
 
 Singkatnya: tidak ada lagi saran "putar layar". Di ponsel potret, kanvas tidak
 dipaksa memenuhi seluruh tinggi sehingga teksnya tetap terbaca — panggung game
@@ -444,9 +477,8 @@ membulat, ditambah **safe-area** (`env(safe-area-inset-*)`, lihat `.area-game` d
 tampil utuh**: skala bulat dipakai bila sisa ruangnya ≤6%, selain itu kanvas
 dibesarkan penuh mengikuti bingkai supaya tidak muncul bar gelap besar.
 
-Tombol **"Layar penuh"** (layar judul pojok kanan atas, dan ikon di HUD)
-memenuhkan halaman lalu mencoba mengunci orientasi mendatar; keluar dari layar
-penuh melepas kunci itu lagi. Keduanya best-effort — di Safari iPhone tombolnya
+Tombol **"Layar penuh"** (ikon di HUD) memenuhkan halaman lalu mencoba
+mengunci orientasi mendatar; keluar dari layar penuh melepas kunci itu lagi. Keduanya best-effort — di Safari iPhone tombolnya
 tidak dirender sama sekali, dan bila kunci orientasi ditolak pemain tetap dapat
 layar penuh. Keputusannya di
 [ADR 0025](../09-decisions/0025-layar-penuh-lanskap.md).
@@ -512,9 +544,25 @@ Aturan:
 
 ## Progres
 
-- Simpan setelah setiap beat (throttle 500 ms).
-- Kunci: `classquest:progress:{storyId}`.
-- Saat mount, baca progres; kalau `storyVersion` beda → tawarkan mulai ulang.
+Implementasi: `src/game/progress.ts` (murni, storage disuntik) + event
+`progress` di `GameBus`.
+
+- Scene mengirim `{ type: "progress", view }` setiap kursor cerita bergerak
+  (beat baru, jawaban pertama, "Ulangi chapter", dan sekali di akhir
+  `create()`); `GameCanvas` yang menulisnya ke `localStorage`. Tidak di-throttle:
+  perubahan beat mengikuti kecepatan pemain, dan refresh sedetik setelah beat
+  terakhir tetap harus melanjutkan dari beat itu.
+- Kunci: `classquest:progress:{storyId}`; isinya `PlayProgress` (kursor +
+  jawaban percobaan pertama + sidik cerita + `updatedAt`).
+- `GameShell` membaca progres lewat `useSyncExternalStore`
+  (`src/game/progressStore.ts`); simpanan yang rusak, milik cerita lain, atau
+  dibuat untuk sidik cerita berbeda dibaca sebagai `null` dan dihapus di
+  `useEffect` — tanpa dialog konfirmasi, karena kursor lama memang tidak bisa
+  dipakai.
+- `Lanjutkan` meneruskan kursor ke `GameCanvas` → `createGame(..., mulaiDari)` →
+  `GameScene.pulihkanProgres()`: jawaban dipulihkan lewat `AnswerLog.restore()`
+  dan `StoryRunner.lanjutkanDari()` membuka **awal scene**, bukan tengah beat.
+- `finished`, "Main lagi", dan "Mulai ulang" menghapus simpanan.
 - Saat selesai, kirim **jawaban** dan identitas layar masuk ke `savePlayResult`
   (server menghitung ulang skor); jangan mengirim field skor atau kelas.
 
@@ -525,7 +573,7 @@ Aturan:
 - [ ] Phaser hanya dimuat di halaman game.
 - [ ] Kanvas tampil utuh di bingkai halaman (margin 8–24 px, sudut membulat).
 - [ ] Overlay tidak menerima jawaban benar.
-- [ ] Progres bisa dipulihkan.
+- [x] Progres bisa dipulihkan (`src/game/progress.ts`, tombol "Lanjutkan").
 - [ ] Error aset tidak menghentikan permainan.
 - [ ] Bisa dimainkan dengan keyboard.
 - [ ] Tidak ada error `window is not defined` saat build.

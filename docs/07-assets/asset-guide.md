@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -198,6 +198,27 @@ Gambar layar menu utama (`public/menu/desa.webp`, 1675×939) sengaja berada
 **di luar** `public/assets/`: ia latar dekoratif, tidak pernah dipilih cerita, dan
 tidak punya `id` manifest. Aturannya sama seperti aset brand — hanya berkas jadi
 yang di-commit.
+
+Rekaman hero halaman `/` (`public/menu/hero_loop.mp4` + poster
+`hero_loop.jpg`) mengikuti aturan yang sama: **bukan** aset game, tidak punya
+`id` manifest, dan tidak dirujuk cerita. Bentuknya:
+
+- 30 detik, 960×522, 30 fps, H.264 tanpa audio (kenapa tanpa audio: `muted`
+  wajib supaya browser mengizinkan autoplay).
+- Dipotong dari rekaman sesi permainan mulai detik 0. Bingkai hitam jendela
+  game di sekeliling rekaman dibuang dengan `crop=1046:568:23:23`, lalu
+  diperkecil ke lebar 960. HUD game tetap utuh di dalam bingkai.
+- Awal dan akhirnya dibuat memudar ke gelap (0,5 detik) supaya loop tidak
+  terasa melompat. Perintah ffmpeg-nya:
+
+```sh
+ffmpeg -i rekaman.mp4 -vf "trim=start=0:end=30,setpts=PTS-STARTPTS,crop=1046:568:23:23,scale=960:-2:flags=lanczos,fade=t=in:st=0:d=0.5,fade=t=out:st=29.5:d=0.5,fps=30,format=yuv420p" -an -c:v libx264 -preset slow -crf 32 -tune animation -movflags +faststart public/menu/hero_loop.mp4
+ffmpeg -ss 3 -i public/menu/hero_loop.mp4 -frames:v 1 -q:v 4 public/menu/hero_loop.jpg
+```
+
+Ukurannya ~2 MB; itu batas yang kita terima untuk kesan pertama halaman `/`.
+Kalau rekamannya diganti, buat ulang poster dari detik yang sama supaya tidak
+ada lompatan poster → frame pertama.
 
 Nama file: `snake_case` tanpa prefix (`default.png`, `house_red.png`), karena
 prefix ada di `id` manifest (`bg_default`, `world_house_red`). Lihat

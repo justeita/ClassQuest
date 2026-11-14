@@ -28,8 +28,9 @@ render komponen. Logika ada di `src/story`, `src/server`, `src/ai`.
 | `/guru/kelas`                    | Guru    | Dinamis | Daftar kelas, detail kelas, kelas baru   |
 | `/guru/game`                     | Guru    | Dinamis | Koleksi game edukasi                     |
 | `/guru/analitik`                 | Guru    | Dinamis | Analytics per kelas + game               |
+| `/play`                          | Publik  | Statis  | Gerbang siswa: kode kelas + NIS          |
 | `/play/[storyId]`                | Publik* | Dinamis | Game siswa (layar masuk + hasil)         |
-| `/game`                          | Publik  | Client  | Demo Phaser; pintu siswa sementara       |
+| `/demo`                          | Publik  | Client  | Demo Phaser                              |
 | `/_not-found`                    | Publik  | Statis  | Halaman 404 (`src/app/not-found.tsx`)    |
 
 \* Publik tapi hanya untuk cerita `published`; kalau tidak ada → `notFound()`.
@@ -84,24 +85,41 @@ Catatan wiring:
   Menghapus/mengedit siswa dan membagikan kode kelas **belum ada**.
 - `/guru/analitik` menerima pilihan lewat query string `?kelas=&storyId=`, bukan
   state klien, supaya tautannya bisa dibagikan dan agregatnya dihitung di
-  server (`getClassroomAnalytics`). Daftar siswa yang belum bermain tetap
-  ditampilkan dengan poin 0. Halaman ini hanya membaca; tidak ada penulisan.
+  server (`getClassroomAnalytics`). Kedua filter **opsional**: tanpa parameter
+  halaman langsung menampilkan agregat semua kelas × semua game terbit, jadi
+  tidak ada layar kosong sebelum guru memilih. Pilihan "Semua kelas"/"Semua
+  game" menghapus parameternya dari URL, dan id yang tidak dikenal (bukan milik
+  guru) diabaikan. Daftar siswa yang belum bermain ditampilkan dengan poin 0
+  saat satu kelas + satu game dipilih. Halaman ini hanya membaca; tidak ada
+  penulisan.
 - Tautan siswa yang dibagikan guru membawa kode kelas
   (`/play/[storyId]?kelas=QST-XXXX`). Kode divalidasi di server: kelas yang
   bukan milik guru pemilik cerita diperlakukan seperti kode salah — siswa tetap
   bisa bermain, tetapi hasilnya tidak masuk analytics kelas.
+
+`/play` adalah jalan masuk tanpa tautan guru (ADR 0039 + ADR 0041). Halaman ini
+statis: ia hanya memasang `PlayGate`, lalu Server Action `masukKelas` yang
+mencari kelas, mengambil **game terbit milik guru kelas itu**, dan memeriksa
+**NIS** di daftar murid guru tersebut. Kolom kode kelas berada di atas kolom
+NIS. NIS yang tidak terdaftar ditolak ("NIS tidak ada") dan siswa tidak bisa
+masuk; NIS yang cocok menampilkan **konfirmasi nama lengkap** sebelum
+`GameShell` dipasang. Satu game terbit dilanjutkan ke konfirmasi; beberapa game
+menampilkan pilihan dulu. Kode dan NIS tidak masuk URL atau `sessionStorage`,
+jadi refresh kembali ke form (progres cerita tetap di `localStorage`). Kode
+salah atau kelas tanpa game dijawab sebagai pesan di form, bukan 404.
 
 Tidak ada route `/play/[storyId]/hasil`. Layar hasil adalah **overlay di dalam
 `GameShell`** pada halaman yang sama, karena ia butuh state permainan yang masih
 hidup di memori (skor, jawaban, `weakConcepts`). Pindah route berarti membuang
 state itu. Lihat [`game-player.md`](./game-player.md).
 
-`/game` **bukan** route siswa resmi. Halaman itu membuka **menu utama** dulu
-(`MainMenu`, lihat [`game-player.md`](./game-player.md#menu-utama)), baru setelah
-"Mulai" ia memuat `DEMO_STORY` di Phaser: tanpa `storyId` dan tanpa otorisasi.
-Landing menautkan kartu "Arena Siswa" ke sini karena tautan kelas dibuat di
-portal guru ("Bagikan" di `/guru/game`); target siswa tetap
-`/play/[storyId]?kelas=QST-XXXX`.
+`/demo` **bukan** route siswa resmi. Halaman itu membuka **menu utama**
+(`MainMenu`, lihat [`game-player.md`](./game-player.md#menu-utama)) — menu yang
+sama dipakai `/play` dan `/play/[storyId]`; "Mulai" di sana langsung memuat
+`DEMO_STORY` di Phaser, tanpa `storyId`, dan tanpa otorisasi. Gerbang `/play`
+menautkannya sebagai "Coba demo tanpa kode kelas".
+Landing menautkan kartu "Arena Siswa" ke `/play` (bukan `/demo`); target siswa
+yang membawa tautan guru tetap `/play/[storyId]?kelas=QST-XXXX`.
 
 Landing `/` memakai route group `src/app/(landing)/` supaya punya layout sendiri
 (font Inter/Plus Jakarta + ikon Font Awesome) tanpa membebani halaman

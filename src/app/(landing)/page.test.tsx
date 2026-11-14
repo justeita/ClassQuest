@@ -1,9 +1,23 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home from "./page";
 
-afterEach(cleanup);
+/**
+ * jsdom belum punya pemutaran media: `play()` hanya mencetak "Not implemented".
+ * Ganti dengan stub senyap supaya `GamePreview` (yang memanggil `play()` saat
+ * mount) tidak membanjiri keluaran tes dengan peringatan.
+ */
+beforeEach(() => {
+  vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(() =>
+    Promise.resolve(),
+  );
+});
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe("Home", () => {
   it("menampilkan ajakan memilih peran", () => {
@@ -20,7 +34,7 @@ describe("Home", () => {
     ).toBeInTheDocument();
   });
 
-  it("menautkan kartu guru ke portal dan kartu siswa ke demo", () => {
+  it("menautkan kartu guru ke portal dan kartu siswa ke gerbang kode kelas", () => {
     render(<Home />);
 
     expect(
@@ -28,7 +42,7 @@ describe("Home", () => {
     ).toHaveAttribute("href", "/guru");
     expect(
       screen.getByRole("link", { name: /masuk sebagai siswa/i }),
-    ).toHaveAttribute("href", "/game");
+    ).toHaveAttribute("href", "/play");
   });
 
   it("menjelaskan alur empat langkah di halaman yang sama", () => {
@@ -44,10 +58,18 @@ describe("Home", () => {
     }
   });
 
-  it("menampilkan cuplikan game yang punya teks alternatif", () => {
+  it("memutar rekaman game dengan autoplay senyap yang berulang", () => {
     render(<Home />);
 
-    expect(screen.getByAltText(/peta desa/i)).toBeInTheDocument();
+    const rekaman = screen.getByLabelText(/rekaman permainan/i);
+    expect(rekaman.tagName).toBe("VIDEO");
+    expect(rekaman).toHaveAttribute("src", "/menu/hero_loop.mp4");
+    // Autoplay hanya diizinkan browser bila video senyap dan main di tempat.
+    expect((rekaman as HTMLVideoElement).muted).toBe(true);
+    expect(rekaman).toHaveAttribute("playsinline");
+    expect(rekaman).toHaveAttribute("loop");
+    expect(rekaman).toHaveAttribute("autoplay");
+    expect(rekaman).toHaveAttribute("poster", "/menu/hero_loop.jpg");
   });
 
   it("membingkai halaman dengan kepala dan kaki yang sama", () => {

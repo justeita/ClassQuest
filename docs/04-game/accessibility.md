@@ -69,7 +69,7 @@ sehingga siswa di ponsel/tablet tidak ditinggalkan:
 | Lanjut dialog | Ketuk kotak dialog yang sedang tampil    |
 | Pilih jawaban | Ketuk opsi / tombol di overlay tantangan |
 | Menu jeda     | Tombol "Jeda" di HUD                     |
-| Layar penuh   | Tombol di layar judul / ikon di HUD      |
+| Layar penuh   | Ikon di HUD                              |
 
 Aturan:
 

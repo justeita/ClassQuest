@@ -96,7 +96,7 @@ Kami memilih **A**, dengan aturan:
 - `src/game/createGame.ts` (`ResizeObserver`) — tata letak sentuh mengubah tinggi
   kontainer tanpa memicu `resize` jendela.
 - `src/app/layout.tsx` (`viewport`), `src/app/globals.css` (`.area-game`), dan kedua
-  halaman game (`/game`, `/play/[storyId]`).
+  halaman game (`/demo`, `/play/[storyId]`).
 - [`../05-frontend/game-player.md`](../05-frontend/game-player.md),
   [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md),
   [`../04-game/accessibility.md`](../04-game/accessibility.md), dan

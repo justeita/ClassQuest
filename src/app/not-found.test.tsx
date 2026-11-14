@@ -40,7 +40,7 @@ describe("NotFound", () => {
     );
     expect(screen.getByRole("link", { name: /arena siswa/i })).toHaveAttribute(
       "href",
-      "/game",
+      "/demo",
     );
   });
 });

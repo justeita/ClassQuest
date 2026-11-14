@@ -48,6 +48,12 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0033 | [Pemilihan pembicara menurut keahlian](0033-pemilihan-pembicara-keahlian.md)                                              | Accepted     | AI, prompt            |
 | 0034 | [Mode permainan dipilih guru](0034-mode-permainan.md)                                                                     | Accepted     | AI, cerita, backend   |
 | 0035 | [Penempatan tokoh tetap di desa](0035-penempatan-tokoh-tetap.md)                                                          | Accepted     | AI, prompt            |
+| 0036 | [Sebaran pembicara antar tokoh](0036-sebaran-pembicara.md)                                                                | Accepted     | AI, validator, cerita |
+| 0037 | [Latar dunia desa di prompt](0037-latar-dunia-desa-di-prompt.md)                                                          | Accepted     | AI, prompt, cerita    |
+| 0038 | [Profil tokoh untuk prompt](0038-profil-tokoh-untuk-prompt.md)                                                            | Accepted     | AI, prompt, cerita    |
+| 0039 | [Kode kelas sebagai jalan masuk game](0039-kode-kelas-masuk-game.md)                                                      | Accepted     | Game, backend         |
+| 0040 | [Route demo dipindah ke `/demo`](0040-route-demo-ke-demo.md)                                                              | Accepted     | Route, game           |
+| 0041 | [Masuk game dengan NIS dan konfirmasi nama lengkap](0041-masuk-dengan-nis.md)                                             | Accepted     | Game, backend         |
 
 ## Status
 

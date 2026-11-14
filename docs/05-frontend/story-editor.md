@@ -148,6 +148,8 @@ poin.
 - Radio "jawaban benar" — tepat satu.
 - Tombol tambah/hapus opsi.
 - Peringatan bila opsi < 2 atau tidak ada yang ditandai.
+- Pratinjau: "Siswa akan melihat opsi dalam urutan acak." Urutan di editor
+  adalah urutan JSON, bukan urutan yang dilihat siswa.
 
 ### `true_false`
 

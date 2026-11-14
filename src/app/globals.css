@@ -1081,7 +1081,7 @@ label,
 }
 
 /* --------------------------------------------------------------------------
- * Menu utama game (`/game`)
+ * Menu utama game (`/demo`)
  *
  * Layar pembuka bergaya menu judul pixel: gambar desa utuh memenuhi layar, teks
  * menu berdiri langsung di atasnya di bawah naungan pohon kiri atas, tanpa panel
@@ -1265,7 +1265,7 @@ label,
 }
 
 /* --------------------------------------------------------------------------
- * Layar muat game (`/game` dan `/play/[storyId]`)
+ * Layar muat game (`/demo` dan `/play/[storyId]`)
  *
  * Dulu progres dimuat hanya teks di canvas 640×360 yang di-upscale, jadi
  * hurufnya bergerigi. Sekarang seluruh layar ada di DOM (`LoadingScreen.tsx`):

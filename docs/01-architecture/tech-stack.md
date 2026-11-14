@@ -132,7 +132,7 @@ Jangan menghapus aturan ini; Tailwind 4 di proyek ini bergantung padanya.
 ## Phaser 4.2.1
 
 **Terpasang** di `package.json` (`phaser@4.2.1`). Shell client ada di `src/game/`
-dan `src/components/game/GameCanvas.tsx`, dibuka lewat halaman dev `/game`.
+dan `src/components/game/GameCanvas.tsx`, dibuka lewat halaman dev `/demo`.
 Bridge ke React, `StoryRunner`, dan loader aset masih rencana (lihat
 [`../04-game/engine.md`](../04-game/engine.md#keadaan-sekarang-vs-target)).
 

@@ -76,7 +76,7 @@ Fase 2 (lihat
 | Pekerjaan                      | Output                                                            |
 | ------------------------------ | ----------------------------------------------------------------- |
 | `bun add phaser@4.2.1`         | Terpasang di `package.json`                                       |
-| `GameCanvas` + Phaser boot     | Halaman dev `/game`, scene kosong                                 |
+| `GameCanvas` + Phaser boot     | Halaman dev `/demo`, scene kosong                                 |
 | `StoryRunner` + dialog         | Dialog berjalan dengan contoh                                     |
 | Eksplorasi top-down (ADR 0008) | Map dummy + gerak 4 arah + collision; interaksi NPC memicu dialog |
 | Overlay tantangan + scoring    | 4 tipe tantangan bisa dijawab                                     |

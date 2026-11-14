@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -71,12 +71,12 @@ siswa).
 Halaman `/` adalah kesan pertama juri, jadi isinya berurutan sesuai pertanyaan
 yang muncul: **ini apa** → **bagaimana caranya** → **saya masuk sebagai siapa**.
 
-| Bagian        | Isi                                                                       |
-| ------------- | ------------------------------------------------------------------------- |
-| Hero          | Label kecil, judul, ringkasan, tiga angka batas MVP (bab/tipe soal/menit) |
-| Cuplikan game | `GamePreview`: peta game asli + satu baris dialog, dibingkai gaya pixel   |
-| Alur          | Empat langkah: unggah PDF → AI menyusun → guru menyunting → siswa main    |
-| Pilih peran   | Dua kartu (Portal Guru, Arena Siswa) dengan potret karakter game          |
+| Bagian        | Isi                                                                           |
+| ------------- | ----------------------------------------------------------------------------- |
+| Hero          | Label kecil, judul, ringkasan, tiga angka batas MVP (bab/tipe soal/menit)     |
+| Cuplikan game | `GamePreview`: rekaman permainan 30 detik yang berulang, dibingkai gaya pixel |
+| Alur          | Empat langkah: unggah PDF → AI menyusun → guru menyunting → siswa main        |
+| Pilih peran   | Dua kartu (Portal Guru, Arena Siswa) dengan potret karakter game              |
 
 Aturan bagian ini:
 

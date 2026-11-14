@@ -301,15 +301,16 @@ Jangan menyertakan status dependency internal yang bisa membocorkan infrastruktu
 
 ## Server Actions (bukan endpoint publik)
 
-| Action            | Input                             | Output                                      |
-| ----------------- | --------------------------------- | ------------------------------------------- |
-| `saveStoryDraft`  | `{ storyId, story, baseVersion }` | `SaveStoryResult` (lihat di bawah)          |
-| `publishStory`    | `{ storyId, version }`            | `{ ok: true }` atau `{ ok: false, errors }` |
-| `deleteStory`     | `{ storyId }`                     | `{ ok: true }`                              |
-| `archiveStory`    | `{ storyId }`                     | `{ ok: true }`                              |
-| `savePlayResult`  | `{ storyId, result }`             | `{ ok: true }` (opsional)                   |
-| `createClassroom` | `{ name, subject, grade, year }`  | `CreateClassroomResult` (lihat di bawah)    |
-| `addStudent`      | `{ classroomId, name, nis }`      | `AddStudentResult` (lihat di bawah)         |
+| Action            | Input                               | Output                                      |
+| ----------------- | ----------------------------------- | ------------------------------------------- |
+| `saveStoryDraft`  | `{ storyId, story, baseVersion }`   | `SaveStoryResult` (lihat di bawah)          |
+| `publishStory`    | `{ storyId, version }`              | `{ ok: true }` atau `{ ok: false, errors }` |
+| `deleteStory`     | `{ storyId }`                       | `{ ok: true }`                              |
+| `archiveStory`    | `{ storyId }`                       | `{ ok: true }`                              |
+| `savePlayResult`  | `{ storyId, result }`               | `{ ok: true }` (opsional)                   |
+| `masukKelas`      | `{ kode, nis, storyId? }`           | `JoinOutcome` (lihat di bawah)              |
+| `createClassroom` | `{ name, subject, grade, year }`    | `CreateClassroomResult` (lihat di bawah)    |
+| `addStudent`      | `{ classroomId, name, nis, nisn? }` | `AddStudentResult` (lihat di bawah)         |
 
 Bentuk hasil aksi kelas/siswa (`src/app/guru/(portal)/kelas/actions.ts`):
 
@@ -323,11 +324,17 @@ type AddStudentResult =
 
 Aturan:
 
-- Semua action memanggil `requireTeacher()` lebih dulu; tanpa sesi guru hasilnya
-  redirect ke `/guru/masuk`.
+- Semua action guru memanggil `requireTeacher()` lebih dulu; tanpa sesi guru
+  hasilnya redirect ke `/guru/masuk`. Dua action publik (`savePlayResult`,
+  `masukKelas`) tidak memakai sesi dan dijelaskan terpisah di bawah.
 - `nis` opsional. Kosong → server memberi nomor urut mulai `1001` (melewati
   nomor terpakai). Diisi → dinormalisasi ke huruf besar, pola
-  `[A-Za-z0-9._-]{1,20}`, dan harus unik per guru.
+  `[A-Za-z0-9._-]{1,20}`, dan harus unik per guru. `nis` inilah yang diketik
+  siswa untuk masuk `/play` (ADR 0041), jadi daftar murid `/guru/kelas`
+  menampilkannya bersama `nisn` dan nama lengkap.
+- `nisn` opsional (migrasi `0007_students_nisn`). Dinormalisasi dengan aturan
+  yang sama seperti `nis`, **tidak** unik, dan tidak dipakai untuk masuk. Kosong
+  → `null`. Nilai tidak sah → `{ ok: false, message: STUDENTS_NISN_INVALID_MESSAGE }`.
 - `year` (tahun ajaran) **bukan teks bebas**. Hanya bentuk baku `YYYY/YYYY`
   (2000–2099, tahun kedua = tahun pertama + 1) yang diterima lewat
   `normalizeAcademicYear()` (`src/lib/academic-year.ts`). Nilai lain — spasi,
@@ -362,7 +369,7 @@ dikembalikan sebagai objek longgar, klien akan menebak-nebak.
 Semua wajib:
 
 - `"use server"` di file action.
-- `requireTeacher()` (kecuali `savePlayResult`).
+- `requireTeacher()` (kecuali `savePlayResult` dan `masukKelas`).
 - Validasi ulang input dengan validator yang sama.
 - `revalidatePath` pada halaman terkait.
 
@@ -393,6 +400,74 @@ Aturan:
 - Data yang disimpan hanya agregat di tabel `play_results` (tanpa data per-opsi, IP, user-agent, atau identitas siswa).
 - **Rate limit:** 120 panggilan per 10 menit per IP, diperiksa paling awal sebelum input disentuh. Melebihi batas menghasilkan `{ ok: false, reason: "rate_limited" }` (Server Action tidak bisa mengirim HTTP 429, jadi tidak ada header `Retry-After`; UI cukup menampilkan pesan "coba lagi sebentar lagi"). Kalau penghitungnya gagal, hasil bermain **tetap diproses** (fail open). Angka ini longgar karena satu kelas bisa berbagi satu IP.
 
+### Bentuk input & hasil `masukKelas`
+
+Gerbang `/play` (ADR 0039 + ADR 0041). Memetakan kode kelas ke kelas + guru,
+memeriksa NIS, lalu ke game terbit guru itu.
+
+```ts
+type JoinInput = {
+  kode: string; // bentuk QST-XXXX; boleh huruf kecil/spasi tepi
+  nis: string; // NIS yang diketik, pola [A-Za-z0-9._-]{1,20}
+  storyId?: string; // diisi saat siswa memilih dari daftar game guru itu
+};
+
+type JoinOutcome =
+  | {
+      ok: true;
+      jenis: "main";
+      story: Story; // cerita versi terbit
+      classroom: PlayClassroom; // { id, name, code }
+      students: PlayStudent[]; // { id, name, nis }
+      pemain: PlayPlayer; // { studentId, name } — nama dari baris students
+    }
+  | { ok: true; jenis: "pilih"; classroom: PlayClassroom; games: JoinGame[] }
+  | {
+      ok: false;
+      reason: "nis_ambiguous";
+      candidates: JoinNisCandidate[]; // { studentId, name, nis }
+    }
+  | {
+      ok: false;
+      reason:
+        | "invalid_code"
+        | "not_found"
+        | "no_games"
+        | "invalid_nis"
+        | "nis_not_found"
+        | "story_not_found"
+        | "rate_limited";
+    };
+```
+
+Aturan:
+
+- **Kelas menentukan guru.** Hanya game `published` milik guru pemilik kelas
+  yang ditawarkan. `storyId` yang bukan milik guru itu → `story_not_found`
+  (tanpa membocorkan game guru lain). `getPlayEntry` memeriksa ulang kepemilikan
+  kelas terhadap cerita sebelum cerita dikirim.
+- **Satu game vs banyak.** Tanpa `storyId`, satu game terbit langsung dijawab
+  `jenis: "main"`, sedangkan lebih dari satu dijawab `jenis: "pilih"` supaya
+  siswa tidak masuk ke tugas yang salah.
+- **Identitas dari NIS, bukan nama** (ADR 0041). NIS dinormalisasi `cleanNis`
+  lalu dibandingkan tanpa memandang huruf besar/kecil serta tanpa titik/strip
+  ke **seluruh murid guru pemilik kelas** (`students.teacher_id`), karena NIS
+  unik per guru. Tepat satu murid → `pemain = { studentId, name }` dengan nama
+  dari baris `students`. Tidak ada → `nis_not_found`; siswa tidak bisa masuk.
+  Lebih dari satu (mis. `2026.001` vs `2026001`) → `nis_ambiguous` beserta
+  `candidates`; server tidak menebak. Tidak ada lagi nama bebas lewat gerbang
+  ini.
+- **Urutan pemeriksaan:** kode → kelas & game terbit → NIS → pilih game →
+  konfirmasi. NIS diperiksa sebelum daftar game dikirim.
+- **Konfirmasi di UI.** `pemain.name` ditampilkan bersama NIS dan kelas sebelum
+  `GameShell` dipasang. Client tidak boleh mengganti nama itu: `savePlayResult`
+  menurunkan nama/kelas dari `studentId`.
+- **Rate limit** 30 percobaan per 10 menit per IP, di memori, fail open,
+  diperiksa sebelum kode disentuh. Kelebihan → `rate_limited` (tanpa header
+  `Retry-After`; Server Action tidak bisa 429).
+- Tidak ada `revalidatePath`: halaman `/play` tidak menampilkan data ini dan
+  cerita dikirim balik sebagai bagian hasil.
+
 ### Tautan kelas dan `/guru/analitik` (bukan API publik)
 
 Tidak ada endpoint untuk menautkan game ke kelas. Kaitannya dibuat lewat
@@ -409,7 +484,9 @@ di `/guru/game`, dan halaman siswa memakai kode itu untuk memuat daftar siswa.
 - **Halaman `/guru/analitik` membaca langsung dari server**, bukan lewat API
   publik: query string `?kelas=<classroomId>&storyId=<storyId>` diterjemahkan
   `getClassroomAnalytics()` dengan filter `teacher_id` pada kelas **dan** cerita.
-  Kelas/game milik guru lain dan yang tidak ada sama-sama `null`.
+  Keduanya opsional — tanpa parameter hasilnya agregat semua kelas × semua game
+  `published` milik guru. Id yang diminta secara eksplisit tetapi milik guru
+  lain atau tidak ada → `null`; id kosong dianggap "tidak difilter".
 
 ### Batas ukuran payload
 
@@ -444,6 +521,7 @@ Batas yang berlaku sekarang. Angka tinggal di
 | `POST /api/auth/login`                  | 10 per 10 menit per IP                                      | database    | **fail closed**    |
 | `POST /api/upload`                      | 20 per jam per IP, 10 per jam per guru, 100 per hari global | database    | **fail closed**    |
 | `savePlayResult` (action)               | 120 per 10 menit per IP                                     | database    | fail open          |
+| `masukKelas` (action)                   | 30 per 10 menit per IP                                      | memori      | fail open          |
 | `createClassroom`/`addStudent` (action) | 60 per jam per guru                                         | database    | fail open          |
 | `GET /api/stories/[storyId]`            | 120 per menit per IP                                        | memori      | fail open          |
 | `GET /api/jobs/*`                       | 60 per menit per sesi                                       | belum ada   | —                  |
@@ -476,8 +554,9 @@ Aturan:
   tidak bisa membaca header (mis. lewat proxy) tetap punya nilainya. Nama
   `retryAfterSec` di `jobs-and-limits.md` **tidak** dipakai: bentuk `ApiError`
   tidak punya tempat untuk field itu, dan header sudah standar.
-- Server Action `savePlayResult` tidak memakai bentuk ini: ia mengembalikan
-  `{ ok: false, reason: "rate_limited" }` tanpa angka retry.
+- Server Action `savePlayResult` dan `masukKelas` tidak memakai bentuk ini:
+  keduanya mengembalikan `{ ok: false, reason: "rate_limited" }` tanpa angka
+  retry.
 - Kegagalan penghitung pada endpoint **fail closed** dijawab `500 INTERNAL`
   dengan pesan generik (tanpa detail), bukan `429`: klien tidak boleh
   menyimpulkan "coba lagi nanti" dari masalah server.

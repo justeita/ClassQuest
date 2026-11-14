@@ -1,79 +1,108 @@
-import Image from "next/image";
-
 /**
  * Jendela "tangkapan layar" game di hero halaman peran (`/`).
  *
- * Halaman `/` adalah kesan pertama juri, dan produk ini game pixel — tapi
- * sebelumnya tidak ada satu pun gambar permainan di halaman itu. Panel ini
- * menampilkan peta desa yang benar-benar dipakai game
- * (`public/assets/world/map_village.jpg`) beserta potret dan satu baris dialog
- * dari contoh cerita (`docs/02-data-model/story.example.json`).
+ * Halaman `/` adalah kesan pertama juri, dan produk ini game pixel — jadi panel
+ * ini memutar **rekaman permainan yang benar-benar jalan**, bukan satu gambar
+ * diam. Isinya potongan 30 detik dari desa: pemain berjalan melewati jalan
+ * setapak, lalu berdialog dengan warga.
  *
- * Semua gambar memakai berkas yang sudah ada di `public/assets/` — tidak ada
- * aset baru, dan tidak ada `assetId` karangan: halaman ini tidak memilih aset
- * untuk cerita, jadi manifest tidak terlibat. Teks dialog sengaja ditulis
- * sebagai teks asli (bukan gambar) supaya tetap tajam di semua layar dan bisa
- * dibaca pembaca layar.
+ * Berkasnya ada di `public/menu/`, **di luar** `public/assets/`: ia bukan aset
+ * yang dipilih cerita dan tidak punya `id` manifest (lihat
+ * `docs/07-assets/asset-guide.md`), sama seperti latar menu utama. Karena itu
+ * panel ini tidak menyentuh manifest aset sama sekali.
+ *
+ * Soal loop: rekaman ini tidak bisa dipotong begitu saja — potongan 0–30 detik
+ * berakhir di adegan yang berbeda dari awalnya, jadi menyambungnya mentah
+ * terlihat seperti lompatan. Karena itu awal dan akhir rekaman dibuat memudar
+ * ke gelap (0,5 detik di ffmpeg) sehingga `loop` terbaca sebagai transisi, bukan
+ * lompatan. Memudar ke gelap, bukan potongan keras, juga membuat latar gelap
+ * bingkai pixel tidak terasa berkedip.
+ *
+ * `muted` wajib supaya autoplay diizinkan browser; `playsInline` mencegah iOS
+ * membuka pemutar layar penuh. `poster` memakai frame dari video yang sama agar
+ * tidak ada kotak kosong sebelum byte pertama selesai diunduh.
+ *
+ * Gerak video ini mengikuti aturan halaman: bila pengguna memilih
+ * `prefers-reduced-motion: reduce`, videonya dijeda di frame poster dan tombol
+ * putar disediakan — CSS saja tidak cukup untuk menghentikan `<video>`.
  */
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+import { useMediaQuery } from "@/components/game/useSentuh";
+
+/**
+ * `HTMLMediaElement.play()` mengembalikan promise di browser, tapi `undefined` di
+ * jsdom. Penolakan autoplay juga wajar (mis. penghemat daya) dan bukan kegagalan:
+ * poster tetap tampil dan tombol putar tetap tersedia, jadi hasilnya sengaja
+ * tidak ditunggu.
+ */
+function putar(el: HTMLVideoElement) {
+  void el.play()?.catch(() => {});
+}
+
 export function GamePreview() {
+  const video = useRef<HTMLVideoElement>(null);
+  const kurangiGerak = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const [dijeda, setDijeda] = useState(false);
+
+  useEffect(() => {
+    const el = video.current;
+    if (!el) return;
+
+    if (kurangiGerak) {
+      el.pause();
+      return;
+    }
+
+    putar(el);
+  }, [kurangiGerak]);
+
+  const mainkan = () => {
+    const el = video.current;
+    if (!el) return;
+    putar(el);
+    setDijeda(false);
+  };
+
   return (
     <div className="landing-pixel-frame landing-bob relative overflow-hidden rounded-2xl bg-slate-900">
-      <div className="relative aspect-16/10">
-        <Image
-          src="/assets/world/map_village.jpg"
-          alt="Peta desa di dalam game: rumah-rumah warga, jalan setapak, pohon, dan balai desa."
-          fill
-          priority
-          sizes="(min-width: 1024px) 520px, 100vw"
-          className="object-cover object-center"
+      <div className="relative aspect-video">
+        <video
+          ref={video}
+          className="absolute inset-0 h-full w-full object-cover object-center"
+          src="/menu/hero_loop.mp4"
+          poster="/menu/hero_loop.jpg"
+          aria-label="Rekaman permainan ClassQuest: pemain berjalan di desa lalu berdialog dengan warga."
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          onPlay={() => setDijeda(false)}
+          onPause={() => setDijeda(true)}
         />
 
-        {/* Lapisan supaya dialog di bawah tetap terbaca di atas peta terang. */}
+        {/* Garis pindai tipis supaya panel ini tetap terasa satu keluarga dengan
+            bingkai pixel lain di halaman. */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-slate-900/10 to-slate-900/25"
-        />
-        <div
-          aria-hidden="true"
-          className="landing-scanlines absolute inset-0"
+          className="landing-scanlines pointer-events-none absolute inset-0"
         />
 
-        <p className="absolute left-3 top-3 rounded-md border-2 border-slate-900 bg-white/95 px-2 py-0.5 font-pixel text-[10px] font-bold uppercase tracking-[0.14em] text-slate-800">
-          Bab 1 · Perbandingan
-        </p>
-
-        {/* Dialog meniru gaya Persona (ADR 0023): dua potret tanpa bingkai
-            berdiri di **atas** panel, dasarnya menempel tepi atas kotak. NPC
-            yang bicara di kiri menyala; potret MC di kanan dicerminkan dan
-            diredupkan sebagai lawan bicara. */}
-        <div className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
-          <div className="relative">
-            <Image
-              src="/assets/portrait/mc/neutral.png"
-              alt="Potret Kael"
-              width={456}
-              height={360}
-              className="pointer-events-none absolute bottom-full right-0 h-24 w-[50%] -scale-x-100 object-contain object-bottom brightness-50 sm:h-32"
-            />
-            <Image
-              src="/assets/portrait/npc_1/thinking.png"
-              alt="Potret Elian"
-              width={456}
-              height={360}
-              className="pointer-events-none absolute bottom-full left-0 h-24 w-[50%] object-contain object-bottom sm:h-32"
-            />
-
-            <div className="relative rounded-xl border border-white/5 bg-slate-900/95 px-3 pb-2.5 pt-2 sm:px-4">
-              <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.14em] text-[#55D0A5]">
-                Elian
-              </p>
-              <p className="font-game text-[13px] leading-snug text-[#EFF2F7] sm:text-sm">
-                Tiga bagian tinta biru, dua bagian tinta emas. Berapa cangkir
-                tinta emas untuk sembilan cangkir biru?
-              </p>
-            </div>
-          </div>
-        </div>
+        {dijeda ? (
+          <button
+            type="button"
+            onClick={mainkan}
+            className="absolute inset-0 flex items-center justify-center bg-slate-900/35 text-white transition hover:bg-slate-900/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <span className="landing-pixel-shadow flex h-12 w-12 items-center justify-center rounded-full border-2 border-slate-900 bg-white text-slate-900">
+              <i className="fa-solid fa-play" aria-hidden="true" />
+            </span>
+            <span className="sr-only">Putar rekaman permainan</span>
+          </button>
+        ) : null}
       </div>
     </div>
   );
