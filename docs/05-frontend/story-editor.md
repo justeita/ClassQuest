@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -11,6 +11,47 @@ ini kontrol kualitas dan kontrol keamanan produk.
 
 Target: guru bisa memperbaiki satu dialog dan satu soal dalam **kurang dari 60
 detik**, tanpa melihat JSON.
+
+## Status implementasi
+
+Implementasi: `src/app/guru/(portal)/materi/[storyId]/edit/page.tsx` (halaman) +
+`src/components/guru/StoryEditor.tsx` (client) di atas logika murni
+`src/components/guru/storyEditorState.ts`.
+
+Yang **sudah** ada:
+
+- Form meta cerita, chapter, scene, dan beat; guru tidak melihat JSON.
+- Dropdown aset (latar/musik) hanya berisi manifest, dikelompokkan per kind.
+- Semua tipe tantangan bisa disunting, termasuk mengganti tipe.
+- Hitungan karakter per field dengan peringatan saat mendekati/melampaui batas.
+- Validasi client dengan `validateStory` yang sama dengan server, debounce
+  300 ms; error dan saran tampil di panel bawah dalam bahasa manusia.
+- Klik masalah di panel bawah membuka scene/beat terkait.
+- Undo/redo (tombol dan `Ctrl/Cmd+Z`), stack di-reset setelah simpan.
+- Simpan eksplisit ke `saveStoryDraft` + pemulihan darurat `localStorage`
+  (namespace `classquest:editor:{storyId}`) dan dialog konflik versi.
+- `assetUsage` diturunkan ulang setiap perubahan, jadi `E_ASSET_USAGE_MISMATCH`
+  tidak pernah muncul karena edit guru.
+
+Yang **belum** ada (di luar cakupan MVP, lihat "Yang tidak dikerjakan"):
+
+- Preview draft (`/guru/materi/[storyId]/preview`) — tombol publish tetap di
+  halaman detail materi.
+- Tambah/hapus chapter dan scene.
+- Diff antar versi.
+- Drag-and-drop.
+
+Aturan validator yang membentuk UI (lihat
+[`../02-data-model/validation-rules.md`](../02-data-model/validation-rules.md)):
+
+- **Satu soal hanya boleh dirujuk satu beat** (`E_DUPLICATE_CHALLENGE_REF`).
+  Karena itu "Tambah soal" selalu membuat soal baru, dan dropdown "Soal yang
+  dipakai" hanya menawarkan soal yang belum dipakai beat lain.
+- **Tidak boleh ada soal yatim** (`E_ORPHAN_CHALLENGE`). Menghapus beat
+  `challenge`, menggantinya dengan soal lain, atau menekan "Buat soal baru"
+  ikut membuang soal yang tidak lagi dirujuk.
+- **Beat terakhir tidak boleh `transition`** (`E_TRANSITION_LAST`). Editor tidak
+  melarang, tetapi panel validasi menandainya dan tombol naik sudah tersedia.
 
 ## Prinsip
 
@@ -226,11 +267,11 @@ Aturan:
 
 ## Checklist implementasi
 
-- [ ] Editor memakai validator yang sama dengan server.
-- [ ] Hitungan karakter per beat terlihat.
-- [ ] Dropdown aset hanya dari manifest.
-- [ ] Publish diblokir saat ada error.
-- [ ] Konflik versi ditangani.
+- [x] Editor memakai validator yang sama dengan server.
+- [x] Hitungan karakter per beat terlihat.
+- [x] Dropdown aset hanya dari manifest.
+- [x] Publish diblokir saat ada error.
+- [x] Konflik versi ditangani.
 - [ ] Preview memakai draft.
-- [ ] Undo/redo berfungsi.
-- [ ] Semua aksi server memanggil `requireTeacher()`.
+- [x] Undo/redo berfungsi.
+- [x] Semua aksi server memanggil `requireTeacher()`.
