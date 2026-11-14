@@ -121,6 +121,15 @@ export function GameCanvas({
       typeof window === "undefined" ? null : window.localStorage,
     ),
   );
+  /**
+   * Salinan terbaru `audio` untuk pendengar `ready`. Event itu didaftarkan
+   * sekali saat game dibuat, jadi closure `audio` akan basi; ref ini membuat
+   * pengaturan yang dikirim selalu yang terakhir.
+   */
+  const audioRef = useRef(audio);
+  useEffect(() => {
+    audioRef.current = audio;
+  }, [audio]);
   /** Pelacak perubahan chapter/quest untuk memicu kartu dan toast sekali. */
   const chapterTerakhir = useRef<number | null>(null);
   const questTerakhir = useRef<string | null>(null);
@@ -205,6 +214,12 @@ export function GameCanvas({
         lepas.push(
           game.bus.on("ready", () => {
             setSiapMain(true);
+            // Scene mendaftarkan pendengar `set_audio` sebelum mengirim `ready`,
+            // jadi kiriman ini pasti diterima. Tanpa ini pengaturan tersimpan
+            // (mis. musik yang dimatikan) hilang: efek kirim saat mount berjalan
+            // sebelum Phaser selesai dibuat, saat bus masih kosong.
+            const a = audioRef.current;
+            game.bus.send({ type: "set_audio", music: a.music, sfx: a.sfx });
           }),
         );
 
@@ -377,32 +392,24 @@ export function GameCanvas({
     });
   }, [tantangan, hasil]);
 
-  /** Ubah satu kanal audio, simpan, dan teruskan ke scene. */
+  /** Ubah satu kanal audio: simpan ke storage dan perbarui state. */
   const ubahAudio = useCallback((kanal: "music" | "sfx", volume: number) => {
-    setAudio((sebelum) => {
-      const berikut = simpanPengaturanAudio(
-        { ...sebelum, [kanal]: volume },
-        window.localStorage,
-      );
-      busRef.current?.send({
-        type: "set_audio",
-        music: berikut.music,
-        sfx: berikut.sfx,
-      });
-      return berikut;
-    });
+    const berikut = simpanPengaturanAudio(
+      { ...audioRef.current, [kanal]: volume },
+      window.localStorage,
+    );
+    setAudio(berikut);
   }, []);
 
-  // Kirim pengaturan tersimpan ke scene tepat setelah game dibuat.
+  // Teruskan perubahan volume ke scene. Pengaturan awal tidak lewat sini —
+  // bus belum ada saat mount — melainkan dari pendengar `ready` di atas.
   useEffect(() => {
     busRef.current?.send({
       type: "set_audio",
       music: audio.music,
       sfx: audio.sfx,
     });
-    // Hanya sekali per pembuatan game; perubahan lanjutan lewat ubahAudio.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [audio]);
 
   /** Muat ulang Phaser di layar yang sama setelah gagal dimuat. */
   const cobaLagiMuat = useCallback(() => {

@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GameBus } from "@/game/gameBus";
 import { DEMO_STORY } from "@/game/demoStory";
+import { KUNCI_PENGATURAN } from "@/game/audioSettings";
 import { persenLebar } from "@/game/layout";
 import type { QuestState } from "@/game/questLog";
 import type { Answer, PlayResult } from "@/story/scoring";
@@ -92,6 +93,9 @@ afterEach(cleanup);
 
 beforeEach(() => {
   bus = new GameBus();
+  // Pengaturan audio persist di localStorage; bersihkan supaya tes tidak
+  // saling mewarisi volume.
+  window.localStorage.clear();
   // Semua pembaruan state React di tes ini berasal dari `bus.emit`, yang
   // dipanggil di luar `act`. React lalu menunda flush efek pasif, sehingga
   // listener jendela (Tab/Esc) dan efek fokus kadang belum terpasang saat tes
@@ -392,6 +396,61 @@ describe("GameShell", () => {
       screen.getByRole("button", { name: /musik mati/i }),
     ).toBeInTheDocument();
     lepas();
+  });
+
+  it("mengirim pengaturan audio tersimpan tepat saat scene siap", async () => {
+    window.localStorage.setItem(
+      KUNCI_PENGATURAN,
+      JSON.stringify({ music: 0, sfx: 0.4 }),
+    );
+    await masukMain();
+
+    const audio = vi.fn();
+    const lepas = bus.onCommand("set_audio", audio);
+    // `ready` menandai scene berdiri; pendengar `set_audio`-nya sudah terpasang.
+    bus.emit({ type: "ready" });
+
+    expect(audio).toHaveBeenCalledWith({
+      type: "set_audio",
+      music: 0,
+      sfx: 0.4,
+    });
+    lepas();
+  });
+
+  it("tombol musik menyimpan preferensi supaya tetap mati saat dibuka lagi", async () => {
+    await mainkan();
+    fireEvent.click(screen.getByRole("button", { name: /musik nyala/i }));
+
+    expect(
+      JSON.parse(window.localStorage.getItem(KUNCI_PENGATURAN) ?? "null"),
+    ).toEqual({ music: 0, sfx: 1 });
+
+    // Buka game lagi dari nol, seperti setelah refresh.
+    cleanup();
+    await mainkan();
+
+    expect(
+      screen.getByRole("button", { name: /musik mati/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("menu jeda menampilkan volume tersimpan setelah dibuka lagi", async () => {
+    await mainkan();
+    bukaJeda();
+    fireEvent.change(screen.getByLabelText("Musik"), {
+      target: { value: "40" },
+    });
+    fireEvent.change(screen.getByLabelText("Efek suara"), {
+      target: { value: "70" },
+    });
+
+    cleanup();
+    await mainkan();
+    bukaJeda();
+
+    expect(screen.getByLabelText("Musik")).toHaveValue("40");
+    expect(screen.getByLabelText("Efek suara")).toHaveValue("70");
   });
 
   it("buku log mencatat dialog dan jurnal konsep", async () => {

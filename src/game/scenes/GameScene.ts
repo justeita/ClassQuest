@@ -1423,7 +1423,9 @@ export class GameScene extends Phaser.Scene {
       // Track sesi tidak di-loop sendiri: saat selesai, `update` memutar track
       // berikutnya. Override scene tetap di-loop karena bukan bagian rotasi.
       loop: !dariSesi,
-      volume: MUSIC_VOLUME,
+      // Pakai volume efektif, bukan dasar: pengaturan pengguna sudah tersimpan
+      // saat scene dibuat, jadi track baru tidak sempat berbunyi penuh dulu.
+      volume: this.volumeMusikEfektif(),
     });
     if (dariSesi) {
       music.once(Phaser.Sound.Events.COMPLETE, () => {
@@ -1444,10 +1446,23 @@ export class GameScene extends Phaser.Scene {
     this.sound.play(assetId, { volume: SFX_VOLUME * this.volumeSfx });
   }
 
-  /** Volume musik efektif: nilai pengguna × faktor dasar (jeda menurunkan). */
-  private terapkanVolume() {
+  /**
+   * Volume musik yang seharusnya terdengar sekarang.
+   *
+   * Pengaturan pengguna (`volumeMusik`, 0 berarti mati) dikalikan faktor dasar
+   * supaya musik tetap lebih pelan dari efek suara; saat menu jeda terbuka
+   * faktor diturunkan lagi. Dipakai baik saat membuat track baru maupun saat
+   * menerapkan perubahan volume, jadi track yang berganti di tengah sesi tidak
+   * pernah kembali ke volume penuh.
+   */
+  private volumeMusikEfektif(): number {
     const faktor = this.volumeSedangJeda ? MUSIC_VOLUME_PAUSED : MUSIC_VOLUME;
-    this.aturVolumeMusik(faktor * this.volumeMusik);
+    return faktor * this.volumeMusik;
+  }
+
+  /** Terapkan volume musik efektif ke track yang sedang diputar. */
+  private terapkanVolume() {
+    this.aturVolumeMusik(this.volumeMusikEfektif());
   }
 
   /**
