@@ -204,28 +204,32 @@ Aturan:
 | UI guru             | Geist Sans                                                           | `text-sm` (14) body, `text-2xl` judul |
 | Judul halaman       | Geist Sans                                                           | `text-2xl font-semibold`              |
 | Halaman peran (`/`) | Inter (body), Plus Jakarta (`font-heading`), Pixelify (`font-pixel`) | `text-xs`–`text-4xl`                  |
+| Nama pembicara      | Pixelify (`font-pixel`), kapital + tracking                          | `clamp()` dari `src/game/layout.ts`   |
 | Teks game           | Patrick Hand (`font-game`)                                           | `clamp()` dari `src/game/layout.ts`   |
 | Kode/ID aset        | Geist Mono                                                           | `text-xs`                             |
 
 - `--font-game` = `var(--font-handwriting)` didefinisikan di `@theme inline`
   `src/app/globals.css`; utility `font-game` dipakai HUD, dialog, prompt, dan
   layar overlay game.
-- **Patrick Hand hanya punya bobot 400.** Jangan memakai `font-bold` untuk teks
-  game — browser akan mensintesis bold dan huruf terlihat kotor. Pakai ukuran,
-  warna, atau `tracking` untuk hierarki.
+- **Patrick Hand hanya punya bobot 400.** Jangan memakai `font-bold` untuk isi
+  teks game — browser akan mensintesis bold dan huruf terlihat kotor. Pakai
+  ukuran, warna, atau `tracking` untuk hierarki. Pengecualian: nama pembicara
+  memakai `font-pixel` (Pixelify Sans punya bobot 500–700), jadi `font-bold` di
+  sana aman.
 - Ukuran teks game memakai `clamp(min, Ncqw, max)` dari `layout.ts`, bukan `rem`
   tetap, supaya ikut skala canvas tanpa turun di bawah batas baca. Jangan
   menyalin angka internal ke komponen.
-- Teks dialog **tidak** digambar di canvas (ADR 0007); panel dan portrait tetap
-  Phaser, teksnya DOM. Jangan menambah teks permainan baru di canvas.
+- Teks dialog **tidak** digambar di canvas (ADR 0007); panel, potret, dan teks
+  semuanya DOM. Jangan menambah teks permainan baru di canvas.
 
-Font dimuat di `src/app/layout.tsx`: Geist lewat `next/font/google`, Patrick Hand
-lewat `next/font/local` dari `public/fonts/`. Jangan memuat font lewat `<link>`
-manual.
+Font dimuat di `src/app/layout.tsx`: Geist dan Pixelify Sans lewat
+`next/font/google`, Patrick Hand lewat `next/font/local` dari `public/fonts/`.
+Jangan memuat font lewat `<link>` manual.
 
 Font khusus satu area dimuat di layout area itu, bukan di root, supaya halaman
 lain tidak ikut mengunduhnya: portal guru di `src/app/guru/layout.tsx`, halaman
-peran di `src/app/(landing)/layout.tsx`.
+peran di `src/app/(landing)/layout.tsx`. Pixelify Sans (`font-pixel`) justru
+tinggal di root karena dipakai juga oleh nama pembicara di game.
 
 ## Spacing dan layout
 

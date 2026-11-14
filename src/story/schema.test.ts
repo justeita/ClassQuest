@@ -9,6 +9,7 @@ import {
   challengeSchema,
   storySchema,
 } from "./schema";
+import { EXPRESSIONS } from "./expression";
 
 /**
  * Fixture resmi dipakai apa adanya, tanpa salinan yang bisa menyimpang:
@@ -455,6 +456,27 @@ const invalidCases: InvalidCase[] = [
       draft.scoring = { basis: "lastAttempt" };
     }),
   },
+  {
+    name: "narration memakai expression tanpa speakerId",
+    story: withExample((draft) => {
+      beatsOf(scenesOf(chapters(draft)[0])[0])[1] = {
+        type: "narration",
+        text: "Angin berhenti sejenak.",
+        expression: "happy",
+      };
+    }),
+  },
+  {
+    name: "ekspresi potret tidak dikenal",
+    story: withExample((draft) => {
+      beatsOf(scenesOf(chapters(draft)[0])[0])[1] = {
+        type: "dialogue",
+        speakerId: "char_npc_1",
+        text: "Halo, Nara!",
+        expression: "excited",
+      };
+    }),
+  },
 ];
 
 describe("kasus tidak valid ditolak", () => {
@@ -536,5 +558,12 @@ describe("drift guard: storySchema vs story.schema.json", () => {
 
   it.each(validCases)("$name: keputusan kedua schema sama", ({ story }) => {
     expect(storySchema.safeParse(story).success).toBe(documentedAccepts(story));
+  });
+});
+
+describe("drift guard: daftar ekspresi potret", () => {
+  it("$defs.expression sama dengan EXPRESSIONS di kode", () => {
+    const defs = asRecord(asRecord(documentedSchema).$defs);
+    expect(asRecord(defs.expression).enum).toEqual([...EXPRESSIONS]);
   });
 });

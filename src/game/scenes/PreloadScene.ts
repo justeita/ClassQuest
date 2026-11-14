@@ -58,9 +58,6 @@ export class PreloadScene extends Phaser.Scene {
           frameWidth: asset.frameWidth ?? FRAME_WIDTH_DEFAULT,
           frameHeight: asset.frameHeight ?? FRAME_HEIGHT_DEFAULT,
         });
-        if (asset.portraitPath) {
-          this.load.image(`${asset.id}:portrait`, asset.portraitPath);
-        }
       } else if (asset.kind === "music" || asset.kind === "sfx") {
         this.load.audio(asset.id, asset.path);
       } else {

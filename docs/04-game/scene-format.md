@@ -61,10 +61,11 @@ Aturan:
    potongan objek, spritesheet karakter, dan musik default. Dunia tidak bisa
    dirender sebagian, jadi semuanya dimuat sekali di awal.
 2. **Aset cerita** lewat `collectStoryAssets(story)`: background chapter +
-   override scene, musik chapter + override scene, dan `spriteId` setiap `cast`
-   beserta potretnya.
-3. **Aset UI dan SFX runtime** (`ui_textbox`, `ui_portrait_frame`, `ui_default`,
-   `sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`).
+   override scene, musik chapter + override scene, dan `spriteId` setiap `cast`.
+   Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0023).
+3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `sfx_click`,
+   `sfx_page`, `sfx_correct`, `sfx_wrong`). Panel dan potret dialog tidak dimuat
+   Phaser.
 
 Semua key loader memakai `id` manifest, jadi scene tidak menebak path file.
 `manifest.test.ts` menjamin setiap id punya berkasnya, sehingga `PreloadScene`
@@ -81,9 +82,10 @@ dijelajahi:
   **8 arah** (`W`/`A`/`S`/`D` atau panah) dengan collision dari data dunia.
 - Data dunia — peta, penempatan NPC, spawn, sel collision — didefinisikan **di
   sisi game** dan **tidak mengubah kontrak Story JSON**.
-- Sprite karakter memakai `spriteId` dari `cast` (spritesheet 8 frame, tinggi
-  frame 64 px, lebar per karakter). Bila texture karakter tidak ada, sprite itu
-  tidak digambar — tidak ada sprite cadangan.
+- Sprite karakter memakai `spriteId` dari `cast` (spritesheet berpetak: 8 baris
+  arah × kolom idle/walk). Animasi idle berputar terus; pemain menambah animasi
+  walk, dan NPC berbalik menghadap pemain begitu diajak bicara. Bila texture
+  karakter tidak ada, sprite itu tidak digambar — tidak ada sprite cadangan.
 - Gerak **bukan** fisika Phaser: `movement.ts` menghitung langkah per sumbu dan
   memeriksa `buatTabrakan()` dari sel collision editor. Kotak tabrakan hanya di
   kaki (16×9 px). Detailnya di
@@ -114,32 +116,68 @@ bebas bergerak.
 │                     ┌───────┐                        │
 │                     │PEMAIN │  ← di posisi dunianya  │
 │                     └───────┘                        │
-│                                                      │
-│ ┌──────┐ ┌─────────────────────────────────────────┐ │
-│ │PORTRA│ │ TEXTBOX (ui_textbox)                    │ │
-│ │72 px │ │ Nama                                    │ │
-│ └──────┘ │ Teks dialog...                          │ │
-│          └─────────────────────────────────────────┘ │
+│ ┌───────────────────────┐  ┌───────────────────────┐ │
+│ │         NPC           │  │   MC (bila scene      │ │
+│ │      (menyala)        │  │      memuat giliran)  │ │
+│ │  dasar menempel tepi  │  │       (meredup)       │ │
+│ │       kotak dialog    │  │  dasar menempel tepi  │ │
+│ └───────────────────────┘  └───────────────────────┘ │
+│ ┌──────────────────────────────────────────────────┐ │
+│ │ TEXTBOX (panel gelap)                            │ │
+│ │ Nama                                             │ │
+│ │ Teks dialog...                                   │ │
+│ └──────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────┘
 ```
 
-| Elemen    | Posisi/ukuran                                                             |
-| --------- | ------------------------------------------------------------------------- |
-| Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`         |
-| Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                          |
-| Textbox   | 608×104, terpusat horizontal, `y=240`, menempel layar (`setScrollFactor`) |
-| Portrait  | Bingkai 72×72 di atas panel, gambar 64×64 di dalamnya                     |
-| Nama      | Di dalam textbox, baris pertama (DOM)                                     |
-| Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)            |
-| Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                   |
+| Elemen    | Posisi/ukuran                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dunia     | Peta desa 2390×1792, digambar `setOrigin(0)`, `setDepth(-100000)`                                                                                                                                                                                                                                                                                                                                                               |
+| Pemain    | Sprite dunia, `setOrigin(0.5, 1)`, `setDepth(y)`                                                                                                                                                                                                                                                                                                                                                                                |
+| Textbox   | 608×104, terpusat horizontal, `y=240`; kotak navy gelap membulat (CSS)                                                                                                                                                                                                                                                                                                                                                          |
+| Potret    | Dua slot ±85% dari setengah panel (kanvas 456×360), masing-masing masuk 18 px dari sisi panel (radius sudut + 4) supaya siluet tidak terpotong dan tidak mepet lengkungan: NPC di kiri, MC dicerminkan di kanan; pembicara menyala, lawan bicara meredup; dasar menempel tepi atas panel (DOM). Potret MC hanya muncul bila scene memuat giliran MC — dialog antar-NPC dan obrolan singkat NPC non-quest tampil tanpa potret MC |
+| Nama      | Di dalam textbox, baris pertama (DOM)                                                                                                                                                                                                                                                                                                                                                                                           |
+| Teks      | Maks 240 karakter per beat (batas schema), dirender utuh (DOM)                                                                                                                                                                                                                                                                                                                                                                  |
+| Indikator | Panah kecil berkedip di kanan bawah saat menunggu (DOM)                                                                                                                                                                                                                                                                                                                                                                         |
 
-> **Panel di Phaser, teks di DOM (ADR 0007).** Phaser hanya menggambar
-> `ui_textbox`, bingkai portrait, dan portrait-nya. Nama, isi dialog, dan
-> indikator "lanjut" dirender `DialogueBox.tsx` di lapisan DOM dengan posisi
-> persen dari `src/game/layout.ts`, sehingga huruf tajam di layar. Prompt
-> interaksi `Space` juga DOM (`InteractHint.tsx`). Jangan menambah teks game baru
-> di canvas: canvas di-upscale `pixelated`, jadi semua huruf di dalamnya
-> bergerigi.
+> **Semua di DOM (ADR 0007 + ADR 0023).** Phaser hanya memegang state typewriter
+> (`textbox.ts`); panel, potret, nama, isi dialog, dan indikator "lanjut" dirender
+> `DialogueBox.tsx`. Panel **bukan lagi** gambar `ui_textbox`: ia kotak CSS navy
+> gelap membulat (gaya Persona) supaya sudut dan warnanya tajam di resolusi layar
+> asli — nama pembicara huruf pixel teal kapital, isi dialog putih. Potret anime
+> juga digambar browser pada resolusi asli. Posisi memakai persen dari
+> `src/game/layout.ts`. Prompt interaksi `Space` juga DOM
+> (`InteractHint.tsx`). Jangan menambah teks game baru di canvas: canvas
+> di-upscale `pixelated`, jadi semua huruf di dalamnya bergerigi.
+>
+> Potret memakai **tinggi kepala** sebagai acuan skala (bukan tinggi gambar),
+> jadi wajah semua karakter tampil sebesar yang sama walau pembingkaian sumber
+> aslinya berbeda (`scripts/import-portraits.mjs`). Semua potret satu karakter
+> disusun relatif ke satu patokan (tepi kiri kanvas), sehingga siluetnya utuh
+> — tidak ada sisi yang dipotong — dan tidak melompat saat ekspresi berganti.
+> Karakter berbadan pendek dinaikkan skalanya sedikit supaya isinya menyentuh
+> tepi bawah kanvas, dan tepi bawah yang tadinya memudar dipadatkan jadi
+> potongan rata — jadi badan benar-benar berhenti di tepi atas kotak, tanpa
+> selaput transparan yang membuat potret tampak melayang. Slot potret digambar
+> 85% dari setengah panel (supaya tidak mendominasi layar) dan masuk
+> `PORTRAIT.inset` px dari sisi panel, sedikit lebih besar dari radius sudut,
+> supaya siluet tidak terpotong lengkungan dan tidak terlihat mepet ke tepi
+> kotak. Kanvasnya 456×360 dan disimpan dengan
+> filter PNG adaptif supaya cepat dimuat. Saat satu pihak bicara, potretnya
+> menyala dan potret
+> lawan bicara tetap tampil tetapi diredupkan; giliran MC membuat potret NPC
+> meredup, begitu pula sebaliknya, dan sorot itu bertahan selama sesi dialog.
+> Potret MC hanya menemani dialog di scene yang memang memberi giliran bicara
+> kepada MC (`src/game/potret.ts`); dialog antar-NPC dan obrolan singkat dengan
+> NPC non-quest (ADR 0016) tampil tanpa potret MC. Selama soal belum dijawab,
+> kedua potret disembunyikan; setelah dinilai keduanya tampil lagi untuk umpan
+> balik senang/marah.
+>
+> Panel dan potret punya animasi buka/tutup: panel menyala seperti TV tabung
+> dari garis tipis di tengah dan menutup kembali ke tengah, sedangkan potret
+> terbit dari balik panel lalu tenggelam saat dialog ditutup (`globals.css`).
+> `DialogueBox` menahan view terakhir ±360 ms supaya animasi tutup sempat
+> berjalan; semuanya dimatikan pada `prefers-reduced-motion`.
 
 Beginilah hasilnya di layar:
 
@@ -193,14 +231,17 @@ terjadi sebelum beat pertama scene.
 
 - Textbox tanpa nama.
 - Sprite speaker sebelumnya diredam (tidak ada yang disorot).
-- Tidak ada portrait.
+- Potret opsional: `speakerId` + `expression` memunculkan potret karakter
+  **tanpa** menampilkan namanya. Tanpa `speakerId`, tidak ada potret.
 
 ### `dialogue`
 
 - Textbox dengan nama karakter (`cast.name`, bukan `id`).
 - Sprite speaker disorot: `setTint(0xffffff)` untuk yang bicara, `setTint(0x9a9a9a)`
   untuk yang tidak. **Ingat:** `setTintFill()` sudah dihapus di Phaser 4.
-- Portrait ditampilkan bila entri manifest karakter punya `portraitPath`.
+- Potret diambil dari `portraits[expression]` milik karakter; `expression`
+  opsional dan default `neutral`. Potret digambar DOM **di atas** panel, dasar
+  sejajar tepi atasnya, tanpa bingkai (ADR 0023).
 
 ### `challenge`
 
@@ -210,6 +251,8 @@ terjadi sebelum beat pertama scene.
   menutupi seluruh layar. Tidak ada lapisan gelap penuh.
 - Dialog **dipause**, bukan ditutup: baris terakhir tetap terlihat sebagai
   konteks soal, dan typewriter dibekukan selama fase `challenge`.
+- Soal memakai potret pembicara terakhir. Setelah jawaban dinilai, potretnya
+  berganti: benar → `happy`, salah → `angry`.
 - Isi soal yang panjang digulir di dalam panel; tombol aksi menempel di bawah.
 - Event `challenge` dikirim ke React dengan `challengeId`.
 - Phaser menunggu perintah `resolve_challenge` sebelum lanjut.
@@ -255,7 +298,8 @@ Chapter 1, scene `sc_01_02` ("Tiga Kali Resep"):
     {
       "type": "dialogue",
       "speakerId": "char_npc_10",
-      "text": "Sebelum mulai, pastikan takarannya benar. Salah sedikit, warna spanduk bisa pucat dan pesta jadi kurang meriah."
+      "text": "Sebelum mulai, pastikan takarannya benar. Salah sedikit, warna spanduk bisa pucat dan pesta jadi kurang meriah.",
+      "expression": "thinking"
     },
     {
       "type": "challenge",
@@ -264,7 +308,8 @@ Chapter 1, scene `sc_01_02` ("Tiga Kali Resep"):
     {
       "type": "dialogue",
       "speakerId": "char_npc_1",
-      "text": "Benar, sembilan cangkir tinta biru butuh enam cangkir tinta emas. Kau sudah paham perbandingan."
+      "text": "Benar, sembilan cangkir tinta biru butuh enam cangkir tinta emas. Kau sudah paham perbandingan.",
+      "expression": "happy"
     },
     {
       "type": "narration",
@@ -289,9 +334,10 @@ Yang terjadi:
 1. Musik chapter tetap `bgm_default` (tidak berganti).
 2. Dunia desa tidak berubah; pemain tetap di posisi terakhirnya.
 3. Pemberi quest scene ini adalah Edric (`char_npc_10`); dekati dia → `Space`.
-4. Edric tampil, textbox berisi nama + kalimat.
+4. Edric tampil, textbox berisi nama + kalimat, dengan potret `thinking`.
 5. Klik → beat tantangan → dialog pause, overlay `chl_01_01` muncul.
-6. Siswa menjawab → feedback + penjelasan → overlay tertutup.
+6. Siswa menjawab → potret Edric berganti `happy`/`angry`, lalu feedback +
+   penjelasan → overlay tertutup.
 7. Elian (`char_npc_1`) tampil, dialog.
 8. Narasi tanpa nama.
 9. Scene selesai → kembali ke dunia (`explore`), lanjut ke bab berikutnya.

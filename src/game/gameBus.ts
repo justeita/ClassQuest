@@ -2,6 +2,7 @@ import type { Answer, PlayResult } from "@/story/scoring";
 
 import type { ChallengeView } from "./challengeView";
 import type { QuestState } from "./questLog";
+import type { PortraitView } from "./textbox";
 
 /**
  * Bridge Phaser ↔ React sesuai docs/04-game/engine.md:
@@ -12,8 +13,9 @@ import type { QuestState } from "./questLog";
  */
 
 /**
- * Isi kotak dialog. Teksnya dirender DOM (`DialogueBox.tsx`) supaya tajam;
- * Phaser hanya menggambar panel pixel-nya (ADR 0007).
+ * Isi kotak dialog. Panel, potret, nama, dan teks semuanya dirender DOM
+ * (`DialogueBox.tsx`) supaya tajam; Phaser hanya memegang state typewriter
+ * (ADR 0007 + ADR 0020).
  */
 export type DialogueView = {
   visible: boolean;
@@ -23,6 +25,14 @@ export type DialogueView = {
   text: string;
   /** Teks sudah penuh dan menunggu pemain melanjutkan. */
   waiting: boolean;
+  /** Potret pembicara yang menyala di atas kotak dialog; null bila tidak ada. */
+  portrait: PortraitView | null;
+  /**
+   * Potret lawan bicara (MC saat NPC yang bicara, atau sebaliknya). Selama
+   * giliran satu pihak, potretnya menyala dan yang ini meredup; null bila tidak
+   * ada pasangan.
+   */
+  pendamping?: PortraitView | null;
 };
 
 /**

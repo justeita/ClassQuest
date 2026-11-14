@@ -123,16 +123,20 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_1",
-              "text": "Kael! Tepat waktu. Spanduk pesta belum selesai, dan aku butuh bantuan menakar tinta."
+              "text": "Kael! Tepat waktu. Spanduk pesta belum selesai, dan aku butuh bantuan menakar tinta.",
+              "expression": "happy"
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Aku siap membantu, Elian. Apa yang harus kuhitung lebih dulu?"
+              "text": "Aku siap membantu, Elian. Apa yang harus kuhitung lebih dulu?",
+              "expression": "happy"
             },
             {
               "type": "narration",
-              "text": "Elian membuka buku sihirnya. Di halaman yang lusuh, sebuah resep tinta tertulis rapi dengan angka-angka kecil."
+              "speakerId": "char_npc_1",
+              "text": "Elian membuka buku sihirnya. Di halaman yang lusuh, sebuah resep tinta tertulis rapi dengan angka-angka kecil.",
+              "expression": "thinking"
             },
             {
               "type": "dialogue",
@@ -148,7 +152,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_10",
-              "text": "Sebelum mulai, pastikan takarannya benar. Salah sedikit, warna spanduk bisa pucat dan pesta jadi kurang meriah."
+              "text": "Sebelum mulai, pastikan takarannya benar. Salah sedikit, warna spanduk bisa pucat dan pesta jadi kurang meriah.",
+              "expression": "thinking"
             },
             {
               "type": "challenge",
@@ -323,7 +328,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Sekarang kita beri nama patok sesuai ukuran petak, dari yang paling kecil."
+              "text": "Sekarang kita beri nama patok sesuai ukuran petak, dari yang paling kecil.",
+              "expression": "thinking"
             },
             {
               "type": "dialogue",

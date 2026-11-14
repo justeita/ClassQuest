@@ -16,11 +16,43 @@
  */
 
 import type { AssetManifest } from "../story/validate";
+import { EXPRESSIONS, type Expression } from "../story/expression";
 
+import { CHARACTER_FRAMES } from "./characterFrames";
 import { WORLD_ASSETS } from "./worldAssets";
+
+/**
+ * Ukuran satu frame spritesheet karakter. Angkanya **dibangkitkan** oleh
+ * `scripts/import-characters.mjs` ke `characterFrames.ts`, jadi manifest tidak
+ * perlu menyalin ulang saat spritesheet dibuat ulang.
+ */
+function karakterFrames(name: string): {
+  frameWidth: number;
+  frameHeight: number;
+} {
+  const frames = CHARACTER_FRAMES.find((entry) => entry.name === name);
+  if (!frames) throw new Error(`tanpa metadata frame karakter: ${name}`);
+  return { frameWidth: frames.frameWidth, frameHeight: frames.frameHeight };
+}
 
 export type AssetKind =
   "background" | "character" | "world" | "music" | "sfx" | "ui";
+
+/**
+ * Potret dialog satu karakter: path berkas per ekspresi. Semua ekspresi ada
+ * untuk setiap karakter, jadi game tidak perlu menangani potret yang bolong.
+ */
+export type PortraitSet = Readonly<Record<Expression, string>>;
+
+/** Susun path potret dari nama karakter (`mc`, `npc_1`, ...). */
+function potret(name: string): PortraitSet {
+  return Object.fromEntries(
+    EXPRESSIONS.map((expression) => [
+      expression,
+      `/assets/portrait/${name}/${expression}.png`,
+    ]),
+  ) as PortraitSet;
+}
 
 export type AssetEntry = {
   id: string;
@@ -31,8 +63,8 @@ export type AssetEntry = {
   tags: string[];
   width?: number;
   height?: number;
-  /** Hanya untuk kind `character`; file harus ada di `public/`. */
-  portraitPath?: string;
+  /** Hanya untuk kind `character`: potret dialog per ekspresi. */
+  portraits?: PortraitSet;
   /** Hanya untuk kind `character`: ukuran satu frame spritesheet. */
   frameWidth?: number;
   frameHeight?: number;
@@ -44,7 +76,8 @@ export type AssetEntry = {
  *
  * Background memakai resolusi tetap 640×360 (`docs/07-assets/asset-guide.md`,
  * ADR 0009). Sprite karakter memakai `frameWidth`/`frameHeight` karena berkasnya
- * spritesheet horizontal per frame.
+ * spritesheet berpetak — satu baris per arah hadap — dan ukuran tiap frame
+ * berbeda per karakter (`characterFrames.ts`, hasil `import-characters.mjs`).
  */
 const CORE_ASSETS: readonly AssetEntry[] = [
   /* Background: latar layar judul dan hasil. */
@@ -65,9 +98,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/mc.png",
     label: "Pemuda syal biru",
     tags: ["pemuda", "syal", "biru", "desa", "pemain", "karakter"],
-    portraitPath: "/assets/portrait/mc.png",
-    frameWidth: 34,
-    frameHeight: 64,
+    portraits: potret("mc"),
+    ...karakterFrames("mc"),
   },
   {
     id: "char_npc_1",
@@ -75,9 +107,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/npc_1.png",
     label: "Pelajar bertopi biru",
     tags: ["pelajar", "topi", "biru", "desa", "remaja", "warga"],
-    portraitPath: "/assets/portrait/npc_1.png",
-    frameWidth: 38,
-    frameHeight: 64,
+    portraits: potret("npc_1"),
+    ...karakterFrames("npc_1"),
   },
   {
     id: "char_npc_3",
@@ -85,9 +116,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/npc_3.png",
     label: "Pelajar berkacamata",
     tags: ["pelajar", "kacamata", "desa", "remaja", "warga", "siswa"],
-    portraitPath: "/assets/portrait/npc_3.png",
-    frameWidth: 36,
-    frameHeight: 64,
+    portraits: potret("npc_3"),
+    ...karakterFrames("npc_3"),
   },
   {
     id: "char_npc_4",
@@ -95,9 +125,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/npc_4.png",
     label: "Gadis berjubah biru",
     tags: ["gadis", "jubah", "biru", "desa", "warga", "remaja"],
-    portraitPath: "/assets/portrait/npc_4.png",
-    frameWidth: 35,
-    frameHeight: 64,
+    portraits: potret("npc_4"),
+    ...karakterFrames("npc_4"),
   },
   {
     id: "char_npc_5",
@@ -105,9 +134,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/npc_5.png",
     label: "Tetua bertongkat",
     tags: ["tetua", "tongkat", "tua", "desa", "warga", "bijak"],
-    portraitPath: "/assets/portrait/npc_5.png",
-    frameWidth: 45,
-    frameHeight: 64,
+    portraits: potret("npc_5"),
+    ...karakterFrames("npc_5"),
   },
   {
     id: "char_npc_6",
@@ -115,9 +143,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/npc_6.png",
     label: "Tetua berjubah hijau",
     tags: ["tetua", "jubah", "hijau", "desa", "warga", "tua"],
-    portraitPath: "/assets/portrait/npc_6.png",
-    frameWidth: 40,
-    frameHeight: 64,
+    portraits: potret("npc_6"),
+    ...karakterFrames("npc_6"),
   },
   {
     id: "char_npc_7",
@@ -125,9 +152,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/npc_7.png",
     label: "Nelayan desa",
     tags: ["nelayan", "perahu", "ikan", "desa", "warga", "sungai"],
-    portraitPath: "/assets/portrait/npc_7.png",
-    frameWidth: 51,
-    frameHeight: 64,
+    portraits: potret("npc_7"),
+    ...karakterFrames("npc_7"),
   },
   {
     id: "char_npc_8",
@@ -135,9 +161,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/npc_8.png",
     label: "Penjaga desa",
     tags: ["penjaga", "jaga", "desa", "warga", "aman", "pos"],
-    portraitPath: "/assets/portrait/npc_8.png",
-    frameWidth: 51,
-    frameHeight: 64,
+    portraits: potret("npc_8"),
+    ...karakterFrames("npc_8"),
   },
   {
     id: "char_npc_9",
@@ -145,9 +170,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/npc_9.png",
     label: "Petani desa",
     tags: ["petani", "sawah", "tani", "desa", "warga", "panen"],
-    portraitPath: "/assets/portrait/npc_9.png",
-    frameWidth: 46,
-    frameHeight: 64,
+    portraits: potret("npc_9"),
+    ...karakterFrames("npc_9"),
   },
   {
     id: "char_npc_10",
@@ -155,9 +179,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     path: "/assets/char/npc_10.png",
     label: "Tetua bijak desa",
     tags: ["tetua", "bijak", "tua", "desa", "warga", "penasihat"],
-    portraitPath: "/assets/portrait/npc_10.png",
-    frameWidth: 40,
-    frameHeight: 64,
+    portraits: potret("npc_10"),
+    ...karakterFrames("npc_10"),
   },
   /* Musik: satu lagu untuk seluruh permainan. */
   {

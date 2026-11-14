@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Pixelify_Sans } from "next/font/google";
 import localFont from "next/font/local";
 
 import { ImageGuard } from "@/components/ImageGuard";
@@ -34,6 +34,19 @@ const gameFont = localFont({
   fallback: ["Segoe UI", "system-ui", "sans-serif"],
 });
 
+/**
+ * Font pixel untuk **nama pembicara** di kotak dialog (utility `font-pixel`).
+ * Dipasang di root karena kotak dialog muncul di route game (`/game`,
+ * `/play/[storyId]`) yang tidak punya layout sendiri. Hanya dipakai untuk nama
+ * dan label kecil: teks isi dialog tetap Patrick Hand supaya mudah dibaca.
+ */
+const pixelFont = Pixelify_Sans({
+  variable: "--font-pixelify",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "ClassQuest — materi pelajaran jadi game pixel",
@@ -47,7 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} ${gameFont.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${gameFont.variable} ${pixelFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ImageGuard />

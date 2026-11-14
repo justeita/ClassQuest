@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 
+import { CHARACTER_FRAMES } from "@/assets/characterFrames";
+import { DEFAULT_EXPRESSION, type Expression } from "@/story/expression";
 import { renderAnswer, scoreAnswer, type Answer } from "@/story/scoring";
 import type { DetourBeat, Story } from "@/story/schema";
 
@@ -25,7 +27,12 @@ import {
   terlihatDiLayar,
   type KameraView,
 } from "../layar";
-import { createTextbox, type BeatView, type Textbox } from "../textbox";
+import {
+  createTextbox,
+  type BeatView,
+  type PortraitView,
+  type Textbox,
+} from "../textbox";
 import { StoryRunner, akhirBab, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import {
@@ -38,14 +45,21 @@ import {
 import { buildChallengeView } from "../challengeView";
 import type { GameBus, NpcMarker, NpcNameplate, PromptView } from "../gameBus";
 import { npcBisaDiajak, petaObrolan } from "../npcTalk";
+import { sceneMelibatkanPemain } from "../potret";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
 import { assetEntry, resolveSceneLook } from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
 import {
-  FRAME_ARAH,
+  ARAH_DARI_BARIS,
+  FPS_IDLE,
+  FPS_WALK,
   TINGGI_KARAKTER,
+  arahKe,
+  indeksFrameAnimasi,
+  kunciAnimasi,
   ukuranKarakter,
   type ArahGerak,
+  type JenisAnimasi,
 } from "../world/karakter";
 import { SPAWN_PEMAIN, VILLAGE } from "../world/village";
 
@@ -135,7 +149,27 @@ export class GameScene extends Phaser.Scene {
   private pemberiQuest: string | null = null;
   /** Pembicara beat dialog terakhir; dipakai sebagai nama speaker saat tantangan. */
   private pembicaraTerakhir: string | null = null;
+  /**
+   * NPC terakhir yang bicara. Dipakai sebagai potret pendamping (meredup) saat
+   * MC yang mengambil giliran, supaya lawan bicara tetap terlihat di layar.
+   */
+  private lawanBicaraTerakhir: string | null = null;
+  /**
+   * Scene aktif memuat giliran MC. Potret MC hanya ditampilkan di scene seperti
+   * ini (dan saat obrolan singkat) — di dialog yang tidak melibatkan pemain,
+   * potretnya cuma menambah sesak.
+   */
+  private sceneAdaPemain = false;
+  /**
+   * Pembicara yang menampilkan soal tantangan aktif. Dipakai saat feedback
+   * jawaban mengganti potretnya jadi senang/marah.
+   */
+  private speakerTantangan: string | null = null;
   private readonly playerId: string;
+  /** Id sprite pemain; dipakai memilih animasi walk/idle yang tepat. */
+  private playerSpriteId = "";
+  /** Arah hadap tiap NPC yang sedang dipasang; berubah saat diajak bicara. */
+  private readonly npcArah = new Map<string, ArahGerak>();
   private arahTerakhir: ArahGerak = "down";
   private lastAdvance = 0;
   /** Mode lewati ditahan (ala Persona 3 Reload): beat maju cepat selama ditahan. */
@@ -184,11 +218,12 @@ export class GameScene extends Phaser.Scene {
       this.story.cast.find((member) => member.role === "player") ??
       this.story.cast[0];
 
+    this.playerSpriteId = pemain?.spriteId ?? "";
     this.player = this.buatKarakter(
       SPAWN_PEMAIN.x,
       SPAWN_PEMAIN.y,
-      pemain?.spriteId ?? "",
-      FRAME_ARAH[this.arahTerakhir],
+      this.playerSpriteId,
+      this.arahTerakhir,
     );
     this.pasangKamera();
 
@@ -199,9 +234,9 @@ export class GameScene extends Phaser.Scene {
     >;
     this.input.keyboard?.disableGlobalCapture();
     this.input.keyboard?.clearCaptures();
-    // Teks dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene tetap
-    // pemegang state typewriter dan mengirim potongannya lewat bus.
-    this.textbox = createTextbox(this, (state) => {
+    // Teks dan potret dialog dirender DOM (DialogueBox.tsx) supaya tajam; scene
+    // tetap pemegang state typewriter dan mengirim potongannya lewat bus.
+    this.textbox = createTextbox((state) => {
       this.bus?.emit({ type: "dialogue", view: state });
     });
 
@@ -325,7 +360,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     for (const npc of VILLAGE.npcs) {
-      const sprite = this.buatKarakter(npc.x, npc.y, npc.id, npc.face);
+      const arah = ARAH_DARI_BARIS[npc.face] ?? "down";
+      this.npcArah.set(npc.id, arah);
+      const sprite = this.buatKarakter(npc.x, npc.y, npc.id, arah);
       sprite.setDepth(npc.depth);
       this.npcSprites.set(npc.id, sprite);
       this.duniaObjects.push(sprite);
@@ -338,9 +375,12 @@ export class GameScene extends Phaser.Scene {
    * Sprite karakter berjangkar di titik kaki, ukurannya mengikuti frame
    * spritesheet-nya. Semua karakter desa sama tinggi (`TINGGI_KARAKTER`).
    *
-   * Posisi dan gambar dibulatkan ke piksel utuh: skala 0,875 membuat sprite
-   * bukan objek "hanya translasi", jadi tanpa `fullAuto` ia ikut meluncur di
-   * sub-piksel saat kamera bergeser (pixel art bergetar).
+   * Animasi karakter didaftarkan sekali per sprite (idle, plus walk untuk
+   * pemain), lalu arah hadap awal langsung diputar sebagai idle.
+   *
+   * Posisi dan gambar dibulatkan ke piksel utuh: skala bukan bilangan bulat
+   * membuat sprite bukan objek "hanya translasi", jadi tanpa `fullAuto` ia ikut
+   * meluncur di sub-piksel saat kamera bergeser (pixel art bergetar).
    *
    * Tidak ada sprite cadangan: `manifest.test.ts` menjamin setiap sprite di
    * manifest punya berkasnya, dan `PreloadScene` memuat semua sprite `cast`.
@@ -349,18 +389,104 @@ export class GameScene extends Phaser.Scene {
     x: number,
     y: number,
     spriteId: string,
-    face: number,
+    arah: ArahGerak,
   ): Phaser.GameObjects.Sprite {
     const info = assetEntry(spriteId);
     const ukuran = ukuranKarakter(
       info?.frameWidth ?? 24,
       info?.frameHeight ?? 32,
     );
-    return this.add
-      .sprite(Math.round(x), Math.round(y), spriteId, face)
+    this.daftarAnimasiKarakter(spriteId);
+    const sprite = this.add
+      .sprite(Math.round(x), Math.round(y), spriteId, 0)
       .setOrigin(0.5, 1)
       .setDisplaySize(ukuran.width, ukuran.height)
       .setVertexRoundMode("fullAuto");
+    this.mainkanKarakter(sprite, spriteId, "idle", arah);
+    return sprite;
+  }
+
+  /**
+   * Daftarkan animasi idle (+ walk) satu karakter untuk semua arah.
+   *
+   * Key animasi Phaser global, jadi didaftarkan sekali saja: scene yang diulang
+   * tidak boleh membuat key yang sama dua kali. Karakter tanpa metadata frame
+   * (mis. id asing) dilewati; sprite-nya tetap tampil sebagai gambar statis.
+   */
+  private daftarAnimasiKarakter(spriteId: string) {
+    const frames = CHARACTER_FRAMES.find((entry) => entry.id === spriteId);
+    if (!frames) return;
+
+    const daftar: Array<{
+      jenis: JenisAnimasi;
+      jumlah: number;
+      fps: number;
+    }> = [
+      { jenis: "idle", jumlah: frames.idleFrames, fps: FPS_IDLE },
+      { jenis: "walk", jumlah: frames.walkFrames, fps: FPS_WALK },
+    ];
+
+    for (const arah of ARAH_DARI_BARIS) {
+      for (const { jenis, jumlah, fps } of daftar) {
+        if (jumlah <= 0) continue;
+        const key = kunciAnimasi(spriteId, jenis, arah);
+        if (this.anims.exists(key)) continue;
+        const mulai = indeksFrameAnimasi(frames, jenis, arah);
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(spriteId, {
+            start: mulai,
+            end: mulai + jumlah - 1,
+          }),
+          frameRate: fps,
+          repeat: -1,
+        });
+      }
+    }
+  }
+
+  /**
+   * Putar animasi karakter; karakter tanpa walk (NPC) memakai idle sebagai
+   * gantinya. `ignoreIfPlaying` mencegah animasi berulang dari frame pertama
+   * setiap kali dipanggil saat pemain berjalan.
+   */
+  private mainkanKarakter(
+    sprite: Phaser.GameObjects.Sprite,
+    spriteId: string,
+    jenis: JenisAnimasi,
+    arah: ArahGerak,
+  ) {
+    const frames = CHARACTER_FRAMES.find((entry) => entry.id === spriteId);
+    const efektif: JenisAnimasi =
+      jenis === "walk" && (frames?.walkFrames ?? 0) === 0 ? "idle" : jenis;
+    const key = kunciAnimasi(spriteId, efektif, arah);
+    if (this.anims.exists(key)) sprite.play(key, true);
+  }
+
+  /** Balikkan NPC `npcId` agar menghadap posisi pemain saat ini. */
+  private hadapkanKePemain(npcId: string) {
+    const npc = this.npcSprites.get(npcId);
+    const pemain = this.player;
+    if (!npc || !pemain) return;
+    const arah = arahKe(pemain.x - npc.x, pemain.y - npc.y);
+    if (this.npcArah.get(npcId) === arah) return;
+    this.npcArah.set(npcId, arah);
+    this.mainkanKarakter(npc, npcId, "idle", arah);
+  }
+
+  /**
+   * Hentikan animasi jalan pemain. Interaksi membekukan `updateExplore`, jadi
+   * tanpa ini pemain yang menekan Space sambil berjalan akan berjalan di tempat
+   * selama dialog/obrolan.
+   */
+  private hentikanPemain() {
+    if (!this.player) return;
+    this.mainkanKarakter(
+      this.player,
+      this.playerSpriteId,
+      "idle",
+      this.arahTerakhir,
+    );
   }
 
   /**
@@ -401,24 +527,31 @@ export class GameScene extends Phaser.Scene {
     this.lastAdvance = this.time.now;
 
     if (dekat === this.pemberiQuest) {
+      this.hadapkanKePemain(dekat);
+      this.hentikanPemain();
       this.runner.interact();
       this.presentBeat();
       return;
     }
 
     const teks = this.obrolan.get(dekat);
-    if (teks) this.mulaiObrolan(dekat, teks);
+    if (teks) {
+      this.hadapkanKePemain(dekat);
+      this.hentikanPemain();
+      this.mulaiObrolan(dekat, teks);
+    }
   }
 
   /**
    * Buka obrolan singkat NPC di luar perannya (ADR 0016).
    *
-   * Satu kalimat saja, memakai textbox dan portrait yang sama dengan dialog
-   * cerita. Runner tidak disentuh: setelah textbox ditutup, pemain kembali
+   * Satu kalimat saja, memakai dialog dan potret yang sama dengan dialog
+   * cerita. Runner tidak disentuh: setelah dialog ditutup, pemain kembali
    * bebas berjalan di scene yang sama.
    */
   private mulaiObrolan(npcId: string, teks: string) {
     this.obrolanAktif = npcId;
+    this.lawanBicaraTerakhir = npcId;
     this.sembunyikanPetunjuk();
     this.sorotSpeaker(npcId);
 
@@ -426,7 +559,8 @@ export class GameScene extends Phaser.Scene {
     this.textbox?.show({
       name: nama,
       text: teks,
-      portraitKey: this.portraitKey(npcId),
+      portrait: this.potretUntuk(npcId),
+      pendamping: this.potretLawan(npcId),
     });
     this.bus?.emit({
       type: "log",
@@ -439,6 +573,7 @@ export class GameScene extends Phaser.Scene {
   /** Tutup obrolan singkat; prompt muncul lagi pada frame berikutnya. */
   private tutupObrolan() {
     this.obrolanAktif = null;
+    this.lawanBicaraTerakhir = null;
     this.textbox?.hide();
     this.sorotSpeaker(null);
   }
@@ -465,7 +600,14 @@ export class GameScene extends Phaser.Scene {
     sprite.setPosition(Math.round(tujuan.x), Math.round(tujuan.y));
     if (arah) {
       this.arahTerakhir = arah;
-      sprite.setFrame(FRAME_ARAH[arah]);
+      this.mainkanKarakter(sprite, this.playerSpriteId, "walk", arah);
+    } else {
+      this.mainkanKarakter(
+        sprite,
+        this.playerSpriteId,
+        "idle",
+        this.arahTerakhir,
+      );
     }
   }
 
@@ -747,6 +889,14 @@ export class GameScene extends Phaser.Scene {
       renderAnswer(challenge, answer),
     );
     this.mainkanSfx(hasil.isCorrect ? "sfx_correct" : "sfx_wrong");
+    // Umpan balik visual: potret pembicara soal berubah senang saat benar dan
+    // marah saat salah (docs/04-game/scene-format.md).
+    this.textbox?.setPortrait(
+      this.potretUntuk(
+        this.speakerTantangan,
+        hasil.isCorrect ? "happy" : "angry",
+      ),
+    );
 
     // Jawaban salah yang masih punya percobaan: mainkan detour lalu ulangi soal
     // yang sama. Penjelasan sengaja belum ditampilkan agar soal ulang bermakna.
@@ -826,18 +976,34 @@ export class GameScene extends Phaser.Scene {
     const jawaban = this.jawabanUntukBeat();
     if (beat.type === "dialogue") {
       // Varian teks dipilih dari jawaban salah tantangan terdekat, lalu flag
-      // (story-schema.md, ADR 0021).
+      // (story-schema.md, ADR 0020).
       const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;
+      // Ingat NPC yang bicara supaya potretnya tetap tampil (meredup) saat MC
+      // mengambil giliran berikutnya.
+      if (beat.speakerId !== this.playerId) {
+        this.lawanBicaraTerakhir = beat.speakerId;
+      }
       this.sorotSpeaker(beat.speakerId);
       view = {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
         text,
-        portraitKey: this.portraitKey(beat.speakerId),
+        portrait: this.potretUntuk(beat.speakerId, beat.expression),
+        pendamping: this.potretLawan(beat.speakerId),
       };
     } else {
+      // Narasi tidak menampilkan nama, tetapi boleh memunculkan potret
+      // lewat `speakerId` bila AI ingin menyorot reaksi seseorang.
+      if (beat.speakerId && beat.speakerId !== this.playerId) {
+        this.lawanBicaraTerakhir = beat.speakerId;
+      }
       this.sorotSpeaker(null);
-      view = { name: null, text: substituteJawaban(beat.text, jawaban) };
+      view = {
+        name: null,
+        text: substituteJawaban(beat.text, jawaban),
+        portrait: this.potretUntuk(beat.speakerId ?? null, beat.expression),
+        pendamping: this.potretLawan(beat.speakerId ?? null),
+      };
     }
     this.textbox?.show(view);
     this.bus?.emit({
@@ -898,6 +1064,8 @@ export class GameScene extends Phaser.Scene {
     this.sceneAktif = null;
     this.questTerakhir = "";
     this.pembicaraTerakhir = null;
+    this.lawanBicaraTerakhir = null;
+    this.speakerTantangan = null;
     // Dunia tetap seperti semula; hanya titik kaki pemain yang dikembalikan.
     this.kembalikanPemain();
     this.kirimQuest();
@@ -910,7 +1078,7 @@ export class GameScene extends Phaser.Scene {
   /**
    * Soal tantangan tampil di dalam kotak dialog (DialogueBox), dengan pilihan
    * respons melayang di atasnya (docs/05-frontend/game-player.md § Challenge).
-   * Panel textbox Phaser dijamin aktif dan menampilkan teks soal tantangan.
+   * Dialog dijamin aktif dan menampilkan teks soal beserta potret pembicara.
    */
   private bukaTantangan(challengeId: string, promptOverride?: string) {
     this.sembunyikanPetunjuk();
@@ -919,14 +1087,21 @@ export class GameScene extends Phaser.Scene {
     if (!challenge || !this.bus) return;
 
     const speakerId =
-      this.pembicaraTerakhir ??
+      (this.pembicaraTerakhir !== this.playerId
+        ? this.pembicaraTerakhir
+        : null) ??
+      this.lawanBicaraTerakhir ??
       this.pemberiQuest ??
       this.story.cast.find((c) => c.role === "mentor")?.id ??
       null;
     const name = speakerId
       ? (this.castNames.get(speakerId) ?? speakerId)
       : null;
-    const portraitKey = speakerId ? this.portraitKey(speakerId) : null;
+    // Simpan pembicara soal supaya feedback jawaban bisa memakai potretnya lagi.
+    this.speakerTantangan = speakerId;
+    if (speakerId && speakerId !== this.playerId) {
+      this.lawanBicaraTerakhir = speakerId;
+    }
 
     if (speakerId) {
       this.sorotSpeaker(speakerId);
@@ -945,7 +1120,8 @@ export class GameScene extends Phaser.Scene {
     this.textbox?.show({
       name,
       text,
-      portraitKey,
+      portrait: this.potretUntuk(speakerId),
+      pendamping: this.potretLawan(speakerId),
     });
     this.textbox?.complete();
 
@@ -993,15 +1169,27 @@ export class GameScene extends Phaser.Scene {
     if (beat.type === "dialogue") {
       const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;
+      if (beat.speakerId !== this.playerId) {
+        this.lawanBicaraTerakhir = beat.speakerId;
+      }
       this.sorotSpeaker(beat.speakerId);
       view = {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
         text,
-        portraitKey: this.portraitKey(beat.speakerId),
+        portrait: this.potretUntuk(beat.speakerId, beat.expression),
+        pendamping: this.potretLawan(beat.speakerId),
       };
     } else {
+      if (beat.speakerId && beat.speakerId !== this.playerId) {
+        this.lawanBicaraTerakhir = beat.speakerId;
+      }
       this.sorotSpeaker(null);
-      view = { name: null, text: substituteJawaban(beat.text, jawaban) };
+      view = {
+        name: null,
+        text: substituteJawaban(beat.text, jawaban),
+        portrait: this.potretUntuk(beat.speakerId ?? null, beat.expression),
+        pendamping: this.potretLawan(beat.speakerId ?? null),
+      };
     }
 
     this.textbox?.show(view);
@@ -1087,7 +1275,7 @@ export class GameScene extends Phaser.Scene {
     this.putarMusik(look.musicId);
   }
 
-  /** Pemberi quest scene aktif: pembicara dialog pertama yang ada di peta. */
+  /** Pemberi quest + keterlibatan pemain untuk scene aktif. */
   private perbaruiPemberiQuest() {
     const state = this.runner.getState();
     const scene =
@@ -1095,6 +1283,10 @@ export class GameScene extends Phaser.Scene {
         ? (state.chapter?.scenes[state.sceneIndex] ?? null)
         : null;
     this.pemberiQuest = pilihPemberiQuest(scene, VILLAGE.npcs);
+    // Scene dianggap melibatkan pemain bila ada beat yang diucapkan MC. Hanya
+    // di scene seperti itu potret MC menemani NPC; dialog yang murni antar-NPC
+    // tampil tanpa potret MC.
+    this.sceneAdaPemain = sceneMelibatkanPemain(scene, this.playerId);
     // Zona histeresis milik NPC sebelumnya; mulai dari batas masuk.
     this.npcDekat = false;
   }
@@ -1181,11 +1373,43 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private portraitKey(speakerId: string): string | null {
+  /**
+   * Potret DOM untuk seorang pembicara pada ekspresi tertentu. `null` bila
+   * pembicara tidak dikenal atau sprite-nya tidak punya potret — DialogueBox
+   * lalu sekadar menampilkan panel polos.
+   */
+  private potretUntuk(
+    speakerId: string | null,
+    expression: Expression = DEFAULT_EXPRESSION,
+  ): PortraitView | null {
+    if (!speakerId) return null;
     const karakter = this.story.cast.find((member) => member.id === speakerId);
     if (!karakter) return null;
     const entry = assetEntry(karakter.spriteId);
-    return entry?.portraitPath ? `${entry.id}:portrait` : null;
+    const src = entry?.portraits?.[expression];
+    if (!src) return null;
+    return {
+      src,
+      alt: `Potret ${this.castNames.get(speakerId) ?? speakerId}`,
+    };
+  }
+
+  /**
+   * Potret lawan bicara untuk menemani pembicara: MC saat NPC yang bicara,
+   * atau NPC terakhir saat MC yang mengambil giliran. Potret ini tetap tampil
+   * tetapi diredupkan `DialogueBox`; `null` bila tidak ada pasangan.
+   *
+   * MC hanya menemani dialog cerita yang memang punya giliran MC. Dialog
+   * antar-NPC dan obrolan singkat NPC non-quest tampil tanpa potret MC — pemain
+   * tidak sedang menanggapi apa pun di situ.
+   */
+  private potretLawan(speakerId: string | null): PortraitView | null {
+    if (!speakerId) return null;
+    if (speakerId === this.playerId) {
+      return this.potretUntuk(this.lawanBicaraTerakhir);
+    }
+    if (this.obrolanAktif || !this.sceneAdaPemain) return null;
+    return this.potretUntuk(this.playerId);
   }
 
   private kembalikanPemain() {
@@ -1195,7 +1419,12 @@ export class GameScene extends Phaser.Scene {
       Math.round(SPAWN_PEMAIN.y),
     );
     this.arahTerakhir = "down";
-    this.player.setFrame(FRAME_ARAH[this.arahTerakhir]);
+    this.mainkanKarakter(
+      this.player,
+      this.playerSpriteId,
+      "idle",
+      this.arahTerakhir,
+    );
     this.player.setDepth(this.player.y);
   }
 }

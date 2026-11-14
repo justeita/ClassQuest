@@ -13,13 +13,15 @@ import type { Chapter, Scene, Story } from "@/story/schema";
 export const DEFAULT_BACKGROUND_ID = "bg_default";
 export const DEFAULT_MUSIC_ID = "bgm_default";
 
-/** Aset UI/SFX yang selalu dibutuhkan runtime game. */
+/**
+ * SFX dan aset dasar yang selalu dibutuhkan runtime game.
+ *
+ * Panel dan potret dialog tidak ada di sini: keduanya dirender DOM
+ * (`DialogueBox.tsx`) langsung dari `public/`, jadi tidak perlu dimuat Phaser.
+ */
 const RUNTIME_ASSET_IDS = [
   DEFAULT_BACKGROUND_ID,
   DEFAULT_MUSIC_ID,
-  "ui_textbox",
-  "ui_portrait_frame",
-  "ui_default",
   "sfx_click",
   "sfx_correct",
   "sfx_wrong",
@@ -45,8 +47,8 @@ export function resolveSceneLook(
 
 /**
  * Semua aset manifest yang perlu dimuat untuk satu cerita, dalam urutan
- * `ASSETS` agar hasil preload stabil. Karakter ikut membawa `portraitPath`
- * (dimuat terpisah oleh `PreloadScene`).
+ * `ASSETS` agar hasil preload stabil. Karakter membawa `portraits` juga, tetapi
+ * potretnya dirender DOM dan bukan tanggung jawab `PreloadScene`.
  */
 export function collectStoryAssets(story: Story): AssetEntry[] {
   const dipakai = new Set<string>(RUNTIME_ASSET_IDS);

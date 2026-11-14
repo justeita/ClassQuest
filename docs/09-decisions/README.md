@@ -35,6 +35,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0020 | [Kutipan jawaban siswa di dialog](0020-kutipan-jawaban-siswa-di-dialog.md)                           | Accepted     | AI, validator, cerita |
 | 0021 | [Varian dialog per jawaban salah](0021-varian-dialog-per-jawaban-salah.md)                           | Accepted     | AI, validator, cerita |
 | 0022 | [Pemain mengucapkan jawabannya di dialog](0022-pemain-mengucapkan-jawaban-di-dialog.md)              | Accepted     | AI, game, cerita      |
+| 0023 | [Potret berekspresi ala Persona](0023-potret-ekspresi-persona.md)                                    | Accepted     | Game, aset, cerita    |
 
 ## Status
 

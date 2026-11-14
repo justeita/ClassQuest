@@ -3,6 +3,8 @@ import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+import { EXPRESSIONS } from "../story/expression";
+
 import {
   ASSETS,
   ASSETS_BY_ID,
@@ -78,19 +80,22 @@ const REQUIRED_FALLBACKS: Partial<Record<AssetKind, string>> = {
  * File yang **sengaja belum dibuat**. Saat ini kosong: semua aset di
  * `inventory.md` sudah berstatus `ready` dan berkasnya ada di `public/`.
  *
- * Kunci memakai `id`, atau `id#portrait` untuk `portraitPath`. Test di bawah
- * membandingkan daftar file yang hilang dengan daftar ini **persis**: menambah
- * atau menghapus file aset akan menggagalkan test sampai daftar ini diperbarui,
- * jadi tidak ada aset yang hilang diam-diam. Begitu file aset dibuat, hapus
- * barisnya di sini.
+ * Kunci memakai `id`, atau `id#portrait:<ekspresi>` untuk tiap potret di
+ * `portraits`. Test di bawah membandingkan daftar file yang hilang dengan
+ * daftar ini **persis**: menambah atau menghapus file aset akan menggagalkan
+ * test sampai daftar ini diperbarui, jadi tidak ada aset yang hilang
+ * diam-diam. Begitu file aset dibuat, hapus barisnya di sini.
  */
 const PENDING_FILES: readonly string[] = [];
 
 const fileEntries = (asset: AssetEntry) => [
   { key: asset.id, path: asset.path },
-  ...(asset.portraitPath === undefined
+  ...(asset.portraits === undefined
     ? []
-    : [{ key: `${asset.id}#portrait`, path: asset.portraitPath }]),
+    : Object.entries(asset.portraits).map(([expression, path]) => ({
+        key: `${asset.id}#portrait:${expression}`,
+        path,
+      }))),
 ];
 
 const diskPath = (assetPath: string) =>
@@ -158,13 +163,27 @@ describe("manifest — path", () => {
     expect(wrong).toEqual([]);
   });
 
-  it("portraitPath hanya untuk character dan memakai folder portrait", () => {
+  it("portraits hanya untuk character, enam ekspresi, memakai folder portrait", () => {
     const wrong = ASSETS.filter((asset) => {
-      if (asset.portraitPath === undefined) return false;
+      if (asset.portraits === undefined) return false;
       if (asset.kind !== "character") return true;
       const name = asset.id.slice(PREFIX.character.length);
-      return asset.portraitPath !== `/assets/portrait/${name}.png`;
+      const ekspresi = Object.keys(asset.portraits);
+      if (ekspresi.length !== EXPRESSIONS.length) return true;
+      return EXPRESSIONS.some(
+        (expression) =>
+          asset.portraits?.[expression] !==
+          `/assets/portrait/${name}/${expression}.png`,
+      );
     }).map((asset) => asset.id);
+
+    expect(wrong).toEqual([]);
+  });
+
+  it("setiap karakter punya potret lengkap", () => {
+    const wrong = CHARACTERS.filter(
+      (asset) => asset.portraits === undefined,
+    ).map((asset) => asset.id);
 
     expect(wrong).toEqual([]);
   });

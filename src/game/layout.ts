@@ -3,9 +3,9 @@ import { GAME_HEIGHT, GAME_WIDTH } from "./constants";
 /**
  * Geometri UI dalam ruang internal 640×360 (ADR 0009).
  *
- * Satu sumber angka untuk dua lapisan: Phaser memakai nilai ini untuk menggambar
- * panel dan portrait, React memakainya untuk menaruh teks di posisi yang sama.
- * Jangan menyalin angka ke komponen — impor dari sini supaya tidak melenceng.
+ * Satu sumber angka untuk lapisan DOM: panel dialog, potret, dan teks
+ * (`DialogueBox.tsx`) memakai nilai ini supaya tidak melenceng satu sama lain.
+ * Jangan menyalin angka ke komponen — impor dari sini.
  */
 
 /** Panel dialog: x=16, y=240, 608×104 (docs/04-game/scene-format.md). */
@@ -18,6 +18,14 @@ export const TEXTBOX = {
   padding: 16,
   /** Jarak baris pertama dari tepi atas panel. */
   paddingTop: 8,
+  /**
+   * Jari-jari sudut panel (px internal). Dipakai juga sebagai jarak masuk potret
+   * dari sisi kotak: kalau potret menempel tepat di tepi, sudut membulat panel
+   * memotong bahu karakter dan menyisakan celah latar di bawahnya — potret
+   * tampak melayang. Dengan jarak masuk sebesar radius ini, tepi potret berhenti
+   * tepat di titik singgung lengkungan sudut.
+   */
+  radius: 14,
 } as const;
 
 /**
@@ -39,15 +47,59 @@ export const CHALLENGE = {
   maxHeight: 210,
 } as const;
 
-/** Portrait di atas panel: bingkai 72×72, gambar 64×64 di dalamnya. */
+/**
+ * Faktor ukuran potret terhadap ukuran lama (setengah lebar panel). Potret
+ * setengah panel terasa terlalu besar dan menutupi layar; 0,85 membuat wajah
+ * masih terbaca jelas tetapi tidak mendominasi. Lebar dan tinggi dikalikan
+ * dengan faktor yang sama supaya rasio kanvas importer tetap utuh.
+ */
+const SKALA_POTRET = 0.85;
+
+/**
+ * Potret dialog gaya Persona (ADR 0020): tanpa bingkai, gambarnya berdiri **di
+ * atas** panel dialog — dasarnya sejajar tepi atas panel, jadi tidak ada bagian
+ * potret yang tertutup kotak.
+ *
+ * NPC berpangkal di sisi kiri atas panel, MC (yang dicerminkan) di sisi kanan
+ * atas; keduanya menjulur ke tengah tepi atas. Slot berukuran tetap dan
+ * gambarnya dirender `object-contain`, jadi potret tetap mengisi persis walau
+ * rasio berkasnya meleset sedikit.
+ *
+ * `scripts/import-portraits.mjs` menyeragamkan **tinggi kepala** (bukan tinggi
+ * gambar) dan menaruh semua potret di kanvas berukuran sama — jadi wajah semua
+ * karakter tampil sebesar yang sama dan potret tidak melompat saat ekspresi
+ * berganti. Siluet karakter tidak dipotong di sisi luarnya; jarak dari kotak
+ * dialog diatur lewat `inset` di sini. Rasio kanvas importer (456:360) sengaja
+ * sama persis dengan slot di sini; MC yang dicerminkan membuat rata kiri kanvas
+ * jadi rata kanan slot. Berkas aslinya lebih kecil dari kanvas lama supaya
+ * cepat dimuat.
+ */
 export const PORTRAIT = {
-  x: 26,
-  y: 164,
-  /** Y saat portrait diletakkan tepat di atas panel dialog (center). */
-  yAtas: 160,
-  frameSize: 72,
-  imageInset: 4,
-  imageSize: 64,
+  /** Lebar slot potret (px internal). */
+  width: (TEXTBOX.width / 2) * SKALA_POTRET,
+  /**
+   * Tinggi slot potret (px internal). Menjaga rasio 456:360 yang sama dengan
+   * kanvas importer, dan cukup memuat kepala beserta bahu di atas panel
+   * (panel mulai di `y=240`).
+   */
+  height: TEXTBOX.y * SKALA_POTRET,
+  /**
+   * Jarak potret dari sisi luar panel (px internal). Sedikit lebih besar dari
+   * radius sudut panel: tepi potret tidak bertumpuk dengan lengkungan sudut,
+   * jadi bahu karakter tidak terpotong dan tidak terlihat mepet ke tepi kotak.
+   */
+  inset: TEXTBOX.radius + 4,
+} as const;
+
+/**
+ * Ukuran intrinsik berkas potret (`456×360`). Dipakai `next/image` sebagai
+ * `width`/`height` supaya rasio kotaknya benar sebelum gambar selesai dimuat;
+ * angkanya harus sama dengan `LEBAR_KANVAS`/`TINGGI_KANVAS` di
+ * `scripts/import-portraits.mjs`.
+ */
+export const PORTRAIT_SOURCE = {
+  width: 456,
+  height: 360,
 } as const;
 
 /**
