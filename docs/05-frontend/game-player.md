@@ -163,7 +163,14 @@ dari guru langsung melihat judul cerita, bukan menu.
   di belakang teks.
 - Isi papan: judul "CLASS QUEST" (serif tebal), garis emas berhiaskan bintang,
   empat pilihan — `Mulai`, `Pengaturan`, `Kredit`, `Keluar` — petunjuk tombol, dan
-  label versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas.
+  label versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas. Di
+  perangkat sentuh petunjuk tombol (`↑ ↓ pilih · Enter`) disembunyikan karena
+  tidak ada tombol fisik di HP (`useSentuh`), sekaligus menghemat tinggi papan.
+- Di lanskap ponsel (tinggi ≤ 30rem) judul, jarak antar-blok, dan padding papan
+  diperkecil supaya keempat pilihan dan label versi muat tanpa terpotong tepi
+  bawah; tinggi tiap pilihan tetap 44 px agar nyaman disentuh, dan papan boleh
+  digulir sebagai jaring pengaman. Ambang `max-height: 30rem` sama dengan menu
+  jeda (ADR 0036).
 - Keyboard-first: `↑`/`↓` (atau `W`/`S`) memindahkan sorotan dan memindahkan
   fokus DOM, `Home`/`End` ke ujung daftar, `Enter`/`Space` menjalankan pilihan.
   `Tab` tidak diambil alih di layar menu ini; penahanan `Tab` baru aktif di dalam

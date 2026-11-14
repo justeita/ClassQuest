@@ -233,3 +233,44 @@ describe("MainMenu", () => {
     expect(tombol(/^pengaturan$/i)).toHaveAttribute("aria-current", "true");
   });
 });
+
+describe("MainMenu — petunjuk keyboard di perangkat sentuh", () => {
+  /**
+   * jsdom tidak punya `window.matchMedia`. Palsukan agar perangkat terbaca
+   * sebagai ponsel (penunjuk kasar + tidak bisa hover), sama seperti pola
+   * `useSentuh.ts`; di desktop (tanpa matchMedia) `useSentuh` bernilai false.
+   */
+  function pasangSentuh() {
+    const asli = window.matchMedia;
+    window.matchMedia = ((query: string) =>
+      ({
+        matches:
+          query.includes("pointer: coarse") || query.includes("hover: none"),
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }) as unknown as MediaQueryList) as typeof window.matchMedia;
+    return () => {
+      window.matchMedia = asli;
+    };
+  }
+
+  it("menyembunyikan petunjuk tombol keyboard di HP", () => {
+    const pulihkan = pasangSentuh();
+    try {
+      render(<MainMenu onMulai={vi.fn()} />);
+      expect(screen.queryByText(/Enter konfirmasi/i)).not.toBeInTheDocument();
+    } finally {
+      pulihkan();
+    }
+  });
+
+  it("tetap menampilkan petunjuk tombol di desktop", () => {
+    render(<MainMenu onMulai={vi.fn()} />);
+    expect(screen.getByText(/Enter konfirmasi/i)).toBeInTheDocument();
+  });
+});

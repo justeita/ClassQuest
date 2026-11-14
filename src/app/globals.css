@@ -1278,6 +1278,57 @@ label,
   text-shadow: 0 1px 0 rgb(12 26 17 / 0.9);
 }
 
+/* Layar judul di lanskap ponsel.
+ *
+ * Lanskap ponsel hanya menyisakan ±300-430 px tinggi, sedangkan judul besar +
+ * empat pilihan + label versi lebih tinggi dari itu sehingga bagian bawah
+ * (petunjuk/versi) terpotong tepi bawah. Di bawah 30rem — ambang yang sama
+ * dengan menu jeda (ADR 0036) — judul, jarak antar-blok, dan padding papan
+ * diperkecil supaya semuanya muat. Tinggi tiap pilihan tetap 44 px (`min-h-11`)
+ * agar tetap nyaman disentuh, dan `overflow-y-auto` di komponen jadi jaring
+ * pengaman untuk tinggi ekstrem.
+ *
+ * Diletakkan setelah definisi `.menu-panel`/`.menu-item` di atas supaya menang
+ * cascade pada spesifisitas yang sama. */
+@media (max-height: 30rem) {
+  .menu-isi {
+    padding-top: 0.6rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .menu-panel {
+    padding: 0.4rem 1rem 0.5rem;
+  }
+
+  .menu-judul {
+    font-size: 1.4rem;
+  }
+
+  .menu-dekor {
+    margin-top: 0.25rem;
+  }
+
+  .menu-nav {
+    margin-top: 0.5rem;
+  }
+
+  .menu-daftar {
+    gap: 0.125rem;
+  }
+
+  .menu-item {
+    font-size: 0.88rem;
+  }
+
+  .menu-petunjuk {
+    margin-top: 0.35rem;
+  }
+
+  .menu-versi {
+    padding-top: 0.3rem;
+  }
+}
+
 /* Sakura yang berguguran: satu elemen per kelopak, nilainya dari variabel
    inline (`--kelopak-*`) supaya tidak perlu keyframes per kelopak. */
 @keyframes menu-kelopak-jatuh {

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useSentuh } from "@/components/game/useSentuh";
 import {
   bacaPengaturanAudio,
   clampVolume,
@@ -166,6 +167,10 @@ const KELOPAK = [
  * tidak ditampilkan: menu tidak boleh menjanjikan simpanan yang belum dibuat.
  */
 export function MainMenu({ onMulai }: MainMenuProps) {
+  // Perangkat sentuh tidak punya tombol panah/Enter: petunjuk keyboard
+  // disembunyikan supaya tidak menyesatkan sekaligus menghemat tinggi papan —
+  // lanskap ponsel hanya menyisakan ±300 px. Pola yang sama dengan `Keycap`.
+  const sentuh = useSentuh();
   const [aktif, setAktif] = useState(0);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [pesan, setPesan] = useState<string | null>(null);
@@ -310,7 +315,7 @@ export function MainMenu({ onMulai }: MainMenuProps) {
           `<main>`, dan menu ini hanya satu fase di dalamnya. */}
       <section
         aria-label="Menu utama Class Quest"
-        className="absolute inset-0 z-20 flex flex-col justify-start px-6 pt-[max(1.75rem,5vh)] pb-6 sm:px-10 lg:pt-[9vh] lg:pl-[clamp(2.5rem,6vw,6rem)]"
+        className="menu-isi absolute inset-0 z-20 flex flex-col justify-start overflow-y-auto px-6 pt-[max(1.75rem,5vh)] pb-6 sm:px-10 lg:pt-[9vh] lg:pl-[clamp(2.5rem,6vw,6rem)]"
       >
         <div className="menu-panel w-[min(78vw,320px)]">
           <h1
@@ -327,15 +332,15 @@ export function MainMenu({ onMulai }: MainMenuProps) {
 
           <div
             aria-hidden="true"
-            className="mt-2.5 flex w-full items-center gap-2 text-[#e7c45d]"
+            className="menu-dekor mt-2.5 flex w-full items-center gap-2 text-[#e7c45d]"
           >
             <i className="menu-garis h-0.5 w-8" />
             <b className="menu-bintang text-base leading-none font-normal">✦</b>
             <i className="menu-garis h-0.5 w-8" />
           </div>
 
-          <nav aria-label="Menu utama" className="mt-7">
-            <ul className="grid gap-2">
+          <nav aria-label="Menu utama" className="menu-nav mt-7">
+            <ul className="menu-daftar grid gap-2">
               {PILIHAN.map((pilihan, indeks) => {
                 const terpilih = indeks === aktif;
                 return (
@@ -366,12 +371,16 @@ export function MainMenu({ onMulai }: MainMenuProps) {
             </ul>
           </nav>
 
-          <p className="menu-kredit mt-5">
-            <span aria-hidden="true">↑ ↓</span> pilih · Enter konfirmasi
-          </p>
+          {!sentuh && (
+            <p className="menu-kredit menu-petunjuk mt-5">
+              <span aria-hidden="true">↑ ↓</span> pilih · Enter konfirmasi
+            </p>
+          )}
         </div>
 
-        <p className="menu-kredit mt-auto pt-6">Class Quest • Menu utama</p>
+        <p className="menu-kredit menu-versi mt-auto pt-6">
+          Class Quest • Menu utama
+        </p>
       </section>
 
       {dialog === "pengaturan" && (
