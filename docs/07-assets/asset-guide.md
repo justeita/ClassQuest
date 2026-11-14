@@ -162,6 +162,11 @@ public/assets/
 └── ui/
 ```
 
+Gambar layar menu utama (`public/menu/desa.webp`, 1675×939) sengaja berada
+**di luar** `public/assets/`: ia latar dekoratif, tidak pernah dipilih cerita, dan
+tidak punya `id` manifest. Aturannya sama seperti aset brand — hanya berkas jadi
+yang di-commit.
+
 Nama file: `snake_case` tanpa prefix (`default.png`, `house_red.png`), karena
 prefix ada di `id` manifest (`bg_default`, `world_house_red`). Lihat
 [`naming-conventions.md`](./naming-conventions.md).

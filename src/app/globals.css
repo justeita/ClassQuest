@@ -871,3 +871,187 @@ img {
     transform: none;
   }
 }
+
+/* --------------------------------------------------------------------------
+ * Menu utama game (`/game`)
+ *
+ * Layar pembuka bergaya menu judul pixel: gambar desa utuh memenuhi layar, teks
+ * menu berdiri langsung di atasnya di bawah naungan pohon kiri atas, tanpa panel
+ * — supaya seluruh desa tetap terlihat. Awalan `menu-` supaya tidak bertabrakan
+ * dengan gaya `landing-` maupun `guru-`.
+ *
+ * Warna diambil dari palet game (`docs/04-game/game-design.md`): `deep`
+ * `#0B120E`, `paper` `#F4EFE6`, `warm` `#E8A87C`, `gold` `#C9A227`. Gerak
+ * mengikuti aturan halaman lain (docs/05-frontend/ui-conventions.md): hanya
+ * `transform`/`opacity`/warna, hover khusus perangkat berpenunjuk, dan tanpa
+ * gerak saat `prefers-reduced-motion: reduce`.
+ *
+ * Ukuran dan spasi huruf ditulis di sini, bukan sebagai utility di komponen:
+ * `font-game` hanya keluarga font, jadi ukuran dan spasi tidak bisa saling
+ * menimpa di antara dua class Tailwind.
+ * ------------------------------------------------------------------------ */
+
+/* Judul permainan: serif tebal dengan bayangan padat (bukan blur), supaya
+   terasa dicetak di atas dunia seperti papan nama desa. */
+.menu-judul {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  color: #f7f4ec;
+  text-shadow:
+    0 2px 0 rgb(18 32 22 / 0.9),
+    0 6px 18px rgb(4 18 11 / 0.75);
+}
+
+/* Garis rambut emas di bawah judul: memudar ke ujung luar. */
+.menu-garis {
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    #e7c45d 30%,
+    #f2d98b 100%
+  );
+}
+
+.menu-garis:last-of-type {
+  background-image: linear-gradient(
+    to left,
+    transparent,
+    #e7c45d 30%,
+    #f2d98b 100%
+  );
+}
+
+.menu-bintang {
+  color: #f2d98b;
+  text-shadow: 0 0 8px rgb(231 196 93 / 0.55);
+}
+
+/* Di layar sempit tidak ada area gelap alami di bawah pohon: gambar desa
+   ter-crop ke tengah, jadi teks akan jatuh di atas rumah yang terang. Papan
+   teksnya sendiri yang diberi latar gelap transparan — di layar lebar latar itu
+   tidak dipakai karena bayangan pohon sudah cukup. */
+@media (width < 48rem) {
+  .menu-panel {
+    width: 100%;
+    padding: 1.1rem 1.2rem 1.35rem;
+    background-image: linear-gradient(
+      100deg,
+      rgb(4 18 11 / 0.9) 0%,
+      rgb(4 18 11 / 0.78) 58%,
+      rgb(4 18 11 / 0) 100%
+    );
+  }
+}
+
+/* Pilihan menu: teks kecil berhuruf kapital berjarak lebar, bukan tombol
+   berbingkai. Sorotan aktif memakai warna emas + segitiga penunjuk, dan tetap
+   terbaca sebagai tombol saat fokus keyboard. */
+/* Sorotan pilihan aktif dan fokus keyboard sama-sama memakai warna emas +
+   segitiga penunjuk. Tombolnya selebar teksnya (`width: auto`), bukan selebar
+   papan, supaya ring fokus menempel pada kata dan tidak jadi kotak lebar di atas
+   desa. Tinggi minimum 44 px tetap dari utility `min-h-11`. */
+.menu-item {
+  padding-inline: 1.35rem 0.75rem;
+  width: auto;
+  color: #eef1e4;
+  font-family: var(--font-game);
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 0 rgb(12 26 17 / 0.95),
+    0 0 14px rgb(4 18 11 / 0.65);
+}
+
+.menu-item[aria-current="true"] {
+  color: #ffe9a8;
+  text-shadow:
+    0 1px 0 rgb(12 26 17 / 0.95),
+    0 0 14px rgb(231 196 93 / 0.35);
+}
+
+/* Segitiga penunjuk di kiri tombol: hanya terlihat pada pilihan aktif. */
+.menu-panah {
+  left: 0.1rem;
+  border-block: 6px solid transparent;
+  border-left: 9px solid transparent;
+  opacity: 0;
+}
+
+.menu-item[aria-current="true"] .menu-panah {
+  border-left-color: #f2d98b;
+  opacity: 1;
+}
+
+.menu-item:focus-visible {
+  outline: 2px solid #f2d98b;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Label kecil: petunjuk tombol dan baris versi. */
+.menu-kredit {
+  font-family: var(--font-game);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(240 234 217 / 0.72);
+  text-shadow: 0 1px 0 rgb(12 26 17 / 0.9);
+}
+
+/* Sakura yang berguguran: satu elemen per kelopak, nilainya dari variabel
+   inline (`--kelopak-*`) supaya tidak perlu keyframes per kelopak. */
+@keyframes menu-kelopak-jatuh {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -8vh, 0) rotate(0deg);
+  }
+  10% {
+    opacity: var(--kelopak-opasitas, 0.7);
+  }
+  85% {
+    opacity: var(--kelopak-opasitas, 0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--kelopak-geser, 40px), 108vh, 0)
+      rotate(var(--kelopak-putar, 240deg));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .menu-item {
+    transition:
+      color 0.16s ease,
+      text-shadow 0.16s ease;
+  }
+
+  .menu-panah {
+    transition: opacity 0.16s ease;
+  }
+
+  .menu-kelopak {
+    animation: menu-kelopak-jatuh var(--kelopak-durasi, 18s) linear infinite;
+    animation-delay: var(--kelopak-jeda, 0s);
+  }
+
+  @media (hover: hover) {
+    .menu-item:hover {
+      color: #fff6d8;
+    }
+  }
+}
+
+/* Tanpa gerak: kelopak disembunyikan dan warna berganti tanpa transisi. */
+@media (prefers-reduced-motion: reduce) {
+  .menu-kelopak {
+    display: none;
+  }
+
+  .menu-item,
+  .menu-panah {
+    transition: none;
+  }
+}
