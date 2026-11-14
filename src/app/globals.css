@@ -1171,3 +1171,198 @@ img {
     transition: none;
   }
 }
+
+/* --------------------------------------------------------------------------
+ * Layar muat game (`/game` dan `/play/[storyId]`)
+ *
+ * Dulu progres dimuat hanya teks di canvas 640×360 yang di-upscale, jadi
+ * hurufnya bergerigi. Sekarang seluruh layar ada di DOM (`LoadingScreen.tsx`):
+ * latar malam pixel, judul cerita, dan bilah progres bersegmen.
+ *
+ * Latarnya CSS murni — bintang, bulan, dua lapis bukit — supaya layar muat tidak
+ * menunggu unduhan gambar apa pun, termasuk latarnya sendiri. Awalan `muat-`
+ * supaya tidak bertabrakan dengan `menu-`, `guru-`, maupun `landing-`.
+ *
+ * Gerak mengikuti aturan yang sama dengan halaman lain
+ * (`docs/05-frontend/ui-conventions.md`): hanya `opacity`/`transform` (kecuali
+ * lebar bilah progres, yang memang nilai yang diukur), dan semua `animation`
+ * berada di dalam `prefers-reduced-motion: no-preference`.
+ * ------------------------------------------------------------------------ */
+
+/* Langit malam: lebih terang di atas, tenggelam ke `deep` di bawah. */
+.muat-langit {
+  background-image: radial-gradient(
+    120% 82% at 50% 0%,
+    #1e2c26 0%,
+    #111c16 44%,
+    #0b120e 100%
+  );
+}
+
+/* Garis rambut emas yang memudar di kedua ujung. */
+.muat-garis {
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    rgb(232 168 124 / 0.55),
+    transparent
+  );
+}
+
+/* Bintang berkedip pelan; ukuran dan jedanya dari variabel inline. */
+.muat-bintang {
+  border-radius: 1px;
+  opacity: 0.4;
+}
+
+/* Bukit jauh dan dekat: tangga 6–10% supaya terbaca sebagai pixel, bukan
+   kurva halus. Warna mengikuti ramp palet (`far` dan `nightMid`). */
+.muat-bukit-jauh {
+  background-color: #21302f;
+  clip-path: polygon(
+    0% 100%,
+    0% 68%,
+    7% 68%,
+    7% 56%,
+    15% 56%,
+    15% 64%,
+    24% 64%,
+    24% 46%,
+    33% 46%,
+    33% 58%,
+    41% 58%,
+    41% 64%,
+    50% 64%,
+    50% 52%,
+    58% 52%,
+    58% 42%,
+    67% 42%,
+    67% 56%,
+    75% 56%,
+    75% 64%,
+    84% 64%,
+    84% 58%,
+    92% 58%,
+    92% 66%,
+    100% 66%,
+    100% 100%
+  );
+}
+
+.muat-bukit-dekat {
+  background-color: #0e1713;
+  clip-path: polygon(
+    0% 100%,
+    0% 76%,
+    9% 76%,
+    9% 64%,
+    19% 64%,
+    19% 74%,
+    28% 74%,
+    28% 82%,
+    38% 82%,
+    38% 68%,
+    47% 68%,
+    47% 78%,
+    57% 78%,
+    57% 84%,
+    66% 84%,
+    66% 72%,
+    76% 72%,
+    76% 80%,
+    86% 80%,
+    86% 86%,
+    94% 86%,
+    94% 78%,
+    100% 78%,
+    100% 100%
+  );
+}
+
+/* Isi bilah: satu-satunya properti yang boleh dianimasikan lebarnya, karena
+   angka progres memang yang diukur. */
+.muat-isi {
+  transition: width 220ms ease-out;
+}
+
+/* Segmen gelap di atas bilah, membuat isian terlihat seperti blok pixel. */
+.muat-segmen {
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0 10px,
+    #08130d 10px 13px
+  );
+}
+
+@keyframes muat-kedip {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* Kilau di dalam isian bilah, bergerak dari kiri ke kanan. */
+@keyframes muat-sinar {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/* Keadaan tak tentu: potongan cahaya menyapu bilah saat skrip game belum siap. */
+@keyframes muat-sapu {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+/* Konten masuk halus: naik 6 px sambil muncul. */
+@keyframes muat-masuk {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .muat-masuk {
+    animation: muat-masuk 0.5s ease-out both;
+  }
+
+  .muat-bintang {
+    animation: muat-kedip var(--muat-durasi, 3.6s) ease-in-out infinite;
+    animation-delay: var(--muat-jeda, 0s);
+  }
+
+  .muat-isi {
+    background-size: 200% 100%;
+    animation: muat-sinar 1.8s linear infinite;
+  }
+
+  .muat-sapu {
+    animation: muat-sapu 1.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+}
+
+/* Tanpa gerak: bintang berhenti di satu tingkat terang, bilah tidak bergerak. */
+@media (prefers-reduced-motion: reduce) {
+  .muat-bintang {
+    opacity: 0.5;
+  }
+
+  .muat-isi {
+    transition: none;
+  }
+}

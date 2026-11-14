@@ -78,6 +78,16 @@ export type NpcNameplate = {
 };
 
 export type GameEvent =
+  /**
+   * Aset cerita sedang dimuat; `progress` 0–1 dari loader Phaser. Dipakai
+   * layar muat DOM (`LoadingScreen`), bukan teks di canvas.
+   */
+  | { type: "loading"; progress: number }
+  /**
+   * Scene pertama sudah dibangun (dunia, pemain, kamera). Layar muat DOM
+   * memudar setelah event ini, jadi tidak pernah ada kanvas kosong yang terlihat.
+   */
+  | { type: "ready" }
   | { type: "dialogue"; view: DialogueView }
   | { type: "prompt"; hint: PromptView | null }
   | { type: "markers"; markers: NpcMarker[] }

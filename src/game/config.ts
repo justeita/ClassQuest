@@ -42,6 +42,6 @@ export function createGameConfig(
       zoom: skala,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [new PreloadScene(story), new GameScene(story, bus)],
+    scene: [new PreloadScene(story, bus), new GameScene(story, bus)],
   };
 }

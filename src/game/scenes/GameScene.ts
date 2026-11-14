@@ -291,6 +291,11 @@ export class GameScene extends Phaser.Scene {
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
 
+    // Scene pertama sudah berdiri lengkap (dunia, pemain, kamera, beat pertama).
+    // Layar muat DOM menunggu sinyal ini sebelum memudar — jangan pindahkan ke
+    // akhir `PreloadScene`, karena di sana kanvas masih kosong.
+    this.bus?.emit({ type: "ready" });
+
     // Scene dihancurkan (mis. "Main lagi"): mode lewati dan jadwal bab tidak
     // boleh tertinggal menunjuk scene yang sudah tidak tampil.
     this.events.once("shutdown", () => {

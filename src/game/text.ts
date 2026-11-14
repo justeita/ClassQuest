@@ -1,9 +1,13 @@
 /**
  * Teks Phaser yang tetap tajam saat canvas game diperbesar.
  *
- * Sejak ADR 0007, dialog dan prompt interaksi dirender di DOM, jadi teks yang
- * masih digambar Phaser tinggal label kecil seperti "Memuat…" di
- * `PreloadScene`. Teks seperti itu tetap perlu bantuan karena canvas 640×360
+ * Sejak ADR 0007, dialog dan prompt interaksi dirender di DOM. Label progres
+ * "Memuat…" yang dulu tersisa di `PreloadScene` juga sudah pindah ke layar muat
+ * DOM (`LoadingScreen.tsx`), jadi **tidak ada lagi teks yang digambar ke
+ * canvas**. Utilitas ini disimpan untuk teks canvas yang mungkin muncul lagi
+ * (mis. angka debug), bukan untuk UI game — UI baru tetap harus DOM.
+ *
+ * Kalau tetap dipakai, teks canvas perlu bantuan karena canvas 640×360
  * di-upscale ke layar:
  *
  * 1. `pixelArt: true` membuat **semua** tekstur memakai filter NEAREST —

@@ -135,6 +135,15 @@ export function GameShell({
     setLayar("main");
   }
 
+  /**
+   * Kembali dari permainan. `menuUtama` (`/game`) kembali ke menu utama supaya
+   * siswa bisa memilih Mulai lagi tanpa memuat ulang halaman; halaman siswa
+   * (`/play/[storyId]`) kembali ke layar judul cerita.
+   */
+  function batalMain() {
+    setLayar(menuUtama ? "menu" : "judul");
+  }
+
   return (
     <div className="relative h-full w-full overflow-hidden">
       {layar === "masuk" ? (
@@ -150,7 +159,12 @@ export function GameShell({
       ) : layar === "judul" ? (
         <TitleScreen story={story} onStart={mulai} />
       ) : (
-        <GameCanvas key={sesi} story={story} onFinished={selesai} />
+        <GameCanvas
+          key={sesi}
+          story={story}
+          onFinished={selesai}
+          onBatal={batalMain}
+        />
       )}
       {layar === "hasil" && hasil && (
         <ResultScreen

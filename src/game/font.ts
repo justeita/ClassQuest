@@ -7,8 +7,9 @@
  * itu akan bergerigi. Teks dialog sekarang hidup di DOM, memakai font
  * handwriting yang dimuat `next/font/local` dari `public/fonts/`.
  *
- * `fontGame()` tetap disediakan untuk teks Phaser yang masih ada di canvas
- * (label loading), supaya keluarga fontnya sama dengan dialog.
+ * `fontGame()` tetap disediakan untuk teks Phaser yang mungkin muncul lagi di
+ * canvas (mis. angka debug), supaya keluarga fontnya sama dengan dialog. UI
+ * game sendiri — termasuk layar muat — memakai `font-game` di DOM.
  */
 
 /** Nama keluarga font handwriting; dipakai CSS variable `--font-game`. */

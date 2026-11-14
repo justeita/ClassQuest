@@ -291,8 +291,11 @@ Keputusan (ADR 0007, diperluas ADR 0023): **teks permainan pindah ke DOM**.
 - Token Tailwind `--font-game` (utility `font-game`) dipakai HUD, dialog, prompt,
   dan layar overlay supaya satu keluarga huruf di seluruh permukaan game.
 - Phaser tetap memakai nama keluarga literal (`fontGame()` di `src/game/font.ts`)
-  untuk label kecil seperti "Memuat...", karena `fontFamily` Phaser tidak membaca
-  CSS variable. Label itu tetap dibantu `teksTajam()`.
+  bila suatu saat butuh `Phaser.GameObjects.Text`, karena `fontFamily` Phaser
+  tidak membaca CSS variable. Hari ini **tidak ada satu pun** teks yang digambar
+  ke canvas: label progres "Memuat…" sudah pindah ke layar muat DOM
+  (`LoadingScreen.tsx`, `font-game`), sehingga `teksTajam()` dan `fontGame()`
+  hanya tersisa sebagai utilitas yang tidak dipakai scene.
 - Geometri panel/portrait dan rumus ukuran huruf tinggal di `src/game/layout.ts`
   supaya canvas dan DOM memakai angka yang sama; ukuran huruf memakai
   `clamp()` berbasis `cqw` (lihat

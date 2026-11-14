@@ -3,9 +3,8 @@ import Phaser from "phaser";
 import { WORLD } from "@/assets/manifest";
 import type { Story } from "@/story/schema";
 
+import type { GameBus } from "../gameBus";
 import { collectStoryAssets } from "../sceneAssets";
-import { fontGame } from "../font";
-import { teksTajam } from "../text";
 
 /** Dipakai hanya bila entri karakter lupa mengisi ukuran frame. */
 const FRAME_WIDTH_DEFAULT = 24;
@@ -19,30 +18,27 @@ const FRAME_HEIGHT_DEFAULT = 32;
  * Spritesheet karakter memakai `frameWidth`/`frameHeight` dari manifest karena
  * tiap karakter desa punya lebar frame sendiri.
  *
- * `create()` langsung menyerahkan kendali ke `GameScene`; layar loading React
- * belum ada, jadi teks progres kecil digambar di canvas.
+ * Scene ini **tidak menggambar apa pun** ke canvas: progres dan judul cerita
+ * ditampilkan `LoadingScreen` (DOM) supaya tajam dan bisa dipakai dengan
+ * pembaca layar. Yang dikirim ke React hanya angka progres lewat bus.
  */
 export class PreloadScene extends Phaser.Scene {
   private readonly story: Story;
+  private readonly bus?: GameBus;
 
-  constructor(story: Story) {
+  constructor(story: Story, bus?: GameBus) {
     super("PreloadScene");
     this.story = story;
+    this.bus = bus;
   }
 
   preload() {
-    const label = teksTajam(
-      this.add
-        .text(320, 180, "Memuat... 0%", {
-          fontFamily: fontGame(),
-          fontSize: "14px",
-          color: "#F7F4EC",
-        })
-        .setOrigin(0.5),
-    ).setDepth(1000);
+    // 0% dikirim lebih dulu supaya layar muat langsung berubah dari keadaan
+    // "menyiapkan" (tanpa angka) ke bilah progres yang terukur.
+    this.bus?.emit({ type: "loading", progress: 0 });
 
     this.load.on("progress", (nilai: number) => {
-      label.setText(`Memuat... ${Math.round(nilai * 100)}%`);
+      this.bus?.emit({ type: "loading", progress: nilai });
     });
 
     // Dunia desa: satu gambar peta dan potongan objeknya. Tidak dirujuk cerita,
