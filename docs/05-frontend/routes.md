@@ -101,7 +101,10 @@ state itu. Lihat [`game-player.md`](./game-player.md).
 "Mulai" ia memuat `DEMO_STORY` di Phaser: tanpa `storyId` dan tanpa otorisasi.
 Landing menautkan kartu "Arena Siswa" ke sini karena tautan kelas dibuat di
 portal guru ("Bagikan" di `/guru/game`); target siswa tetap
-`/play/[storyId]?kelas=QST-XXXX`.
+`/play/[storyId]?kelas=QST-XXXX`. Kartu itu memakai `TautanLayarPenuh`
+(`src/components/landing/TautanLayarPenuh.tsx`): di ponsel, ketukan meminta
+layar penuh + kunci lanskap lebih dulu, lalu berpindah ke `/game` lewat
+navigasi App Router yang tidak mengganti dokumen (ADR 0037).
 
 Landing `/` memakai route group `src/app/(landing)/` supaya punya layout sendiri
 (font Inter/Plus Jakarta + ikon Font Awesome) tanpa membebani halaman

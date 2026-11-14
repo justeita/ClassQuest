@@ -464,6 +464,12 @@ tidak dirender sama sekali, dan bila kunci orientasi ditolak pemain tetap dapat
 layar penuh. Keputusannya di
 [ADR 0025](../09-decisions/0025-layar-penuh-lanskap.md).
 
+Layar penuh juga bisa **langsung diminta dari halaman utama**: kartu "Arena
+Siswa" (`TautanLayarPenuh`) memanggil permintaan yang sama di dalam gestur
+ketukan sebelum berpindah ke `/game`, jadi di ponsel permainan terbuka penuh
+dan mendatar tanpa menekan tombol lagi. Klik dengan tombol pengubah tetap
+membuka tab baru tanpa memaksa layar penuh (ADR 0037).
+
 Semua tombol dan tautan memakai `touch-action: manipulation`, dan akar
 `GameCanvas` `touch-manipulation`, supaya di Android ketukan langsung jadi klik
 dan tidak tertahan menunggu ketuk-dua-kali zoom. Hanya pad tongkat yang tetap

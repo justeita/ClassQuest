@@ -49,6 +49,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0034 | [Mode permainan dipilih guru](0034-mode-permainan.md)                                                                     | Accepted     | AI, cerita, backend   |
 | 0035 | [Penempatan tokoh tetap di desa](0035-penempatan-tokoh-tetap.md)                                                          | Accepted     | AI, prompt            |
 | 0036 | [Menu jeda dua kolom di lanskap pendek](0036-menu-jeda-dua-kolom.md)                                                      | Accepted     | Game, aksesibilitas   |
+| 0037 | [Layar penuh mendatar dari pintu siswa](0037-layar-penuh-pintu-siswa.md)                                                  | Accepted     | Game, aksesibilitas   |
 
 ## Status
 

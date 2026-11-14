@@ -68,14 +68,14 @@ Aturan:
 Setiap aksi yang bisa dilakukan keyboard juga punya jalur sentuh (ADR 0024),
 sehingga siswa di ponsel/tablet tidak ditinggalkan:
 
-| Aksi          | Sentuh                                   |
-| ------------- | ---------------------------------------- |
-| Gerak         | Joystick 8 arah di sudut kiri bawah      |
-| Bicara        | Tombol aksi besar di sudut kanan bawah   |
-| Lanjut dialog | Ketuk kotak dialog yang sedang tampil    |
-| Pilih jawaban | Ketuk opsi / tombol di overlay tantangan |
-| Menu jeda     | Tombol "Jeda" di HUD                     |
-| Layar penuh   | Tombol di layar judul / ikon di HUD      |
+| Aksi          | Sentuh                                           |
+| ------------- | ------------------------------------------------ |
+| Gerak         | Joystick 8 arah di sudut kiri bawah              |
+| Bicara        | Tombol aksi besar di sudut kanan bawah           |
+| Lanjut dialog | Ketuk kotak dialog yang sedang tampil            |
+| Pilih jawaban | Ketuk opsi / tombol di overlay tantangan         |
+| Menu jeda     | Tombol "Jeda" di HUD                             |
+| Layar penuh   | Kartu "Arena Siswa" / tombol judul / ikon di HUD |
 
 Aturan:
 

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { AppFooter } from "@/components/brand/AppFooter";
 import { AppHeader } from "@/components/brand/AppHeader";
 import { GamePreview } from "@/components/landing/GamePreview";
+import { TautanLayarPenuh } from "@/components/landing/TautanLayarPenuh";
 
 /**
  * Halaman pengenalan produk di `/`.
@@ -15,7 +16,8 @@ import { GamePreview } from "@/components/landing/GamePreview";
  *
  * Kartu "Portal Guru" mengarah ke `/guru` (belum masuk → diarahkan ke
  * `/guru/masuk` oleh layout portal), kartu "Arena Siswa" mengarah ke `/game`
- * (demo Phaser).
+ * (demo Phaser) sekaligus meminta layar penuh mendatar lewat
+ * `TautanLayarPenuh` (ADR 0037).
  *
  * Server Component tanpa data dinamis, sesuai tabel cache di
  * `docs/01-architecture/data-flow.md` (landing statis). Tombol memakai
@@ -347,7 +349,7 @@ export default function Home() {
                 </ul>
               </div>
 
-              <Link
+              <TautanLayarPenuh
                 href="/game"
                 className="landing-btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-siswa-700 px-4 py-3 font-pixel text-xs font-bold text-white hover:bg-siswa-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-siswa-700 sm:text-sm"
               >
@@ -356,7 +358,7 @@ export default function Home() {
                   className="fa-solid fa-arrow-right text-xs transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
                   aria-hidden="true"
                 />
-              </Link>
+              </TautanLayarPenuh>
             </article>
           </div>
 
