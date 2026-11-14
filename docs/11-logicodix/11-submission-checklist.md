@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-11
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -30,23 +30,23 @@ tombol submit disentuh.** Tenggat internal kita 21.00 WIB, bukan 23.59.
 
 Isi sekali, lalu salin dari sini ke semua berkas. Jangan mengetik ulang.
 
-| Field              | Nilai                 |
-| ------------------ | --------------------- |
-| Nama tim           | `TBD`                 |
-| Ketua tim          | `TBD`                 |
-| Anggota 1          | `TBD`                 |
-| Anggota 2          | `TBD`                 |
-| Anggota 3          | `TBD`                 |
-| Asal instansi      | `TBD`                 |
-| Kategori           | Web                   |
-| Nama aplikasi      | ClassQuest            |
-| Subtema            | Smart & Fun Education |
-| Repositori kanonik | `TBD`                 |
-| URL aplikasi       | `TBD`                 |
-| Tautan video demo  | `TBD`                 |
-| Commit hash final  | `TBD`                 |
-| Waktu commit final | `TBD`                 |
-| Waktu deploy final | `TBD`                 |
+| Field              | Nilai                                              |
+| ------------------ | -------------------------------------------------- |
+| Nama tim           | Fastfetch                                          |
+| Ketua tim          | Marson Arya Bagas Prasetyo                         |
+| Anggota 1          | Muhammad Geral Herpavy                             |
+| Anggota 2          | Fadhlurrahman Akwa Qinthara                        |
+| Anggota 3          | Davita Syalom Maria Attira Pandjaitan              |
+| Asal instansi      | Universitas Negeri Surabaya                        |
+| Kategori           | Web                                                |
+| Nama aplikasi      | ClassQuest                                         |
+| Subtema            | Smart & Fun Education                              |
+| Repositori kanonik | `https://github.com/justeita/ClassQuest`           |
+| URL aplikasi       | `https://classquest.justeita.com`                  |
+| Tautan video demo  | `TBD`                                              |
+| Commit hash final  | `TBD` (diisi setelah commit final, sebelum submit) |
+| Waktu commit final | `TBD`                                              |
+| Waktu deploy final | `TBD`                                              |
 
 ## Berkas wajib
 
