@@ -313,6 +313,28 @@ describe("ChallengeOverlay — tipe lain", () => {
     );
   });
 
+  it("petunjuk pintasan pengurutan sejajar dengan tombol hint", () => {
+    renderOverlay({
+      ...orderingView,
+      hints: ["Ingat urutan energi."],
+    });
+
+    const pintasan = screen.getByText(/Pilih/);
+    expect(pintasan.parentElement).toHaveClass("justify-end");
+    expect(screen.getByRole("button", { name: /lihat hint/i })).toBeEnabled();
+  });
+
+  it("petunjuk Enter jawaban singkat sejajar dengan tombol hint", () => {
+    renderOverlay({
+      ...shortAnswerView,
+      hints: ["Bagi bagian dengan keseluruhan."],
+    });
+
+    const pintasan = screen.getByText(/Kirim Jawaban/);
+    expect(pintasan.parentElement).toHaveClass("justify-end");
+    expect(screen.getByRole("button", { name: /lihat hint/i })).toBeEnabled();
+  });
+
   it("keyboard: angka memilih opsi, Enter mengirim", () => {
     const { onSubmit } = renderOverlay({
       ...dasar,

@@ -511,8 +511,9 @@ export function ChallengeOverlay({
               </div>
 
               {/* Teks petunjuk berlatar navy dengan font terang agar selalu kontras;
-                  ditaruh di luar grup agar tidak menentukan lebar kotak. */}
-              <div className="flex w-full items-center justify-center pt-0.5">
+                  ditaruh di luar grup agar tidak menentukan lebar kotak, dan
+                  diratakan ke kanan bersama opsi, tombol Jawab, dan hint. */}
+              <div className="flex w-full items-center justify-end pt-0.5">
                 <p
                   className="inline-flex items-center gap-1.5 rounded-md border border-[#E8A87C]/25 bg-[#0b120e]/95 px-3 py-1 font-medium text-[#F7F4EC]"
                   style={{
@@ -583,8 +584,9 @@ export function ChallengeOverlay({
               </div>
 
               {/* Teks petunjuk berlatar navy dengan font terang agar selalu kontras;
-                  ditaruh di luar grup agar tidak menentukan lebar kotak. */}
-              <div className="flex w-full items-center justify-center pt-0.5">
+                  ditaruh di luar grup agar tidak menentukan lebar kotak, dan
+                  diratakan ke kanan bersama opsi, tombol Jawab, dan hint. */}
+              <div className="flex w-full items-center justify-end pt-0.5">
                 <p
                   className="inline-flex items-center gap-1.5 rounded-md border border-[#E8A87C]/25 bg-[#0b120e]/95 px-3 py-1 font-medium text-[#F7F4EC]"
                   style={{
