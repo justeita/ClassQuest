@@ -75,6 +75,10 @@
         "gradeLevel": { "type": "string", "minLength": 1, "maxLength": 40 },
         "language": { "type": "string", "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
         "tone": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "mode": {
+          "description": "Mode permainan yang dipilih guru: menjelaskan (cerita utuh), pertanyaan (kuis padat), atau mix. Cerita lama tanpa field ini diperlakukan sebagai mix saat ditampilkan.",
+          "enum": ["menjelaskan", "pertanyaan", "mix"]
+        },
         "synopsis": { "type": "string", "minLength": 40, "maxLength": 400 },
         "estimatedMinutes": { "type": "integer", "minimum": 3, "maximum": 30 }
       }
@@ -448,7 +452,11 @@
             }
           ]
         },
-        "text": { "type": "string", "minLength": 1, "maxLength": 240 }
+        "text": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "expression": {
+          "description": "Emosi potret khusus varian ini; bila kosong memakai expression beat induk.",
+          "$ref": "#/$defs/expression"
+        }
       }
     },
     "detourBeat": {

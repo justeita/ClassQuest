@@ -72,8 +72,11 @@ Catatan wiring:
   sebelum `src/proxy.ts` ditambahkan). Yang dilindungi di sini adalah
   kepemilikan data, bukan status HTTP; kalau status 404 asli dibutuhkan,
   pemeriksaan harus dipindah ke `src/proxy.ts` seperti route siswa.
-- Editor cerita (`/guru/materi/[storyId]/edit`), preview draft, dan pembagian
-  tautan lewat undangan **belum ada**; tautan siswa cukup `/play/[storyId]`.
+- Editor cerita (`/guru/materi/[storyId]/edit`) sudah ada: halaman hanya
+  menyiapkan cerita versi terbaru + nomor versi, lalu `StoryEditor` (client)
+  menyunting salinan dan menyimpan lewat `saveStoryDraft`. Preview draft dan
+  pembagian tautan lewat undangan **belum ada**; tautan siswa cukup
+  `/play/[storyId]`.
 - `/guru/kelas` membaca `listClassrooms()` dan menampilkan daftar kosong bila
   guru belum punya kelas. Buat kelas dan tambah siswa lewat Server Action di
   `src/app/guru/(portal)/kelas/actions.ts`; setelah sukses komponen memanggil

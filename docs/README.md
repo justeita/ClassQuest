@@ -128,6 +128,7 @@ Tidak perlu baca semua. Pilih sesuai pekerjaanmu, lalu ikuti tautannya.
 | Kerja di UI guru         | [`05-frontend/teacher-dashboard.md`](./05-frontend/teacher-dashboard.md), [`05-frontend/story-editor.md`](./05-frontend/story-editor.md)                 |
 | Tambah endpoint API      | [`06-backend/api-contract.md`](./06-backend/api-contract.md)                                                                                             |
 | Tambah/ganti aset        | [`07-assets/asset-guide.md`](./07-assets/asset-guide.md), [`07-assets/inventory.md`](./07-assets/inventory.md)                                           |
+| Tulis dialog / persona   | [`07-assets/cast-bible.md`](./07-assets/cast-bible.md)                                                                                                   |
 | Setup environment        | [`08-workflow/setup.md`](./08-workflow/setup.md)                                                                                                         |
 | Sebelum buka PR          | [`08-workflow/git-and-pr.md`](./08-workflow/git-and-pr.md), [`11-logicodix/05-aturan-commit-dan-git.md`](./11-logicodix/05-aturan-commit-dan-git.md)     |
 | **Aturan lomba**         | [`11-logicodix/README.md`](./11-logicodix/README.md) — wajib sebelum menulis kode                                                                        |
@@ -180,6 +181,7 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`06-backend/persistence.md`](./06-backend/persistence.md)                                                                     | tbd    | Rencana database, storage, dan versi cerita                  |
 | [`06-backend/jobs-and-limits.md`](./06-backend/jobs-and-limits.md)                                                             | draft  | Batas ukuran, waktu, dan status pekerjaan                    |
 | [`07-assets/asset-guide.md`](./07-assets/asset-guide.md)                                                                       | draft  | Spesifikasi gambar, musik, dan suara                         |
+| [`07-assets/cast-bible.md`](./07-assets/cast-bible.md)                                                                         | stable | Persona lengkap sepuluh karakter tetap                       |
 | [`07-assets/inventory.md`](./07-assets/inventory.md)                                                                           | draft  | Daftar aset yang direncanakan beserta statusnya              |
 | [`07-assets/naming-conventions.md`](./07-assets/naming-conventions.md)                                                         | stable | Aturan penamaan file aset                                    |
 | [`08-workflow/setup.md`](./08-workflow/setup.md)                                                                               | stable | Menyiapkan environment lokal                                 |
@@ -220,6 +222,10 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0029-desain-hud-dan-tombol-bicara.md`](./09-decisions/0029-desain-hud-dan-tombol-bicara.md)                     | stable | Desain HUD seragam dan tombol Bicara menjauh dari tepi       |
 | [`09-decisions/0030-desain-tantangan-seragam-dialog.md`](./09-decisions/0030-desain-tantangan-seragam-dialog.md)               | stable | Desain tantangan seragam dan penunjuk pilihan yang presisi   |
 | [`09-decisions/0031-warna-ui-selaras-penanda-quest.md`](./09-decisions/0031-warna-ui-selaras-penanda-quest.md)                 | stable | Warna UI selaras penanda quest dan penunjuk tangan SVG       |
+| [`09-decisions/0032-emosi-per-varian-jawaban.md`](./09-decisions/0032-emosi-per-varian-jawaban.md)                             | stable | Emosi berbeda per varian jawaban                             |
+| [`09-decisions/0033-pemilihan-pembicara-keahlian.md`](./09-decisions/0033-pemilihan-pembicara-keahlian.md)                     | stable | Dialog bidang tertentu jatuh ke tokoh yang ahli              |
+| [`09-decisions/0034-mode-permainan.md`](./09-decisions/0034-mode-permainan.md)                                                 | stable | Mode permainan dipilih guru                                  |
+| [`09-decisions/0035-penempatan-tokoh-tetap.md`](./09-decisions/0035-penempatan-tokoh-tetap.md)                                 | stable | Tokoh punya tempat tetap yang sejalan dengan peta desa       |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                                               | draft  | Urutan kerja dan pembagian tugas                             |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                                                     | draft  | Naskah demo 3 menit + sketsa layar                           |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                                           | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal     |

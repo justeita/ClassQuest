@@ -99,6 +99,7 @@ const VALID_FIELDS = {
   subject: "IPA",
   gradeLevel: "Kelas 5 SD",
   language: "id",
+  mode: "mix",
 };
 
 const PDF_BODY = new TextEncoder().encode(
@@ -436,6 +437,58 @@ describe("POST /api/upload — unggahan valid", () => {
 
     const call = scheduleJobMock.mock.calls[0][0] as { tone?: string };
     expect(call.tone).toBe("tegang tapi ramah");
+  });
+
+  it("memakai tone bawaan kontrak saat field tone kosong", async () => {
+    const response = await POST(multipartRequest({}));
+    expect(response.status).toBe(202);
+
+    const call = scheduleJobMock.mock.calls[0][0] as { tone?: string };
+    expect(call.tone).toBe("hangat dan penasaran");
+  });
+
+  it("meneruskan mode permainan dari form ke scheduleJob", async () => {
+    const response = await POST(
+      multipartRequest({ fields: { mode: "pertanyaan" } }),
+    );
+    expect(response.status).toBe(202);
+
+    const call = scheduleJobMock.mock.calls[0][0] as { mode?: string };
+    expect(call.mode).toBe("pertanyaan");
+  });
+
+  it("menolak permintaan tanpa mode permainan", async () => {
+    const form = new FormData();
+    form.append("file", pdfFile());
+    for (const [key, value] of Object.entries(VALID_FIELDS)) {
+      if (key === "mode") continue;
+      form.append(key, value);
+    }
+
+    const response = await POST(
+      new Request("http://localhost/api/upload", {
+        method: "POST",
+        body: form,
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "INVALID_INPUT" },
+    });
+    expect(scheduleJobMock).not.toHaveBeenCalled();
+  });
+
+  it("menolak mode yang tidak dikenal", async () => {
+    const response = await POST(
+      multipartRequest({ fields: { mode: "kuis cepat" } }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "INVALID_INPUT" },
+    });
+    expect(scheduleJobMock).not.toHaveBeenCalled();
   });
 
   it("memakai tone bawaan kontrak saat field tone kosong", async () => {

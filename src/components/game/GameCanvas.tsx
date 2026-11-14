@@ -16,6 +16,7 @@ import { NpcHintLayer } from "@/components/game/NpcHintLayer";
 import { QuestToast } from "@/components/game/QuestToast";
 import { QuestTracker } from "@/components/game/QuestTracker";
 import { Hud } from "@/components/game/HUD";
+import { LoadingScreen } from "@/components/game/LoadingScreen";
 import { SpeedLines } from "@/components/game/SpeedLines";
 import { PauseMenu } from "@/components/game/PauseMenu";
 import {
@@ -50,9 +51,11 @@ type GameCanvasProps = {
    * pertama yang dipakai layar hasil untuk menyimpan ke server.
    */
   onFinished?: (result: PlayResult, answers: Answer[]) => void;
+  /** Tombol "Batal" di layar muat: kembali ke layar sebelum permainan. */
+  onBatal: () => void;
 };
 
-export function GameCanvas({ story, onFinished }: GameCanvasProps) {
+export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const adaTantangan = useRef(false);
   const gameRef = useRef<GameHandle | null>(null);
@@ -80,6 +83,14 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const [bingkai, setBingkai] = useState({ x: 0, y: 0, w: 0, h: 0 });
   const [jeda, setJeda] = useState(false);
   const [bukuQuest, setBukuQuest] = useState(false);
+  /** Progres aset 0–1 dari Phaser; `null` selama skrip game belum siap. */
+  const [progresMuat, setProgresMuat] = useState<number | null>(null);
+  /** Scene pertama sudah berdiri: layar muat boleh memudar. */
+  const [siapMain, setSiapMain] = useState(false);
+  /** Phaser gagal dimuat; layar muat menampilkan jalan keluar. */
+  const [gagalMuat, setGagalMuat] = useState(false);
+  /** Dinaikkan tombol "Coba lagi" untuk memuat ulang Phaser di layar yang sama. */
+  const [percobaanMuat, setPercobaanMuat] = useState(0);
   /** Time-lapse lewati sedang berjalan; memicu garis kecepatan. */
   const [sedangLewati, setSedangLewati] = useState(false);
   /** Pemain berada di zona NPC: tombol aksi sentuh jadi "Bicara". */
@@ -156,6 +167,12 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     let cancelled = false;
     const lepas: (() => void)[] = [];
 
+    // Muat ulang (tombol "Coba lagi") memakai efek yang sama: layar muat
+    // kembali ke keadaan tak tentu sebelum Phaser dimuat lagi.
+    setProgresMuat(null);
+    setSiapMain(false);
+    setGagalMuat(false);
+
     void import("@/game/createGame")
       .then(({ createGame }) => {
         if (cancelled) return;
@@ -164,6 +181,21 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         gameRef.current = game;
         busRef.current = game.bus;
         setBus(game.bus);
+
+        // Layar muat DOM menggantikan teks progres di canvas
+        // (docs/05-frontend/game-player.md → Loading). `ready` dikirim
+        // GameScene setelah dunia dan pemain berdiri, jadi overlay baru
+        // memudar ketika tidak ada kanvas kosong yang sempat terlihat.
+        lepas.push(
+          game.bus.on("loading", ({ progress }) => {
+            setProgresMuat(progress);
+          }),
+        );
+        lepas.push(
+          game.bus.on("ready", () => {
+            setSiapMain(true);
+          }),
+        );
 
         // Overlay hanya menerima view tanpa jawaban; penilaian di sisi game.
         lepas.push(
@@ -264,7 +296,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
         );
       })
       .catch((error: unknown) => {
+        if (cancelled) return;
         console.error("Gagal memuat game:", error);
+        // Jangan biarkan layar muat berputar selamanya: tampilkan pesan dan
+        // tombol coba lagi (docs/05-frontend/game-player.md → Error).
+        setGagalMuat(true);
       });
 
     return () => {
@@ -274,7 +310,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
       gameRef.current = null;
       busRef.current = null;
     };
-  }, [story]);
+  }, [story, percobaanMuat]);
 
   const bukaJeda = useCallback(() => {
     busRef.current?.send({ type: "pause" });
@@ -357,6 +393,13 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** Muat ulang Phaser di layar yang sama setelah gagal dimuat. */
+  const cobaLagiMuat = useCallback(() => {
+    setGagalMuat(false);
+    setProgresMuat(null);
+    setPercobaanMuat((nilai) => nilai + 1);
+  }, []);
+
   const ulangiChapter = useCallback(() => {
     setTantangan(null);
     setHasil(null);
@@ -391,6 +434,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   //   Saat tantangan aktif, Esc hanya berlaku setelah dijawab (docs/04-game/interaction-loop.md).
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
+      // Selama layar muat menutup shell, tidak ada permainan yang bisa
+      // dijedakan atau dibukakan buku. Tab juga harus tetap bisa keluar dari
+      // tombol "Batal" di layar muat, jadi shortcut tidak diambil alih.
+      if (!siapMain) return;
+
       const tag = (event.target as HTMLElement)?.tagName;
       const isInput = tag === "INPUT" || tag === "TEXTAREA";
 
@@ -462,6 +510,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
     lanjut,
     bukaJeda,
     tutupJeda,
+    siapMain,
   ]);
 
   const lanjutDialog = useCallback(() => {
@@ -713,6 +762,17 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           onUbahAudio={ubahAudio}
         />
       )}
+      {/* Lapisan terakhir: menutup seluruh shell sampai dunia pertama siap,
+          juga saat menu jeda atau buku log tidak terbuka. Komponennya sendiri
+          yang memudar lalu melepas diri (lihat LoadingScreen). */}
+      <LoadingScreen
+        story={story}
+        progress={progresMuat}
+        selesai={siapMain}
+        gagal={gagalMuat}
+        onBatal={onBatal}
+        onCobaLagi={cobaLagiMuat}
+      />
     </div>
   );
 }

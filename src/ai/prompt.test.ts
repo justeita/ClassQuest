@@ -4,7 +4,12 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { toAssetManifest } from "../assets/manifest";
-import { FIXED_CAST } from "../story/cast";
+import {
+  CAST_EXPERTISE,
+  CAST_PLACES,
+  FIXED_CAST,
+  locationOf,
+} from "../story/cast";
 import { MockProvider } from "./mock-provider";
 import {
   buildChapterPrompt,
@@ -266,6 +271,13 @@ describe("blok prompt dan urutannya", () => {
     expect(SYSTEM_PROMPT).toContain("SUARA DAN ROLEPLAY");
     expect(SYSTEM_PROMPT).toContain('Hindari "Anda" dan "Saya"');
     expect(SYSTEM_PROMPT).toContain("roleplay yang hidup");
+  });
+
+  it("system prompt mengarahkan dialog ke tokoh yang ahli di bidangnya", () => {
+    expect(SYSTEM_PROMPT).toContain("PEMILIHAN PEMBICARA");
+    expect(SYSTEM_PROMPT).toContain("Dialog tentang suatu bidang diberikan");
+    expect(SYSTEM_PROMPT).toContain("Elian, Elias, dan");
+    expect(SYSTEM_PROMPT).toContain("Clara memang gemar membaca");
   });
 
   it("TASK mengikuti nada guru dan mengingatkan suara roleplay", () => {
@@ -560,8 +572,8 @@ describe("repair", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("parameter generasi", () => {
-  it("memakai PROMPT_VERSION story-v8", () => {
-    expect(PROMPT_VERSION).toBe("story-v8");
+  it("memakai PROMPT_VERSION story-v12", () => {
+    expect(PROMPT_VERSION).toBe("story-v12");
   });
 
   it("BATAS OUTLINE menyebut batas konsep dan enum role", () => {
@@ -594,6 +606,85 @@ describe("parameter generasi", () => {
     expect(result.temperature).toBe(0.2);
     expect(result.maxOutputTokens).toBe(PROMPT_MAX_OUTPUT_TOKENS);
     expect(result.json).toBe(true);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* 6b. Mode permainan (ADR 0028)                                              */
+/* -------------------------------------------------------------------------- */
+
+describe("mode permainan di prompt", () => {
+  const outline = (mode: "menjelaskan" | "pertanyaan" | "mix" | undefined) =>
+    buildOutlinePrompt(
+      outlineInput({
+        meta: {
+          ...outlineInput().meta,
+          ...(mode === undefined ? {} : { mode }),
+        },
+      }),
+    ).user;
+
+  const chapter = (mode: "menjelaskan" | "pertanyaan" | "mix" | undefined) =>
+    buildChapterPrompt(
+      chapterInput({
+        meta: {
+          ...chapterInput().meta,
+          ...(mode === undefined ? {} : { mode }),
+        },
+      }),
+    ).user;
+
+  it("mode pertanyaan meminta tepat tiga chapter di outline", () => {
+    const user = outline("pertanyaan");
+
+    expect(user).toContain("Mode pertanyaan");
+    expect(user).toContain("TEPAT 3 chapter");
+    expect(user).not.toContain("Mode mix");
+  });
+
+  it("mode menjelaskan mengutamakan alur cerita di outline", () => {
+    const user = outline("menjelaskan");
+
+    expect(user).toContain("Mode menjelaskan");
+    expect(user).toContain("mengutamakan alur cerita");
+  });
+
+  it("mode mix meminta cerita lebih panjang daripada mode pertanyaan", () => {
+    const user = outline("mix");
+
+    expect(user).toContain("Mode mix");
+    expect(user).toContain("lebih panjang daripada mode pertanyaan");
+  });
+
+  it("mode pertanyaan meminta kuis padat dengan cerita tipis", () => {
+    const user = chapter("pertanyaan");
+
+    expect(user).toContain("Mode pertanyaan (kuis padat, cerita tipis)");
+    expect(user).toContain("3-4 tantangan");
+    expect(user).toContain("1-2 beat narasi/dialog");
+    // Dunia desa tetap dipakai, bukan daftar soal lepas.
+    expect(user).toContain("Tetap pakai latar desa dan tokoh dari CAST");
+  });
+
+  it("mode menjelaskan meminta satu sampai dua tantangan", () => {
+    const user = chapter("menjelaskan");
+
+    expect(user).toContain("Mode menjelaskan");
+    expect(user).toContain("1-2 tantangan");
+  });
+
+  it("mode mix meminta dua sampai tiga tantangan", () => {
+    const user = chapter("mix");
+
+    expect(user).toContain("Mode mix");
+    expect(user).toContain("2-3 tantangan");
+  });
+
+  it("tanpa mode, prompt memakai mix sebagai nilai bawaan", () => {
+    // Jalur produk mewajibkan guru memilih; bawaan ini hanya untuk pemanggil
+    // lama dan tes supaya prompt tetap punya satu bentuk cerita.
+    expect(outline(undefined)).toContain("Mode mix");
+    expect(chapter(undefined)).toContain("Mode mix");
   });
 });
 
@@ -692,6 +783,59 @@ describe("roster tetap", () => {
     expect(user).toContain("Griselda");
     expect(user).toContain("berjubah marun bertongkat kayu");
     expect(user).toContain("Pelajar akademi bertopi biru tua");
+  });
+
+  it("CAST membawa kolom keahlian untuk setiap tokoh tetap", () => {
+    const { user } = buildOutlinePrompt(outlineInput());
+
+    expect(user).toContain("keahlian: ");
+    expect(user).toContain("jangan disalin ke keluaran JSON");
+
+    for (const [id, keahlian] of Object.entries(CAST_EXPERTISE)) {
+      expect(user).toContain(`- ${id} |`);
+      expect(user).toContain(`keahlian: ${keahlian}`);
+    }
+  });
+
+  it("keahlian pemilik topik jelas tercantum di CAST", () => {
+    const { user } = buildOutlinePrompt(outlineInput());
+
+    expect(user).toContain("keahlian: ikan, sungai, memancing, perahu, arus");
+    expect(user).toContain("keahlian: ladang, sawah, tanaman, panen, tanah");
+    expect(user).toContain("keahlian: menjaga, keamanan, aturan");
+  });
+
+  it("CAST membawa lokasi tetap tiap tokoh", () => {
+    const { user } = buildOutlinePrompt(outlineInput());
+
+    for (const member of FIXED_CAST) {
+      expect(user).toContain(`lokasi: ${locationOf(member.id)}`);
+    }
+  });
+
+  it("LOKASI menyebut tempat dan penghuninya", () => {
+    const outline = buildOutlinePrompt(outlineInput()).user;
+    const chapter = buildChapterPrompt(chapterInput()).user;
+
+    for (const prompt of [outline, chapter]) {
+      expect(prompt).toContain("\nLOKASI\n");
+      expect(prompt).toContain("tata letak tetap");
+
+      for (const place of CAST_PLACES) {
+        expect(prompt).toContain(place.label);
+        expect(prompt).toContain(place.note);
+      }
+    }
+
+    expect(outline).toContain("Tokoh di sini: Marlow.");
+    expect(outline).toContain("Bukan air mancur alun-alun");
+  });
+
+  it("system prompt mengarahkan penempatan tokoh sesuai peta", () => {
+    expect(SYSTEM_PROMPT).toContain("PENEMPATAN TOKOH");
+    expect(SYSTEM_PROMPT).toContain("tempat tetap di desa");
+    expect(SYSTEM_PROMPT).toContain("Jangan menukar tempat dua tokoh");
+    expect(SYSTEM_PROMPT).toContain("continuity.characterStates[].location");
   });
 });
 

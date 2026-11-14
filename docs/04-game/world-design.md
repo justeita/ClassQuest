@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -40,6 +40,15 @@ di `create()`, lalu tidak pernah membangunnya ulang.
 
 Isi dunia (nama desa, rumah, balai, sawah, dan lagu latar) mengikuti cerita demo
 **Pesta Panen Desa**; lihat [`../02-data-model/story.example.json`](../02-data-model/story.example.json).
+
+Posisi NPC punya makna cerita, bukan sekadar dekorasi: Marlow di jembatan
+sungai, Theo di kebun dekat sumur, Elias di depan perpustakaan, Edric di rumah
+beratap merah, Eldric di rumah beratap biru, Clara di kolam timur, Elian di
+alun-alun, dan Leonhardt di pintu masuk selatan. AI penulis cerita **tidak**
+menerima peta maupun koordinat, jadi tata letak itu dikirim lewat blok `LOKASI`
+dari `CAST_PLACES` di `src/story/cast.ts` (ADR 0029). Kalau peta diubah,
+`CAST_PLACES` harus ikut diubah — `src/story/cast.test.ts` menegur bila ada NPC
+di peta yang tidak punya lokasi di prompt.
 
 ## Satuan dasar
 
@@ -215,7 +224,7 @@ terlihat.
 | Anchor      | Kaki di tengah bawah (`setOrigin(0.5, 1)`)                                 |
 | Skala       | tinggi diseragamkan ke 56 px di peta                                       |
 | Animasi     | idle selalu berputar; pemain menambah walk saat bergerak                   |
-| Portrait    | 64×64 px, tidak dibuat ulang dari sprite baru                              |
+| Portrait    | kanvas 456×360 px, enam ekspresi, dirender DOM (ADR 0023)                  |
 
 Animasi didaftarkan sekali per karakter di `GameScene` (kunci
 `<id>:<jenis>:<arah>`, `repeat: -1`), dari metadata
@@ -260,7 +269,7 @@ Keputusan (ADR 0007, diperluas ADR 0023): **teks permainan pindah ke DOM**.
   sisi kiri atas panel, MC (dicerminkan) di sisi kanan — dasarnya menempel
   tepi atas panel, dengan jarak masuk sedikit lebih besar dari radius sudut
   panel supaya siluetnya tidak terpotong lengkungan — dan berekspresi sesuai
-  field `expression` beat. Importer menormalkan tinggi kepala, menyusun potret
+  `expression` beat atau varian teks yang menang (ADR 0024). Importer menormalkan tinggi kepala, menyusun potret
   relatif ke satu patokan tanpa memotong sisinya, menaikkan skala karakter
   berbadan pendek supaya isinya menyentuh tepi bawah
   kanvas, dan memadatkan tepi bawah yang memudar jadi potongan rata; jadi
@@ -282,8 +291,11 @@ Keputusan (ADR 0007, diperluas ADR 0023): **teks permainan pindah ke DOM**.
 - Token Tailwind `--font-game` (utility `font-game`) dipakai HUD, dialog, prompt,
   dan layar overlay supaya satu keluarga huruf di seluruh permukaan game.
 - Phaser tetap memakai nama keluarga literal (`fontGame()` di `src/game/font.ts`)
-  untuk label kecil seperti "Memuat...", karena `fontFamily` Phaser tidak membaca
-  CSS variable. Label itu tetap dibantu `teksTajam()`.
+  bila suatu saat butuh `Phaser.GameObjects.Text`, karena `fontFamily` Phaser
+  tidak membaca CSS variable. Hari ini **tidak ada satu pun** teks yang digambar
+  ke canvas: label progres "Memuat…" sudah pindah ke layar muat DOM
+  (`LoadingScreen.tsx`, `font-game`), sehingga `teksTajam()` dan `fontGame()`
+  hanya tersisa sebagai utilitas yang tidak dipakai scene.
 - Geometri panel/portrait dan rumus ukuran huruf tinggal di `src/game/layout.ts`
   supaya canvas dan DOM memakai angka yang sama; ukuran huruf memakai
   `clamp()` berbasis `cqw` (lihat

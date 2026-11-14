@@ -241,7 +241,8 @@ pemain dari `movement.ts`, zona interaksi dari `interaction.ts`) → `interact()
 memutar deretan beat lewat `textbox.ts` + `typewriter.ts` dengan debounce 150 ms
 (Space/Enter/klik). State dialog dikirim ke React sebagai event `dialogue` dan
 dirender `DialogueBox.tsx` — panel kotak navy gelap membulat, potret
-ber-`expression`, nama, dan teks (ADR 0023); React membalas command `advance`.
+ber-`expression` (beat atau varian teks yang menang, ADR 0023 + ADR 0032), nama,
+dan teks; React membalas command `advance`.
 Prompt interaksi
 memakai event `prompt`: kotak `Space` pemberi quest dirender `NpcMarker.tsx`
 (menyatu dengan `!`), sedangkan obrolan singkat dirender `InteractHint.tsx`
@@ -369,6 +370,8 @@ Event yang dikirim **dari** Phaser:
 
 ```ts
 type GameEvent =
+  | { type: "loading"; progress: number }
+  | { type: "ready" }
   | { type: "dialogue"; view: DialogueView }
   | { type: "prompt"; hint: PromptView | null }
   | { type: "markers"; markers: NpcMarker[] }
@@ -406,6 +409,16 @@ chapter, scene aktif, daftar quest turunan scene, dan `activeQuestId`; status
 `selesai | aktif | terkunci` dihitung dari posisi `StoryRunner`, bukan ditulis di
 Story JSON. Teks dialog dikirim bertahap saat typewriter berjalan, dan React tidak
 perlu tahu beat mana yang aktif.
+
+Dua event pertama khusus layar muat, dan urutannya penting:
+
+- `loading` dikirim `PreloadScene` (`0` sebelum loader jalan, lalu tiap
+  `progress` dari Phaser). Nilainya 0–1; `LoadingScreen` yang mengubahnya jadi
+  persen dan menjepitnya.
+- `ready` dikirim **akhir** `GameScene.create()` — setelah dunia, pemain, kamera,
+  dan beat pertama berdiri. `LoadingScreen` baru memudar sesudahnya, sehingga
+  tidak pernah ada kanvas kosong yang terlihat. Jangan pindahkan ke
+  `PreloadScene`: di sana canvas masih kosong.
 
 Perintah **ke** Phaser:
 

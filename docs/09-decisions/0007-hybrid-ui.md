@@ -92,8 +92,9 @@ dirender `InteractHint.tsx`. Typewriter tetap di sisi game
   `src/game/layout.ts`; DOM memakai persen dari angka internal itu dan `cqw`
   untuk ukuran huruf.
 - Font game: **Patrick Hand** (OFL) via `next/font/local`, token `font-game`.
-  Phaser memakai nama keluarga literal (`fontGame()`) untuk label kecil seperti
-  "Memuat…".
+  Phaser memakai nama keluarga literal (`fontGame()`) bila suatu saat butuh teks
+  di canvas. Sejak layar muat pindah ke DOM (`LoadingScreen.tsx`), tidak ada lagi
+  teks yang digambar ke canvas — termasuk label progres.
 
 **Konsekuensi.** Dialog jadi tajam dan bisa dibaca screen reader
 (`aria-live="polite"`), tetapi posisi teks harus dijaga sejalur dengan panel

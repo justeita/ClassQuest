@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -242,6 +242,9 @@ terjadi sebelum beat pertama scene.
 - Potret diambil dari `portraits[expression]` milik karakter; `expression`
   opsional dan default `neutral`. Potret digambar DOM **di atas** panel, dasar
   sejajar tepi atasnya, tanpa bingkai (ADR 0023).
+- Bila `textVariants[]` menang, potret mengikuti `expression` varian itu; varian
+  tanpa `expression` mewarisi emosi beat (ADR 0024). Jadi satu beat bisa tampil
+  `thinking` saat siswa menjawab salah dan `happy` pada teks utama.
 
 ### `challenge`
 

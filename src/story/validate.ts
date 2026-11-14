@@ -86,6 +86,9 @@ export const WARNING_CODES = [
   "W_SHORT_ANSWER_ONLY",
   "W_LONG_DIALOGUE_RUN",
   "W_GAP_RECORDED",
+  // Dialog tanpa emosi: cerita tetap sah (schemaVersion 1.0), tetapi potretnya
+  // selalu `neutral` sehingga percakapan terasa datar. Lihat ADR 0024.
+  "W_DIALOGUE_NO_EXPRESSION",
   // Hanya muncul dari `validateChapter` (validate-parts.ts): flag `textVariants`
   // yang belum pernah di-set. Tidak diproduksi validator cerita penuh.
   "W_TEXT_VARIANT_FLAG_UNSET",
@@ -1326,6 +1329,39 @@ const collectWarnings = (story: Story): ValidationIssue[] => {
     });
   });
 
+  // Emosi percakapan (ADR 0024). Bukan error: cerita tanpa `expression` tetap
+  // sah dan dimainkan dengan potret `neutral`. Peringatan ini hanya memberi tahu
+  // guru bahwa percakapan di chapter itu belum punya emosi sama sekali.
+  story.chapters.forEach((chapter, chapterIndex) => {
+    let tanpaEmosi = 0;
+    for (const scene of chapter.scenes) {
+      for (const beat of scene.beats) {
+        // Dialog biasa dan dialog di dalam `onWrong.detour` sama-sama bercerita
+        // lewat potret, jadi keduanya dihitung.
+        const kandidat =
+          beat.type === "dialogue"
+            ? [beat]
+            : beat.type === "challenge"
+              ? (beat.onWrong?.detour ?? [])
+              : [];
+        for (const dialog of kandidat) {
+          if (dialog.type !== "dialogue") continue;
+          if (dialog.expression === undefined) tanpaEmosi += 1;
+        }
+      }
+    }
+
+    if (tanpaEmosi > 0) {
+      warnings.push(
+        warningIssue(
+          "W_DIALOGUE_NO_EXPRESSION",
+          `chapters[${chapterIndex}]`,
+          `Chapter "${chapter.id}" punya ${tanpaEmosi} dialog tanpa emosi; potretnya akan selalu netral.`,
+        ),
+      );
+    }
+  });
+
   if (story.challenges.length > 0) {
     const difficulties = new Set(
       story.challenges.map((challenge) => challenge.difficulty),
@@ -1442,6 +1478,9 @@ const normalizeTextVariants = (
         ? { flag: variant.when.flag, is: variant.when.is }
         : { jawaban: tidyText(variant.when.jawaban) },
     text: tidyText(variant.text),
+    ...(variant.expression === undefined
+      ? {}
+      : { expression: variant.expression }),
   }));
 
 const normalizeDetourBeat = (beat: DetourBeat): DetourBeat => {
@@ -1629,6 +1668,7 @@ const normalizeStory = (story: Story): Story => ({
     gradeLevel: tidyText(story.meta.gradeLevel),
     language: story.meta.language,
     tone: tidyText(story.meta.tone),
+    ...(story.meta.mode === undefined ? {} : { mode: story.meta.mode }),
     synopsis: tidyText(story.meta.synopsis),
     estimatedMinutes: story.meta.estimatedMinutes,
   },

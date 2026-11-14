@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -28,6 +28,23 @@ system prompt, dan sebagian diperiksa validator.
    karakter, lokasi, atau pertanyaan baru.
 10. **Aman untuk sekolah.** Tidak ada kekerasan, horor, romansa, atau tema depresi.
 
+## Mode permainan
+
+Guru memilih mode saat mengunggah, dan mode itu tersimpan di `meta.mode`
+([ADR 0034](../09-decisions/0034-mode-permainan.md)). Mode hanya mengubah jumlah
+chapter dan kepadatan tantangan; struktur schema dan aturan validasi tetap sama.
+
+| Mode          | Chapter | Tantangan per chapter | Ciri                                                                  |
+| ------------- | ------- | --------------------- | --------------------------------------------------------------------- |
+| `menjelaskan` | 3–6     | 1–2                   | Adegan dan penjelasan konsep lebih panjang; tantangan menyusul.       |
+| `pertanyaan`  | tepat 3 | 3–4                   | Kuis padat: tiap tantangan didahului 1–2 beat pengantar, lalu reaksi. |
+| `mix`         | 4–6     | 2–3                   | Cerita lebih panjang daripada `pertanyaan`, latihan tetap merata.     |
+
+Yang **tidak** berubah: satu chapter satu konsep utama, jawaban ada di cerita,
+setiap scene sebaiknya punya tantangan (`W_NO_CHALLENGE_IN_SCENE`), dan dunia
+desa beserta NPC tetap dipakai. Mode `pertanyaan` bukan daftar soal lepas —
+cerita hanya lebih tipis.
+
 ## Cast tetap
 
 Sepuluh tokoh desa (Kael dan sembilan warga) adalah roster tetap di
@@ -37,6 +54,74 @@ penampilan yang terlihat di sprite (topi, kacamata, jubah, tongkat), supaya aksi
 dan dialog cocok dengan gambar. Pipeline menimpa `outline.cast` sebelum validasi
 dan `assemble()` memakai roster yang sama, jadi nama tidak bisa berubah lewat
 keluaran model.
+
+Deskripsi yang dikirim ke model dibatasi 160 karakter per tokoh. Detail visual
+yang lebih kaya (rambut, outfit, pengait jubah, sifat) didokumentasikan di
+[`../07-assets/cast-bible.md`](../07-assets/cast-bible.md) untuk manusia, **bukan**
+untuk prompt. Kalau satu ciri wajib muncul di cerita, ciri itu harus masuk ke
+`description` di `src/story/cast.ts`.
+
+## Pemilihan pembicara
+
+Setiap tokoh punya bidangnya. Blok `CAST` membawa kolom `keahlian` dari
+`CAST_EXPERTISE` (`src/story/cast.ts`), dan system prompt punya blok
+`PEMILIHAN PEMBICARA` yang memerintahkan dialog bidang tertentu jatuh ke tokoh
+yang tepat (lihat
+[ADR 0033](../09-decisions/0033-pemilihan-pembicara-keahlian.md)).
+
+| Topik materi            | Pembicara yang tepat                           |
+| ----------------------- | ---------------------------------------------- |
+| Ikan, sungai, perahu    | Marlow (`char_npc_7`)                          |
+| Ladang, tanaman, panen  | Theo (`char_npc_9`)                            |
+| Menjaga, aturan, bahaya | Leonhardt (`char_npc_8`)                       |
+| Sejarah dan cerita lama | Eldric (`char_npc_6`)                          |
+| Nasihat dan adat desa   | Edric (`char_npc_10`), Griselda (`char_npc_5`) |
+| Konsep pelajaran umum   | Edric (`char_npc_10`) sebagai mentor           |
+
+Elian (`char_npc_1`), Elias (`char_npc_3`), dan Clara (`char_npc_4`) adalah
+pelajar yang gemar membaca. Mereka **bukan** sumber jawaban soal ikan, ladang,
+atau keamanan desa. Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor —
+jangan mengarang keahlian baru.
+
+Ini aturan prompt, bukan jaminan. Model masih bisa salah memilih pembicara,
+terutama bila materi mencampur banyak domain. Yang bisa diperiksa manusia:
+`speakerId` di setiap dialog harus masuk akal untuk topiknya, bukan hanya ada di
+cast.
+
+## Penempatan tokoh
+
+Peta desa adalah **satu peta tetap**: sembilan NPC punya koordinat di
+`src/game/world/village.json` dan `GameScene` memasangnya sekali. Model tidak
+menerima peta itu, jadi prompt membawa blok `LOKASI` dari `CAST_PLACES`
+(`src/story/cast.ts`) berisi tempat tiap tokoh dan batas tempatnya (lihat
+[ADR 0035](../09-decisions/0035-penempatan-tokoh-tetap.md)).
+
+| Tokoh                    | Tempat tetap                                          |
+| ------------------------ | ----------------------------------------------------- |
+| Elian (`char_npc_1`)     | Bangku kiri bawah air mancur, alun-alun utama         |
+| Elias (`char_npc_3`)     | Halaman depan perpustakaan, timur laut                |
+| Clara (`char_npc_4`)     | Bangku samping pohon berbunga merah muda, kolam timur |
+| Griselda (`char_npc_5`)  | Halaman depan rumah beratap hijau, tenggara           |
+| Eldric (`char_npc_6`)    | Bangku depan rumah beratap biru gelap, barat daya     |
+| Marlow (`char_npc_7`)    | Jembatan kayu di atas sungai, selatan                 |
+| Leonhardt (`char_npc_8`) | Pintu masuk selatan, dekat lentera dan papan arah     |
+| Theo (`char_npc_9`)      | Kebun sayuran dekat sumur batu, barat                 |
+| Edric (`char_npc_10`)    | Halaman depan rumah beratap merah, utara tengah       |
+| Kael (`char_mc`)         | Berjalan bebas mengikuti cerita                       |
+
+Aturan yang dikirim ke model:
+
+- Adegan terjadi di tempat tokohnya berada, bukan di tempat yang dipilih acak.
+- Tempat tidak boleh ditukar antar tokoh.
+- Tokoh hanya berpindah bila alasannya diceritakan lebih dulu dalam narasi.
+- Satu chapter tidak menempatkan tokoh di dua tempat tanpa perjalanan yang
+  disebutkan.
+- `continuity.characterStates[].location` memakai nama tempat dari blok `LOKASI`.
+
+Kesalahan yang paling sering terjadi dan dicegah eksplisit: Marlow di alun-alun
+(padahal di jembatan), Clara di air mancur (padahal di kolam timur), dan Edric
+tertukar dengan Eldric (rumah merah vs rumah biru). Sama seperti pemilihan
+pembicara, ini aturan prompt — bukan jaminan.
 
 ## Struktur satu chapter (formula 5 scene)
 
@@ -129,6 +214,38 @@ Pak Bima: "Berarti airnya pergi ke suatu tempat. Ke mana?"
 Bedanya: yang kedua memberi **pengamatan**, bukan definisi. Definisi tetap muncul,
 tapi setelah siswa punya pengalaman.
 
+## Emosi percakapan
+
+Percakapan adalah adegan, dan adegan punya wajah. Setiap beat `dialogue` **wajib**
+punya `expression`, dan emosinya harus mengikuti reaksi tokoh pada kalimat itu —
+bukan dipilih acak, bukan diulang terus sepanjang scene (ADR 0032).
+
+| Ekspresi   | Kapan dipakai                                                 |
+| ---------- | ------------------------------------------------------------- |
+| `neutral`  | Kalimat biasa, penjelasan, atau saat tokoh menahan diri       |
+| `happy`    | Senang, bangga, menyambut, atau menguatkan teman              |
+| `sad`      | Kecewa, sedih, menyesal, atau kehilangan sesuatu              |
+| `angry`    | Kesal atau tegas — tidak pernah kasar, tidak pernah mengancam |
+| `shocked`  | Kaget karena hal tak terduga, temuan, atau kejadian mendadak  |
+| `thinking` | Bingung, ragu, menimbang, atau mencari jawaban                |
+
+Aturan yang paling sering dilanggar:
+
+- **Jangan menempelkan satu emosi ke seluruh scene.** Ganti emosi ketika reaksi
+  tokoh berubah; enam dialog dengan emosi sama membuat adegan terasa mati.
+- **Emosi harus cocok dengan kalimat.** Kalimat "Aku tidak mengerti" tidak boleh
+  memakai `happy`.
+- **Reaksi jawaban salah punya emosi sendiri.** `textVariants[]` boleh membawa
+  `expression`; itulah yang membuat tokoh bingung (`thinking`) hanya ketika siswa
+  menjawab keliru, lalu kembali senang (`happy`) pada teks utama untuk jawaban
+  benar.
+- **`narration` bukan percakapan.** Narasi hanya boleh memakai `expression` bila
+  punya `speakerId`, dan itu berarti memunculkan potret tanpa nama.
+
+Validator tidak memblokir dialog tanpa emosi — cerita tetap sah dan dimainkan
+dengan potret `neutral` — tetapi `W_DIALOGUE_NO_EXPRESSION` muncul per chapter
+supaya guru tahu percakapan mana yang masih datar.
+
 ## Suara, sudut pandang, dan nada
 
 Cerita ini dimainkan, jadi tulisannya harus terasa seperti roleplay, bukan buku
@@ -209,6 +326,8 @@ Ketegangan hanya boleh berasal dari **rasa ingin tahu**, bukan ancaman.
 - [ ] Semua aset ada di manifest.
 - [ ] Tidak ada karakter yang muncul tiba-tiba.
 - [ ] Nama, peran, dan penampilan tokoh sesuai blok `CAST`; tidak ada nama baru.
+- [ ] Setiap tokoh muncul di tempatnya menurut blok `LOKASI`; tidak ada tempat
+      yang ditukar atau dikarang.
 - [ ] Setiap tantangan bisa dijawab dari cerita.
 - [ ] Tidak ada beat > 240 karakter.
 - [ ] Cerita ditutup, tidak menggantung tanpa alasan.
@@ -225,5 +344,6 @@ Ketegangan hanya boleh berasal dari **rasa ingin tahu**, bukan ancaman.
 | Tantangan tidak nyambung       | Challenge ditulis terpisah                | Tulis tantangan tepat setelah konsep muncul  |
 | Semua chapter sama strukturnya | Model meniru contoh                       | Variasikan hook; jangan kirim contoh panjang |
 | Nama karakter berubah          | Cast tidak ditegaskan                     | Kirim blok CAST + timpa `outline.cast`       |
+| Tokoh muncul di tempat salah   | Peta dan tata letak tidak dikirim         | Kirim blok `LOKASI` + aturan penempatan      |
 | Aset karangan                  | Daftar aset tidak dikirim/terlalu panjang | Kirim hanya aset relevan + validasi ketat    |
 | Cerita menggantung             | Tidak ada instruksi menutup               | Wajibkan penutupan `openThreads`             |

@@ -59,6 +59,13 @@ const tracked = (() => {
 const TEXT = /\.(md|json|ts|tsx|js|mjs|cjs|yml|yaml|txt|css|svg|html|example)$/;
 const read = (path: string) => readFileSync(resolve(REPO, path), "utf8");
 
+/**
+ * `git ls-files` ikut melaporkan berkas yang sudah dihapus di working tree tetapi
+ * belum di-stage — mis. saat ADR diganti nama. Berkas seperti itu tidak punya isi
+ * untuk dipindai, jadi lewati daripada membuat seluruh suite gagal ENOENT.
+ */
+const adaDiDisk = (path: string) => existsSync(resolve(REPO, path));
+
 describe("kredensial (halaman cetak 15-16)", () => {
   const SECRETS: Array<[string, RegExp]> = [
     ["private key", /-----BEGIN [A-Z ]*PRIVATE KEY/],
@@ -85,7 +92,9 @@ describe("kredensial (halaman cetak 15-16)", () => {
   it("tidak ada kredensial di file yang ter-commit", () => {
     const found: string[] = [];
 
-    for (const path of tracked.filter((path) => TEXT.test(path))) {
+    for (const path of tracked.filter(
+      (path) => TEXT.test(path) && adaDiDisk(path),
+    )) {
       const content = read(path);
       for (const [label, pattern] of SECRETS) {
         if (pattern.test(content)) found.push(`${path}: ${label}`);
@@ -118,7 +127,7 @@ describe("kredensial (halaman cetak 15-16)", () => {
 
   it("tidak memakai NEXT_PUBLIC_ untuk nilai rahasia", () => {
     const suspicious = tracked
-      .filter((path) => TEXT.test(path))
+      .filter((path) => TEXT.test(path) && adaDiDisk(path))
       .flatMap((path) =>
         [
           ...read(path).matchAll(

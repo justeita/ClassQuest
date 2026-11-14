@@ -64,10 +64,24 @@ async function tungguBusTerpasang() {
  * Render shell, lalu masuk ke permainan lewat layar judul. Sejak layar judul
  * ada, Phaser memang belum dinyalakan sebelum tombol "Mulai" ditekan.
  */
-async function mainkan() {
+async function masukMain() {
   render(<GameShell story={DEMO_STORY} />);
   fireEvent.click(screen.getByRole("button", { name: /^mulai$/i }));
   await tungguBusTerpasang();
+}
+
+/**
+ * Seperti `masukMain()`, tetapi scene pertama sudah dinyatakan siap.
+ *
+ * Shortcut papan ketik (Esc, Q, B, Tab) sengaja mati selama layar muat menutup
+ * permainan, jadi tes yang menekan tombol harus mengirim `ready` lebih dulu —
+ * persis seperti `GameScene.create()` di permainan sungguhan. Layar muat sendiri
+ * tidak perlu ditunggu hilang: ia hanya menutup dengan `pointer-events-none`,
+ * dan jsdom tidak melakukan hit-testing.
+ */
+async function mainkan() {
+  await masukMain();
+  bus.emit({ type: "ready" });
 }
 
 function bukaJeda() {
@@ -773,6 +787,40 @@ describe("GameShell — tombol percepat", () => {
     expect(
       await screen.findByRole("dialog", { name: "Buku catatan" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("GameShell — layar muat", () => {
+  it("menampilkan progres aset lalu melepas layar setelah scene pertama siap", async () => {
+    await masukMain();
+
+    expect(
+      screen.getByRole("progressbar", { name: /memuat permainan/i }),
+    ).toBeInTheDocument();
+
+    bus.emit({ type: "loading", progress: 0.6 });
+    expect(await screen.findByText("60%")).toBeInTheDocument();
+
+    bus.emit({ type: "ready" });
+
+    await vi.waitFor(
+      () =>
+        expect(
+          screen.queryByRole("progressbar", { name: /memuat permainan/i }),
+        ).not.toBeInTheDocument(),
+      { timeout: 2500 },
+    );
+  });
+
+  it("Batal di layar muat kembali ke layar judul, bukan memuat ulang halaman", async () => {
+    await masukMain();
+
+    fireEvent.click(screen.getByRole("button", { name: /^batal$/i }));
+
+    expect(
+      await screen.findByRole("heading", { name: DEMO_STORY.meta.title }),
+    ).toBeInTheDocument();
+    expect(mocks.createGame).toHaveBeenCalledTimes(1);
   });
 });
 

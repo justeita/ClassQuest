@@ -7,6 +7,7 @@
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat, riang, dan gotong royong",
+    "mode": "mix",
     "synopsis": "Kael membantu warga Desa Sukamaju menyiapkan Pesta Panen. Dari balai desa sampai tepi sungai, ia memakai perbandingan, pecahan, persentase, rata-rata, dan diagram data agar pesta berjalan adil dan meriah.",
     "estimatedMinutes": 30
   },
@@ -51,7 +52,7 @@
       "name": "Elias",
       "role": "npc",
       "spriteId": "char_npc_3",
-      "description": "Pelajar akademi berkacamata persegi yang selalu membawa buku tebal bersampul hijau tua; tenang dan teliti.",
+      "description": "Pelajar akademi berkacamata persegi panjang yang selalu membawa buku tebal bersampul hijau tua; tenang dan teliti.",
       "smallTalk": "Aku suka mencatat hal-hal kecil. Kadang dari catatan yang paling sederhana, kita baru mengerti sesuatu yang besar."
     },
     {
@@ -141,7 +142,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_1",
-              "text": "Resepnya mudah: tiga bagian tinta biru untuk dua bagian tinta emas. Hari ini spanduknya harus dibuat tiga kali lipat."
+              "text": "Resepnya mudah: tiga bagian tinta biru untuk dua bagian tinta emas. Hari ini spanduknya harus dibuat tiga kali lipat.",
+              "expression": "neutral"
             }
           ]
         },
@@ -173,22 +175,26 @@
                   "when": {
                     "jawaban": "4 cangkir"
                   },
-                  "text": "Jawabanku empat cangkir."
+                  "text": "Jawabanku empat cangkir.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "jawaban": "12 cangkir"
                   },
-                  "text": "Jawabanku dua belas cangkir."
+                  "text": "Jawabanku dua belas cangkir.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_tinta",
                     "is": true
                   },
-                  "text": "Tadi aku menjawab {{jawaban}}."
+                  "text": "Tadi aku menjawab {{jawaban}}.",
+                  "expression": "sad"
                 }
-              ]
+              ],
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
@@ -199,22 +205,26 @@
                   "when": {
                     "jawaban": "4 cangkir"
                   },
-                  "text": "Empat cangkir? Masih kurang. Sembilan dibagi tiga itu tiga, lalu dikali dua."
+                  "text": "Empat cangkir? Masih kurang. Sembilan dibagi tiga itu tiga, lalu dikali dua.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "jawaban": "12 cangkir"
                   },
-                  "text": "Dua belas cangkir? Kebanyakan. Sembilan dibagi tiga itu tiga, lalu dikali dua."
+                  "text": "Dua belas cangkir? Kebanyakan. Sembilan dibagi tiga itu tiga, lalu dikali dua.",
+                  "expression": "shocked"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_tinta",
                     "is": true
                   },
-                  "text": "Belum tepat. Sembilan dibagi tiga itu tiga, lalu dikali dua."
+                  "text": "Belum tepat. Sembilan dibagi tiga itu tiga, lalu dikali dua.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "happy"
             },
             {
               "type": "narration",
@@ -223,12 +233,14 @@
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Jadi selama perbandingannya tetap, warnanya juga tetap sama, ya?"
+              "text": "Jadi selama perbandingannya tetap, warnanya juga tetap sama, ya?",
+              "expression": "thinking"
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_10",
-              "text": "Tepat. Perbandingan menjaga hasil tetap sama, berapa pun besar adonannya."
+              "text": "Tepat. Perbandingan menjaga hasil tetap sama, berapa pun besar adonannya.",
+              "expression": "happy"
             }
           ]
         }
@@ -249,7 +261,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Kael, ladang ini akan kita pakai untuk kebun pesta. Aku bingung membaginya supaya adil."
+              "text": "Kael, ladang ini akan kita pakai untuk kebun pesta. Aku bingung membaginya supaya adil.",
+              "expression": "thinking"
             },
             {
               "type": "narration",
@@ -274,7 +287,8 @@
                   {
                     "type": "dialogue",
                     "speakerId": "char_npc_9",
-                    "text": "Kau menjawab {{jawaban}}. Tidak apa-apa, pelan-pelan saja. Ladangnya tidak akan lari ke mana."
+                    "text": "Kau menjawab {{jawaban}}. Tidak apa-apa, pelan-pelan saja. Ladangnya tidak akan lari ke mana.",
+                    "expression": "sad"
                   }
                 ]
               }
@@ -288,16 +302,19 @@
                   "when": {
                     "jawaban": "Salah"
                   },
-                  "text": "Jawabanku salah."
+                  "text": "Jawabanku salah.",
+                  "expression": "sad"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_petak",
                     "is": true
                   },
-                  "text": "Tadi aku menjawab {{jawaban}}."
+                  "text": "Tadi aku menjawab {{jawaban}}.",
+                  "expression": "sad"
                 }
-              ]
+              ],
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
@@ -308,16 +325,19 @@
                   "when": {
                     "jawaban": "Salah"
                   },
-                  "text": "Belum tepat. Dua per empat itu sama dengan setengah, jadi pernyataannya benar."
+                  "text": "Belum tepat. Dua per empat itu sama dengan setengah, jadi pernyataannya benar.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_petak",
                     "is": true
                   },
-                  "text": "Belum tepat. Dua per empat itu sama dengan setengah, jadi pernyataannya benar."
+                  "text": "Belum tepat. Dua per empat itu sama dengan setengah, jadi pernyataannya benar.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "happy"
             }
           ]
         },
@@ -334,7 +354,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Ukurannya berbeda-beda. Aku urutkan dulu supaya tidak ada yang tertukar."
+              "text": "Ukurannya berbeda-beda. Aku urutkan dulu supaya tidak ada yang tertukar.",
+              "expression": "thinking"
             },
             {
               "type": "challenge",
@@ -355,9 +376,11 @@
                     "flag": "flg_salah_patok",
                     "is": true
                   },
-                  "text": "Susunanku: {{jawaban}}."
+                  "text": "Susunanku: {{jawaban}}.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
@@ -369,9 +392,11 @@
                     "flag": "flg_salah_patok",
                     "is": true
                   },
-                  "text": "Belum tepat. Yang benar: 1/4, 1/3, 1/2, lalu 3/4. Makin besar penyebut, makin kecil potongannya."
+                  "text": "Belum tepat. Yang benar: 1/4, 1/3, 1/2, lalu 3/4. Makin besar penyebut, makin kecil potongannya.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "happy"
             },
             {
               "type": "narration",
@@ -396,12 +421,14 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_7",
-              "text": "Panen hari ini melimpah! Keranjangku sampai penuh, padahal sungai baru saja surut."
+              "text": "Panen hari ini melimpah! Keranjangku sampai penuh, padahal sungai baru saja surut.",
+              "expression": "happy"
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_5",
-              "text": "Hasil sungai juga rezeki desa. Sebagian sebaiknya disisihkan untuk balai desa."
+              "text": "Hasil sungai juga rezeki desa. Sebagian sebaiknya disisihkan untuk balai desa.",
+              "expression": "neutral"
             },
             {
               "type": "narration",
@@ -410,7 +437,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_5",
-              "text": "Sepuluh kilogram kita berikan ke balai desa. Coba hitung, itu berapa persen dari seluruhnya?"
+              "text": "Sepuluh kilogram kita berikan ke balai desa. Coba hitung, itu berapa persen dari seluruhnya?",
+              "expression": "thinking"
             },
             {
               "type": "challenge",
@@ -431,9 +459,11 @@
                     "flag": "flg_salah_persen",
                     "is": true
                   },
-                  "text": "Jawabanku {{jawaban}}."
+                  "text": "Jawabanku {{jawaban}}.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
@@ -445,9 +475,11 @@
                     "flag": "flg_salah_persen",
                     "is": true
                   },
-                  "text": "Bukan itu. Sepuluh dari lima puluh itu dua puluh persen, Nak."
+                  "text": "Bukan itu. Sepuluh dari lima puluh itu dua puluh persen, Nak.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "happy"
             }
           ]
         },
@@ -458,12 +490,14 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_6",
-              "text": "Stan ikan di pasar pesta sudah dibuka, tapi papan harga masih kosong."
+              "text": "Stan ikan di pasar pesta sudah dibuka, tapi papan harga masih kosong.",
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_6",
-              "text": "Satu keranjang kecil harganya delapan ribu rupiah. Kita beri potongan dua puluh lima persen supaya warga senang."
+              "text": "Satu keranjang kecil harganya delapan ribu rupiah. Kita beri potongan dua puluh lima persen supaya warga senang.",
+              "expression": "thinking"
             },
             {
               "type": "challenge",
@@ -483,22 +517,26 @@
                   "when": {
                     "jawaban": "Rp2.000"
                   },
-                  "text": "Harga akhirnya Rp2.000."
+                  "text": "Harga akhirnya Rp2.000.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "jawaban": "Rp7.500"
                   },
-                  "text": "Harga akhirnya Rp7.500."
+                  "text": "Harga akhirnya Rp7.500.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_harga",
                     "is": true
                   },
-                  "text": "Aku tadi menjawab {{jawaban}}."
+                  "text": "Aku tadi menjawab {{jawaban}}.",
+                  "expression": "sad"
                 }
-              ]
+              ],
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
@@ -509,22 +547,26 @@
                   "when": {
                     "jawaban": "Rp2.000"
                   },
-                  "text": "Itu justru potongannya. Harga akhirnya jadinya Rp6.000."
+                  "text": "Itu justru potongannya. Harga akhirnya jadinya Rp6.000.",
+                  "expression": "shocked"
                 },
                 {
                   "when": {
                     "jawaban": "Rp7.500"
                   },
-                  "text": "Dua puluh lima persen dari delapan ribu itu Rp2.000. Harga akhirnya Rp6.000."
+                  "text": "Dua puluh lima persen dari delapan ribu itu Rp2.000. Harga akhirnya Rp6.000.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_harga",
                     "is": true
                   },
-                  "text": "Belum tepat. Potongannya dua puluh lima persen, jadi harga akhirnya Rp6.000."
+                  "text": "Belum tepat. Potongannya dua puluh lima persen, jadi harga akhirnya Rp6.000.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "happy"
             },
             {
               "type": "narration",
@@ -533,7 +575,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_6",
-              "text": "Papan harga jadi jelas dan tidak ada yang bertanya-tanya."
+              "text": "Papan harga jadi jelas dan tidak ada yang bertanya-tanya.",
+              "expression": "happy"
             }
           ]
         }
@@ -554,7 +597,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_9",
-              "text": "Lumbung harus tahu berapa banyak hasil kebun yang masuk hari ini."
+              "text": "Lumbung harus tahu berapa banyak hasil kebun yang masuk hari ini.",
+              "expression": "neutral"
             },
             {
               "type": "narration",
@@ -563,7 +607,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_8",
-              "text": "Catatannya harus rapi. Rata-rata membantu kita melihat gambaran besarnya."
+              "text": "Catatannya harus rapi. Rata-rata membantu kita melihat gambaran besarnya.",
+              "expression": "neutral"
             },
             {
               "type": "challenge",
@@ -583,16 +628,19 @@
                   "when": {
                     "jawaban": "Benar"
                   },
-                  "text": "Pernyataan itu benar."
+                  "text": "Pernyataan itu benar.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_rata",
                     "is": true
                   },
-                  "text": "Aku tadi menjawab {{jawaban}}."
+                  "text": "Aku tadi menjawab {{jawaban}}.",
+                  "expression": "sad"
                 }
-              ]
+              ],
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
@@ -603,21 +651,25 @@
                   "when": {
                     "jawaban": "Benar"
                   },
-                  "text": "Pernyataan tadi memang salah. Dua puluh delapan dibagi empat itu tujuh, bukan enam."
+                  "text": "Pernyataan tadi memang salah. Dua puluh delapan dibagi empat itu tujuh, bukan enam.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_rata",
                     "is": true
                   },
-                  "text": "Belum tepat. Jumlahnya dua puluh delapan, dibagi empat jadi tujuh kilogram."
+                  "text": "Belum tepat. Jumlahnya dua puluh delapan, dibagi empat jadi tujuh kilogram.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "happy"
             },
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Aku jadi tahu berapa yang biasanya masuk setiap hari."
+              "text": "Aku jadi tahu berapa yang biasanya masuk setiap hari.",
+              "expression": "happy"
             }
           ]
         },
@@ -628,7 +680,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_8",
-              "text": "Kael, boleh bantu aku? Catatan hasil kebun lima petak di lereng ini belum dijumlah."
+              "text": "Kael, boleh bantu aku? Catatan hasil kebun lima petak di lereng ini belum dijumlah.",
+              "expression": "thinking"
             },
             {
               "type": "narration",
@@ -637,7 +690,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_8",
-              "text": "Kita perlu rata-ratanya untuk laporan ke balai desa."
+              "text": "Kita perlu rata-ratanya untuk laporan ke balai desa.",
+              "expression": "neutral"
             },
             {
               "type": "challenge",
@@ -658,9 +712,11 @@
                     "flag": "flg_salah_lereng",
                     "is": true
                   },
-                  "text": "Jawabanku {{jawaban}}."
+                  "text": "Jawabanku {{jawaban}}.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
@@ -672,9 +728,11 @@
                     "flag": "flg_salah_lereng",
                     "is": true
                   },
-                  "text": "Bukan itu. Totalnya enam puluh, dibagi lima petak jadi dua belas kilogram."
+                  "text": "Bukan itu. Totalnya enam puluh, dibagi lima petak jadi dua belas kilogram.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "happy"
             }
           ]
         }
@@ -695,12 +753,14 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_3",
-              "text": "Papan diagram hasil desa masih berantakan. Ayo kita urutkan sebelum panggung dibuka."
+              "text": "Papan diagram hasil desa masih berantakan. Ayo kita urutkan sebelum panggung dibuka.",
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
               "speakerId": "char_npc_4",
-              "text": "Aku sudah menulis angkanya. Tinggal menyusun batangnya dari yang paling pendek."
+              "text": "Aku sudah menulis angkanya. Tinggal menyusun batangnya dari yang paling pendek.",
+              "expression": "thinking"
             },
             {
               "type": "narration",
@@ -725,9 +785,11 @@
                     "flag": "flg_salah_diagram",
                     "is": true
                   },
-                  "text": "Susunanku: {{jawaban}}."
+                  "text": "Susunanku: {{jawaban}}.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
@@ -739,9 +801,11 @@
                     "flag": "flg_salah_diagram",
                     "is": true
                   },
-                  "text": "Belum tepat. Urutannya kacang, jagung, ubi, lalu padi."
+                  "text": "Belum tepat. Urutannya kacang, jagung, ubi, lalu padi.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "happy"
             }
           ]
         },
@@ -752,7 +816,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_npc_10",
-              "text": "Pesta hampir selesai. Aku ingin memastikan catatan hasil desa kita benar."
+              "text": "Pesta hampir selesai. Aku ingin memastikan catatan hasil desa kita benar.",
+              "expression": "neutral"
             },
             {
               "type": "narration",
@@ -776,22 +841,26 @@
                   "when": {
                     "jawaban": "15 kg"
                   },
-                  "text": "Selisihnya 15 kg, Edric."
+                  "text": "Selisihnya 15 kg, Edric.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "jawaban": "55 kg"
                   },
-                  "text": "Selisihnya 55 kg, Edric."
+                  "text": "Selisihnya 55 kg, Edric.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_selisih",
                     "is": true
                   },
-                  "text": "Aku tadi menjawab {{jawaban}}."
+                  "text": "Aku tadi menjawab {{jawaban}}.",
+                  "expression": "sad"
                 }
-              ]
+              ],
+              "expression": "neutral"
             },
             {
               "type": "dialogue",
@@ -802,22 +871,26 @@
                   "when": {
                     "jawaban": "15 kg"
                   },
-                  "text": "Itu berat kacangnya. Padi empat puluh dikurangi lima belas, jadi 25 kg."
+                  "text": "Itu berat kacangnya. Padi empat puluh dikurangi lima belas, jadi 25 kg.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "jawaban": "55 kg"
                   },
-                  "text": "Itu hasil menjumlah. Selisih berarti dikurangi: empat puluh kurang lima belas."
+                  "text": "Itu hasil menjumlah. Selisih berarti dikurangi: empat puluh kurang lima belas.",
+                  "expression": "thinking"
                 },
                 {
                   "when": {
                     "flag": "flg_salah_selisih",
                     "is": true
                   },
-                  "text": "Belum tepat. Selisihnya empat puluh dikurangi lima belas, jadi 25 kg."
+                  "text": "Belum tepat. Selisihnya empat puluh dikurangi lima belas, jadi 25 kg.",
+                  "expression": "thinking"
                 }
-              ]
+              ],
+              "expression": "happy"
             },
             {
               "type": "narration",
@@ -826,7 +899,8 @@
             {
               "type": "dialogue",
               "speakerId": "char_mc",
-              "text": "Aku senang bisa membantu. Besok kita hitung lagi, ya!"
+              "text": "Aku senang bisa membantu. Besok kita hitung lagi, ya!",
+              "expression": "happy"
             }
           ]
         }

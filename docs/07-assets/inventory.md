@@ -79,6 +79,8 @@ karakter, tinggi kepala dinormalkan dan digeser satu nilai tetap agar potret
 tidak bergeser saat ekspresi berganti, latar transparan).
 Potret dirender DOM dan bukan bagian `PreloadScene` (ADR 0023). Kolom Potret di
 bawah menunjuk foldernya; nama folder mengikuti berkas sumber, bukan id manifest.
+Persona lengkap tiap karakter (gender, usia, rambut, outfit, sifat) ada di
+[`cast-bible.md`](./cast-bible.md).
 
 Normalisasi menyamakan **tinggi** kepala; karakter yang wajahnya jelas lebih
 lebar dikecilkan lewat tabel `KOREKSI` di `scripts/import-portraits.mjs` (untuk

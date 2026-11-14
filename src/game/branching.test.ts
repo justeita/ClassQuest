@@ -11,6 +11,7 @@ import {
   JAWABAN_TOKEN,
   maxAttemptsOf,
   planWrong,
+  resolveDialogueLine,
   resolveDialogueText,
   substituteJawaban,
 } from "./branching";
@@ -129,6 +130,67 @@ describe("resolveDialogueText", () => {
     expect(resolveDialogueText(detourDialog, { flg_salah_hitung: true })).toBe(
       "Teks varian detour.",
     );
+  });
+});
+
+describe("resolveDialogueLine", () => {
+  const dialog: DialogueBeat = {
+    type: "dialogue",
+    speakerId: "char_npc_1",
+    text: "Tepat, enam cangkir.",
+    expression: "happy",
+    textVariants: [
+      {
+        when: { jawaban: "4 cangkir" },
+        text: "Empat cangkir? Masih kurang.",
+        expression: "thinking",
+      },
+      {
+        when: { flag: "flg_salah_hitung", is: true },
+        text: "Belum tepat.",
+        expression: "sad",
+      },
+      {
+        when: { jawaban: "12 cangkir" },
+        text: "Dua belas cangkir? Kebanyakan.",
+      },
+    ],
+  };
+
+  it("memakai emosi varian yang menang (NPC bingung saat jawaban salah)", () => {
+    expect(resolveDialogueLine(dialog, {}, "4 cangkir")).toEqual({
+      text: "Empat cangkir? Masih kurang.",
+      expression: "thinking",
+    });
+  });
+
+  it("memakai emosi beat induk saat jawaban benar", () => {
+    expect(resolveDialogueLine(dialog, {}, "6 cangkir")).toEqual({
+      text: "Tepat, enam cangkir.",
+      expression: "happy",
+    });
+  });
+
+  it("jatuh ke emosi beat induk bila varian tidak menyebutkannya", () => {
+    expect(resolveDialogueLine(dialog, {}, "12 cangkir")).toEqual({
+      text: "Dua belas cangkir? Kebanyakan.",
+      expression: "happy",
+    });
+  });
+
+  it("varian flag juga membawa emosinya sendiri", () => {
+    expect(
+      resolveDialogueLine(dialog, { flg_salah_hitung: true }, null),
+    ).toEqual({ text: "Belum tepat.", expression: "sad" });
+  });
+
+  it("beat tanpa emosi menghasilkan expression undefined", () => {
+    const polos: DialogueBeat = {
+      type: "dialogue",
+      speakerId: "char_npc_1",
+      text: "Kalimat biasa.",
+    };
+    expect(resolveDialogueLine(polos, {}).expression).toBeUndefined();
   });
 });
 

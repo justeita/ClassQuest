@@ -696,6 +696,7 @@ describe("warning", () => {
     expect(result.ok).toBe(true);
     expect([...new Set(codes(result.warnings))].sort()).toEqual([
       "W_CONCEPT_NOT_IN_CHAPTER",
+      "W_DIALOGUE_NO_EXPRESSION",
       "W_DIFFICULTY_SKEW",
       "W_GAP_RECORDED",
       "W_LONG_DIALOGUE_RUN",
@@ -728,6 +729,11 @@ describe("warning", () => {
       "chapters[0].scenes[0].beats[6]",
       "chapters[1].scenes[2].beats[3]",
       "chapters[2].scenes[2].beats[3]",
+    ]);
+    expect(pathsOf(result.warnings, "W_DIALOGUE_NO_EXPRESSION")).toEqual([
+      "chapters[0]",
+      "chapters[1]",
+      "chapters[2]",
     ]);
   });
 

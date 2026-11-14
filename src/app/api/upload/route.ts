@@ -52,6 +52,7 @@ import {
 } from "@/server/rate-limit";
 import { MAX_PDF_BYTES, readPdfUpload, UploadError } from "@/server/upload";
 import type { PdfUploadInput } from "@/server/upload";
+import { storyModeSchema } from "@/story/schema";
 
 export const maxDuration = 300;
 
@@ -82,6 +83,9 @@ const INVALID_INPUT_CODE: ApiErrorCode = "INVALID_INPUT";
  * Field teks sesuai tabel request `api-contract.md`. `tone` opsional dengan
  * nilai default dari kontrak; batas 200 karakter adalah asumsi karena kontrak
  * tidak menetapkannya.
+ *
+ * `mode` (ADR 0028) **wajib** dan tanpa nilai default: guru harus memilih
+ * bentuk game, dan permintaan tanpa mode yang sah ditolak `400 INVALID_INPUT`.
  */
 const uploadFieldsSchema = z.object({
   title: z.string().trim().min(3).max(80),
@@ -89,6 +93,7 @@ const uploadFieldsSchema = z.object({
   gradeLevel: z.string().trim().min(1).max(40),
   language: z.enum(["id", "en"]),
   tone: z.string().trim().max(200).default("hangat dan penasaran"),
+  mode: storyModeSchema,
 });
 
 function fileTooLargeResponse(): Response {
@@ -165,6 +170,7 @@ export async function POST(request: Request): Promise<Response> {
       gradeLevel: form.get("gradeLevel"),
       language: form.get("language"),
       tone: form.get("tone") ?? undefined,
+      mode: form.get("mode") ?? undefined,
     });
     if (!fields.success) {
       return apiErrorResponse(
@@ -225,6 +231,7 @@ export async function POST(request: Request): Promise<Response> {
         sizeBytes: upload.sizeBytes,
       },
       tone: fields.data.tone,
+      mode: fields.data.mode,
     });
 
     // i. Bentuk 202 persis dari api-contract.md.

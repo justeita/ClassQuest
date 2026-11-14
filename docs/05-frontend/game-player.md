@@ -19,6 +19,7 @@ src/app/play/[storyId]/page.tsx        (Server Component)
         ├─ <EntryScreen />             (DOM, layar masuk: pilih nama)
         ├─ <TitleScreen />             (DOM, sebelum Mulai)
         ├─ <GameCanvas />              (Phaser, dynamic import, setelah Mulai)
+        │    └─ <LoadingScreen />      (DOM, menutup layar sampai scene pertama siap)
         ├─ <ChallengeOverlay />        (DOM)
         ├─ <QuestTracker />            (DOM)
         ├─ <NpcHintLayer />            (DOM: penanda `!` + kotak `Space`)
@@ -33,9 +34,9 @@ Server Component **tidak** merender Phaser. Ia hanya mengambil data dan
 menyerahkan JSON ke client.
 
 > **Yang ada hari ini:** `EntryScreen`, `TitleScreen`, `GameShell`, `GameCanvas`,
-> `ChallengeOverlay`, `QuestTracker`, `NpcHintLayer` (berisi `NpcMarker` dan
-> `InteractHint`), `ChapterCard`, `QuestToast`, `HUD`, `PauseMenu`, dan
-> `ResultScreen` sudah ada.
+> `LoadingScreen`, `ChallengeOverlay`, `QuestTracker`, `NpcHintLayer` (berisi
+> `NpcMarker` dan `InteractHint`), `ChapterCard`, `QuestToast`, `HUD`,
+> `PauseMenu`, dan `ResultScreen` sudah ada.
 >
 > `/play/[storyId]` membaca cerita terbit lewat `getPlayEntry()`
 > (`src/server/play/entry.ts`), yang memakai `getPublishedStory()`. Hanya
@@ -132,8 +133,14 @@ Ini **state layar**, bukan state cerita. Soal yang sedang terbuka dilacak oleh
 
 Implementasi sekarang memegang `menu | judul | main | hasil` di `GameShell`,
 sedangkan `paused` dipegang `GameCanvas` karena menu jeda hanya relevan selama
-sesi permainan aktif. `QuestTracker` menerima daftar quest lewat event `quest`
-dari Phaser, diturunkan dari scene dan status runner — bukan ditebak dari DOM.
+sesi permainan aktif. Fase `loading | ready` dipetakan ke overlay `LoadingScreen`
+di dalam `GameCanvas`: `loading` = progres aset belum penuh atau scene pertama
+belum siap, `ready` = event `ready` sudah datang dan layar muat sedang memudar.
+Selama overlay itu masih menutup layar, shortcut papan ketik `GameCanvas` (Esc,
+Q, B) sengaja mati — tidak ada permainan yang bisa dijedakan, dan Tab harus bisa
+keluar dari tombol "Batal". `QuestTracker` menerima daftar quest lewat event
+`quest` dari Phaser, diturunkan dari scene dan status runner — bukan ditebak dari
+DOM.
 
 State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
 [`../04-game/engine.md`](../04-game/engine.md)). Sumber kebenaran progres:
@@ -176,10 +183,37 @@ dari guru langsung melihat judul cerita, bukan menu.
 
 ### Loading
 
-- Latar gelap sesuai palet game.
-- Canvas menampilkan teks progres `Memuat… N%` selama aset cerita dimuat;
-  layar loading DOM dengan judul cerita belum dibuat.
-- Tombol "Batal" kembali ke halaman awal.
+Seluruh layar muat hidup di DOM (`src/components/game/LoadingScreen.tsx`), bukan
+di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
+640×360 di-upscale 1,6×, jadi hurufnya bergerigi dan tidak terbaca pembaca layar.
+
+- Latar malam pixel sesuai palet game: langit bergradasi, bintang berkelip,
+  bulan, dan dua lapis bukit berundak. Semuanya **CSS murni** (tanpa berkas
+  gambar) supaya layar muat tidak ikut menunggu unduhan apa pun.
+- Isi: label `ClassQuest` + jumlah bab, mata pelajaran · kelas, judul cerita,
+  bilah progres bersegmen, status, persen, satu tips yang berganti pelan, dan
+  tombol "Batal".
+- Tiga keadaan:
+  - **Tak tentu** — skrip game (`import()` Phaser) belum siap, jadi bilah
+    menyapu dan persen tidak dikarang (`aria-valuenow` kosong).
+  - **Terukur** — `PreloadScene` mengirim `{ type: "loading", progress }` lewat
+    `GameBus`; persen dijepit 0–100 dan status bergerak dari "Memuat aset desa…"
+    ke "Menyusun scene pertama…".
+  - **Gagal** — `import()`/`createGame()` ditolak: bilah diganti pesan
+    "Game gagal dimuat…" + tombol "Coba lagi" yang memuat ulang Phaser di layar
+    yang sama. Layar muat tidak pernah berputar selamanya.
+- `GameScene.create()` mengirim `{ type: "ready" }` **setelah** dunia, pemain,
+  kamera, dan beat pertama berdiri. `LoadingScreen` baru memudar sesudahnya
+  (jeda 320 ms + pudar 320 ms), jadi tidak ada kanvas kosong yang sempat
+  terlihat. `PreloadScene` sengaja tidak mengirim `ready`: di sana canvas masih
+  kosong.
+- Tombol "Batal" mengembalikan siswa ke layar sebelumnya lewat prop `onBatal`:
+  menu utama di `/game`, layar judul cerita di `/play/[storyId]`. Tidak menutup
+  tab (`window.close()` tidak diizinkan peramban).
+- Bintang ditulis dengan nilai tetap (bukan `Math.random()`) agar render server
+  dan client sama. Semua `animation` berada di dalam
+  `@media (prefers-reduced-motion: no-preference)`; dengan `reduce`, bintang
+  berhenti di satu tingkat terang dan bilah tidak beranimasi.
 
 ### Ready / judul
 

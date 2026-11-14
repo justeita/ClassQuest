@@ -56,14 +56,15 @@ Menerima PDF, membuat story draft + job generasi.
 
 **Request:** `multipart/form-data`
 
-| Field        | Tipe   | Wajib | Catatan                        |
-| ------------ | ------ | ----- | ------------------------------ |
-| `file`       | File   | Ya    | `application/pdf`, maks. 4 MB  |
-| `title`      | string | Ya    | 3–80 karakter                  |
-| `subject`    | string | Ya    | 1–40 karakter                  |
-| `gradeLevel` | string | Ya    | 1–40 karakter                  |
-| `language`   | string | Ya    | `id`/`en`                      |
-| `tone`       | string | Tidak | default "hangat dan penasaran" |
+| Field        | Tipe   | Wajib | Catatan                                         |
+| ------------ | ------ | ----- | ----------------------------------------------- |
+| `file`       | File   | Ya    | `application/pdf`, maks. 4 MB                   |
+| `title`      | string | Ya    | 3–80 karakter                                   |
+| `subject`    | string | Ya    | 1–40 karakter                                   |
+| `gradeLevel` | string | Ya    | 1–40 karakter                                   |
+| `language`   | string | Ya    | `id`/`en`                                       |
+| `tone`       | string | Tidak | default "hangat dan penasaran"                  |
+| `mode`       | string | Ya    | `menjelaskan`/`pertanyaan`/`mix`; tanpa default |
 
 **Response `202`:**
 
@@ -88,13 +89,14 @@ Menerima PDF, membuat story draft + job generasi.
 
 **Kegagalan:**
 
-| Kondisi                 | Response                                     |
-| ----------------------- | -------------------------------------------- |
-| Bukan PDF               | `415 FILE_TYPE`                              |
-| > 4 MB                  | `413 FILE_TOO_LARGE` + `details.maxBytes`    |
-| PDF rusak / terenkripsi | `422 PDF_UNREADABLE`                         |
-| > batas halaman         | `422 TOO_MANY_PAGES`                         |
-| Rate limit              | `429 RATE_LIMITED` + `details.retryAfterSec` |
+| Kondisi                                                                                              | Response                                     |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Bukan PDF                                                                                            | `415 FILE_TYPE`                              |
+| > 4 MB                                                                                               | `413 FILE_TOO_LARGE` + `details.maxBytes`    |
+| PDF rusak / terenkripsi                                                                              | `422 PDF_UNREADABLE`                         |
+| > batas halaman                                                                                      | `422 TOO_MANY_PAGES`                         |
+| Field teks kosong/tidak valid, termasuk `mode` tidak ada atau bukan `menjelaskan`/`pertanyaan`/`mix` | `400 INVALID_INPUT`                          |
+| Rate limit                                                                                           | `429 RATE_LIMITED` + `details.retryAfterSec` |
 
 **`NO_TEXT_LAYER` tidak muncul di sini.** Ekstraksi teks berjalan **setelah**
 respons `202`, di dalam `after()`. Upload hanya tahu bahwa file itu PDF yang bisa

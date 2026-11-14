@@ -12,10 +12,20 @@ import { requireTeacher } from "@/server/auth";
 import { getReadyDb } from "@/server/db";
 import { getJobStatus, getLatestJobId } from "@/server/jobs/status";
 import { getStoryDetail } from "@/server/stories";
-import type { Story } from "@/story/schema";
+import type { Story, StoryMode } from "@/story/schema";
 
 export const metadata: Metadata = {
   title: "Materi",
+};
+
+/**
+ * Label tampilan untuk `Story.meta.mode`. Cerita lama tanpa `mode` dibaca
+ * sebagai `mix` (ADR 0028); nilainya tidak ditulis ulang.
+ */
+const MODE_LABELS: Record<StoryMode, string> = {
+  menjelaskan: "Menjelaskan",
+  pertanyaan: "Pertanyaan",
+  mix: "Mix",
 };
 
 /**
@@ -176,10 +186,21 @@ async function MateriDetailContent({
               version={detail.version}
               hasStory={story !== null}
             />
+
+            {story !== null ? (
+              <Link
+                href={`/guru/materi/${detail.id}/edit`}
+                className="guru-press flex w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-900 bg-white px-4 py-2.5 text-xs font-bold text-slate-900 transition hover:bg-slate-100"
+              >
+                <i className="fa-solid fa-pen-to-square" aria-hidden />
+                <span>Edit cerita</span>
+              </Link>
+            ) : null}
+
             <p className="text-[11px] leading-relaxed text-slate-400">
-              Editor cerita dan preview versi draft belum ada; perubahan isi
-              cerita dilakukan lewat pipeline. Bagikan hanya setelah cerita
-              selesai dibuat.
+              {story !== null
+                ? "Edit cerita membuka editor: perbaiki dialog, soal, dan latar tanpa melihat JSON. Perubahan disimpan sebagai versi draft."
+                : "Bagikan hanya setelah cerita selesai dibuat."}
             </p>
           </div>
 
@@ -194,6 +215,14 @@ async function MateriDetailContent({
                 {detail.language === "en" ? "English" : "Indonesia"}
               </dd>
             </div>
+            {story ? (
+              <div className="flex items-center justify-between gap-3">
+                <dt className="font-semibold text-slate-500">Mode permainan</dt>
+                <dd className="font-bold text-slate-800">
+                  {MODE_LABELS[story.meta.mode ?? "mix"]}
+                </dd>
+              </div>
+            ) : null}
             {story ? (
               <div className="flex items-center justify-between gap-3">
                 <dt className="font-semibold text-slate-500">Sumber halaman</dt>

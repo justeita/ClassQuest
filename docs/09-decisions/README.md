@@ -44,6 +44,10 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0029 | [Desain HUD seragam dengan kotak dialog dan tombol Bicara menjauh dari tepi](0029-desain-hud-dan-tombol-bicara.md)        | Accepted     | Game, aksesibilitas   |
 | 0030 | [Desain tantangan seragam dengan kotak dialog dan penunjuk pilihan yang presisi](0030-desain-tantangan-seragam-dialog.md) | Accepted     | Game, aksesibilitas   |
 | 0031 | [Warna UI selaras dengan penanda quest dan penunjuk tangan SVG](0031-warna-ui-selaras-penanda-quest.md)                   | Accepted     | Game, aksesibilitas   |
+| 0032 | [Emosi per varian jawaban](0032-emosi-per-varian-jawaban.md)                                                              | Accepted     | AI, validator, cerita |
+| 0033 | [Pemilihan pembicara menurut keahlian](0033-pemilihan-pembicara-keahlian.md)                                              | Accepted     | AI, prompt            |
+| 0034 | [Mode permainan dipilih guru](0034-mode-permainan.md)                                                                     | Accepted     | AI, cerita, backend   |
+| 0035 | [Penempatan tokoh tetap di desa](0035-penempatan-tokoh-tetap.md)                                                          | Accepted     | AI, prompt            |
 
 ## Status
 

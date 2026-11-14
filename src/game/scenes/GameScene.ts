@@ -38,7 +38,7 @@ import { AnswerLog } from "../answerLog";
 import {
   BranchingRun,
   challengeSebelumnya,
-  resolveDialogueText,
+  resolveDialogueLine,
   substituteJawaban,
   type RetryPlan,
 } from "../branching";
@@ -304,6 +304,11 @@ export class GameScene extends Phaser.Scene {
 
     this.kirimQuest();
     this.terapkanLook(this.runner.getState());
+
+    // Scene pertama sudah berdiri lengkap (dunia, pemain, kamera, beat pertama).
+    // Layar muat DOM menunggu sinyal ini sebelum memudar — jangan pindahkan ke
+    // akhir `PreloadScene`, karena di sana kanvas masih kosong.
+    this.bus?.emit({ type: "ready" });
 
     // Scene dihancurkan (mis. "Main lagi"): mode lewati dan jadwal bab tidak
     // boleh tertinggal menunjuk scene yang sudah tidak tampil.
@@ -1004,8 +1009,9 @@ export class GameScene extends Phaser.Scene {
     const jawaban = this.jawabanUntukBeat();
     if (beat.type === "dialogue") {
       // Varian teks dipilih dari jawaban salah tantangan terdekat, lalu flag
-      // (story-schema.md, ADR 0020).
-      const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
+      // (story-schema.md, ADR 0020). Emosinya ikut varian yang menang
+      // (ADR 0024).
+      const line = resolveDialogueLine(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;
       // Ingat NPC yang bicara supaya potretnya tetap tampil (meredup) saat MC
       // mengambil giliran berikutnya.
@@ -1015,8 +1021,8 @@ export class GameScene extends Phaser.Scene {
       this.sorotSpeaker(beat.speakerId);
       view = {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
-        text,
-        portrait: this.potretUntuk(beat.speakerId, beat.expression),
+        text: line.text,
+        portrait: this.potretUntuk(beat.speakerId, line.expression),
         pendamping: this.potretLawan(beat.speakerId),
       };
     } else {
@@ -1200,7 +1206,9 @@ export class GameScene extends Phaser.Scene {
     let view: BeatView;
     const jawaban = this.jawabanUntukBeat();
     if (beat.type === "dialogue") {
-      const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
+      // Emosi ikut varian yang menang (ADR 0024): tokoh bisa bingung hanya pada
+      // balasan jawaban salah, lalu kembali ceria di teks utama.
+      const line = resolveDialogueLine(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;
       if (beat.speakerId !== this.playerId) {
         this.lawanBicaraTerakhir = beat.speakerId;
@@ -1208,8 +1216,8 @@ export class GameScene extends Phaser.Scene {
       this.sorotSpeaker(beat.speakerId);
       view = {
         name: this.castNames.get(beat.speakerId) ?? beat.speakerId,
-        text,
-        portrait: this.potretUntuk(beat.speakerId, beat.expression),
+        text: line.text,
+        portrait: this.potretUntuk(beat.speakerId, line.expression),
         pendamping: this.potretLawan(beat.speakerId),
       };
     } else {

@@ -47,6 +47,7 @@ import {
   type PdfTextExtraction,
 } from "@/server/pdf/extract-text";
 import { PdfExtractError } from "@/server/pdf/errors";
+import type { StoryMode } from "@/story/schema";
 import { validateStory } from "@/story/validate";
 
 /* -------------------------------------------------------------------------- */
@@ -95,6 +96,15 @@ export type RunJobInput = {
   };
   /** Nada cerita dari form upload; diteruskan ke prompt dan `Story.meta`. */
   tone?: string;
+  /**
+   * Mode permainan pilihan guru (ADR 0028), diteruskan ke prompt, cerita
+   * cadangan, dan `Story.meta.mode`.
+   *
+   * Opsional di tipe ini karena runner juga dipakai tes; route upload selalu
+   * mengirimnya dan menolak permintaan tanpa mode (`400 INVALID_INPUT`), jadi
+   * jalur produk tidak pernah kosong.
+   */
+  mode?: StoryMode;
 };
 
 /** Ketergantungan yang bisa di-inject di test. */
@@ -283,6 +293,7 @@ export async function runJob(
       gradeLevel: story.grade_level,
       language: story.language,
       ...(input.tone === undefined ? {} : { tone: input.tone }),
+      ...(input.mode === undefined ? {} : { mode: input.mode }),
     };
 
     // Progres ditulis berurutan, bukan fire-and-forget.

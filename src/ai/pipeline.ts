@@ -33,6 +33,7 @@ import type {
   Character,
   Story,
   StoryFlag,
+  StoryMode,
 } from "../story/schema";
 import type { AssetManifest, ValidationIssue } from "../story/validate";
 import { validateStory } from "../story/validate";
@@ -171,6 +172,13 @@ export type PipelineMeta = {
   gradeLevel?: string;
   language?: string;
   tone?: string;
+  /**
+   * Mode permainan pilihan guru (ADR 0028). Wajib di jalur produk — route upload
+   * menolak permintaan tanpa mode — tetapi opsional di sini supaya pemanggil
+   * lama dan tes tetap bisa memanggil pipeline. Bila kosong, prompt memakai
+   * instruksi `mix` dan `meta.mode` tidak ditulis.
+   */
+  mode?: StoryMode;
   estimatedMinutes?: number;
 };
 
@@ -409,6 +417,7 @@ export function assemble(
       gradeLevel: textOr(meta.gradeLevel, DEFAULT_GRADE, 1, 40),
       language: textOr(outline.language, DEFAULT_LANGUAGE, 2, 10),
       tone: textOr(meta.tone, DEFAULT_TONE, 1, 60),
+      ...(meta.mode === undefined ? {} : { mode: meta.mode }),
       synopsis: textOr(outline.synopsis, DEFAULT_SYNOPSIS, 40, 400),
       estimatedMinutes: minutesOf(meta.estimatedMinutes),
     },
@@ -861,6 +870,7 @@ export async function generateStory(
         gradeLevel: input.meta.gradeLevel,
         language: outline?.language ?? input.meta.language,
         tone: input.meta.tone,
+        mode: input.meta.mode,
         fileName: input.meta.fileName,
         pageCount,
         estimatedMinutes: input.meta.estimatedMinutes,
