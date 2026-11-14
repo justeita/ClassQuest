@@ -318,6 +318,7 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   - Opsi teks panjang: ditata bertumpuk vertikal di kanan atas dialog; lebar seluruh box seragam mengikuti opsi terpanjang.
   - Persoalan matematika / matriks: ditata sebagai kartu berjejer agar formula terlihat jelas.
 - **Lebar kotak mengikuti isi (fit text), bukan lebar panel.** Opsi pilihan, baris pengurutan, input jawaban singkat, dan tombol `Jawab` dibungkus grup `w-fit` sehingga hanya selebar isinya; pada daftar kolom, semua opsi diseragamkan ke opsi terpanjang (tanpa lebar minimum tetap). Jadi jawaban pendek tidak lagi membentang penuh ke kanan. Baris petunjuk pintasan ditaruh di luar grup agar tidak ikut menentukan lebarnya. (ADR 0030)
+  - **Seluruh grup jawaban rata kanan.** Daftar pengurutan dan input jawaban singkat diratakan ke kanan di dalam panel, sehingga tepi kanannya sejajar dengan tepi kanan dialog dan pilihan jawaban tipe lain — bukan menempel di kiri panel.
   - Pada `ordering`, daftar item dan tombol `Jawab` berbagi grup `w-fit` yang sama supaya tepi kanan keduanya rata.
   - Pada `short_answer`, input `size` mengikuti panjang placeholder sehingga teks petunjuk muat tanpa terpotong, dan tombol `Jawab` selebar input.
 - Konsistensi visual HCI dengan DialogueBox (ADR 0030, ADR 0031):
@@ -349,8 +350,15 @@ di canvas. Dulu progres hanya teks `Memuat… N%` yang digambar Phaser: canvas
   - `short_answer`: satu input teks; `Enter` atau tombol "Jawab" mengirim.
 - Overlay hanya mengirim jawaban mentah. Trim, lowercase, dan pembuangan tanda
   baca akhir dilakukan `src/story/scoring.ts`, bukan di komponen.
-- `hints` tampil sebagai catatan kecil bila ada; jawaban benar tidak pernah ikut
-  ke `ChallengeView`.
+- `hints` tampil sebagai tombol **"Lihat hint"** di bawah pilihan jawaban, bukan
+  catatan yang selalu terbuka. Hint tersembunyi sampai siswa membuka konfirmasi
+  singkat ("Pakai hint? Poin soal ini akan berkurang setengah.") lalu memilih
+  **"Tampilkan hint"**; "Batal" menutup konfirmasi tanpa mengubah apa pun.
+  Setelah dikonfirmasi, teks hint tampil dan jawaban berikutnya membawa
+  `usedHint: true`, sehingga poin benar dipotong setengah (dibulatkan ke bawah,
+  lihat [`../02-data-model/challenge-types.md`](../02-data-model/challenge-types.md#penilaian-dan-skor)).
+  Hint yang dipakai tidak mengubah benar/salah maupun `weakConcepts`.
+- Jawaban benar tidak pernah ikut ke `ChallengeView`.
 
 ### Paused
 

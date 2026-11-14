@@ -200,11 +200,117 @@ describe("ChallengeOverlay — short_answer", () => {
 });
 
 describe("ChallengeOverlay — tipe lain", () => {
-  it("menampilkan petunjuk tanpa membocorkan jawaban", () => {
+  it("menyembunyikan hint sampai siswa mengonfirmasi", () => {
     renderOverlay({ ...orderingView, hints: ["Ingat urutan energi."] });
 
-    expect(screen.getByText("Ingat urutan energi.")).toBeInTheDocument();
+    // Hint belum tampil dan belum membocorkan jawaban.
+    expect(screen.queryByText("Ingat urutan energi.")).not.toBeInTheDocument();
     expect(screen.queryByText(/correctOrder/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /lihat hint/i }));
+    expect(
+      screen.getByText(/Poin soal ini akan berkurang setengah/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Ingat urutan energi.")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /tampilkan hint/i }));
+    expect(screen.getByText("Ingat urutan energi.")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Poin soal ini dipotong setengah/i),
+    ).toBeInTheDocument();
+  });
+
+  it("batal di konfirmasi tetap menyembunyikan hint", () => {
+    const { onSubmit } = renderOverlay({
+      ...orderingView,
+      hints: ["Ingat urutan energi."],
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /lihat hint/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^batal$/i }));
+    expect(screen.queryByText("Ingat urutan energi.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Poin soal ini akan berkurang setengah/i),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+    const dikirim = onSubmit.mock.calls[0]?.[0];
+    expect(dikirim).not.toHaveProperty("usedHint");
+  });
+
+  it("jawaban setelah hint membawa usedHint agar skor dipotong", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_hint",
+      type: "multiple_choice",
+      options: [{ id: "opt_a", text: "Menguap" }],
+      hints: ["Ingat pelajaran tadi."],
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /lihat hint/i }));
+    fireEvent.click(screen.getByRole("button", { name: /tampilkan hint/i }));
+    fireEvent.click(screen.getByRole("button", { name: /menguap$/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_hint",
+      type: "multiple_choice",
+      selectedId: "opt_a",
+      usedHint: true,
+    });
+  });
+
+  it("short_answer setelah hint juga mengirim usedHint", () => {
+    const { onSubmit } = renderOverlay({
+      ...shortAnswerView,
+      hints: ["Bagi bagian dengan keseluruhan."],
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /lihat hint/i }));
+    fireEvent.click(screen.getByRole("button", { name: /tampilkan hint/i }));
+    fireEvent.change(screen.getByLabelText(/tulis jawabanmu/i), {
+      target: { value: "20%" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^jawab$/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      challengeId: "chl_03_01",
+      type: "short_answer",
+      text: "20%",
+      usedHint: true,
+    });
+  });
+
+  it("Enter di tombol hint tidak ikut mengirim jawaban", () => {
+    const { onSubmit } = renderOverlay({
+      ...dasar,
+      id: "chl_hint",
+      type: "multiple_choice",
+      options: [
+        { id: "opt_a", text: "Menguap" },
+        { id: "opt_b", text: "Membeku" },
+      ],
+      hints: ["Ingat pelajaran tadi."],
+    });
+
+    const lihat = screen.getByRole("button", { name: /lihat hint/i });
+    fireEvent.keyDown(lihat, { key: "Enter" });
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("daftar urutan diratakan ke kanan mengikuti pilihan jawaban lain", () => {
+    renderOverlay(orderingView);
+    const daftar = screen.getByRole("list");
+    // ol → grup fit-text → wadah rata kanan
+    expect(daftar.parentElement?.parentElement).toHaveClass("justify-end");
+  });
+
+  it("input jawaban singkat diratakan ke kanan", () => {
+    renderOverlay(shortAnswerView);
+    const input = screen.getByLabelText(/tulis jawabanmu/i);
+    // input → bingkai → grup fit-text → wadah rata kanan
+    expect(input.parentElement?.parentElement?.parentElement).toHaveClass(
+      "justify-end",
+    );
   });
 
   it("keyboard: angka memilih opsi, Enter mengirim", () => {

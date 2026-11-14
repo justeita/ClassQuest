@@ -225,6 +225,12 @@ Detail penting:
   `answers[challengeId] = { correct, at }`; nilai pertama tidak ditimpa saat soal
   dijawab ulang. `weakConcepts` di layar hasil memakai data yang sama, jadi
   mengulang tidak menghapus catatan bahwa konsep itu sempat salah.
+- **Hint opsional, poin dipotong bila dipakai.** Bila soal punya `hints`, overlay
+  menampilkan tombol "Lihat hint" di bawah pilihan jawaban. Hint tetap tersembunyi
+  sampai siswa mengonfirmasi; setelah itu jawaban membawa `usedHint: true` dan
+  `scoreAnswer` memotong poin benar menjadi setengah (dibulatkan ke bawah).
+  Hint tidak mengubah benar/salah maupun `weakConcepts`, dan tidak pernah
+  ditampilkan sebelum siswa memintanya.
 - **Batasan yang diketahui:** "Ulangi chapter" **tidak** me-reset jumlah
   percobaan atau nilai flag konsekuensi jawaban salah. Tantangan yang sudah
   memakai percobaan tetap begitu setelah chapter diulang, jadi jawaban salah
