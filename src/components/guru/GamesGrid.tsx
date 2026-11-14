@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
-import type { StoryListItem } from "@/server/contracts";
+import type { ClassroomDetail, StoryListItem } from "@/server/contracts";
 
+import { ShareGameDialog } from "./ShareGameDialog";
 import { STORY_STATUS_META, formatUpdatedAt } from "./logic";
 
 /**
@@ -12,8 +14,20 @@ import { STORY_STATUS_META, formatUpdatedAt } from "./logic";
  * Satu kartu = satu cerita di `stories`. Hanya cerita `published` yang punya
  * tautan main (`/play/[storyId]`); status lain diarahkan ke halaman detail
  * karena game siswa menolak cerita yang belum terbit.
+ *
+ * Tombol "Bagikan" membuka `ShareGameDialog` untuk membuat tautan per kelas —
+ * dari tautan itulah hasil main siswa masuk ke `/guru/analitik`.
  */
-export function GamesGrid({ items }: { items: StoryListItem[] }) {
+export function GamesGrid({
+  items,
+  classes = [],
+}: {
+  items: StoryListItem[];
+  /** Kelas guru, untuk pilihan di dialog bagikan. */
+  classes?: ClassroomDetail[];
+}) {
+  const [bagikan, setBagikan] = useState<StoryListItem | null>(null);
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-10">
       <div className="flex flex-col justify-between gap-4 border-b-2 border-slate-200 pb-4 sm:flex-row sm:items-center">
@@ -82,22 +96,41 @@ export function GamesGrid({ items }: { items: StoryListItem[] }) {
                     {formatUpdatedAt(story.updatedAt)}
                   </span>
 
-                  <Link
-                    href={
-                      playable
-                        ? `/play/${story.id}`
-                        : `/guru/materi/${story.id}`
-                    }
-                    className="font-bold text-brand-600 hover:underline"
-                  >
-                    {playable ? "Mainkan Game →" : "Buka materi →"}
-                  </Link>
+                  <span className="flex items-center gap-3">
+                    {playable ? (
+                      <button
+                        type="button"
+                        onClick={() => setBagikan(story)}
+                        className="font-bold text-slate-500 hover:text-brand-600"
+                      >
+                        Bagikan
+                      </button>
+                    ) : null}
+                    <Link
+                      href={
+                        playable
+                          ? `/play/${story.id}`
+                          : `/guru/materi/${story.id}`
+                      }
+                      className="font-bold text-brand-600 hover:underline"
+                    >
+                      {playable ? "Mainkan Game →" : "Buka materi →"}
+                    </Link>
+                  </span>
                 </div>
               </article>
             );
           })}
         </div>
       )}
+
+      <ShareGameDialog
+        open={bagikan !== null}
+        onClose={() => setBagikan(null)}
+        storyId={bagikan?.id ?? ""}
+        storyTitle={bagikan?.title ?? ""}
+        classes={classes}
+      />
     </div>
   );
 }
