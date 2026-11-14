@@ -340,7 +340,7 @@ const collectFlags = (
       for (const beat of scene?.beats ?? []) {
         if (beat?.type === "dialogue") {
           for (const variant of beat.textVariants ?? []) {
-            add(variant?.when?.flag);
+            if ("flag" in variant.when) add(variant.when.flag);
           }
         } else if (beat?.type === "challenge") {
           for (const flagId of Object.keys(beat.onWrong?.setFlags ?? {})) {
@@ -349,7 +349,7 @@ const collectFlags = (
           for (const detour of beat.onWrong?.detour ?? []) {
             if (detour?.type !== "dialogue") continue;
             for (const variant of detour.textVariants ?? []) {
-              add(variant?.when?.flag);
+              if ("flag" in variant.when) add(variant.when.flag);
             }
           }
         }

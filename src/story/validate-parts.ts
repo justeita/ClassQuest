@@ -26,7 +26,7 @@
 import Ajv2020 from "ajv/dist/2020.js";
 
 import storyJsonSchema from "../../docs/02-data-model/story.schema.json";
-import type { Challenge, Chapter } from "./schema";
+import type { Challenge, Chapter, TextVariant } from "./schema";
 import type {
   AjvIssue,
   AssetManifest,
@@ -694,6 +694,13 @@ const checkChapterSemantics = (
 };
 
 /**
+ * Id flag dari kondisi varian, atau `null` untuk varian `when.jawaban`
+ * (ADR 0021) yang tidak bergantung pada flag.
+ */
+const flagVarian = (variant: TextVariant): string | null =>
+  "flag" in variant.when ? variant.when.flag : null;
+
+/**
  * Aturan percabangan tingkat chapter.
  *
  * Bentuk `onWrong`, pola id flag, dan batas `retryQuestions` sudah dijaga
@@ -732,8 +739,10 @@ const checkChapterBranching = (
 
       if (beat.type === "dialogue") {
         beat.textVariants?.forEach((variant, variantIndex) => {
+          const flagId = flagVarian(variant);
+          if (flagId === null) return;
           warnUnsetVariant(
-            variant.when.flag,
+            flagId,
             `${beatPath}.textVariants[${variantIndex}].when.flag`,
             "",
           );
@@ -750,8 +759,10 @@ const checkChapterBranching = (
       detour.forEach((detourBeat, detourIndex) => {
         if (detourBeat.type !== "dialogue") return;
         detourBeat.textVariants?.forEach((variant, variantIndex) => {
+          const flagId = flagVarian(variant);
+          if (flagId === null) return;
           warnUnsetVariant(
-            variant.when.flag,
+            flagId,
             `${beatPath}.onWrong.detour[${detourIndex}].textVariants[${variantIndex}].when.flag`,
             "detour",
           );

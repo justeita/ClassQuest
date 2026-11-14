@@ -290,7 +290,7 @@ describe("percabangan cerita cadangan", () => {
         for (const beat of scene.beats) {
           if (beat.type !== "dialogue") continue;
           for (const variant of beat.textVariants ?? []) {
-            used.add(variant.when.flag);
+            if ("flag" in variant.when) used.add(variant.when.flag);
           }
         }
       }

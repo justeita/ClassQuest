@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -166,6 +166,25 @@ Detail penting:
   sesudah soal karena itu bisa memakai `textVariants` untuk kalimat yang
   mengutip jawaban siswa lewat `{{jawaban}}`; `detour` juga boleh memakainya
   karena flag sudah menyala sebelum detour diputar (ADR 0020).
+- **Pemain mengucapkan jawabannya lebih dulu.** Sesudah beat `challenge`, beat
+  dialog pertama diucapkan `char_mc` dan **hanya** berisi jawabannya dalam satu
+  kalimat pendek (≤ 60 karakter), tanpa pembenaran atau hitungan. Tokoh lain
+  menanggapi ucapan itu di beat berikutnya (ADR 0022). Jadi urutan yang dilihat
+  siswa: soal → "Jawabanku empat cangkir." → "Empat cangkir? Masih kurang." →
+  penjelasan tokoh.
+- **Balasan bisa berbeda untuk tiap jawaban salah.** Varian
+  `when: { jawaban }` mencocokkan teks jawaban yang persis dan menang atas
+  varian `when.flag`, sehingga pilihan `4 cangkir` dan `12 cangkir` mendapat
+  balasan NPC yang berbeda (ADR 0021). Jawaban disimpan per tantangan, dan
+  `{{jawaban}}`/varian jawaban memakai tantangan terdekat sebelum beat; selama
+  `detour`, yang dipakai adalah tantangan pemicunya. Tantangan yang tidak pernah
+  dijawab salah tidak mengutip jawaban lama.
+- **Varian jawaban hanya untuk hasil akhir.** Yang disimpan
+  `BranchingRun` adalah percobaan **terakhir**; bila percobaan terakhir benar,
+  `jawabanSalahUntuk()` mengembalikan `null` dan dialog memakai `text` utama.
+  Siswa yang salah lalu menjawab benar di soal ulang karena itu tidak lagi
+  melihat varian kesalahan lamanya. Flag "pernah salah" tetap menyala dan hanya
+  dipakai kalimat cadangan `when.flag`.
 - **Penjelasan hanya tampil saat benar atau di percobaan terakhir.** Selama masih
   ada percobaan berikutnya, overlay tidak menampilkan `explanation` supaya soal
   ulang tetap bermakna; game baru mengirim `graded` (beserta penjelasan) untuk

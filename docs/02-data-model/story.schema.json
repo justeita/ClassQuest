@@ -415,13 +415,30 @@
       "required": ["when", "text"],
       "properties": {
         "when": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["flag", "is"],
-          "properties": {
-            "flag": { "type": "string", "pattern": "^flg_[a-z0-9_]+$" },
-            "is": { "type": "boolean" }
-          }
+          "description": "Kondisi varian: nilai flag cerita, atau jawaban salah siswa yang persis teks itu. Varian jawaban menang atas varian flag.",
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["jawaban"],
+              "properties": {
+                "jawaban": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["flag", "is"],
+              "properties": {
+                "flag": { "type": "string", "pattern": "^flg_[a-z0-9_]+$" },
+                "is": { "type": "boolean" }
+              }
+            }
+          ]
         },
         "text": { "type": "string", "minLength": 1, "maxLength": 240 }
       }

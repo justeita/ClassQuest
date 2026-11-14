@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -9,7 +9,7 @@ owner: tim ClassQuest
 Prompt adalah kode. Ia punya versi, dites, dan tidak diubah diam-diam.
 
 - Implementasi: `src/ai/prompt.ts`
-- Versi saat ini: `PROMPT_VERSION = "story-v6"`
+- Versi saat ini: `PROMPT_VERSION = "story-v8"`
 - Aturan isi cerita: [`generation-rules.md`](./generation-rules.md)
 - Schema output: [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)
 
@@ -115,6 +115,16 @@ sprite.
 `BRANCHING` (opsional): model kini diajari mengutip jawaban salah lewat
 `{{jawaban}}` dan boleh memakai `onWrong` berisi `setFlags` saja, tanpa
 percobaan ulang (lihat [ADR 0020](../09-decisions/0020-kutipan-jawaban-siswa-di-dialog.md)).
+
+`story-v7` juga **tidak mengubah blok system prompt**. Blok `BRANCHING` kini
+mengajarkan varian `when: { jawaban }` supaya setiap pilihan salah dibalas
+berbeda, dengan `when: { flag, is }` sebagai cadangan umum (lihat
+[ADR 0021](../09-decisions/0021-varian-dialog-per-jawaban-salah.md)).
+
+`story-v8` menambah **pola wajib** di blok `BRANCHING`: setelah soal, pemain
+(`char_mc`) mengucapkan jawabannya lebih dulu dalam satu kalimat pendek tanpa
+pembenaran, lalu tokoh lain menanggapi ucapan itu (lihat
+[ADR 0022](../09-decisions/0022-pemain-mengucapkan-jawaban-di-dialog.md)).
 
 ## Blok schema di prompt
 
@@ -258,11 +268,23 @@ Isinya mengajari model menulis konsekuensi jawaban salah, bukan pilihan dialog:
   opsi tidak berubah) dengan kata-kata berbeda.
 - `detour` 1–2 beat (maksimal 3) narasi/dialog, hanya speaker dari cast, tanpa
   beat challenge, dan tidak menyebut jawaban.
-- Dialog/narasi setelah soal mengutip jawaban salah lewat `{{jawaban}}` (maks
-  120 karakter), memakai flag tantangan itu sendiri.
+- **Pola wajib setelah soal** (ADR 0022): pemain (`char_mc`) mengucapkan
+  jawabannya lebih dulu dalam satu kalimat pendek (≤ 60 karakter) tanpa
+  pembenaran, lalu tokoh lain menanggapi ucapan itu. Koreksi dan hitungan hanya
+  boleh muncul di mulut tokoh lain.
+- Dialog setelah soal bereaksi pada jawaban salah dengan dua bentuk varian:
+  - `when: { jawaban }` — teks jawaban yang persis (multiple_choice: teks opsi;
+    true_false: `Benar`/`Salah`; ordering: item berurutan dipisah `→`). Satu
+    varian per kemungkinan salah, dan balasannya berbeda-beda.
+  - `when: { flag, is }` — cadangan umum "pernah salah"; wajib untuk
+    `short_answer` karena teks ketikan siswa tidak bisa ditebak.
+- Varian `jawaban` dipertimbangkan lebih dulu daripada varian `flag`, dan hanya
+  berlaku untuk tantangan yang percobaan terakhirnya salah.
+- Varian `when.flag` hanya merujuk flag yang sudah di-set di beat sebelumnya.
+- `{{jawaban}}` boleh dipakai di dalam teks varian (maks 120 karakter); teks
+  varian tetap dibatasi 240 karakter oleh schema.
 - Flag id `flg_[a-z0-9_]+`, satu flag per tantangan, id konsisten lintas chapter
   (blok menyebutkan id yang sudah dipakai chapter sebelumnya).
-- `textVariants` hanya merujuk flag yang sudah di-set di beat sebelumnya.
 
 Blok ini tidak mengubah blok `SCHEMA CHAPTER`: draft chapter tetap
 `{ chapter, challenges, continuity }`, dan deklarasi `flags` tingkat cerita

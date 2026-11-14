@@ -29,7 +29,7 @@ import type { AssetManifest } from "../story/validate";
 import type { LlmRequest } from "./provider";
 
 /** Versi prompt. Naikkan setiap kali perilaku prompt berubah. */
-export const PROMPT_VERSION = "story-v6";
+export const PROMPT_VERSION = "story-v8";
 
 /**
  * Plafon output per panggilan. Reasoning model bisa memakai 6.000–14.000
@@ -70,6 +70,10 @@ export const MATERIAL_END = "<<<MATERIAL_END>>>";
  * boleh diubah model, dan deskripsi penampilan dikirim di blok CAST.
  * `story-v6` tidak mengubah blok ini; yang berubah hanya blok `BRANCHING`
  * (kutipan `{{jawaban}}` dan `onWrong` tanpa percobaan ulang, ADR 0020).
+ * `story-v7` juga tidak mengubah blok ini; blok `BRANCHING` kini mengajarkan
+ * varian `when.jawaban` supaya tiap pilihan salah dibalas berbeda (ADR 0021).
+ * `story-v8` menambah pola wajib di blok `BRANCHING`: pemain mengucapkan
+ * jawabannya lebih dulu, tokoh lain menanggapi (ADR 0022).
  */
 export const SYSTEM_PROMPT = `Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
 Tugasmu mengubah MATERI dari guru menjadi cerita yang bisa dimainkan.
@@ -497,8 +501,11 @@ BATAS CHAPTER
  * default tetap persis seperti sebelum fitur ini ada.
  *
  * Isinya sengaja pendek dan hanya soal konsekuensi jawaban salah: siswa hanya
- * melihat soal ulang, detour, dan dialog yang mengutip jawabannya lewat
- * `{{jawaban}}`; tidak ada pilihan dialog pemain.
+ * melihat soal ulang, detour, dan dialog yang membalas jawabannya — tidak ada
+ * pilihan dialog pemain. Pola yang diwajibkan: pemain mengucapkan jawabannya
+ * lebih dulu (satu kalimat, tanpa pembenaran), baru tokoh lain menanggapi.
+ * Dua bentuk varian (ADR 0021): `when.jawaban` untuk tanggapan per pilihan,
+ * `when.flag` sebagai cadangan umum.
  */
 const SECTION_BRANCHING_RULES = `BRANCHING
 - Setiap challenge boleh punya onWrong; detour cukup 1-2 challenge per chapter.
@@ -507,19 +514,44 @@ const SECTION_BRANCHING_RULES = `BRANCHING
   maxAttempts 2 atau 3, berisi maxAttempts - 1 soal SAMA dengan kata lain.
 - detour 1-2 beat (maksimal 3) narasi/dialog, speaker dari cast, tanpa challenge;
   petunjuknya tidak menyebut jawaban.
-- Dialog/narasi sesudah soal mengutip jawaban salah lewat {{jawaban}}; teksnya
-  maksimal 120 karakter dan memakai flag tantangan itu sendiri.
-- textVariants hanya merujuk flag yang sudah di-set di beat sebelumnya.
+- POLA WAJIB sesudah setiap challenge: pemain char_mc mengucapkan jawabannya
+  lebih dulu, baru pembicara lain menjawab ucapan itu. Jangan pernah memakai
+  varian jawaban salah untuk teks narasi atau kalimat bertanya.
+- Teks char_mc sesudah soal harus SINGKAT (maksimal 60 karakter): satu kalimat
+  yang hanya mengucapkan jawaban. Pembenaran, hitungan, dan koreksi hanya boleh
+  diucapkan pembicara lain, di beat berikutnya.
+- Teks pembicara lain boleh menanggapi jawaban itu (mis. "Empat cangkir? Masih
+  kurang.") tanpa mengulang kalimat pertanyaan.
+- reaksi pada jawaban salah memakai dua bentuk varian:
+  * when.jawaban — teks jawaban yang persis, untuk soal pilihan
+    (multiple_choice: teks opsi; true_false: "Benar"/"Salah"; ordering: item
+    berurutan dipisah " → "). Satu varian per kemungkinan jawaban salah, dan
+    balasannya berbeda-beda supaya pilihan siswa terasa ditanggapi.
+  * when.flag — cadangan umum "pernah salah"; wajib untuk short_answer karena
+    teks ketikan siswa tidak bisa ditebak.
+- Varian when.jawaban dipertimbangkan lebih dulu daripada when.flag, dan hanya
+  berlaku untuk tantangan yang percobaan terakhirnya salah; dialog sesudah
+  jawaban benar tetap memakai teks utama.
+- {{jawaban}} boleh dipakai di dalam teks varian; teks varian maksimal 120
+  karakter.
 - Flag id flg_[a-z0-9_]+; satu flag per tantangan; pakai ulang id yang ada.
 - Field di luar SCHEMA CHAPTER tidak boleh ditambah.
 
 CONTOH onWrong
 { "type": "challenge", "challengeId": "chl_x",
   "onWrong": { "setFlags": { "flg_salah_x": true } } }
-CONTOH dialog reaksi
-{ "type": "dialogue", "speakerId": "char_npc_1", "text": "Bagus, jawabanmu tepat.",
-  "textVariants": [{ "when": { "flag": "flg_salah_x", "is": true },
-    "text": "Kau menjawab {{jawaban}}. Ayo hitung sekali lagi." }] }`;
+CONTOH dialog sesudah soal ("4 cangkir" dan "12 cangkir" diucapkan siswa, lalu
+dibalas berbeda oleh tokoh lain)
+{ "type": "dialogue", "speakerId": "char_mc", "text": "Jawabanku enam cangkir.",
+  "textVariants": [
+    { "when": { "jawaban": "4 cangkir" }, "text": "Jawabanku empat cangkir." },
+    { "when": { "jawaban": "12 cangkir" }, "text": "Jawabanku dua belas cangkir." },
+    { "when": { "flag": "flg_salah_x", "is": true }, "text": "Tadi aku menjawab {{jawaban}}." } ] }
+{ "type": "dialogue", "speakerId": "char_npc_1", "text": "Tepat, enam cangkir.",
+  "textVariants": [
+    { "when": { "jawaban": "4 cangkir" }, "text": "Empat cangkir? Masih kurang." },
+    { "when": { "jawaban": "12 cangkir" }, "text": "Dua belas cangkir? Kebanyakan." },
+    { "when": { "flag": "flg_salah_x", "is": true }, "text": "Belum tepat." } ] }`;
 
 const branchingSection = (usedFlags: readonly string[]): string => {
   const flags =

@@ -322,14 +322,14 @@ describe("blok percabangan (AI_BRANCHING)", () => {
     expect(on.user).toContain("Belum ada flag yang dipakai");
   });
 
-  it("blok percabangan tidak lebih dari 25 baris", () => {
+  it("blok percabangan tidak lebih dari 50 baris", () => {
     const { user } = buildChapterPrompt(chapterInput({ branching: true }));
     const start = user.indexOf("BRANCHING");
     const end = user.indexOf("\nASSETS");
     const block = user.slice(start, end);
 
     expect(block.length).toBeGreaterThan(0);
-    expect(block.split("\n").length).toBeLessThanOrEqual(25);
+    expect(block.split("\n").length).toBeLessThanOrEqual(50);
   });
 
   it("menyebut flag yang sudah dipakai chapter sebelumnya", () => {
@@ -560,8 +560,8 @@ describe("repair", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("parameter generasi", () => {
-  it("memakai PROMPT_VERSION story-v6", () => {
-    expect(PROMPT_VERSION).toBe("story-v6");
+  it("memakai PROMPT_VERSION story-v8", () => {
+    expect(PROMPT_VERSION).toBe("story-v8");
   });
 
   it("BATAS OUTLINE menyebut batas konsep dan enum role", () => {

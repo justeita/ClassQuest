@@ -1091,6 +1091,28 @@ const checkBranchingRules = (story: Story, report: ErrorCollector) => {
     );
   };
 
+  /**
+   * Periksa satu kondisi varian: flag harus terdeklarasi, dan varian
+   * `when.jawaban` hanya masuk akal setelah ada tantangan (sebelum itu belum
+   * ada jawaban salah yang bisa dicocokkan).
+   */
+  const checkVariantWhen = (when: TextVariant["when"], path: string) => {
+    if ("flag" in when) {
+      rejectUndeclaredFlag(when.flag, `${path}.flag`);
+      return;
+    }
+
+    if (adaTantangan) return;
+    report(
+      errorIssue(
+        "E_JAWABAN_WITHOUT_CHALLENGE",
+        path,
+        `Varian memakai "when.jawaban" sebelum ada tantangan, jadi belum ada jawaban salah yang bisa dicocokkan.`,
+        `Pindahkan dialog ini setelah beat challenge, atau ganti kondisinya dengan flag.`,
+      ),
+    );
+  };
+
   story.chapters.forEach((chapter, chapterIndex) => {
     chapter.scenes.forEach((scene, sceneIndex) => {
       scene.beats.forEach((beat, beatIndex) => {
@@ -1104,14 +1126,9 @@ const checkBranchingRules = (story: Story, report: ErrorCollector) => {
         if (beat.type === "dialogue") {
           rejectEarlyJawaban(beat.text, `${beatPath}.text`);
           beat.textVariants?.forEach((variant, variantIndex) => {
-            rejectEarlyJawaban(
-              variant.text,
-              `${beatPath}.textVariants[${variantIndex}].text`,
-            );
-            rejectUndeclaredFlag(
-              variant.when.flag,
-              `${beatPath}.textVariants[${variantIndex}].when.flag`,
-            );
+            const variantPath = `${beatPath}.textVariants[${variantIndex}]`;
+            rejectEarlyJawaban(variant.text, `${variantPath}.text`);
+            checkVariantWhen(variant.when, `${variantPath}.when`);
           });
           return;
         }
@@ -1162,9 +1179,9 @@ const checkBranchingRules = (story: Story, report: ErrorCollector) => {
         detour.forEach((detourBeat, detourIndex) => {
           if (detourBeat.type !== "dialogue") return;
           detourBeat.textVariants?.forEach((variant, variantIndex) => {
-            rejectUndeclaredFlag(
-              variant.when.flag,
-              `${beatPath}.onWrong.detour[${detourIndex}].textVariants[${variantIndex}].when.flag`,
+            checkVariantWhen(
+              variant.when,
+              `${beatPath}.onWrong.detour[${detourIndex}].textVariants[${variantIndex}].when`,
             );
           });
         });
@@ -1415,7 +1432,10 @@ const normalizeTextVariants = (
   variants: readonly TextVariant[] | undefined,
 ): TextVariant[] | undefined =>
   variants?.map((variant) => ({
-    when: { flag: variant.when.flag, is: variant.when.is },
+    when:
+      "flag" in variant.when
+        ? { flag: variant.when.flag, is: variant.when.is }
+        : { jawaban: tidyText(variant.when.jawaban) },
     text: tidyText(variant.text),
   }));
 

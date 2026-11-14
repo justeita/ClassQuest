@@ -1,6 +1,6 @@
 ---
 status: draft
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -116,13 +116,13 @@ type ValidationResult = {
 
 Semua field di bawah ini opsional. Aturan hanya berlaku bila field dipakai.
 
-| Kode                          | Arti                                                              | Hint untuk AI                                                       |
-| ----------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `E_RETRY_COUNT`               | `retryQuestions` ≠ `maxAttempts` − 1                              | "Isi `retryQuestions` tepat `maxAttempts` − 1 entri."               |
-| `E_FLAG_UNDECLARED`           | Flag dipakai tanpa dideklarasikan di `flags`                      | "Tambahkan flag `{id}` ke `flags` atau ganti dengan flag yang ada." |
-| `E_DETOUR_TOO_LONG`           | `onWrong.detour` lebih dari 3 beat                                | "Pendekkan detour menjadi maksimal 3 beat narasi/dialog."           |
-| `E_ONWRONG_WITHOUT_ATTEMPTS`  | `retryQuestions` dipakai tanpa `maxAttempts` 2–3 (khusus chapter) | "Beri `maxAttempts` 2 atau 3, atau hapus `retryQuestions`."         |
-| `E_JAWABAN_WITHOUT_CHALLENGE` | `{{jawaban}}` muncul sebelum beat `challenge` pertama             | "Pindahkan teks setelah beat challenge, atau hapus `{{jawaban}}`."  |
+| Kode                          | Arti                                                                             | Hint untuk AI                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `E_RETRY_COUNT`               | `retryQuestions` ≠ `maxAttempts` − 1                                             | "Isi `retryQuestions` tepat `maxAttempts` − 1 entri."               |
+| `E_FLAG_UNDECLARED`           | Flag dipakai tanpa dideklarasikan di `flags`                                     | "Tambahkan flag `{id}` ke `flags` atau ganti dengan flag yang ada." |
+| `E_DETOUR_TOO_LONG`           | `onWrong.detour` lebih dari 3 beat                                               | "Pendekkan detour menjadi maksimal 3 beat narasi/dialog."           |
+| `E_ONWRONG_WITHOUT_ATTEMPTS`  | `retryQuestions` dipakai tanpa `maxAttempts` 2–3 (khusus chapter)                | "Beri `maxAttempts` 2 atau 3, atau hapus `retryQuestions`."         |
+| `E_JAWABAN_WITHOUT_CHALLENGE` | `{{jawaban}}` atau varian `when.jawaban` muncul sebelum beat `challenge` pertama | "Pindahkan teks setelah beat challenge, atau hapus `{{jawaban}}`."  |
 
 `maxAttempts` default 1, jadi tantangan tanpa `onWrong` tidak butuh
 `retryQuestions`. `onWrong` boleh berisi `setFlags` saja (reaksi salah tanpa
@@ -130,6 +130,12 @@ soal ulang, ADR 0020); yang menuntut `maxAttempts` 2–3 hanyalah
 `retryQuestions`. Retry hanya mengganti teks soal; opsi dan jawaban benar tidak
 berubah. Tantangan di dalam `detour` ditolak lapis struktural (`E_SCHEMA`)
 karena schema hanya mengizinkan beat `narration`/`dialogue` di sana.
+
+`textVariants[].when` punya dua bentuk (ADR 0021): `{ flag, is }` dan
+`{ jawaban }`. Bentuk `jawaban` dicocokkan persis setelah normalisasi (NFC,
+huruf kecil, spasi dirapikan) dan **menang** atas varian flag. Bentuk itu tidak
+membutuhkan deklarasi flag, tetapi tetap harus berada setelah minimal satu
+`challenge` (`E_JAWABAN_WITHOUT_CHALLENGE`).
 
 ### Aturan khusus chapter
 
@@ -139,8 +145,9 @@ panggilan generate — bukan dari `validateStory`:
 
 - `E_ONWRONG_WITHOUT_ATTEMPTS` (error) — `retryQuestions` dipakai tanpa
   `maxAttempts` 2 atau 3. Memicu repair di level chapter.
-- `W_TEXT_VARIANT_FLAG_UNSET` (warning) — `textVariants` membaca flag yang belum
-  di-set di beat sebelumnya. Tidak memblokir.
+- `W_TEXT_VARIANT_FLAG_UNSET` (warning) — varian `when.flag` membaca flag yang
+  belum di-set di beat sebelumnya. Varian `when.jawaban` tidak diperiksa dan
+  tidak memblokir.
 
 **Batasan yang diketahui:** `validateStory` **tidak** menandai `retryQuestions`
 yang dipakai tanpa `maxAttempts` 2–3. Cerita hasil sunting tangan yang memakai
@@ -175,20 +182,22 @@ dari itu (lihat [`../04-game/scene-format.md`](../04-game/scene-format.md#peta-v
 
 Teks yang memuat `{{jawaban}}` tetap dibatasi 240 oleh schema, tetapi jawaban
 siswa menambah sampai 60 karakter saat berjalan. Karena itu teks bervariabel
-sebaiknya ≤ 120 karakter supaya tetap satu halaman.
+sebaiknya ≤ 120 karakter supaya tetap satu halaman. Nilai `when.jawaban` juga
+dibatasi 120 karakter oleh schema (dijaga lapis struktural, bukan
+`E_TEXT_TOO_LONG`).
 
 ## Kode warning
 
-| Kode                        | Arti                                                           | Tindakan guru                  |
-| --------------------------- | -------------------------------------------------------------- | ------------------------------ |
-| `W_CONCEPT_NOT_IN_CHAPTER`  | Tantangan memakai konsep di luar chapter-nya                   | Boleh, untuk review            |
-| `W_NO_CHALLENGE_IN_SCENE`   | Scene tanpa tantangan (maks 3 scene berturut)                  | Pertimbangkan menambah         |
-| `W_DIFFICULTY_SKEW`         | Semua tantangan level 1 atau semua level 3                     | Seimbangkan                    |
-| `W_TRUE_FALSE_BIAS`         | > 70% jawaban benar (atau salah)                               | Seimbangkan                    |
-| `W_SHORT_ANSWER_ONLY`       | Chapter hanya punya `short_answer`                             | Tambah tipe pilihan            |
-| `W_LONG_DIALOGUE_RUN`       | > 6 beat dialog/narasi tanpa interaksi                         | Pecah atau tambah challenge    |
-| `W_GAP_RECORDED`            | `source.gaps` tidak kosong                                     | Cek materi                     |
-| `W_TEXT_VARIANT_FLAG_UNSET` | `textVariants` membaca flag yang belum di-set (khusus chapter) | Pastikan flag diset lebih dulu |
+| Kode                        | Arti                                                               | Tindakan guru                  |
+| --------------------------- | ------------------------------------------------------------------ | ------------------------------ |
+| `W_CONCEPT_NOT_IN_CHAPTER`  | Tantangan memakai konsep di luar chapter-nya                       | Boleh, untuk review            |
+| `W_NO_CHALLENGE_IN_SCENE`   | Scene tanpa tantangan (maks 3 scene berturut)                      | Pertimbangkan menambah         |
+| `W_DIFFICULTY_SKEW`         | Semua tantangan level 1 atau semua level 3                         | Seimbangkan                    |
+| `W_TRUE_FALSE_BIAS`         | > 70% jawaban benar (atau salah)                                   | Seimbangkan                    |
+| `W_SHORT_ANSWER_ONLY`       | Chapter hanya punya `short_answer`                                 | Tambah tipe pilihan            |
+| `W_LONG_DIALOGUE_RUN`       | > 6 beat dialog/narasi tanpa interaksi                             | Pecah atau tambah challenge    |
+| `W_GAP_RECORDED`            | `source.gaps` tidak kosong                                         | Cek materi                     |
+| `W_TEXT_VARIANT_FLAG_UNSET` | Varian `when.flag` membaca flag yang belum di-set (khusus chapter) | Pastikan flag diset lebih dulu |
 
 ## Kebijakan repair
 

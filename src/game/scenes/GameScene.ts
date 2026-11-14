@@ -30,6 +30,7 @@ import { StoryRunner, akhirBab, bolehTerusLewati } from "../StoryRunner";
 import { AnswerLog } from "../answerLog";
 import {
   BranchingRun,
+  challengeSebelumnya,
   resolveDialogueText,
   substituteJawaban,
   type RetryPlan,
@@ -762,6 +763,26 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Jawaban salah yang relevan untuk beat yang sedang tampil.
+   *
+   * - Di dalam detour: jawaban tantangan yang memicunya.
+   * - Di beat biasa: jawaban tantangan terdekat sebelumnya, supaya varian
+   *   `when.jawaban` hanya bereaksi pada soal yang memang barusan dikerjakan.
+   * - Sebelum tantangan apa pun: `null`, sehingga varian jawaban tidak pernah
+   *   dipakai.
+   */
+  private jawabanUntukBeat(): string | null {
+    if (this.detour) {
+      return this.branching.jawabanSalahUntuk(this.detour.challengeId);
+    }
+
+    const sebelumnya = challengeSebelumnya(this.story, this.runner.getState());
+    if (sebelumnya === null) return null;
+
+    return this.branching.jawabanSalahUntuk(sebelumnya);
+  }
+
   /** Tampilkan beat aktif sesuai fase runner. */
   private presentBeat() {
     const state = this.runner.getState();
@@ -802,9 +823,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     let view: BeatView;
-    const jawaban = this.branching.jawabanSalahTerakhir();
+    const jawaban = this.jawabanUntukBeat();
     if (beat.type === "dialogue") {
-      // Varian teks dipilih dari nilai flag saat ini (story-schema.md).
+      // Varian teks dipilih dari jawaban salah tantangan terdekat, lalu flag
+      // (story-schema.md, ADR 0021).
       const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;
       this.sorotSpeaker(beat.speakerId);
@@ -967,7 +989,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     let view: BeatView;
-    const jawaban = this.branching.jawabanSalahTerakhir();
+    const jawaban = this.jawabanUntukBeat();
     if (beat.type === "dialogue") {
       const text = resolveDialogueText(beat, this.branching.flags(), jawaban);
       this.pembicaraTerakhir = beat.speakerId;

@@ -557,8 +557,9 @@ describe("warning", () => {
     [
       "W_TEXT_VARIANT_FLAG_UNSET",
       (draft) => {
-        draft.chapter.scenes[1].beats[1].textVariants[0].when.flag =
-          "flg_belum_diset";
+        const when = draft.chapter.scenes[1].beats[1].textVariants[0].when;
+        if (!("flag" in when)) throw new Error("fixture");
+        when.flag = "flg_belum_diset";
       },
     ],
   ];
@@ -572,8 +573,9 @@ describe("warning", () => {
 
   it("menerima flag textVariants yang sudah di-set chapter sebelumnya", () => {
     const draft = brokenChapter((value) => {
-      value.chapter.scenes[1].beats[1].textVariants[0].when.flag =
-        "flg_dari_chapter_lalu";
+      const when = value.chapter.scenes[1].beats[1].textVariants[0].when;
+      if (!("flag" in when)) throw new Error("fixture");
+      when.flag = "flg_dari_chapter_lalu";
     });
 
     const result = validateChapter(
