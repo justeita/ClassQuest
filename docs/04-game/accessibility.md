@@ -144,10 +144,11 @@ Catatan:
 - Teks dialog, kotak jawaban tantangan, dan tombol HUD memakai bahasa visual yang
   sama: teks krem terang `#F7F4EC` di atas latar gelap `#0b120e`, dengan aksen
   oranye `#E8A87C` (ADR 0029, ADR 0030, ADR 0031).
-- Penunjuk pilihan aktif adalah tangan menunjuk (glove) SVG berwarna krem terang
-  `#F7F4EC` dengan outline gelap dan manset oranye, jadi tetap terbaca di atas
-  dunia terang maupun kotak gelap; pilihan aktif juga dibedakan lewat latar yang
-  terangkat, bukan warna saja.
+- Penunjuk pilihan aktif adalah tangan menunjuk (glove) pixel-art SVG berwarna
+  krem terang `#F7F4EC` dengan outline gelap dan bayangan abu, jadi tetap terbaca
+  di atas dunia terang maupun kotak gelap; ukurannya dibatasi `clamp(15px, …,
+22px)` agar tidak menabrak margin kotak pilihan. Pilihan aktif juga dibedakan
+  lewat latar yang terangkat, bukan warna saja.
 - Border fokus: 2 px, warna aksen, offset 2 px.
 
 ## Ukuran teks

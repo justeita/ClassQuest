@@ -49,11 +49,11 @@ const BISA_DIJAWAB = new Set<ChallengeView["type"]>([
  *   `gayaDialog.ts`): latar hijau-gelap `#0b120e`, bingkai tipis aksen oranye
  *   `#E8A87C`, sudut membulat, teks krem terang `#F7F4EC` — seragam dengan HUD
  *   dan DialogueBox (ADR 0029, ADR 0030).
- * - Penunjuk pilihan aktif adalah **tangan menunjuk (glove) SVG** yang digambar
- *   sendiri (`Penunjuk` di bawah), bukan glyph font, supaya tajam dan presisi
- *   di semua perangkat. Ia berada **di luar** kotak (di kiri untuk daftar, di
- *   atas untuk kartu) dengan outline gelap + manset oranye, jadi tetap jelas di
- *   atas dunia terang maupun kotak gelap.
+ * - Penunjuk pilihan aktif adalah **tangan menunjuk (glove) pixel-art** yang
+ *   digambar sendiri (`Penunjuk` di bawah), bukan glyph font, supaya tajam dan
+ *   presisi di semua perangkat. Ia berada **di luar** kotak (di kiri untuk
+ *   daftar, di atas untuk kartu) dengan outline gelap + bayangan abu, jadi
+ *   tetap jelas di atas dunia terang maupun kotak gelap.
  * - Tombol aksi "Jawab" disejajarkan sempurna dengan kotak di atasnya dan
  *   memakai aksen oranye `#E8A87C` yang sama dengan nama di kotak dialog.
  * - Lebar seragam (fit text): bila salah satu opsi panjang, seluruh opsi dalam
@@ -544,7 +544,7 @@ export function ChallengeOverlay({
                     autoComplete="off"
                     maxLength={60}
                     placeholder="Ketik jawaban lalu tekan Enter..."
-                    className="w-full bg-transparent py-2 pl-7 pr-3 text-[#F7F4EC] placeholder:text-[#7C8A80] focus:outline-none disabled:opacity-60"
+                    className="w-full bg-transparent py-2 pl-9 pr-3 text-[#F7F4EC] placeholder:text-[#7C8A80] focus:outline-none disabled:opacity-60"
                     style={{
                       fontSize: ukuranHuruf(13.5, 12, 20),
                       lineHeight: 1.3,
@@ -696,13 +696,96 @@ export function acakDeterministik(ids: string[], seed: string): string[] {
 }
 
 /**
- * Tangan menunjuk (glove) sebagai penunjuk pilihan aktif.
+ * Bentuk sarung tangan penunjuk dalam peta piksel, satu karakter = satu piksel.
  *
- * Digambar sendiri sebagai **SVG** — bukan glyph font atau emoji — supaya
- * bentuknya tajam, presisi, dan konsisten di semua perangkat: telapak krem
- * dengan outline gelap serta manset oranye `#E8A87C`, jadi tetap terbaca di
- * atas dunia terang maupun kotak pilihan gelap. Saat tidak aktif ia tetap
- * memakan ruang (`opacity-0`) supaya tata letak tidak bergeser.
+ * `w` telapak krem, `a` bayangan abu (pergelangan + tepi bawah), `.` kosong.
+ * Gambar menghadap ke kanan: jari telunjuk di kanan, manset di kiri. Outline
+ * dibuat otomatis dari bentuknya supaya garis tepi selalu rapi satu piksel.
+ */
+const BENTUK_GLOVE = [
+  "..................",
+  "..................",
+  "......wwww........",
+  "......wwww........",
+  "...wwwwwwww.......",
+  "...wwwwwwwwwwwwww.",
+  ".gggwwwwwwwwwwwww.",
+  ".gggwwwwwwwgggggg.",
+  ".gggwwwwwwg.......",
+  ".gggwwwwwwg.......",
+  ".gggwwwwwwg.......",
+  ".gggwwwwwwg.......",
+  ".gggwwwwwwg.......",
+  "....gggggg........",
+  "..................",
+  "..................",
+] as const;
+
+/** Peta kontur: sel kosong yang bersentuhan (8 arah) dengan bentuk glove. */
+function petaKontur(bentuk: readonly string[]): string[] {
+  const lebar = Math.max(...bentuk.map((baris) => baris.length));
+  const adaIsi = (x: number, y: number) =>
+    y >= 0 &&
+    y < bentuk.length &&
+    x >= 0 &&
+    x < lebar &&
+    (bentuk[y]?.[x] ?? ".") !== ".";
+
+  return bentuk.map((_, y) =>
+    Array.from({ length: lebar }, (_, x) => {
+      if (adaIsi(x, y)) return ".";
+      for (let dy = -1; dy <= 1; dy += 1) {
+        for (let dx = -1; dx <= 1; dx += 1) {
+          if (adaIsi(x + dx, y + dy)) return "#";
+        }
+      }
+      return ".";
+    }).join(""),
+  );
+}
+
+/**
+ * Rangkaian subpath `M x y h lebar v1 H x Z` — satu kotak piksel per rentetan
+ * sel berurutan, jadi tiap warna cukup satu `<path>` ringkas.
+ */
+function jalurPiksel(
+  peta: readonly string[],
+  cocok: (sel: string) => boolean,
+): string {
+  const bagian: string[] = [];
+  peta.forEach((baris, y) => {
+    let x = 0;
+    while (x < baris.length) {
+      if (!cocok(baris[x] ?? ".")) {
+        x += 1;
+        continue;
+      }
+      const mulai = x;
+      while (x < baris.length && cocok(baris[x] ?? ".")) x += 1;
+      bagian.push(`M${mulai} ${y}h${x - mulai}v1H${mulai}Z`);
+    }
+  });
+  return bagian.join("");
+}
+
+const GLOVE_LEBAR = 18;
+const GLOVE_TINGGI = 16;
+const GLOVE_KONTUR = jalurPiksel(
+  petaKontur(BENTUK_GLOVE),
+  (sel) => sel === "#",
+);
+const GLOVE_KREM = jalurPiksel(BENTUK_GLOVE, (sel) => sel === "w");
+const GLOVE_ABU = jalurPiksel(BENTUK_GLOVE, (sel) => sel === "a");
+
+/**
+ * Tangan menunjuk (glove) pixel-art sebagai penunjuk pilihan aktif.
+ *
+ * Digambar sendiri sebagai **SVG piksel** — bukan glyph font atau emoji —
+ * supaya bentuknya tajam di semua perangkat: telapak krem, outline gelap
+ * `#0b120e`, dan bayangan abu di pergelangan serta tepi bawah. Ukurannya
+ * dibatasi `clamp(15px, …, 22px)` mengikuti lebar kanvas: cukup besar untuk
+ * terbaca, tetap muat di margin panel tanpa menabrak kotak pilihan. Saat tidak
+ * aktif ia tetap memakan ruang (`opacity-0`) supaya tata letak tidak bergeser.
  *
  * `arah="bawah"` memutar tangan 90° untuk kartu jawaban yang penunjuknya duduk
  * di atas kotaknya.
@@ -721,40 +804,30 @@ function Penunjuk({
     <span
       aria-hidden="true"
       data-penunjuk={aktif ? "aktif" : "diam"}
-      className={`inline-flex shrink-0 select-none transition-opacity ${
+      className={`inline-flex shrink-0 select-none items-center justify-center transition-opacity ${
         aktif ? "opacity-100" : "opacity-0"
       } ${kelas}`}
       style={{
+        // Batas 22 px menjaga glove tetap di dalam padding panel; tanpa batas
+        // atas, `cqw` bisa membesar sampai melewati margin kotak pilihan.
+        width: `clamp(15px, ${cqw(18)}, 22px)`,
+        aspectRatio: `${GLOVE_LEBAR} / ${GLOVE_TINGGI}`,
         filter: "drop-shadow(0 1px 0 rgba(11, 18, 14, 0.85))",
         transform: arah === "bawah" ? "rotate(90deg)" : undefined,
       }}
     >
       <svg
-        width={17}
-        height={17}
-        viewBox="0 0 24 24"
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${GLOVE_LEBAR} ${GLOVE_TINGGI}`}
         fill="none"
+        shapeRendering="crispEdges"
         aria-hidden="true"
+        focusable="false"
       >
-        {/* Manset oranye di pergelangan tangan. */}
-        <rect
-          x="1.2"
-          y="8.4"
-          width="5.4"
-          height="7.2"
-          rx="1.7"
-          fill="#E8A87C"
-          stroke="#0b120e"
-          strokeWidth="1.5"
-        />
-        {/* Telapak + jari telunjuk dalam satu jalur supaya sambungannya mulus. */}
-        <path
-          d="M8.5 7.5 H14 V6.5 H20.25 A2.75 2.75 0 0 1 20.25 12 H14 V14 A3.5 3.5 0 0 1 10.5 17.5 H8.5 A3.5 3.5 0 0 1 5 14 V11 A3.5 3.5 0 0 1 8.5 7.5 Z"
-          fill="#F7F4EC"
-          stroke="#0b120e"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-        />
+        <path d={GLOVE_KONTUR} fill="#0b120e" />
+        <path d={GLOVE_KREM} fill="#F7F4EC" />
+        <path d={GLOVE_ABU} fill="#BFB9AA" />
       </svg>
     </span>
   );

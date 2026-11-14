@@ -424,9 +424,18 @@ describe("ChallengeOverlay — panel di atas dialog", () => {
     fireEvent.mouseEnter(tombolA);
 
     // Penunjuk digambar sebagai SVG tangan (bukan glyph font) dan ditandai jelas.
-    const penunjuk = tombolA.parentElement?.querySelector("[data-penunjuk]");
+    const penunjuk =
+      tombolA.parentElement?.querySelector<HTMLElement>("[data-penunjuk]");
     expect(penunjuk).not.toBeNull();
     expect(penunjuk).toHaveAttribute("data-penunjuk", "aktif");
+
+    // Pixel-art glove: tajam, tiga lapis warna (outline/krem/abu), dan ukurannya
+    // dibatasi supaya tidak melewati margin kotak pilihan.
+    const svg = penunjuk?.querySelector("svg");
+    expect(svg).toHaveAttribute("shape-rendering", "crispEdges");
+    expect(svg?.querySelectorAll("path")).toHaveLength(3);
+    expect(penunjuk?.style.width).toContain("clamp(");
+    expect(penunjuk?.style.width).toContain("22px");
   });
 
   it("keyboard ordering: panah/WASD memindah dan menukar item lalu Enter mengirim", () => {
