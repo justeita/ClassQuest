@@ -593,7 +593,7 @@ function PanelDialog({ judul, children, aksi, onTutup }: PanelDialogProps) {
             onTutup();
           }
         }}
-        className="max-h-[85vh] w-full max-w-sm overflow-y-auto border-2 border-[#9e7833] bg-gradient-to-br from-[#17271c] to-[#0a150f] p-6 shadow-[0_0_0_1px_rgb(0_0_0_/_0.6),0_18px_40px_rgb(0_0_0_/_0.5)]"
+        className="scrollbar-tema max-h-[85vh] w-full max-w-sm overflow-y-auto border-2 border-[#9e7833] bg-gradient-to-br from-[#17271c] to-[#0a150f] p-6 shadow-[0_0_0_1px_rgb(0_0_0_/_0.6),0_18px_40px_rgb(0_0_0_/_0.5)]"
       >
         <h2
           id="judul-dialog-menu"

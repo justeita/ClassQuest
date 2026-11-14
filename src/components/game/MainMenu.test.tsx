@@ -195,6 +195,9 @@ describe("MainMenu", () => {
     fireEvent.click(tombol(/^kredit$/i));
     const dialog = screen.getByRole("dialog", { name: "Kredit" });
 
+    // Panel yang bisa digulir memakai scrollbar bertema, bukan bawaan peramban.
+    expect(dialog).toHaveClass("scrollbar-tema");
+
     // Keempat anggota tim tampil dengan nama dan perannya.
     const daftar = within(dialog);
     expect(daftar.getByText("Marson Arya Bagas Prasetyo")).toBeInTheDocument();

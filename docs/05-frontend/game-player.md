@@ -192,8 +192,10 @@ dari guru langsung melihat judul cerita, bukan menu.
 - `Kredit` berisi asal-usul cerita, daftar tim penyusun (nama, peran, kampus,
   tautan GitHub), dan lisensi font. Daftarnya ditulis di dalam kode (bukan
   diambil dari server) dan ditampilkan bertumpuk, bukan tabel empat kolom, agar
-  nama panjang tetap terbaca di panel dialog yang sempit. `Keluar` membuka
-  konfirmasi
+  nama panjang tetap terbaca di panel dialog yang sempit. Bila isinya melebihi
+  tinggi layar, panel digulir dengan **scrollbar bertema** (`scrollbar-tema`),
+  bukan scrollbar bawaan peramban — jalur gelap dengan ibu jari oranye seperti
+  buku catatan dan menu jeda (ADR 0031). `Keluar` membuka konfirmasi
   yang menautkan ke `/` (halaman pemilihan peran) — bukan menutup tab, karena
   `window.close()` tidak diizinkan peramban.
 - Kelopak sakura ditulis dengan nilai tetap (bukan `Math.random()`) agar render
