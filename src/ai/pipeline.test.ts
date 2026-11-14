@@ -262,6 +262,61 @@ describe("jalur bahagia", () => {
 });
 
 /* -------------------------------------------------------------------------- */
+/* Mode permainan (ADR 0028)                                                  */
+/* -------------------------------------------------------------------------- */
+
+describe("mode permainan", () => {
+  it("meneruskan mode ke prompt outline dan setiap prompt chapter", async () => {
+    const provider = capturing();
+    const result = await run(provider, {
+      meta: { ...META, mode: "pertanyaan" },
+    });
+
+    expect(result.usedFallback).toBe(false);
+    expect(provider.prompts[0]).toContain("TEPAT 3 chapter");
+
+    const chapterPrompts = provider.prompts.filter((prompt) =>
+      prompt.includes("SCHEMA CHAPTER"),
+    );
+    expect(chapterPrompts).toHaveLength(3);
+    for (const prompt of chapterPrompts) {
+      expect(prompt).toContain("Mode pertanyaan (kuis padat, cerita tipis)");
+    }
+    expectValid(result);
+  });
+
+  it("menulis mode ke meta cerita hasil pipeline", async () => {
+    const result = await run(capturing(), {
+      meta: { ...META, mode: "menjelaskan" },
+    });
+
+    expect(result.story.meta.mode).toBe("menjelaskan");
+    expectValid(result);
+  });
+
+  it("membawa mode ke cerita cadangan saat provider gagal", async () => {
+    const result = await run(
+      new MockProvider({
+        stages: { outline: "valid", chapter: "timeout" },
+        timeoutMs: 0,
+      }),
+      { meta: { ...META, mode: "pertanyaan" } },
+    );
+
+    expect(result.usedFallback).toBe(true);
+    expect(result.story.meta.mode).toBe("pertanyaan");
+    expectValid(result);
+  });
+
+  it("tanpa mode, meta cerita tidak punya field mode", async () => {
+    const result = await run(capturing());
+
+    expect(result.story.meta.mode).toBeUndefined();
+    expectValid(result);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
 /* Percabangan (AI_BRANCHING)                                                 */
 /* -------------------------------------------------------------------------- */
 

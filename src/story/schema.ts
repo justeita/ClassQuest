@@ -21,7 +21,7 @@ import { EXPRESSIONS } from "./expression";
 export const STORY_SCHEMA_VERSION = "1.0" as const;
 
 /**
- * Mode permainan yang dipilih guru (ADR 0026).
+ * Mode permainan yang dipilih guru (ADR 0028).
  *
  * - `menjelaskan` — cerita utuh yang menjelaskan konsep.
  * - `pertanyaan` — kuis padat dengan cerita tipis sebagai pengantar.
@@ -93,7 +93,7 @@ export const storyMetaSchema = z.strictObject({
   }),
   tone: boundedText(1, 60, "Nada cerita"),
   /**
-   * Mode permainan yang dipilih guru (ADR 0026). Opsional supaya cerita lama
+   * Mode permainan yang dipilih guru (ADR 0028). Opsional supaya cerita lama
    * tetap sah; yang tidak punya `mode` ditampilkan sebagai `mix`.
    */
   mode: storyModeSchema.optional(),

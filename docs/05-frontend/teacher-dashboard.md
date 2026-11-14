@@ -58,14 +58,20 @@ Tidak ada `ready`: begitu guru selesai review, langkah berikutnya adalah
 
 Form minimal:
 
-| Field          | Wajib | Catatan                             |
-| -------------- | ----- | ----------------------------------- |
-| File PDF       | Ya    | Drag & drop atau pilih file         |
-| Judul          | Ya    | Default dari nama file, bisa diedit |
-| Mata pelajaran | Ya    | Teks bebas atau pilihan umum        |
-| Jenjang/kelas  | Ya    | Mis. "SMP 7"                        |
-| Bahasa         | Ya    | Default "id"                        |
-| Nada cerita    | Tidak | Default "hangat dan penasaran"      |
+| Field          | Wajib | Catatan                                                               |
+| -------------- | ----- | --------------------------------------------------------------------- |
+| File PDF       | Ya    | Drag & drop atau pilih file                                           |
+| Judul          | Ya    | Default dari nama file, bisa diedit                                   |
+| Mata pelajaran | Ya    | Teks bebas atau pilihan umum                                          |
+| Jenjang/kelas  | Ya    | Mis. "SMP 7"                                                          |
+| Bahasa         | Ya    | Default "id"                                                          |
+| Mode permainan | Ya    | `menjelaskan`, `pertanyaan`, atau `mix`; **tanpa default** (ADR 0028) |
+| Nada cerita    | Tidak | Default "hangat dan penasaran"                                        |
+
+Mode permainan wajib dipilih. Form tidak bisa dikirim dan server menolak
+permintaan tanpa mode yang sah (`400 INVALID_INPUT`), karena bentuk game
+(cerita utuh, kuis padat, atau gabungan) menentukan isi yang dihasilkan. Tiap
+pilihan disertai satu kalimat penjelas di bawah dropdown.
 
 Aturan UX:
 

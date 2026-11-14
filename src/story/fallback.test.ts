@@ -222,6 +222,64 @@ describe("bentuk cerita cadangan", () => {
   });
 });
 
+describe("mode permainan di cerita cadangan (ADR 0028)", () => {
+  it("menulis mode ke meta dan menghormati bentuknya", () => {
+    const quiz = check({ concepts: CONCEPTS, meta: { mode: "pertanyaan" } });
+    const mix = check({ concepts: CONCEPTS, meta: { mode: "mix" } });
+
+    expect(quiz.result.ok).toBe(true);
+    expect(mix.result.ok).toBe(true);
+    expect(quiz.story.meta.mode).toBe("pertanyaan");
+    expect(mix.story.meta.mode).toBe("mix");
+  });
+
+  it("mode pertanyaan memakai tepat tiga chapter dan tiga tantangan per chapter", () => {
+    const { story } = check({
+      concepts: ["Satu", "Dua", "Tiga", "Empat", "Lima"],
+      meta: { mode: "pertanyaan" },
+    });
+
+    expect(story.chapters).toHaveLength(3);
+    for (const chapter of story.chapters) {
+      const refs = chapter.scenes.flatMap((scene) =>
+        scene.beats.filter((beat) => beat.type === "challenge"),
+      );
+      expect(refs).toHaveLength(3);
+    }
+    expect(story.challenges).toHaveLength(9);
+  });
+
+  it("mode mix membuat cerita lebih panjang daripada mode pertanyaan", () => {
+    const quiz = check({ concepts: CONCEPTS, meta: { mode: "pertanyaan" } });
+    const mix = check({ concepts: CONCEPTS, meta: { mode: "mix" } });
+
+    expect(mix.story.chapters.length).toBeGreaterThan(
+      quiz.story.chapters.length,
+    );
+    expect(mix.story.chapters.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("mode menjelaskan tetap dua tantangan per chapter", () => {
+    const { story } = check({
+      concepts: CONCEPTS,
+      meta: { mode: "menjelaskan" },
+    });
+
+    for (const chapter of story.chapters) {
+      const refs = chapter.scenes.flatMap((scene) =>
+        scene.beats.filter((beat) => beat.type === "challenge"),
+      );
+      expect(refs).toHaveLength(2);
+    }
+  });
+
+  it("tanpa mode, meta tidak punya field mode", () => {
+    const { story } = check({ concepts: CONCEPTS });
+
+    expect(story.meta.mode).toBeUndefined();
+  });
+});
+
 describe("percabangan cerita cadangan", () => {
   /** Semua beat `challenge` dari seluruh scene, dengan tipe yang menyempit. */
   const challengeBeats = (story: ReturnType<typeof build>) =>

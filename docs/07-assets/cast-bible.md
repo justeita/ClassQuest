@@ -29,16 +29,21 @@ gender, usia, rambut, atau outfit — `characterSchema` hanya menerima `id`,
 
 Konsekuensi yang perlu diingat:
 
-- **AI hanya membaca `description`, `smallTalk`, dan satu baris keahlian.**
-  Pipeline mengirim blok `CAST` berisi satu baris per tokoh (`src/ai/prompt.ts`),
-  jadi detail di bawah ini **tidak** ikut ke model. Kalau sebuah ciri wajib
-  muncul di cerita, ciri itu harus ada di `description`.
+- **AI hanya membaca `description`, `smallTalk`, keahlian, dan lokasi.** Pipeline
+  mengirim blok `CAST` berisi satu baris per tokoh (`src/ai/prompt.ts`), jadi
+  detail di bawah ini **tidak** ikut ke model. Kalau sebuah ciri wajib muncul di
+  cerita, ciri itu harus ada di `description`.
 - **Keahlian yang sampai ke model ada di `CAST_EXPERTISE`.** Peta di
   `src/story/cast.ts` itu berisi satu frasa bidang per tokoh dan dikirim sebagai
   kolom `keahlian:` di blok `CAST`; fungsinya memilih pembicara yang tepat
   (mis. topik ikan → Marlow), bukan menambah kontrak schema. Kalau kamu mengubah
   pekerjaan atau domain seorang tokoh di dokumen ini, perbarui `CAST_EXPERTISE`
   juga — lihat [ADR 0025](../09-decisions/0025-pemilihan-pembicara-keahlian.md).
+- **Tempat tokoh yang sampai ke model ada di `CAST_PLACES`.** Peta tetap di
+  `src/game/world/village.json`, tetapi model tidak menerima koordinat. Lokasi
+  dikirim sebagai kolom `lokasi:` di blok `CAST` plus blok `LOKASI` per tempat.
+  Kalau peta desa berubah, perbarui `CAST_PLACES` juga — lihat
+  [ADR 0029](../09-decisions/0029-penempatan-tokoh-tetap.md) dan tabel di bawah.
 - **Nama marga tidak dipakai di game.** Nama yang tampil di panel dialog adalah
   `cast.name` (`Kael`, `Edric`, …), bukan nama lengkap. `name` dibatasi 40
   karakter, dan panel dialog didesain untuk nama pendek.
@@ -537,6 +542,45 @@ tokoh yang salah muncul di layar.
 | Pita rambut | Hijau tua, di kedua sisi     | Hijau tua, mengikat ke belakang      |
 | Tongkat     | Ya                           | Tidak                                |
 | Peran       | NPC                          | **Mentor**                           |
+| Rumah       | Biru gelap, barat daya       | Merah, utara tengah                  |
+| Di peta     | `x=1183`, `y=1135`           | `x=1199`, `y=466`                    |
+
+## Lokasi tetap di desa
+
+Dunia desa adalah **satu peta tetap**. `GameScene` memasang sembilan NPC sekali
+di `src/game/world/village.json`, dan cerita tidak memindahkan mereka. Tabel ini
+adalah salinan kerja dari `map.txt` paket aset, sudah dicocokkan dengan koordinat
+NPC di peta; sumber yang dikirim ke model adalah `CAST_PLACES` di
+`src/story/cast.ts` (ADR 0029).
+
+| Tokoh                    | Tempat tetap                                          | Koordinat kaki |
+| ------------------------ | ----------------------------------------------------- | -------------- |
+| Kael (`char_mc`)         | Berjalan bebas mengikuti cerita                       | `1247`, `1523` |
+| Elian (`char_npc_1`)     | Bangku kiri bawah air mancur, alun-alun utama         | `1111`, `818`  |
+| Elias (`char_npc_3`)     | Halaman depan perpustakaan, timur laut                | `1804`, `532`  |
+| Clara (`char_npc_4`)     | Bangku samping pohon berbunga merah muda, kolam timur | `1693`, `866`  |
+| Griselda (`char_npc_5`)  | Halaman depan rumah beratap hijau, tenggara           | `1820`, `1177` |
+| Eldric (`char_npc_6`)    | Bangku depan rumah beratap biru gelap, barat daya     | `1183`, `1135` |
+| Marlow (`char_npc_7`)    | Jembatan kayu di atas sungai, selatan                 | `721`, `1637`  |
+| Leonhardt (`char_npc_8`) | Pintu masuk selatan, dekat lentera dan papan arah     | `1334`, `1350` |
+| Theo (`char_npc_9`)      | Kebun sayuran dekat sumur batu, barat                 | `538`, `794`   |
+| Edric (`char_npc_10`)    | Halaman depan rumah beratap merah, utara tengah       | `1199`, `466`  |
+
+Jarak ke patokan peta (dari `village.json`, dihitung ke titik kaki objek):
+Elian 64 px dari bangku alun-alun dan 154 px dari air mancur, Elias 79 px dari
+perpustakaan, Edric 34 px dari rumah merah, Eldric 69 px dari bangku rumah biru,
+Clara 77 px dari pohon berbunga, Griselda 132 px dari rumah hijau, Theo 58 px
+dari petak kebun, Leonhardt 46 px dari lentera bawah.
+
+**Tempat yang mudah tertukar:**
+
+| Kalau materinya tentang | Jangan taruh di            | Taruh di                                           |
+| ----------------------- | -------------------------- | -------------------------------------------------- |
+| Ikan dan sungai         | Kolam timur atau alun-alun | Jembatan kayu (Marlow)                             |
+| Bunga dan kolam         | Air mancur alun-alun       | Kolam timur (Clara)                                |
+| Tetua di rumah merah    | Rumah biru Eldric          | Rumah merah (Edric)                                |
+| Tetua di rumah biru     | Rumah merah Edric          | Rumah biru (Eldric)                                |
+| Buku dan pelajaran      | Rumah warga                | Perpustakaan (Elias) atau bangku alun-alun (Elian) |
 
 ## Pemakaian potret
 
@@ -577,3 +621,4 @@ Karakterisasi tiap ekspresi (berguna saat menulis dialog yang cocok):
 - [`../03-ai-pipeline/generation-rules.md`](../03-ai-pipeline/generation-rules.md) — aturan karakter konsisten
 - [`../09-decisions/0023-potret-ekspresi-persona.md`](../09-decisions/0023-potret-ekspresi-persona.md) — potret berekspresi di atas panel
 - [`../09-decisions/0025-pemilihan-pembicara-keahlian.md`](../09-decisions/0025-pemilihan-pembicara-keahlian.md) — keahlian tokoh untuk memilih pembicara
+- [`../09-decisions/0029-penempatan-tokoh-tetap.md`](../09-decisions/0029-penempatan-tokoh-tetap.md) — tempat tetap tokoh untuk menyusun adegan

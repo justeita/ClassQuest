@@ -2,9 +2,10 @@
  * Penjadwal job generasi cerita.
  *
  * Route upload (task 16) hanya bergantung pada tanda tangan fungsi ini: ia
- * menerima id job, id story, bytes PDF yang sudah divalidasi, dan `tone`
- * opsional, lalu menjadwalkan `runJob()` lewat `after()` dari `next/server`
- * pada invocation yang sama (`docs/06-backend/jobs-and-limits.md`).
+ * menerima id job, id story, bytes PDF yang sudah divalidasi, `tone` opsional, dan
+ * `mode` permainan pilihan guru, lalu menjadwalkan `runJob()` lewat `after()`
+ * dari `next/server` pada invocation yang sama
+ * (`docs/06-backend/jobs-and-limits.md`, ADR 0028).
  *
  * Kontrak yang dipegang:
  *

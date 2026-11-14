@@ -23,13 +23,23 @@
  */
 
 import { ASSETS_BY_ID } from "../assets/manifest";
-import { FIXED_CAST, CAST_EXPERTISE } from "../story/cast";
-import type { CharacterRole } from "../story/schema";
+import {
+  CAST_EXPERTISE,
+  CAST_PLACES,
+  FIXED_CAST,
+  locationOf,
+} from "../story/cast";
+import type { CharacterRole, StoryMode } from "../story/schema";
 import type { AssetManifest } from "../story/validate";
 import type { LlmRequest } from "./provider";
 
-/** Versi prompt. Naikkan setiap kali perilaku prompt berubah. */
-export const PROMPT_VERSION = "story-v10";
+/**
+ * Versi prompt. Naikkan setiap kali perilaku prompt berubah.
+ *
+ * `story-v11` menambahkan instruksi per mode permainan (ADR 0028): `menjelaskan`,
+ * `pertanyaan`, dan `mix` mengubah jumlah chapter serta kepadatan tantangan.
+ */
+export const PROMPT_VERSION = "story-v12";
 
 /**
  * Plafon output per panggilan. Reasoning model bisa memakai 6.000–14.000
@@ -80,6 +90,12 @@ export const MATERIAL_END = "<<<MATERIAL_END>>>";
  * `story-v10` menambahkan blok `PEMILIHAN PEMBICARA`: dialog tentang bidang
  * tertentu harus jatuh ke tokoh yang keahliannya cocok, dan blok `CAST` kini
  * membawa kolom `keahlian` per tokoh (ADR 0025).
+ * `story-v11` menambahkan instruksi per mode permainan (ADR 0028):
+ * `menjelaskan`, `pertanyaan`, dan `mix` mengubah jumlah chapter dan tantangan
+ * lewat blok `TASK`.
+ * `story-v12` menambahkan blok `LOKASI` dan aturan `PENEMPATAN TOKOH`: tiap
+ * tokoh punya tempat tetap di desa, dan blok `CAST` kini membawa kolom `lokasi`
+ * per tokoh (ADR 0029).
  */
 export const SYSTEM_PROMPT = `Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
 Tugasmu mengubah MATERI dari guru menjadi cerita yang bisa dimainkan.
@@ -125,6 +141,18 @@ PEMILIHAN PEMBICARA
   mengalami langsung. Tokoh ahli menjelaskan dari pengalamannya, bukan dari buku.
 - Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor. Jangan mengarang
   keahlian baru untuk tokoh lain.
+
+PENEMPATAN TOKOH
+- Setiap tokoh punya tempat tetap di desa; lihat blok LOKASI. Adegan terjadi di
+  tempat tokohnya berada, bukan di tempat yang dipilih acak.
+- Jangan menukar tempat dua tokoh. Edric tinggal di rumah beratap merah, Eldric
+  di rumah beratap biru; Clara di kolam timur, Elian di alun-alun.
+- Tokoh boleh berpindah hanya bila cerita menjelaskannya: tulis dulu alasannya
+  dalam narasi, baru tokoh itu muncul di tempat baru.
+- Satu chapter tidak menempatkan tokoh yang sama di dua tempat berbeda tanpa
+  perjalanan yang disebutkan.
+- Isi "continuity.characterStates[].location" dengan nama tempat dari blok
+  LOKASI, bukan nama tempat karangan baru.
 
 EMOSI
 - Percakapan adalah adegan, dan adegan punya wajah. Setiap kali tokoh bicara,
@@ -194,6 +222,12 @@ export type PromptMeta = {
   gradeLevel?: string;
   language?: string;
   tone?: string;
+  /**
+   * Mode permainan pilihan guru (ADR 0028). Bila kosong, prompt memakai
+   * instruksi `mix` supaya pemanggil lama tetap menghasilkan cerita seimbang;
+   * form upload sendiri mewajibkan guru memilih.
+   */
+  mode?: StoryMode;
   fileName?: string;
   pageCount?: number;
   estimatedMinutes?: number;
@@ -671,10 +705,11 @@ const assetSection = (assets: AssetManifest): string => {
 };
 
 /**
- * Blok roster tetap. Deskripsi penampilan dan keahlian ikut dikirim supaya model
- * menulis aksi dan dialog yang cocok dengan sprite (mis. nenek bertongkat atau
- * pelajar bertopi biru), dan memberi dialog bidang tertentu kepada tokoh yang
- * memang ahli di bidang itu (ADR 0025).
+ * Blok roster tetap. Deskripsi penampilan, keahlian, dan lokasi tetap ikut
+ * dikirim supaya model menulis aksi dan dialog yang cocok dengan sprite (mis.
+ * nenek bertongkat atau pelajar bertopi biru), memberi dialog bidang tertentu
+ * kepada tokoh yang memang ahli di bidang itu, dan menempatkan tokoh di tempat
+ * yang sama dengan posisinya di peta (ADR 0025).
  */
 const castSection = (): string => {
   const lines = FIXED_CAST.map((member) => {
@@ -682,13 +717,37 @@ const castSection = (): string => {
       member.smallTalk === undefined ? "" : ` | obrolan: "${member.smallTalk}"`;
     const keahlian = CAST_EXPERTISE[member.id];
     const bidang = keahlian === undefined ? "" : ` | keahlian: ${keahlian}`;
-    return `- ${member.id} | ${member.name} | role: ${member.role} | sprite: ${member.spriteId} | deskripsi: ${member.description ?? "(tanpa deskripsi)"}${bidang}${smallTalk}`;
+    const lokasi = locationOf(member.id);
+    const di = lokasi === undefined ? "" : ` | lokasi: ${lokasi}`;
+    return `- ${member.id} | ${member.name} | role: ${member.role} | sprite: ${member.spriteId} | deskripsi: ${member.description ?? "(tanpa deskripsi)"}${bidang}${di}${smallTalk}`;
   });
 
   return [
     "CAST",
     "Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role, spriteId, description, dan smallTalk dari daftar ini. Jangan menambah, mengurangi, atau mengganti nama tokoh.",
-    "Kolom keahlian hanya untuk memilih pembicara; jangan disalin ke keluaran JSON.",
+    "Kolom keahlian dan lokasi hanya untuk menyusun adegan; jangan disalin ke keluaran JSON.",
+    ...lines,
+  ].join("\n");
+};
+
+/**
+ * Blok tempat. Mengulang lokasi tiap tokoh sebagai daftar per tempat, supaya
+ * model tidak hanya tahu "Clara di pohon berbunga" tetapi juga bahwa kolam
+ * timur bukan air mancur, dan bahwa Eldric serta Edric ada di rumah berbeda.
+ */
+const locationSection = (): string => {
+  const nama = new Map(FIXED_CAST.map((member) => [member.id, member.name]));
+  const lines = CAST_PLACES.map((place) => {
+    const penghuni = place.members
+      .map((id) => nama.get(id))
+      .filter((value): value is string => value !== undefined);
+
+    return `- ${place.label}: ${place.note} Tokoh di sini: ${penghuni.join(", ")}.`;
+  });
+
+  return [
+    "LOKASI",
+    "Desa punya tata letak tetap. Tempat yang disebut di cerita harus salah satu dari daftar ini, dan tokoh tetap berada di tempatnya.",
     ...lines,
   ].join("\n");
 };
@@ -750,6 +809,56 @@ const languageOf = (meta: PromptMeta | undefined, fallback = "id") =>
 const pageList = (pages: readonly number[]) =>
   pages.length > 0 ? pages.join(", ") : "(tidak ada)";
 
+/**
+ * Mode permainan (ADR 0028).
+ *
+ * Prompt selalu bekerja dengan salah satu mode. Bila metadata tidak membawanya
+ * (pemanggil lama atau tes), `mix` dipakai supaya bentuk cerita tetap seimbang.
+ * Form upload sendiri mewajibkan guru memilih, jadi jalur produk tidak pernah
+ * mengandalkan nilai bawaan ini.
+ */
+const modeOf = (meta: PromptMeta | undefined): StoryMode => meta?.mode ?? "mix";
+
+/** Instruksi jumlah chapter untuk panggilan outline. */
+const outlineModeTask = (mode: StoryMode): string => {
+  switch (mode) {
+    case "pertanyaan":
+      return "Mode pertanyaan: buat TEPAT 3 chapter. Bila materi punya lebih dari tiga konsep utama, ringkas menjadi tiga; konsep pendukung masuk lewat conceptTag tantangan, bukan chapter tambahan.";
+    case "menjelaskan":
+      return "Mode menjelaskan: buat 3-6 chapter yang mengutamakan alur cerita dan penjelasan konsep lewat adegan.";
+    case "mix":
+      return "Mode mix: buat 4-6 chapter bila materi mencukupi, supaya cerita punya ruang lebih panjang daripada mode pertanyaan.";
+  }
+};
+
+/** Instruksi kepadatan tantangan dan cerita untuk panggilan chapter. */
+const chapterModeTask = (mode: StoryMode): string => {
+  switch (mode) {
+    case "pertanyaan":
+      return [
+        "Mode pertanyaan (kuis padat, cerita tipis):",
+        "- Tulis 3-4 tantangan di chapter ini dan sebarkan di scene yang ada.",
+        "- Setiap tantangan hanya didahului 1-2 beat narasi/dialog sebagai pengantar, lalu satu beat reaksi singkat sesudahnya.",
+        "- Jangan menulis adegan panjang atau penjelasan bertele-tele; cerita adalah pembungkus tipis untuk soal.",
+        "- Tetap pakai latar desa dan tokoh dari CAST; jangan mengubah chapter menjadi daftar soal tanpa dunia.",
+      ].join("\n");
+    case "menjelaskan":
+      return [
+        "Mode menjelaskan:",
+        "- Tulis 1-2 tantangan saja di chapter ini.",
+        "- Beri ruang pada adegan: tokoh mengamati, bertanya, dan menjelaskan konsep lewat aksi.",
+        "- Tantangan muncul setelah konsepnya dialami tokoh, bukan di awal scene.",
+      ].join("\n");
+    case "mix":
+      return [
+        "Mode mix:",
+        "- Tulis 2-3 tantangan di chapter ini.",
+        "- Seimbangkan cerita dan latihan: setiap tantangan tetap punya pengantar adegan yang cukup.",
+        "- Cerita boleh lebih panjang daripada mode pertanyaan, tetapi jangan kehilangan tempo.",
+      ].join("\n");
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 /* Builder                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -786,6 +895,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): PromptResult {
     SECTION_SCHEMA_OUTLINE,
     assetSection(input.assets),
     castSection(),
+    locationSection(),
     [
       "OUTLINE",
       "Belum ada outline. Buat outline baru dari materi di bawah.",
@@ -795,6 +905,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): PromptResult {
     [
       "TASK",
       `Buat outline cerita dari materi di atas. ${metaContext(input.meta, language)}`,
+      outlineModeTask(modeOf(input.meta)),
       "Judul dan synopsis harus terasa seperti cerita bergaya roleplay yang mengikuti nada di atas, bukan judul buku pelajaran.",
       `Halaman yang tersedia: ${pageList(summary.pages)}.`,
       summary.droppedPages.length > 0
@@ -836,6 +947,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
     ...(input.branching ? [branchingSection(input.usedFlags ?? [])] : []),
     assetSection(input.assets),
     castSection(),
+    locationSection(),
     ["OUTLINE", JSON.stringify(input.outline, null, 2)].join("\n"),
     continuitySection(input.continuity),
     materialSection(kept),
@@ -843,6 +955,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
       "TASK",
       `Tulis chapter "${input.planned.id}" berjudul "${input.planned.title}" untuk konsep "${input.planned.concept}".`,
       metaContext(input.meta, language),
+      chapterModeTask(modeOf(input.meta)),
       'Tulis narasi dan dialog sebagai roleplay yang hidup: bahasa sehari-hari siswa, hindari "Anda/Saya" yang kaku, dan ikuti nada di atas.',
       "Beri setiap beat dialogue field expression sesuai reaksinya, dan beri expression berbeda pada varian jawaban salah.",
       `Halaman materi untuk chapter ini: ${pageList(summary.pages)}.`,

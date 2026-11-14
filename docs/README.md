@@ -216,6 +216,8 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0023-potret-ekspresi-persona.md`](./09-decisions/0023-potret-ekspresi-persona.md)                           | stable | Potret berekspresi di atas kotak dialog                      |
 | [`09-decisions/0024-emosi-per-varian-jawaban.md`](./09-decisions/0024-emosi-per-varian-jawaban.md)                         | stable | Emosi berbeda per varian jawaban                             |
 | [`09-decisions/0025-pemilihan-pembicara-keahlian.md`](./09-decisions/0025-pemilihan-pembicara-keahlian.md)                 | stable | Dialog bidang tertentu jatuh ke tokoh yang ahli              |
+| [`09-decisions/0028-mode-permainan.md`](./09-decisions/0028-mode-permainan.md)                                             | stable | Mode permainan dipilih guru                                  |
+| [`09-decisions/0029-penempatan-tokoh-tetap.md`](./09-decisions/0029-penempatan-tokoh-tetap.md)                             | stable | Tokoh punya tempat tetap yang sejalan dengan peta desa       |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                                           | draft  | Urutan kerja dan pembagian tugas                             |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                                                 | draft  | Naskah demo 3 menit + sketsa layar                           |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                                       | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal     |

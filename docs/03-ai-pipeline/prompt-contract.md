@@ -9,7 +9,7 @@ owner: tim ClassQuest
 Prompt adalah kode. Ia punya versi, dites, dan tidak diubah diam-diam.
 
 - Implementasi: `src/ai/prompt.ts`
-- Versi saat ini: `PROMPT_VERSION = "story-v10"`
+- Versi saat ini: `PROMPT_VERSION = "story-v12"`
 - Aturan isi cerita: [`generation-rules.md`](./generation-rules.md)
 - Schema output: [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md)
 
@@ -24,7 +24,8 @@ Selalu urutan ini. Instruksi sistem tidak boleh berada setelah data pengguna.
   1. SCHEMA (bentuk JSON yang harus dihasilkan)
   1b. BRANCHING (opsional; hanya bila AI_BRANCHING=on)
   2. ASSETS (daftar aset yang boleh dipakai)
-  3. CAST (roster tetap: id, nama, role, sprite, deskripsi penampilan, keahlian)
+  3. CAST (roster tetap: id, nama, role, sprite, deskripsi penampilan, keahlian, lokasi)
+  3b. LOKASI (tempat tetap tiap tokoh di desa)
   4. OUTLINE (struktur yang sudah disepakati)
   5. CONTINUITY (ringkasan chapter sebelumnya)
   6. MATERIAL (teks materi, sebagai DATA)
@@ -35,7 +36,7 @@ Selalu urutan ini. Instruksi sistem tidak boleh berada setelah data pengguna.
 data, sehingga teks seperti "abaikan aturan di atas" di dalam PDF tidak terlihat
 seperti perintah baru.
 
-## System prompt (story-v10)
+## System prompt (story-v12)
 
 ```text
 Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
@@ -82,6 +83,18 @@ PEMILIHAN PEMBICARA
   mengalami langsung. Tokoh ahli menjelaskan dari pengalamannya, bukan dari buku.
 - Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor. Jangan mengarang
   keahlian baru untuk tokoh lain.
+
+PENEMPATAN TOKOH
+- Setiap tokoh punya tempat tetap di desa; lihat blok LOKASI. Adegan terjadi di
+  tempat tokohnya berada, bukan di tempat yang dipilih acak.
+- Jangan menukar tempat dua tokoh. Edric tinggal di rumah beratap merah, Eldric
+  di rumah beratap biru; Clara di kolam timur, Elian di alun-alun.
+- Tokoh boleh berpindah hanya bila cerita menjelaskannya: tulis dulu alasannya
+  dalam narasi, baru tokoh itu muncul di tempat baru.
+- Satu chapter tidak menempatkan tokoh yang sama di dua tempat berbeda tanpa
+  perjalanan yang disebutkan.
+- Isi "continuity.characterStates[].location" dengan nama tempat dari blok
+  LOKASI, bukan nama tempat karangan baru.
 
 EMOSI
 - Percakapan adalah adegan, dan adegan punya wajah. Setiap kali tokoh bicara,
@@ -180,6 +193,29 @@ dialog tentang bidang tertentu jatuh ke tokoh yang memang ahli — materi tentan
 ikan dijawab Marlow si nelayan, bukan pelajar yang gemar membaca. Tidak ada
 perubahan schema; keahlian hanya data prompt dari `CAST_EXPERTISE` di
 `src/story/cast.ts`. Sifatnya mengarahkan, bukan menjamin.
+
+`story-v11` menambahkan **instruksi per mode permainan** di blok `TASK` (lihat
+[ADR 0028](../09-decisions/0028-mode-permainan.md)). System prompt tidak berubah;
+yang berubah hanya TASK:
+
+| Mode          | Instruksi outline                                        | Instruksi chapter                                                           |
+| ------------- | -------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `menjelaskan` | 3–6 chapter, alur cerita diutamakan                      | 1–2 tantangan, adegan menjelaskan konsep lewat aksi                         |
+| `pertanyaan`  | **tepat 3 chapter**; konsep pendukung lewat `conceptTag` | 3–4 tantangan, tiap tantangan didahului 1–2 beat pengantar + reaksi singkat |
+| `mix`         | 4–6 chapter bila materi mencukupi                        | 2–3 tantangan, cerita lebih panjang tetapi tempo tetap                      |
+
+Mode berasal dari `meta.mode` (`PromptMeta.mode`). Bila metadata tidak membawanya
+— hanya mungkin pada pemanggil lama atau tes — prompt memakai instruksi `mix`,
+tetapi jalur produk selalu mengirim mode karena form upload mewajibkan guru
+memilih.
+
+`story-v12` menambahkan blok `LOKASI` dan aturan `PENEMPATAN TOKOH`, plus kolom
+`lokasi` di blok `CAST` (lihat
+[ADR 0029](../09-decisions/0029-penempatan-tokoh-tetap.md)). Tujuannya: model
+tidak pernah melihat peta, jadi tanpa daftar ini chapter bisa menaruh Marlow di
+alun-alun padahal sprite-nya di jembatan sungai. Tempat berasal dari
+`CAST_PLACES` di `src/story/cast.ts` dan sudah dicocokkan dengan koordinat NPC di
+`src/game/world/village.json`. Tidak ada perubahan schema.
 
 ## Blok schema di prompt
 
@@ -291,11 +327,11 @@ Sumbernya `src/story/cast.ts`; jangan menyalin nama ke prompt builder.
 CAST
 Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role,
 spriteId, description, dan smallTalk dari daftar ini. ...
-Kolom keahlian hanya untuk memilih pembicara; jangan disalin ke keluaran JSON.
+Kolom keahlian dan lokasi hanya untuk menyusun adegan; jangan disalin ke keluaran JSON.
 
-- char_mc | Kael | role: player | sprite: char_mc | deskripsi: Pemuda bersyal biru ... | keahlian: murid akademi; mengamati dan bertanya, bukan ahli topik
-- char_npc_10 | Edric | role: mentor | sprite: char_npc_10 | deskripsi: Tetua desa ... | keahlian: penasihat desa; pengetahuan umum, kebijaksanaan, adat, memimpin
-- char_npc_7 | Marlow | role: npc | sprite: char_npc_7 | deskripsi: Pemancing bertopi jerami ... | keahlian: ikan, sungai, memancing, perahu, arus
+- char_mc | Kael | role: player | sprite: char_mc | deskripsi: Pemuda bersyal biru ... | keahlian: murid akademi; mengamati dan bertanya, bukan ahli topik | lokasi: berjalan bebas mengikuti cerita
+- char_npc_10 | Edric | role: mentor | sprite: char_npc_10 | deskripsi: Tetua desa ... | keahlian: penasihat desa; pengetahuan umum, kebijaksanaan, adat, memimpin | lokasi: halaman depan rumah beratap merah, dekat pot bunga
+- char_npc_7 | Marlow | role: npc | sprite: char_npc_7 | deskripsi: Pemancing bertopi jerami ... | keahlian: ikan, sungai, memancing, perahu, arus | lokasi: jembatan kayu di atas sungai
 ```
 
 Deskripsi **wajib** ikut karena menyebut ciri yang terlihat di sprite (topi,
@@ -307,6 +343,30 @@ Kolom `keahlian` berasal dari `CAST_EXPERTISE` (`src/story/cast.ts`), bukan dari
 schema cerita. Isinya menandai siapa yang berhak menjelaskan apa, supaya model
 tidak memilih pembicara hanya karena deskripsinya terdengar pintar. Kolom ini
 hanya untuk pemilihan pembicara; model dilarang menyalinnya ke JSON.
+
+## Blok lokasi di prompt
+
+Blok `LOKASI` dikirim tepat setelah `CAST`, di prompt outline **dan** chapter.
+Sumbernya `CAST_PLACES` di `src/story/cast.ts`; `locationOf()` dipakai bersama
+oleh kolom `lokasi` di blok `CAST`.
+
+```text
+LOKASI
+Desa punya tata letak tetap. Tempat yang disebut di cerita harus salah satu dari
+daftar ini, dan tokoh tetap berada di tempatnya.
+- alun-alun utama, di bangku kiri bawah air mancur: Air mancur di tengah desa, ...
+  Tokoh di sini: Elian.
+- bangku di samping pohon berbunga merah muda, dekat kolam: Kolam alami di timur
+  desa, ... Bukan air mancur alun-alun dan bukan sungai. Tokoh di sini: Clara.
+- jembatan kayu di atas sungai: Sungai dan jembatan kayu di bagian selatan desa,
+  jauh dari kolam dan alun-alun. Tokoh di sini: Marlow.
+```
+
+Model tidak pernah menerima peta atau koordinat `village.json`, jadi daftar ini
+satu-satunya sumber tata letak. Setiap tempat membawa `note` yang menyebut batas
+tempatnya — itulah yang mencegah kesalahan seperti "Marlow di alun-alun" atau
+"Clara di air mancur". `src/story/cast.test.ts` memastikan setiap NPC yang
+dipasang di peta punya lokasi, dan setiap tokoh tetap punya tepat satu tempat.
 
 ## Blok kontinuitas
 

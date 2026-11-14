@@ -92,10 +92,25 @@ type StoryMeta = {
   gradeLevel: string; // mis. "SMP 7"
   language: string; // BCP-47: "id", "en"
   tone: string; // mis. "hangat dan penasaran"
+  mode?: StoryMode; // opsional; lihat di bawah
   synopsis: string; // 40..400 karakter
   estimatedMinutes: number; // 3..30
 };
 ```
+
+`mode` adalah mode permainan yang dipilih guru saat mengunggah materi
+([ADR 0028](../09-decisions/0028-mode-permainan.md)). Nilainya salah satu dari:
+
+| Nilai         | Arti                                                                                          |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| `menjelaskan` | Cerita utuh: konsep dijelaskan lewat adegan, tantangan 1–2 per chapter.                       |
+| `pertanyaan`  | Kuis padat: 3 chapter, 3–4 tantangan per chapter, tiap tantangan didahului pengantar singkat. |
+| `mix`         | Gabungan: cerita agak lebih panjang, tantangan 2–3 per chapter.                               |
+
+Field ini **opsional** karena cerita yang dibuat sebelum ADR 0028 tidak
+memilikinya dan harus tetap sah. Pembaca yang menampilkannya memperlakukan cerita
+tanpa `mode` sebagai `mix`. Penulis cerita baru selalu mengisinya, karena form
+upload mewajibkan guru memilih.
 
 ### `source`
 
@@ -541,6 +556,7 @@ dari percobaan terakhir. `scoring` boleh tidak ada dan berarti
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat dan penasaran",
+    "mode": "mix",
     "synopsis": "Kael mengikuti perjalanan setetes air dari halaman sekolah sampai kembali lagi ke bumi.",
     "estimatedMinutes": 8
   },

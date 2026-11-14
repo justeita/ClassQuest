@@ -38,7 +38,8 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0023 | [Potret berekspresi ala Persona](0023-potret-ekspresi-persona.md)                                    | Accepted     | Game, aset, cerita    |
 | 0024 | [Emosi per varian jawaban](0024-emosi-per-varian-jawaban.md)                                         | Accepted     | AI, validator, cerita |
 | 0025 | [Pemilihan pembicara menurut keahlian](0025-pemilihan-pembicara-keahlian.md)                         | Accepted     | AI, prompt            |
-| 0026 | [Mode permainan dipilih guru](0026-mode-permainan.md)                                                | Accepted     | AI, cerita, backend   |
+| 0028 | [Mode permainan dipilih guru](0028-mode-permainan.md)                                                | Accepted     | AI, cerita, backend   |
+| 0029 | [Penempatan tokoh tetap di desa](0029-penempatan-tokoh-tetap.md)                                     | Accepted     | AI, prompt            |
 
 ## Status
 

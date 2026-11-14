@@ -28,6 +28,23 @@ system prompt, dan sebagian diperiksa validator.
    karakter, lokasi, atau pertanyaan baru.
 10. **Aman untuk sekolah.** Tidak ada kekerasan, horor, romansa, atau tema depresi.
 
+## Mode permainan
+
+Guru memilih mode saat mengunggah, dan mode itu tersimpan di `meta.mode`
+([ADR 0028](../09-decisions/0028-mode-permainan.md)). Mode hanya mengubah jumlah
+chapter dan kepadatan tantangan; struktur schema dan aturan validasi tetap sama.
+
+| Mode          | Chapter | Tantangan per chapter | Ciri                                                                  |
+| ------------- | ------- | --------------------- | --------------------------------------------------------------------- |
+| `menjelaskan` | 3–6     | 1–2                   | Adegan dan penjelasan konsep lebih panjang; tantangan menyusul.       |
+| `pertanyaan`  | tepat 3 | 3–4                   | Kuis padat: tiap tantangan didahului 1–2 beat pengantar, lalu reaksi. |
+| `mix`         | 4–6     | 2–3                   | Cerita lebih panjang daripada `pertanyaan`, latihan tetap merata.     |
+
+Yang **tidak** berubah: satu chapter satu konsep utama, jawaban ada di cerita,
+setiap scene sebaiknya punya tantangan (`W_NO_CHALLENGE_IN_SCENE`), dan dunia
+desa beserta NPC tetap dipakai. Mode `pertanyaan` bukan daftar soal lepas —
+cerita hanya lebih tipis.
+
 ## Cast tetap
 
 Sepuluh tokoh desa (Kael dan sembilan warga) adalah roster tetap di
@@ -70,6 +87,41 @@ Ini aturan prompt, bukan jaminan. Model masih bisa salah memilih pembicara,
 terutama bila materi mencampur banyak domain. Yang bisa diperiksa manusia:
 `speakerId` di setiap dialog harus masuk akal untuk topiknya, bukan hanya ada di
 cast.
+
+## Penempatan tokoh
+
+Peta desa adalah **satu peta tetap**: sembilan NPC punya koordinat di
+`src/game/world/village.json` dan `GameScene` memasangnya sekali. Model tidak
+menerima peta itu, jadi prompt membawa blok `LOKASI` dari `CAST_PLACES`
+(`src/story/cast.ts`) berisi tempat tiap tokoh dan batas tempatnya (lihat
+[ADR 0029](../09-decisions/0029-penempatan-tokoh-tetap.md)).
+
+| Tokoh                    | Tempat tetap                                          |
+| ------------------------ | ----------------------------------------------------- |
+| Elian (`char_npc_1`)     | Bangku kiri bawah air mancur, alun-alun utama         |
+| Elias (`char_npc_3`)     | Halaman depan perpustakaan, timur laut                |
+| Clara (`char_npc_4`)     | Bangku samping pohon berbunga merah muda, kolam timur |
+| Griselda (`char_npc_5`)  | Halaman depan rumah beratap hijau, tenggara           |
+| Eldric (`char_npc_6`)    | Bangku depan rumah beratap biru gelap, barat daya     |
+| Marlow (`char_npc_7`)    | Jembatan kayu di atas sungai, selatan                 |
+| Leonhardt (`char_npc_8`) | Pintu masuk selatan, dekat lentera dan papan arah     |
+| Theo (`char_npc_9`)      | Kebun sayuran dekat sumur batu, barat                 |
+| Edric (`char_npc_10`)    | Halaman depan rumah beratap merah, utara tengah       |
+| Kael (`char_mc`)         | Berjalan bebas mengikuti cerita                       |
+
+Aturan yang dikirim ke model:
+
+- Adegan terjadi di tempat tokohnya berada, bukan di tempat yang dipilih acak.
+- Tempat tidak boleh ditukar antar tokoh.
+- Tokoh hanya berpindah bila alasannya diceritakan lebih dulu dalam narasi.
+- Satu chapter tidak menempatkan tokoh di dua tempat tanpa perjalanan yang
+  disebutkan.
+- `continuity.characterStates[].location` memakai nama tempat dari blok `LOKASI`.
+
+Kesalahan yang paling sering terjadi dan dicegah eksplisit: Marlow di alun-alun
+(padahal di jembatan), Clara di air mancur (padahal di kolam timur), dan Edric
+tertukar dengan Eldric (rumah merah vs rumah biru). Sama seperti pemilihan
+pembicara, ini aturan prompt — bukan jaminan.
 
 ## Struktur satu chapter (formula 5 scene)
 
@@ -274,6 +326,8 @@ Ketegangan hanya boleh berasal dari **rasa ingin tahu**, bukan ancaman.
 - [ ] Semua aset ada di manifest.
 - [ ] Tidak ada karakter yang muncul tiba-tiba.
 - [ ] Nama, peran, dan penampilan tokoh sesuai blok `CAST`; tidak ada nama baru.
+- [ ] Setiap tokoh muncul di tempatnya menurut blok `LOKASI`; tidak ada tempat
+      yang ditukar atau dikarang.
 - [ ] Setiap tantangan bisa dijawab dari cerita.
 - [ ] Tidak ada beat > 240 karakter.
 - [ ] Cerita ditutup, tidak menggantung tanpa alasan.
@@ -290,5 +344,6 @@ Ketegangan hanya boleh berasal dari **rasa ingin tahu**, bukan ancaman.
 | Tantangan tidak nyambung       | Challenge ditulis terpisah                | Tulis tantangan tepat setelah konsep muncul  |
 | Semua chapter sama strukturnya | Model meniru contoh                       | Variasikan hook; jangan kirim contoh panjang |
 | Nama karakter berubah          | Cast tidak ditegaskan                     | Kirim blok CAST + timpa `outline.cast`       |
+| Tokoh muncul di tempat salah   | Peta dan tata letak tidak dikirim         | Kirim blok `LOKASI` + aturan penempatan      |
 | Aset karangan                  | Daftar aset tidak dikirim/terlalu panjang | Kirim hanya aset relevan + validasi ketat    |
 | Cerita menggantung             | Tidak ada instruksi menutup               | Wajibkan penutupan `openThreads`             |

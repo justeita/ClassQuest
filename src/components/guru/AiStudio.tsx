@@ -8,12 +8,16 @@ import { GRADE_OPTIONS } from "./data";
 import { checkPdfFile, defaultTitleFromFilename, formatBytes } from "./logic";
 import { useToast } from "./toast";
 
+import type { StoryMode } from "@/story/schema";
+
 type FormValues = {
   title: string;
   subject: string;
   gradeLevel: string;
   language: "id" | "en";
   tone: string;
+  /** Kosong sampai guru memilih; tidak ada default (ADR 0028). */
+  mode: StoryMode | "";
 };
 
 const EMPTY_FORM: FormValues = {
@@ -22,6 +26,26 @@ const EMPTY_FORM: FormValues = {
   gradeLevel: "",
   language: "id",
   tone: "hangat dan penasaran",
+  mode: "",
+};
+
+/** Pilihan mode permainan; urutannya sama dengan `STORY_MODES` di schema. */
+const MODE_OPTIONS: readonly {
+  value: StoryMode;
+  label: string;
+  hint: string;
+}[] = [
+  { value: "menjelaskan", label: "Menjelaskan", hint: "cerita utuh" },
+  { value: "pertanyaan", label: "Pertanyaan", hint: "kuis padat" },
+  { value: "mix", label: "Mix", hint: "cerita + kuis" },
+];
+
+const MODE_HINTS: Record<StoryMode, string> = {
+  menjelaskan:
+    "Konsep dijelaskan lewat cerita. Tantangan lebih sedikit, adegan lebih banyak.",
+  pertanyaan:
+    "Kuis padat ala Quizizz: 3 chapter, tiap chapter 3–4 soal dengan pengantar singkat.",
+  mix: "Gabungan keduanya. Cerita lebih panjang dan tetap ada latihan di tiap chapter.",
 };
 
 /** Batas panjang field teks, sama dengan skema `POST /api/upload`. */
@@ -44,7 +68,8 @@ function isFilled(values: FormValues, file: File | null): boolean {
     values.subject.trim().length <= LIMITS.subject.max &&
     values.gradeLevel.trim().length >= LIMITS.gradeLevel.min &&
     values.gradeLevel.trim().length <= LIMITS.gradeLevel.max &&
-    values.tone.trim().length <= LIMITS.tone.max
+    values.tone.trim().length <= LIMITS.tone.max &&
+    values.mode !== ""
   );
 }
 
@@ -123,8 +148,16 @@ export function AiStudio({ maxBytes }: { maxBytes: number }) {
       return;
     }
 
+    if (values.mode === "") {
+      showToast("Pilih mode permainan terlebih dahulu.", "error");
+      return;
+    }
+
     if (!valid) {
-      showToast("Lengkapi judul, mata pelajaran, dan jenjang kelas.", "error");
+      showToast(
+        "Lengkapi judul, mata pelajaran, jenjang kelas, dan mode permainan.",
+        "error",
+      );
       return;
     }
 
@@ -137,6 +170,7 @@ export function AiStudio({ maxBytes }: { maxBytes: number }) {
     form.set("gradeLevel", values.gradeLevel.trim());
     form.set("language", values.language);
     form.set("tone", values.tone.trim());
+    form.set("mode", values.mode);
 
     try {
       const response = await fetch("/api/upload", {
@@ -387,14 +421,62 @@ export function AiStudio({ maxBytes }: { maxBytes: number }) {
             </div>
           </section>
 
-          {/* 3. Gaya cerita */}
+          {/* 3. Bentuk permainan */}
+          <section className="guru-pixel-card space-y-3 rounded-2xl bg-white p-5">
+            <h3 className="font-pixel text-xs font-bold uppercase tracking-wider text-slate-800">
+              <i
+                className="fa-solid fa-gamepad mr-1.5 text-emerald-600"
+                aria-hidden
+              />
+              3. Bentuk Permainan
+            </h3>
+
+            <div>
+              <label
+                htmlFor="modeSelect"
+                className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-600"
+              >
+                Mode Permainan <span className="text-rose-600">*</span>
+              </label>
+              <SelectMenu
+                id="modeSelect"
+                value={values.mode}
+                onChange={(mode) => {
+                  if (
+                    mode === "menjelaskan" ||
+                    mode === "pertanyaan" ||
+                    mode === "mix"
+                  ) {
+                    ubah("mode", mode);
+                  }
+                }}
+                options={MODE_OPTIONS.map(({ value, label, hint }) => ({
+                  value,
+                  label,
+                  hint,
+                }))}
+                placeholder="-- Pilih mode permainan --"
+                aria-describedby="modeHint"
+              />
+              <p
+                id="modeHint"
+                className="mt-1 text-[10px] leading-relaxed text-slate-400"
+              >
+                {values.mode === ""
+                  ? "Wajib dipilih: bentuk game mengikuti mode ini dan tidak ada nilai bawaan."
+                  : MODE_HINTS[values.mode]}
+              </p>
+            </div>
+          </section>
+
+          {/* 4. Gaya cerita */}
           <section className="guru-pixel-card space-y-3 rounded-2xl bg-white p-5">
             <h3 className="font-pixel text-xs font-bold uppercase tracking-wider text-slate-800">
               <i
                 className="fa-solid fa-masks-theater mr-1.5 text-indigo-600"
                 aria-hidden
               />
-              3. Bahasa dan Nada Cerita
+              4. Bahasa dan Nada Cerita
             </h3>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -473,6 +555,13 @@ export function AiStudio({ maxBytes }: { maxBytes: number }) {
                   <dt className="font-semibold text-slate-500">Jenjang</dt>
                   <dd className="max-w-[60%] truncate text-right font-bold text-slate-800">
                     {values.gradeLevel || "-"}
+                  </dd>
+                </div>
+                <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2">
+                  <dt className="font-semibold text-slate-500">Mode</dt>
+                  <dd className="max-w-[60%] truncate text-right font-bold text-slate-800">
+                    {MODE_OPTIONS.find((option) => option.value === values.mode)
+                      ?.label ?? "-"}
                   </dd>
                 </div>
                 <div className="flex items-start justify-between gap-3">

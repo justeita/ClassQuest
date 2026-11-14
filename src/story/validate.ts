@@ -1668,6 +1668,7 @@ const normalizeStory = (story: Story): Story => ({
     gradeLevel: tidyText(story.meta.gradeLevel),
     language: story.meta.language,
     tone: tidyText(story.meta.tone),
+    ...(story.meta.mode === undefined ? {} : { mode: story.meta.mode }),
     synopsis: tidyText(story.meta.synopsis),
     estimatedMinutes: story.meta.estimatedMinutes,
   },

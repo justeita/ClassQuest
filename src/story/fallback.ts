@@ -33,12 +33,14 @@
  */
 
 import { fixedCast } from "./cast";
+import { STORY_MODES } from "./schema";
 import type {
   Challenge,
   Chapter,
   Character,
   CharacterRole,
   Story,
+  StoryMode,
 } from "./schema";
 
 /* -------------------------------------------------------------------------- */
@@ -56,6 +58,8 @@ export type StoryMetaInput = {
   gradeLevel?: string;
   language?: string;
   tone?: string;
+  /** Mode permainan pilihan guru (ADR 0028); menentukan bentuk cerita cadangan. */
+  mode?: StoryMode;
   fileName?: string;
   pageCount?: number;
   estimatedMinutes?: number;
@@ -287,7 +291,7 @@ const buildChallenge = (input: {
   concept: string;
   concepts: readonly string[];
   chapterNumber: string;
-  index: 1 | 2;
+  index: 1 | 2 | 3;
   difficulty: 1 | 2 | 3;
   prompt: string;
   explanation: string;
@@ -325,11 +329,13 @@ const buildChapter = (
   playerName: string,
   mentorName: string,
   branching: boolean,
+  mode: StoryMode | undefined,
 ): { chapter: Chapter; challenges: Challenge[] } => {
   const number = String(index + 1).padStart(2, "0");
   const difficulty = ((index % 3) + 1) as 1 | 2 | 3;
   const playerId = idForRole(cast, "player");
   const mentorId = idForRole(cast, "mentor");
+  const quiz = mode === "pertanyaan";
 
   const boardChallenge = buildChallenge({
     concept,
@@ -352,6 +358,25 @@ const buildChapter = (
     explanation: `${playerName} mencatat ${concept} sebagai hal baru yang dipelajari di chapter ini.`,
     hint: `Lihat catatan ${playerName} di akhir chapter.`,
   });
+
+  /**
+   * Mode `pertanyaan` meminta 3–4 tantangan per chapter. Cerita cadangan hanya
+   * punya dua scene, jadi tantangan ketiga ditaruh di scene penutup setelah
+   * satu kalimat pengantar — cukup untuk memenuhi kepadatan kuis tanpa
+   * melanggar batas beat (maksimal 10 per scene).
+   */
+  const recapChallenge = quiz
+    ? buildChallenge({
+        concept,
+        concepts,
+        chapterNumber: number,
+        index: 3,
+        difficulty,
+        prompt: `Di akhir pelajaran, ${mentorName} meminta ${playerName} menyebutkan satu istilah yang baru dipelajari. Istilah apa itu?`,
+        explanation: `Istilah yang diminta adalah ${concept}, konsep utama chapter ini.`,
+        hint: `Ingat kata kunci yang ditulis ${mentorName} di papan tulis.`,
+      })
+    : null;
 
   const chapter: Chapter = {
     id: `ch_${number}`,
@@ -515,12 +540,41 @@ const buildChapter = (
                 }
               : {}),
           },
+          ...(recapChallenge === null
+            ? []
+            : [
+                {
+                  type: "dialogue" as const,
+                  speakerId: mentorId,
+                  text: clip(
+                    `Satu soal lagi. Sebutkan istilah yang baru kita pelajari hari ini.`,
+                    240,
+                  ),
+                  expression: "thinking" as const,
+                },
+                {
+                  type: "challenge" as const,
+                  challengeId: recapChallenge.id,
+                },
+                {
+                  type: "dialogue" as const,
+                  speakerId: playerId,
+                  text: clip(`${concept}. Sekarang aku ingat.`, 240),
+                  expression: "happy" as const,
+                },
+              ]),
         ],
       },
     ],
   };
 
-  return { chapter, challenges: [boardChallenge, notebookChallenge] };
+  return {
+    chapter,
+    challenges:
+      recapChallenge === null
+        ? [boardChallenge, notebookChallenge]
+        : [boardChallenge, notebookChallenge, recapChallenge],
+  };
 };
 
 /* -------------------------------------------------------------------------- */
@@ -562,15 +616,30 @@ export function buildFallbackStory(input: FallbackStoryInput = {}): Story {
 
   const concepts = normalizeConcepts(safe.concepts);
   const cast = normalizeCast(safe.castSeed);
+  const mode: StoryMode | undefined =
+    typeof metaInput.mode === "string" &&
+    (STORY_MODES as readonly string[]).includes(metaInput.mode)
+      ? (metaInput.mode as StoryMode)
+      : undefined;
   const playerName =
     cast.find((entry) => entry.role === "player")?.name ?? DEFAULT_PLAYER.name;
   const mentorName =
     cast.find((entry) => entry.role === "mentor")?.name ?? DEFAULT_MENTOR.name;
 
-  const chapterCount = Math.min(
-    MAX_CHAPTERS,
-    Math.max(MIN_CHAPTERS, concepts.length),
-  );
+  /**
+   * Bentuk cerita mengikuti mode (ADR 0028):
+   *
+   * - `pertanyaan` — tepat 3 chapter supaya kuis tetap padat.
+   * - `mix` — minimal 4 chapter, jadi cerita terasa lebih panjang.
+   * - `menjelaskan` dan pemanggil lama — minimal 3 chapter, sebanyak konsep.
+   */
+  const chapterTarget =
+    mode === "pertanyaan"
+      ? MIN_CHAPTERS
+      : mode === "mix"
+        ? Math.max(4, concepts.length)
+        : Math.max(MIN_CHAPTERS, concepts.length);
+  const chapterCount = Math.min(MAX_CHAPTERS, chapterTarget);
 
   const chapters: Chapter[] = [];
   const challenges: Challenge[] = [];
@@ -587,6 +656,7 @@ export function buildFallbackStory(input: FallbackStoryInput = {}): Story {
       // Hanya chapter pertama yang memberi contoh percabangan supaya cerita
       // cadangan tetap ringkas dan seragam untuk konsep apa pun.
       index === 0,
+      mode,
     );
     chapters.push(built.chapter);
     challenges.push(...built.challenges);
@@ -606,6 +676,7 @@ export function buildFallbackStory(input: FallbackStoryInput = {}): Story {
       gradeLevel: text(metaInput.gradeLevel, DEFAULT_GRADE, 1, 40),
       language: LANGUAGE_PATTERN.test(language) ? language : DEFAULT_LANGUAGE,
       tone: text(metaInput.tone, DEFAULT_TONE, 1, 60),
+      ...(mode === undefined ? {} : { mode }),
       synopsis: clip(
         `Cerita cadangan tentang ${concepts.join(", ")}. ${playerName} dan ${mentorName} membahas beberapa konsep utamanya lewat percakapan singkat di kelas.`,
         400,

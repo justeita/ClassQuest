@@ -12,10 +12,20 @@ import { requireTeacher } from "@/server/auth";
 import { getReadyDb } from "@/server/db";
 import { getJobStatus, getLatestJobId } from "@/server/jobs/status";
 import { getStoryDetail } from "@/server/stories";
-import type { Story } from "@/story/schema";
+import type { Story, StoryMode } from "@/story/schema";
 
 export const metadata: Metadata = {
   title: "Materi",
+};
+
+/**
+ * Label tampilan untuk `Story.meta.mode`. Cerita lama tanpa `mode` dibaca
+ * sebagai `mix` (ADR 0028); nilainya tidak ditulis ulang.
+ */
+const MODE_LABELS: Record<StoryMode, string> = {
+  menjelaskan: "Menjelaskan",
+  pertanyaan: "Pertanyaan",
+  mix: "Mix",
 };
 
 /**
@@ -194,6 +204,14 @@ async function MateriDetailContent({
                 {detail.language === "en" ? "English" : "Indonesia"}
               </dd>
             </div>
+            {story ? (
+              <div className="flex items-center justify-between gap-3">
+                <dt className="font-semibold text-slate-500">Mode permainan</dt>
+                <dd className="font-bold text-slate-800">
+                  {MODE_LABELS[story.meta.mode ?? "mix"]}
+                </dd>
+              </div>
+            ) : null}
             {story ? (
               <div className="flex items-center justify-between gap-3">
                 <dt className="font-semibold text-slate-500">Sumber halaman</dt>

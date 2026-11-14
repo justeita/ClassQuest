@@ -4,7 +4,7 @@ last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
-# 0026 — Mode Permainan Dipilih Guru
+# 0028 — Mode Permainan Dipilih Guru
 
 - **Status:** Accepted
 - **Tanggal:** 2026-11-14
@@ -38,11 +38,11 @@ Batasan yang mengikat:
 
 ## Opsi
 
-| Opsi | Kelebihan | Kekurangan | Biaya |
-| ---- | --------- | ---------- | ----- |
-| A. Mode hanya parameter job | Cepat; tidak menyentuh schema | Setelah generasi selesai, mode hilang dari artefak; editor dan halaman review tidak tahu cerita ini kuis atau cerita | Kecil |
-| B. Mode di `Story.meta.mode` | Artefak cerita menjelaskan dirinya sendiri; editor, preview, dan ekspor kelak bisa membacanya; konsisten dengan `meta.tone` | Perlu ADR, perubahan schema, dan sinkronisasi dokumen | Sedang |
-| C. Mode mengubah struktur `Story` (tipe cerita berbeda) | Paling eksplisit | Perubahan kontrak besar, validator dan game harus bercabang, risiko tinggi di hari code freeze | Besar |
+| Opsi                                                    | Kelebihan                                                                                                                   | Kekurangan                                                                                                           | Biaya  |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------ |
+| A. Mode hanya parameter job                             | Cepat; tidak menyentuh schema                                                                                               | Setelah generasi selesai, mode hilang dari artefak; editor dan halaman review tidak tahu cerita ini kuis atau cerita | Kecil  |
+| B. Mode di `Story.meta.mode`                            | Artefak cerita menjelaskan dirinya sendiri; editor, preview, dan ekspor kelak bisa membacanya; konsisten dengan `meta.tone` | Perlu ADR, perubahan schema, dan sinkronisasi dokumen                                                                | Sedang |
+| C. Mode mengubah struktur `Story` (tipe cerita berbeda) | Paling eksplisit                                                                                                            | Perubahan kontrak besar, validator dan game harus bercabang, risiko tinggi di hari code freeze                       | Besar  |
 
 ## Keputusan
 
@@ -67,11 +67,11 @@ implisit akan membuat guru tidak sadar bentuk game yang dihasilkan.
 
 Arti tiap mode:
 
-| Mode         | Bentuk yang diminta                                                                                                 |
-| ------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `menjelaskan` | Cerita utuh: 3–6 chapter, tantangan 1–2 per chapter, fokus pada alur dan penjelasan konsep lewat adegan.             |
-| `pertanyaan` | Kuis padat, cerita tipis: tepat 3 chapter, 3–4 tantangan per chapter, tiap tantangan didahului 1–2 beat pengantar.   |
-| `mix`        | Gabungan: cerita agak lebih panjang dari `pertanyaan` (4–6 chapter), tantangan 2–3 per chapter, penjelasan tetap ada. |
+| Mode          | Bentuk yang diminta                                                                                                   |
+| ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `menjelaskan` | Cerita utuh: 3–6 chapter, tantangan 1–2 per chapter, fokus pada alur dan penjelasan konsep lewat adegan.              |
+| `pertanyaan`  | Kuis padat, cerita tipis: tepat 3 chapter, 3–4 tantangan per chapter, tiap tantangan didahului 1–2 beat pengantar.    |
+| `mix`         | Gabungan: cerita agak lebih panjang dari `pertanyaan` (4–6 chapter), tantangan 2–3 per chapter, penjelasan tetap ada. |
 
 ## Konsekuensi
 

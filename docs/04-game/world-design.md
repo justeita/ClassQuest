@@ -41,6 +41,15 @@ di `create()`, lalu tidak pernah membangunnya ulang.
 Isi dunia (nama desa, rumah, balai, sawah, dan lagu latar) mengikuti cerita demo
 **Pesta Panen Desa**; lihat [`../02-data-model/story.example.json`](../02-data-model/story.example.json).
 
+Posisi NPC punya makna cerita, bukan sekadar dekorasi: Marlow di jembatan
+sungai, Theo di kebun dekat sumur, Elias di depan perpustakaan, Edric di rumah
+beratap merah, Eldric di rumah beratap biru, Clara di kolam timur, Elian di
+alun-alun, dan Leonhardt di pintu masuk selatan. AI penulis cerita **tidak**
+menerima peta maupun koordinat, jadi tata letak itu dikirim lewat blok `LOKASI`
+dari `CAST_PLACES` di `src/story/cast.ts` (ADR 0029). Kalau peta diubah,
+`CAST_PLACES` harus ikut diubah — `src/story/cast.test.ts` menegur bila ada NPC
+di peta yang tidak punya lokasi di prompt.
+
 ## Satuan dasar
 
 Resolusi internal tetap **640×360 px** (ADR 0009). Berbeda dari rencana awal,
