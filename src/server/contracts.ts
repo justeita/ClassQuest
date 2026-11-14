@@ -114,7 +114,16 @@ export type StoryDetail = {
  * ulang dari `answers`. Laporkan di laporan task 22 sebagai definisi baru.
  */
 export type PlayResultInput = {
-  /** Nama panggilan opsional; tanpa identitas asli. */
+  /**
+   * Siswa yang dipilih di layar masuk (dari daftar kelas pada tautan
+   * `?kelas=`). Server menurunkan nama dan kelas dari baris `students`, jadi
+   * `nickname` tidak dikirim bersamaan.
+   */
+  studentId?: string;
+  /**
+   * Nama bebas bila tautan tidak membawa kelas atau nama siswa tidak ada di
+   * daftar. Maksimal 40 karakter, tanpa identitas asli.
+   */
   nickname?: string;
   /** Jawaban mentah siswa, satu entri per tantangan yang dijawab. */
   answers: unknown[];
@@ -179,3 +188,67 @@ export type AddStudentResult =
 /** Hasil aksi tambah kelas. */
 export type CreateClassroomResult =
   { ok: true; classroom: ClassroomDetail } | { ok: false; message: string };
+
+/* -------------------------------------------------------------------------- */
+/* Layar masuk siswa + analytics kelas                                        */
+/* -------------------------------------------------------------------------- */
+
+/** Kelas yang dikirim ke halaman siswa lewat tautan `?kelas=`. */
+export type PlayClassroom = {
+  id: string;
+  name: string;
+  code: string;
+};
+
+/**
+ * Satu siswa di layar masuk `/play/[storyId]?kelas=...`.
+ *
+ * Hanya `id` dan `name` yang dibutuhkan siswa; NIS ikut supaya dua nama yang
+ * sama bisa dibedakan tanpa menampilkan data lain.
+ */
+export type PlayStudent = {
+  id: string;
+  name: string;
+  nis: string | null;
+};
+
+/** Satu baris tabel analytics: agregat semua percobaan seorang siswa. */
+export type AnalyticsStudentRow = {
+  /** `student_id`, atau `nickname:<huruf kecil>` untuk nama bebas. */
+  key: string;
+  studentId: string | null;
+  name: string;
+  nis: string | null;
+  /** Jumlah percobaan yang tersimpan. */
+  attempts: number;
+  /** Poin tertinggi dari semua percobaan. */
+  bestPoints: number;
+  /** Poin percobaan terakhir. */
+  latestPoints: number;
+  /** Jawaban tepat pada percobaan terakhir. */
+  latestCorrectCount: number;
+  /** Jumlah tantangan di cerita. */
+  totalCount: number;
+  /** Poin maksimum yang mungkin di cerita. */
+  totalPoints: number;
+  /** Konsep yang pernah dijawab salah, unik, urut dari yang paling sering. */
+  weakConcepts: string[];
+  /** ISO-8601 percobaan terakhir. */
+  lastPlayedAt: string;
+};
+
+/** Ringkasan analytics satu kelas untuk satu game. */
+export type ClassroomAnalytics = {
+  classroom: PlayClassroom;
+  storyId: string;
+  storyTitle: string;
+  /** Jumlah siswa terdaftar di kelas (bukan hanya yang bermain). */
+  studentsTotal: number;
+  /** Jumlah siswa yang punya minimal satu percobaan. */
+  studentsPlayed: number;
+  totalAttempts: number;
+  /** Rata-rata poin terbaik per siswa yang bermain; 0 bila belum ada. */
+  averageBestPoints: number;
+  totalPoints: number;
+  rows: AnalyticsStudentRow[];
+};

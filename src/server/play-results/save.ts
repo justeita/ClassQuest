@@ -19,8 +19,10 @@
  *   id opsi/item tidak dikenal, jawaban ganda, atau jumlah jawaban melebihi
  *   jumlah tantangan → `invalid`.
  * - **Minimal data.** Yang tersimpan hanya kolom `play_results`; tidak ada
- *   IP, user agent, jawaban per-opsi, atau identitas. `nickname` opsional dan
- *   dibersihkan (opsional di persistence.md, "tanpa identitas asli").
+ *   IP, user agent, jawaban per-opsi, atau identitas. Nama diambil dari baris
+ *   `students` bila `studentId` dikirim (bukan dari klien), atau dibersihkan
+ *   dari `nickname` bebas. `classroom_id` diturunkan dari siswa, jadi kelas
+ *   tidak pernah dipercaya dari input.
  * - Body tidak pernah di-log.
  */
 
@@ -76,6 +78,7 @@ const answerSchema = z.discriminatedUnion("type", [
 ]);
 
 const playResultSchema = z.strictObject({
+  studentId: idField.optional(),
   nickname: z.string().max(MAX_NICKNAME_LENGTH).optional(),
   answers: z.array(answerSchema).max(200),
 });
@@ -154,6 +157,39 @@ const cleanNickname = (value: string | undefined): string | null => {
 
 const isoOf = (ms: number): string => new Date(ms).toISOString();
 
+/**
+ * Siswa yang dipilih di layar masuk, atau `null` bila `studentId` tidak
+ * dikirim / tidak ada / milik guru lain.
+ *
+ * Query memfilter `students.teacher_id` = pemilik cerita: siswa kelas guru lain
+ * tidak boleh bisa dicatat sebagai pemain cerita ini, walaupun id-nya ditebak.
+ */
+async function readPlayerStudent(
+  db: Pick<Client, "execute">,
+  input: { studentId: string; teacherId: string },
+): Promise<{ id: string; name: string; classroomId: string | null } | null> {
+  const result = await db.execute({
+    sql: `select id, display_name, classroom_id
+          from students
+          where id = ? and teacher_id = ?
+          limit 1`,
+    args: [input.studentId, input.teacherId],
+  });
+
+  const row = result.rows[0];
+  if (row === undefined) return null;
+
+  const id = typeof row.id === "string" ? row.id : "";
+  const name = typeof row.display_name === "string" ? row.display_name : "";
+  if (id === "" || name === "") return null;
+
+  return {
+    id,
+    name,
+    classroomId: typeof row.classroom_id === "string" ? row.classroom_id : null,
+  };
+}
+
 /* -------------------------------------------------------------------------- */
 /* Simpan                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -196,21 +232,43 @@ export async function savePlayResult(
     return { ok: false, reason: "invalid" };
   }
 
+  // Identitas pemain: baris `students` menang atas nama bebas. Id siswa yang
+  // tidak ada / milik guru lain ditolak, bukan disimpan sebagai nama kosong.
+  let studentId: string | null = null;
+  let classroomId: string | null = null;
+  let nickname = cleanNickname(result.nickname);
+
+  if (result.studentId !== undefined) {
+    const student = await readPlayerStudent(db, {
+      studentId: result.studentId,
+      teacherId: published.teacherId,
+    });
+    if (student === null) return { ok: false, reason: "invalid" };
+
+    studentId = student.id;
+    classroomId = student.classroomId;
+    nickname = student.name;
+  }
+
   // Skor selalu dihitung ulang di server dari cerita yang tersimpan.
   const score = scoreStory(published.story, answers);
 
   await db.execute({
     sql: `insert into play_results
-            (id, story_id, story_version, nickname, correct_count, total_count,
-             earned_points, weak_concepts, created_at)
-          values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, story_id, story_version, classroom_id, student_id, nickname,
+             correct_count, total_count, total_points, earned_points,
+             weak_concepts, created_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       randomUUID(),
       published.storyId,
       published.version,
-      cleanNickname(result.nickname),
+      classroomId,
+      studentId,
+      nickname,
       score.correctCount,
       score.totalChallenges,
+      score.totalPoints,
       score.earnedPoints,
       JSON.stringify(score.weakConcepts),
       isoOf(now()),

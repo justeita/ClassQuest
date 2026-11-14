@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -33,6 +33,8 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0018 | [Plafon output, batas eksplisit outline, dan reasoning default mati](0018-plafon-output-thinking.md) | Accepted     | AI, pipeline          |
 | 0019 | [Percabangan konsekuensi jawaban salah](0019-branching-konsekuensi-jawaban-salah.md)                 | Accepted     | AI, validator, cerita |
 | 0020 | [Kutipan jawaban siswa di dialog](0020-kutipan-jawaban-siswa-di-dialog.md)                           | Accepted     | AI, validator, cerita |
+| 0021 | [Varian dialog per jawaban salah](0021-varian-dialog-per-jawaban-salah.md)                           | Accepted     | AI, validator, cerita |
+| 0022 | [Pemain mengucapkan jawabannya di dialog](0022-pemain-mengucapkan-jawaban-di-dialog.md)              | Accepted     | AI, game, cerita      |
 
 ## Status
 

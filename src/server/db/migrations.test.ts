@@ -117,6 +117,7 @@ describe("migrate — skema awal", () => {
       "0003_rate_limits",
       "0004_accounts",
       "0005_classrooms_students",
+      "0006_play_results_classroom",
     ]);
     expect(await tableNames(db)).toContain("rate_limits");
   });
@@ -135,9 +136,12 @@ describe("migrate — skema awal", () => {
     expect(await tableNames(db)).not.toContain("students");
 
     // Hanya sampai 0004: 0005 membangun ulang tabel `students`, jadi kolom
-    // bentuk 0004 harus diperiksa sebelum migrasi itu ikut dijalankan.
+    // bentuk 0004 harus diperiksa sebelum migrasi itu ikut dijalankan. 0006
+    // mengubah `play_results`, bukan tabel bentuk 0004, jadi ikut dilewati.
     const upTo0004 = MIGRATIONS.filter(
-      (migration) => migration.id !== "0005_classrooms_students",
+      (migration) =>
+        migration.id !== "0005_classrooms_students" &&
+        migration.id !== "0006_play_results_classroom",
     );
     const result = await applyMigrations(db, upTo0004);
     expect(result.applied).toEqual(["0004_accounts"]);
@@ -172,7 +176,9 @@ describe("migrate — skema awal", () => {
   it("migrasi 0005 menambah classrooms dan membangun ulang students", async () => {
     const db = useDb();
     const before = MIGRATIONS.filter(
-      (migration) => migration.id !== "0005_classrooms_students",
+      (migration) =>
+        migration.id !== "0005_classrooms_students" &&
+        migration.id !== "0006_play_results_classroom",
     );
 
     await applyMigrations(db, before);
@@ -185,7 +191,10 @@ describe("migrate — skema awal", () => {
     );
 
     const result = await migrate(db);
-    expect(result.applied).toEqual(["0005_classrooms_students"]);
+    expect(result.applied).toEqual([
+      "0005_classrooms_students",
+      "0006_play_results_classroom",
+    ]);
 
     expect(await tableNames(db)).toContain("classrooms");
     expect(await tableNames(db)).not.toContain("students_next");

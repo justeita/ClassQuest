@@ -15,7 +15,9 @@ import {
   createClassroom,
   generateClassCode,
   getClassroom,
+  getClassroomByCode,
   listClassrooms,
+  normalizeClassCode,
   STUDENT_NAME_INVALID_MESSAGE,
   STUDENT_NIS_DUPLICATE_MESSAGE,
   STUDENT_NIS_INVALID_MESSAGE,
@@ -355,5 +357,53 @@ describe("getClassroom", () => {
         classroomId: created.classroom.id,
       }),
     ).toBeNull();
+  });
+});
+
+describe("normalizeClassCode / getClassroomByCode", () => {
+  it("menerima bentuk baku dan menolak yang bukan QST-XXXX", () => {
+    expect(normalizeClassCode("QST-7K3M")).toBe("QST-7K3M");
+    expect(normalizeClassCode("  qst-7k3m ")).toBe("QST-7K3M");
+    expect(normalizeClassCode("QST-7k3m")).toBe("QST-7K3M");
+
+    expect(normalizeClassCode("QST-7K3")).toBeNull();
+    expect(normalizeClassCode("QST-7K3MX")).toBeNull();
+    expect(normalizeClassCode("QST 7K3M")).toBeNull();
+    expect(normalizeClassCode("KELAS-7K3M")).toBeNull();
+    expect(normalizeClassCode("")).toBeNull();
+    expect(normalizeClassCode(null)).toBeNull();
+    expect(normalizeClassCode(42)).toBeNull();
+  });
+
+  it("mencari kelas dari kode, mengembalikan pemilik dan daftar siswa", async () => {
+    const created = await createClassroom(db, {
+      teacherId: TEACHER_ID,
+      name: "Kelas 5A",
+      subject: "IPA",
+      grade: "Kelas 5",
+      year: "2026/2027",
+    });
+    if (!created.ok) throw new Error("kelas gagal dibuat");
+    await addStudent(db, {
+      teacherId: TEACHER_ID,
+      classroomId: created.classroom.id,
+      name: "Andi Pratama",
+      nis: "1001",
+    });
+
+    const found = await getClassroomByCode(db, created.classroom.code);
+
+    expect(found).not.toBeNull();
+    expect(found?.id).toBe(created.classroom.id);
+    expect(found?.teacherId).toBe(TEACHER_ID);
+    expect(found?.students.map((student) => student.name)).toEqual([
+      "Andi Pratama",
+    ]);
+  });
+
+  it("kode tidak ada, kosong, atau salah bentuk → null", async () => {
+    expect(await getClassroomByCode(db, "QST-XXXX")).toBeNull();
+    expect(await getClassroomByCode(db, "")).toBeNull();
+    expect(await getClassroomByCode(db, "bukan-kode")).toBeNull();
   });
 });
