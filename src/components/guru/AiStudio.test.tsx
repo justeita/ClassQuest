@@ -106,7 +106,7 @@ describe("AiStudio", () => {
 
   it("mengirim mode permainan yang dipilih ke /api/upload", async () => {
     // Tipe parameter dideklarasikan supaya `fetchMock.mock.calls[0][1]` punya
-    // bentuk `RequestInit`; implementasinya sendiri tidak memakai argumen itu.
+    // bentuk `RequestInit`.
     const fetchMock = vi.fn<
       (
         url: string,
