@@ -14,14 +14,41 @@ export const DEFAULT_BACKGROUND_ID = "bg_default";
 export const DEFAULT_MUSIC_ID = "bgm_default";
 
 /**
+ * Track musik latar yang boleh dipakai permainan. Cerita hanya melihat
+ * `bgm_default` sebagai nilai default; track sebenarnya dipilih acak sekali per
+ * sesi dari daftar ini supaya tiap permainan bisa terasa berbeda. Kedua track
+ * selalu ikut dimuat, walau cerita tidak menyebut salah satunya.
+ */
+export const GAMEPLAY_MUSIC_IDS = ["bgm_default", "bgm_vellore"] as const;
+
+/**
+ * Pilih satu track musik acak dari `pool`.
+ *
+ * Tidak memakai seed: hasilnya sengaja berbeda tiap sesi (pemain baru atau
+ * halaman dimuat ulang). `acak` bisa diganti di tes supaya deterministik.
+ */
+export function pilihMusikAcak(
+  acak: () => number = Math.random,
+  pool: readonly string[] = GAMEPLAY_MUSIC_IDS,
+): string {
+  if (pool.length === 0) return DEFAULT_MUSIC_ID;
+  const nilai = acak();
+  const aman = Number.isFinite(nilai) ? Math.min(Math.max(nilai, 0), 1) : 0;
+  const index = Math.min(pool.length - 1, Math.floor(aman * pool.length));
+  return pool[index] ?? DEFAULT_MUSIC_ID;
+}
+
+/**
  * SFX dan aset dasar yang selalu dibutuhkan runtime game.
  *
  * Panel dan potret dialog tidak ada di sini: keduanya dirender DOM
  * (`DialogueBox.tsx`) langsung dari `public/`, jadi tidak perlu dimuat Phaser.
+ * `GAMEPLAY_MUSIC_IDS` ikut karena track acak bisa terpilih walau cerita tidak
+ * menyebutnya.
  */
 const RUNTIME_ASSET_IDS = [
   DEFAULT_BACKGROUND_ID,
-  DEFAULT_MUSIC_ID,
+  ...GAMEPLAY_MUSIC_IDS,
   "sfx_click",
   "sfx_correct",
   "sfx_wrong",

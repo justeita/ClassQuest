@@ -328,10 +328,11 @@ cerita atau saat "Ulangi chapter".
 
 ## Pemuatan aset
 
-`PreloadScene` memuat **seluruh aset dunia** (kind `world`: peta, 80 potongan
-objek, 10 spritesheet karakter, dan musik default) karena dunia tidak bisa
-dirender sebagian. Aset cerita ditambahkan di atasnya lewat
-`collectStoryAssets(story)` di `src/game/sceneAssets.ts`:
+`PreloadScene` memuat **seluruh aset dunia** (kind `world`: peta dan 80 potongan
+objek) karena dunia tidak bisa dirender sebagian, plus **aset runtime**
+(`RUNTIME_ASSET_IDS`: latar default, dua track BGM, dan SFX). Kedua BGM selalu
+dimuat supaya track acak yang terpilih pasti tersedia. Aset cerita ditambahkan
+di atasnya lewat `collectStoryAssets(story)` di `src/game/sceneAssets.ts`:
 
 ```ts
 const dipakai = new Set<string>(RUNTIME_ASSET_IDS);

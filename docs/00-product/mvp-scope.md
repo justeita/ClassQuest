@@ -66,7 +66,7 @@ Korbankan dari atas, bukan dari bawah.
 1. `short_answer` dan `ordering` → sisakan `multiple_choice` + `true_false`.
 2. Preview terpisah → cukup tombol "mainkan versi draft".
 3. Ringkasan hasil di server → cukup tampil lokal.
-4. Musik per scene → satu musik per chapter.
+4. Musik per scene → satu musik latar per sesi (dipilih acak dari dua track).
 5. Animasi transisi → cut/fade sederhana.
 6. Edit urutan scene → cukup edit teks & soal.
 7. Kode kelas dipakai siswa untuk bergabung → cukup tautan. (Kode `QST-XXXX`

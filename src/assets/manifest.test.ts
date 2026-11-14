@@ -60,7 +60,7 @@ const INVENTORY_COUNTS: Record<AssetKind, number> = {
   background: 1,
   character: 10,
   world: 81,
-  music: 1,
+  music: 2,
   sfx: 4,
   ui: 3,
 };
@@ -251,8 +251,8 @@ describe("manifest — fallback dan ukuran", () => {
 describe("manifest — bentuk untuk validator", () => {
   it("toAssetManifest hanya memuat kind yang boleh dirujuk cerita", () => {
     const manifest = toAssetManifest();
-    const storyAssets = ASSETS.filter((asset) =>
-      STORY_ASSET_KINDS.includes(asset.kind),
+    const storyAssets = ASSETS.filter(
+      (asset) => STORY_ASSET_KINDS.includes(asset.kind) && !asset.runtime,
     );
 
     expect(manifest).toHaveLength(storyAssets.length);
@@ -263,6 +263,13 @@ describe("manifest — bentuk untuk validator", () => {
     for (const asset of WORLD) {
       expect(manifest.find((entry) => entry.id === asset.id)).toBeUndefined();
     }
+    // Aset runtime (mis. track musik latar tambahan) juga tidak boleh dipilih AI.
+    for (const asset of ASSETS.filter((entry) => entry.runtime)) {
+      expect(manifest.find((entry) => entry.id === asset.id)).toBeUndefined();
+    }
+    expect(
+      manifest.find((entry) => entry.id === "bgm_vellore"),
+    ).toBeUndefined();
   });
 
   it("toAssetManifest bisa menerima daftar bagian", () => {

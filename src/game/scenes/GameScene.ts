@@ -48,7 +48,12 @@ import type { GameBus, NpcMarker, NpcNameplate, PromptView } from "../gameBus";
 import { npcBisaDiajak, petaObrolan } from "../npcTalk";
 import { sceneMelibatkanPemain } from "../potret";
 import { buildQuestState, pilihPemberiQuest } from "../questLog";
-import { assetEntry, resolveSceneLook } from "../sceneAssets";
+import {
+  assetEntry,
+  resolveSceneLook,
+  DEFAULT_MUSIC_ID,
+  pilihMusikAcak,
+} from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
 import {
   ARAH_DARI_BARIS,
@@ -146,6 +151,12 @@ export class GameScene extends Phaser.Scene {
   private textbox?: Textbox;
   private music?: Phaser.Sound.BaseSound;
   private musicKey: string | null = null;
+  /**
+   * Track musik latar untuk sesi ini, dipilih acak sekali saat scene dibuat
+   * dari `GAMEPLAY_MUSIC_IDS` (dua BGM). Cerita tetap menulis `bgm_default`;
+   * `putarMusik()` menukarnya dengan pilihan sesi.
+   */
+  private readonly musikSesi = pilihMusikAcak();
   private volumeMusik = 1;
   private volumeSfx = 1;
   private volumeSedangJeda = false;
@@ -1369,16 +1380,29 @@ export class GameScene extends Phaser.Scene {
     cam.centerOn(VILLAGE.width / 2, VILLAGE.height / 2);
   }
 
+  /**
+   * Putar musik latar scene aktif.
+   *
+   * `bgm_default` berarti "musik latar permainan": track sebenarnya diambil dari
+   * pilihan acak sesi (`musikSesi`) supaya tiap permainan bisa memakai lagu
+   * berbeda. Override scene/chapter dengan id lain tetap dihormati, dan track
+   * yang sama tidak pernah di-restart.
+   */
   private putarMusik(musicId: string) {
-    if (this.musicKey === musicId && this.music?.isPlaying) return;
+    const diminta = musicId === DEFAULT_MUSIC_ID ? this.musikSesi : musicId;
+    if (this.musicKey === diminta && this.music?.isPlaying) return;
 
     this.music?.stop();
     this.music?.destroy();
     this.music = undefined;
-    this.musicKey = musicId;
+    this.musicKey = diminta;
 
-    const key = this.cache.audio.exists(musicId) ? musicId : "bgm_default";
-    if (!this.cache.audio.exists(key)) return;
+    const key = this.cache.audio.exists(diminta)
+      ? diminta
+      : this.cache.audio.exists(DEFAULT_MUSIC_ID)
+        ? DEFAULT_MUSIC_ID
+        : null;
+    if (key === null) return;
 
     const music = this.sound.add(key, {
       loop: true,

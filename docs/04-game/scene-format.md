@@ -50,22 +50,27 @@ Aturan:
 - Di dalam game, `GameScene` **hanya** memakai `musicId`. `backgroundId` diabaikan
   karena latar dunia adalah peta desa; `putarMusik()` tetap jatuh ke `bgm_default`
   bila audio yang diminta tidak ikut termuat.
-- Ganti musik hanya bila `musicId` berbeda dari scene sebelumnya. Jangan restart
-  track yang sama.
+- `bgm_default` berarti "musik latar permainan": track sebenarnya dipilih **acak
+  sekali per sesi** dari `GAMEPLAY_MUSIC_IDS` (`bgm_default` + `bgm_vellore`,
+  `sceneAssets.ts`). Jadi dua permainan bisa memakai lagu berbeda. Override
+  scene/chapter dengan id lain tetap dihormati.
+- Ganti musik hanya bila track efektif berbeda dari scene sebelumnya. Jangan
+  restart track yang sama.
 
 ## Preload
 
 `PreloadScene` memuat, dalam urutan ini:
 
-1. **Seluruh aset dunia desa** (`WORLD` dari `src/assets/manifest.ts`) — peta,
-   potongan objek, spritesheet karakter, dan musik default. Dunia tidak bisa
-   dirender sebagian, jadi semuanya dimuat sekali di awal.
+1. **Seluruh aset dunia desa** (`WORLD` dari `src/assets/manifest.ts`) — peta dan
+   potongan objek. Dunia tidak bisa dirender sebagian, jadi semuanya dimuat
+   sekali di awal.
 2. **Aset cerita** lewat `collectStoryAssets(story)`: background chapter +
    override scene, musik chapter + override scene, dan `spriteId` setiap `cast`.
    Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0023).
-3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `sfx_click`,
-   `sfx_page`, `sfx_correct`, `sfx_wrong`). Panel dan potret dialog tidak dimuat
-   Phaser.
+3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `bgm_vellore`,
+   `sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`). Kedua BGM ikut dimuat
+   karena track dipilih acak saat sesi dimulai. Panel dan potret dialog tidak
+   dimuat Phaser.
 
 Semua key loader memakai `id` manifest, jadi scene tidak menebak path file.
 `manifest.test.ts` menjamin setiap id punya berkasnya, sehingga `PreloadScene`
@@ -277,11 +282,11 @@ terjadi sebelum beat pertama scene.
 
 ## Perpindahan scene dan chapter
 
-| Peristiwa         | Visual                                                            |
-| ----------------- | ----------------------------------------------------------------- |
-| Scene → scene     | Musik berganti bila `musicId` berubah; NPC pemberi quest berganti |
-| Chapter → chapter | Kartu judul chapter, musik berganti bila perlu                    |
-| Chapter terakhir  | Fade ke layar hasil (React)                                       |
+| Peristiwa         | Visual                                                                |
+| ----------------- | --------------------------------------------------------------------- |
+| Scene → scene     | Musik berganti bila track efektif berubah; NPC pemberi quest berganti |
+| Chapter → chapter | Kartu judul chapter, musik berganti bila perlu                        |
+| Chapter terakhir  | Fade ke layar hasil (React)                                           |
 
 Dunia **tidak** dibangun ulang dan pemain **tidak** dikembalikan ke spawn saat
 scene berganti. Spawn hanya dipakai saat memulai cerita atau saat **"Ulangi
@@ -334,7 +339,7 @@ Chapter 1, scene `sc_01_02` ("Tiga Kali Resep"):
 
 Yang terjadi:
 
-1. Musik chapter tetap `bgm_default` (tidak berganti).
+1. Musik latar sesi tetap satu track (dipilih acak saat mulai; tidak berganti).
 2. Dunia desa tidak berubah; pemain tetap di posisi terakhirnya.
 3. Pemberi quest scene ini adalah Edric (`char_npc_10`); dekati dia → `Space`.
 4. Edric tampil, textbox berisi nama + kalimat, dengan potret `thinking`.

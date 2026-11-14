@@ -7,13 +7,16 @@
  * Sumbernya ada di luar repo:
  *   D:/Data/LOGICODIX 26/Asset/assets_classquest/
  *     ├── project.json          # S = { map, assets, objs, g, cells, pl }
- *     └── bgm/Tune of the Town.mp3
+ *     └── bgm/
+ *         ├── Tune of the Town.mp3
+ *         └── Vellore.mp3
  *
  * Yang dihasilkan (semua deterministik, sekali jalan, lalu di-commit):
  *
  *   public/assets/world/map_village.jpg   gambar desa (2390×1792)
  *   public/assets/world/<slug>.png        80 objek yang dipakai peta
- *   public/assets/music/default.mp3       satu-satunya musik game
+ *   public/assets/music/default.mp3       musik permainan (track 1)
+ *   public/assets/music/vellore.mp3       musik permainan (track 2, dipilih acak)
  *   src/game/world/village.json           data dunia untuk Phaser
  *   src/assets/worldAssets.ts             entri manifest kind `world`
  *
@@ -116,7 +119,7 @@ function writePublic(relativePath, buffer) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 1. Peta dan satu-satunya musik                                             */
+/* 1. Peta dan musik permainan                                                */
 /* -------------------------------------------------------------------------- */
 
 log("Dunia desa:");
@@ -127,8 +130,15 @@ if (mapDecoded.extension !== "jpg") {
 }
 const MAP_PATH = writePublic("world/map_village.jpg", mapDecoded.buffer);
 
-const musicBuffer = readFileSync(join(SOURCE, "bgm", "Tune of the Town.mp3"));
-writePublic("music/default.mp3", musicBuffer);
+/** Dua track musik latar; game memilih salah satunya acak tiap sesi. */
+const MUSIC_SOURCES = [
+  { source: "Tune of the Town.mp3", target: "music/default.mp3" },
+  { source: "Vellore.mp3", target: "music/vellore.mp3" },
+];
+
+for (const { source, target } of MUSIC_SOURCES) {
+  writePublic(target, readFileSync(join(SOURCE, "bgm", source)));
+}
 
 /* -------------------------------------------------------------------------- */
 /* 2. Objek peta (kind `world`)                                               */
