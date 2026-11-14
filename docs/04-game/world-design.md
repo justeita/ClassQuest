@@ -242,7 +242,7 @@ ditimpa potongan objek dari editor:
 | Peta     | Gambar desa penuh, satu berkas JPEG                           | `world_map_village`                         |
 | Objek    | Rumah, pohon, bunga, bangku, sumur, tiang lampu, pagar, jalan | `world_house_red`, `world_tree_regular_1_1` |
 | Karakter | Sprite 8 arah + potret 6 ekspresi untuk `story.cast`          | `char_mc`, `char_npc_7`                     |
-| Musik    | Dua lagu, dipilih acak tiap sesi                              | `bgm_default`, `bgm_vellore`                |
+| Musik    | Dua lagu bergantian, mulai dari pilihan acak tiap sesi        | `bgm_default`, `bgm_vellore`                |
 
 > Semua entri di atas terdaftar di `src/assets/worldAssets.ts` (dibangkitkan
 > `import-world.mjs`) dan [`../07-assets/inventory.md`](../07-assets/inventory.md).

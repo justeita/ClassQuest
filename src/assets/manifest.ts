@@ -71,7 +71,7 @@ export type AssetEntry = {
   /**
    * Aset sisi game yang **tidak** ditawarkan ke AI dan tidak boleh dirujuk
    * cerita. Dipakai untuk aset yang dikelola runtime, mis. track musik latar
-   * tambahan yang dipilih acak oleh game (`toAssetManifest` melewatkannya).
+   * tambahan yang ikut rotasi musik game (`toAssetManifest` melewatkannya).
    */
   runtime?: boolean;
 };
@@ -189,7 +189,8 @@ const CORE_ASSETS: readonly AssetEntry[] = [
     ...karakterFrames("npc_10"),
   },
   /* Musik: dua track latar. Cerita memakai `bgm_default`; game memilih satu
-     track acak dari keduanya setiap sesi dimulai (lihat `pilihMusikAcak`). */
+     track acak dari keduanya saat sesi dimulai, lalu memutarnya bergantian
+     (lihat `pilihMusikAcak`/`musikSesiBerikutnya`). */
   {
     id: "bgm_default",
     kind: "music",

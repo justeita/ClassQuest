@@ -15,9 +15,10 @@ export const DEFAULT_MUSIC_ID = "bgm_default";
 
 /**
  * Track musik latar yang boleh dipakai permainan. Cerita hanya melihat
- * `bgm_default` sebagai nilai default; track sebenarnya dipilih acak sekali per
- * sesi dari daftar ini supaya tiap permainan bisa terasa berbeda. Kedua track
- * selalu ikut dimuat, walau cerita tidak menyebut salah satunya.
+ * `bgm_default` sebagai nilai default; track awal dipilih acak sekali per sesi,
+ * lalu kedua track diputar bergantian (lihat `musikSesiBerikutnya`) supaya tiap
+ * permainan bisa terasa berbeda. Kedua track selalu ikut dimuat, walau cerita
+ * tidak menyebut salah satunya.
  */
 export const GAMEPLAY_MUSIC_IDS = ["bgm_default", "bgm_vellore"] as const;
 
@@ -39,12 +40,29 @@ export function pilihMusikAcak(
 }
 
 /**
+ * Track berikutnya dalam rotasi musik latar sesi.
+ *
+ * Rotasi mengikuti urutan `pool` dan kembali ke awal. Dengan dua track hasilnya
+ * bergantian: pilihan acak → track lain → pilihan acak lagi, dan seterusnya.
+ * Id di luar daftar (mis. override scene) memulai rotasi dari track pertama.
+ */
+export function musikSesiBerikutnya(
+  sekarang: string,
+  pool: readonly string[] = GAMEPLAY_MUSIC_IDS,
+): string {
+  if (pool.length === 0) return DEFAULT_MUSIC_ID;
+  const index = pool.indexOf(sekarang);
+  if (index === -1) return pool[0] ?? DEFAULT_MUSIC_ID;
+  return pool[(index + 1) % pool.length] ?? DEFAULT_MUSIC_ID;
+}
+
+/**
  * SFX dan aset dasar yang selalu dibutuhkan runtime game.
  *
  * Panel dan potret dialog tidak ada di sini: keduanya dirender DOM
  * (`DialogueBox.tsx`) langsung dari `public/`, jadi tidak perlu dimuat Phaser.
- * `GAMEPLAY_MUSIC_IDS` ikut karena track acak bisa terpilih walau cerita tidak
- * menyebutnya.
+ * `GAMEPLAY_MUSIC_IDS` ikut karena track rotasi bisa terpilih walau cerita
+ * tidak menyebutnya.
  */
 const RUNTIME_ASSET_IDS = [
   DEFAULT_BACKGROUND_ID,

@@ -100,7 +100,7 @@ editor, dan game.
   [`../07-assets/inventory.md`](../07-assets/inventory.md).
 - `runtime: true` menandai aset sisi game lain yang **tidak ditawarkan ke AI**,
   walau kind-nya ada di `STORY_ASSET_KINDS`. Dipakai track musik latar tambahan
-  (`bgm_vellore`) yang dipilih acak oleh game. `toAssetManifest()` melewatkan
+  (`bgm_vellore`) yang ikut rotasi musik game. `toAssetManifest()` melewatkan
   aset bertanda ini, jadi cerita yang merujuknya dianggap memakai aset asing.
 
 ## Aset fallback

@@ -196,7 +196,8 @@ Entri di bawah **tidak** boleh dipakai sebagai `backgroundId` cerita.
 ## Musik
 
 Dua track latar untuk seluruh permainan. Cerita hanya menyebut `bgm_default`;
-game memilih satu track acak dari keduanya setiap sesi dimulai, jadi tiap
+game memilih satu track acak dari keduanya setiap sesi dimulai, lalu memutar
+keduanya bergantian tiap lagu selesai dan kembali ke pilihan awal. Jadi tiap
 permainan bisa terdengar berbeda. Chapter **tidak** berganti lagu.
 
 `bgm_vellore` ditandai `runtime` di manifest: ia tidak ditawarkan ke AI dan tidak

@@ -121,14 +121,16 @@ Karena potret dirender DOM, berkasnya tidak dimuat `PreloadScene`.
 | Properti    | Nilai                                                 |
 | ----------- | ----------------------------------------------------- |
 | Format      | **MP3** (dua track: `bgm_default`, `bgm_vellore`)     |
-| Pemakaian   | Diputar di seluruh permainan, loop, dipilih acak/sesi |
+| Pemakaian   | Diputar bergantian selama permainan, mulai track acak |
 | Ukuran file | ≈ 4 MB per track                                      |
 | Lokasi      | `public/assets/music/default.mp3`, `.../vellore.mp3`  |
 
-Chapter **tidak** berganti lagu: seluruh cerita memakai satu track. Cerita hanya
-menyebut `bgm_default`; saat permainan dimulai, game memilih satu track acak
-dari dua BGM yang tersedia (`GAMEPLAY_MUSIC_IDS`). Track kedua (`bgm_vellore`)
-bertanda `runtime` di manifest — tidak ditawarkan ke AI, hanya dipakai game.
+Chapter **tidak** berganti lagu: seluruh cerita memakai rotasi dua track. Cerita
+hanya menyebut `bgm_default`; saat permainan dimulai, game memilih satu track
+acak dari dua BGM yang tersedia (`GAMEPLAY_MUSIC_IDS`), lalu memutar track
+berikutnya tiap lagu selesai dan kembali ke pilihan awal. Track kedua
+(`bgm_vellore`) bertanda `runtime` di manifest — tidak ditawarkan ke AI, hanya
+dipakai game.
 
 ### SFX
 

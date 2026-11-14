@@ -50,10 +50,11 @@ Aturan:
 - Di dalam game, `GameScene` **hanya** memakai `musicId`. `backgroundId` diabaikan
   karena latar dunia adalah peta desa; `putarMusik()` tetap jatuh ke `bgm_default`
   bila audio yang diminta tidak ikut termuat.
-- `bgm_default` berarti "musik latar permainan": track sebenarnya dipilih **acak
+- `bgm_default` berarti "musik latar permainan": track pertamanya dipilih **acak
   sekali per sesi** dari `GAMEPLAY_MUSIC_IDS` (`bgm_default` + `bgm_vellore`,
-  `sceneAssets.ts`). Jadi dua permainan bisa memakai lagu berbeda. Override
-  scene/chapter dengan id lain tetap dihormati.
+  `sceneAssets.ts`), lalu kedua track diputar **bergantian** tiap lagu selesai
+  dan kembali ke pilihan awal. Jadi dua permainan bisa memakai lagu berbeda.
+  Override scene/chapter dengan id lain tetap dihormati dan tetap di-loop.
 - Ganti musik hanya bila track efektif berbeda dari scene sebelumnya. Jangan
   restart track yang sama.
 
@@ -69,8 +70,8 @@ Aturan:
    Potret tidak ikut: ia dirender DOM dari `public/` (ADR 0023).
 3. **Aset dasar dan SFX runtime** (`bg_default`, `bgm_default`, `bgm_vellore`,
    `sfx_click`, `sfx_page`, `sfx_correct`, `sfx_wrong`). Kedua BGM ikut dimuat
-   karena track dipilih acak saat sesi dimulai. Panel dan potret dialog tidak
-   dimuat Phaser.
+   karena track awal dipilih acak dan rotasinya memakai keduanya. Panel dan
+   potret dialog tidak dimuat Phaser.
 
 Semua key loader memakai `id` manifest, jadi scene tidak menebak path file.
 `manifest.test.ts` menjamin setiap id punya berkasnya, sehingga `PreloadScene`
@@ -339,7 +340,7 @@ Chapter 1, scene `sc_01_02` ("Tiga Kali Resep"):
 
 Yang terjadi:
 
-1. Musik latar sesi tetap satu track (dipilih acak saat mulai; tidak berganti).
+1. Musik latar sesi bergantian antara dua track, mulai dari pilihan acak saat sesi dimulai.
 2. Dunia desa tidak berubah; pemain tetap di posisi terakhirnya.
 3. Pemberi quest scene ini adalah Edric (`char_npc_10`); dekati dia → `Space`.
 4. Edric tampil, textbox berisi nama + kalimat, dengan potret `thinking`.

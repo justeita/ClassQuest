@@ -52,6 +52,7 @@ import {
   assetEntry,
   resolveSceneLook,
   DEFAULT_MUSIC_ID,
+  musikSesiBerikutnya,
   pilihMusikAcak,
 } from "../sceneAssets";
 import { buatTabrakan, type Tabrakan } from "../world/collision";
@@ -152,11 +153,14 @@ export class GameScene extends Phaser.Scene {
   private music?: Phaser.Sound.BaseSound;
   private musicKey: string | null = null;
   /**
-   * Track musik latar untuk sesi ini, dipilih acak sekali saat scene dibuat
-   * dari `GAMEPLAY_MUSIC_IDS` (dua BGM). Cerita tetap menulis `bgm_default`;
-   * `putarMusik()` menukarnya dengan pilihan sesi.
+   * Track musik latar aktif untuk sesi ini. Track pertamanya dipilih acak saat
+   * scene dibuat dari `GAMEPLAY_MUSIC_IDS` (dua BGM); setelah satu track
+   * selesai, `update()` memutar track berikutnya secara bergantian.
+   * Cerita tetap menulis `bgm_default`; `putarMusik()` memakai nilai ini.
    */
-  private readonly musikSesi = pilihMusikAcak();
+  private musikSesi = pilihMusikAcak();
+  /** Track sesi baru saja selesai; rotasi dilanjutkan di frame berikutnya. */
+  private musikSesiSelesai = false;
   private volumeMusik = 1;
   private volumeSfx = 1;
   private volumeSedangJeda = false;
@@ -334,6 +338,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number) {
+    // Track sesi baru saja selesai: mulai track berikutnya di frame ini, di
+    // luar pembaruan SoundManager (aman untuk stop/destroy lalu `sound.add`).
+    if (this.musikSesiSelesai) {
+      this.musikSesiSelesai = false;
+      this.putarMusik(DEFAULT_MUSIC_ID);
+    }
+
     // Obrolan singkat tidak mengubah posisi cerita: runner tetap di fase
     // `explore`, jadi textbox maju di jalur yang sama seperti dialog biasa.
     if (this.obrolanAktif) {
@@ -1383,19 +1394,23 @@ export class GameScene extends Phaser.Scene {
   /**
    * Putar musik latar scene aktif.
    *
-   * `bgm_default` berarti "musik latar permainan": track sebenarnya diambil dari
-   * pilihan acak sesi (`musikSesi`) supaya tiap permainan bisa memakai lagu
-   * berbeda. Override scene/chapter dengan id lain tetap dihormati, dan track
-   * yang sama tidak pernah di-restart.
+   * `bgm_default` berarti "musik latar permainan": track aktif diambil dari
+   * rotasi sesi (`musikSesi`) dan berganti ke track berikutnya tiap lagu
+   * selesai (dilanjutkan dari `update`). Override scene/chapter dengan id lain
+   * tetap dihormati dan di-loop seperti sebelumnya; track yang sama tidak
+   * di-restart.
    */
   private putarMusik(musicId: string) {
-    const diminta = musicId === DEFAULT_MUSIC_ID ? this.musikSesi : musicId;
+    const dariSesi = musicId === DEFAULT_MUSIC_ID;
+    const diminta = dariSesi ? this.musikSesi : musicId;
     if (this.musicKey === diminta && this.music?.isPlaying) return;
 
     this.music?.stop();
     this.music?.destroy();
     this.music = undefined;
     this.musicKey = diminta;
+    // Musik baru membatalkan rotasi yang mungkin masih tertunda.
+    this.musikSesiSelesai = false;
 
     const key = this.cache.audio.exists(diminta)
       ? diminta
@@ -1405,9 +1420,20 @@ export class GameScene extends Phaser.Scene {
     if (key === null) return;
 
     const music = this.sound.add(key, {
-      loop: true,
+      // Track sesi tidak di-loop sendiri: saat selesai, `update` memutar track
+      // berikutnya. Override scene tetap di-loop karena bukan bagian rotasi.
+      loop: !dariSesi,
       volume: MUSIC_VOLUME,
     });
+    if (dariSesi) {
+      music.once(Phaser.Sound.Events.COMPLETE, () => {
+        if (this.music !== music) return;
+        // Geser rotasi sekarang juga supaya pergantian scene di frame yang sama
+        // tidak mengulang track yang baru selesai.
+        this.musikSesi = musikSesiBerikutnya(this.musikSesi);
+        this.musikSesiSelesai = true;
+      });
+    }
     music.play();
     this.music = music;
   }

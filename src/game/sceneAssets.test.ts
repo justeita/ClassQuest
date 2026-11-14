@@ -9,6 +9,7 @@ import {
   DEFAULT_BACKGROUND_ID,
   DEFAULT_MUSIC_ID,
   GAMEPLAY_MUSIC_IDS,
+  musikSesiBerikutnya,
   pilihMusikAcak,
   resolveSceneLook,
 } from "./sceneAssets";
@@ -81,6 +82,31 @@ describe("pilihMusikAcak", () => {
     expect(GAMEPLAY_MUSIC_IDS).toHaveLength(2);
     expect(GAMEPLAY_MUSIC_IDS).toContain(DEFAULT_MUSIC_ID);
     expect(GAMEPLAY_MUSIC_IDS).toContain("bgm_vellore");
+  });
+});
+
+describe("musikSesiBerikutnya", () => {
+  it("bergantian antara dua track lalu kembali ke pilihan awal", () => {
+    const [pertama, kedua] = GAMEPLAY_MUSIC_IDS;
+
+    expect(musikSesiBerikutnya(pertama!)).toBe(kedua);
+    expect(musikSesiBerikutnya(kedua!)).toBe(pertama);
+  });
+
+  it("mengikuti urutan pool dan berputar di ujung", () => {
+    const pool = ["a", "b", "c"];
+
+    expect(musikSesiBerikutnya("a", pool)).toBe("b");
+    expect(musikSesiBerikutnya("b", pool)).toBe("c");
+    expect(musikSesiBerikutnya("c", pool)).toBe("a");
+  });
+
+  it("memulai dari track pertama untuk id di luar pool", () => {
+    expect(musikSesiBerikutnya("bgm_override")).toBe(GAMEPLAY_MUSIC_IDS[0]);
+  });
+
+  it("aman untuk daftar kosong", () => {
+    expect(musikSesiBerikutnya("bgm_default", [])).toBe(DEFAULT_MUSIC_ID);
   });
 });
 
