@@ -467,27 +467,20 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   const dialogTerlihat = Boolean(dialog?.visible) && !tantangan;
 
   /**
-   * Konteks tombol aksi sentuh: "Lanjut" selama dialog, "Bicara" saat pemain di
-   * zona NPC, dan mati saat tidak ada yang bisa dilakukan (atau saat soal, yang
-   * punya tombolnya sendiri).
+   * Konteks tombol aksi sentuh: "Bicara" saat pemain di zona NPC, `null` saat
+   * belum ada warga di jangkauan. Tidak ada lagi mode "Lanjut": kontrol sentuh
+   * disembunyikan selama dialog (ADR 0024), dan lanjut dialog dilakukan dengan
+   * mengetuk kotak dialognya.
    */
-  const aksiSentuh: AksiSentuh | null = tantangan
-    ? null
-    : dialogTerlihat
-      ? "lanjut"
-      : promptAktif
-        ? "bicara"
-        : null;
+  const aksiSentuh: AksiSentuh = promptAktif ? "bicara" : null;
 
   const kirimGerak = useCallback((arah: ArahGerak | null) => {
     busRef.current?.send({ type: "move", arah });
   }, []);
 
   const kirimAksiSentuh = useCallback(() => {
-    busRef.current?.send(
-      dialogTerlihat ? { type: "advance" } : { type: "interact" },
-    );
-  }, [dialogTerlihat]);
+    busRef.current?.send({ type: "interact" });
+  }, []);
 
   /** Ala Persona 3 Reload: tahan untuk mempercepat, lepas untuk berhenti. */
   const mulaiLewatiDialog = useCallback(() => {
@@ -662,7 +655,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           </div>
         }
       </div>
-      {sentuh && !jeda && !tantangan && (
+      {sentuh && !jeda && !tantangan && !dialogTerlihat && (
         <TouchControls
           mode={layarPotret ? "dek" : "mengapung"}
           onMove={kirimGerak}

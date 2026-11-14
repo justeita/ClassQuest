@@ -1021,12 +1021,10 @@ describe("GameShell — kontrol sentuh", () => {
     ).toBeInTheDocument();
   });
 
-  it("tombol aksi mengikuti konteks: Bicara, lalu Lanjut", async () => {
+  it("tombol aksi bicara di zona NPC, lalu kontrol hilang saat dialog", async () => {
     await mainkan();
     const bicara = vi.fn();
-    const advance = vi.fn();
     const lepasBicara = bus.onCommand("interact", bicara);
-    const lepasAdvance = bus.onCommand("advance", advance);
 
     bus.emit({
       type: "prompt",
@@ -1037,6 +1035,8 @@ describe("GameShell — kontrol sentuh", () => {
     );
     expect(bicara).toHaveBeenCalledTimes(1);
 
+    // Selama dialog joystick dan tombol aksi disembunyikan (ADR 0024); lanjut
+    // dialog lewat mengetuk kotak dialog, bukan tombol.
     bus.emit({
       type: "dialogue",
       view: {
@@ -1047,13 +1047,16 @@ describe("GameShell — kontrol sentuh", () => {
         portrait: null,
       },
     });
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Lanjut dialog" }),
+    await vi.waitFor(() =>
+      expect(
+        screen.queryByRole("group", { name: "Tongkat gerak" }),
+      ).not.toBeInTheDocument(),
     );
-    expect(advance).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("button", { name: "Bicara dengan warga" }),
+    ).not.toBeInTheDocument();
 
     lepasBicara();
-    lepasAdvance();
   });
 
   it("tongkat mengirim arah gerak lewat bus", async () => {

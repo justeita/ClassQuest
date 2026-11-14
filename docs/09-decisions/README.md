@@ -36,6 +36,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0021 | [Kontrol sentuh dan tata letak HP](0021-kontrol-sentuh-hp.md)                                        | Accepted     | Game, aksesibilitas   |
 | 0022 | [Layar penuh, kunci lanskap, dan ketukan responsif](0022-layar-penuh-lanskap.md)                     | Accepted     | Game, aksesibilitas   |
 | 0023 | [Tombol aksi sentuh tetap hidup tanpa sasaran](0023-tombol-aksi-tanpa-sasaran.md)                    | Accepted     | Game, aksesibilitas   |
+| 0024 | [Tombol Bicara dan kontrol yang hilang saat dialog](0024-tombol-bicara-dan-kontrol-saat-dialog.md)   | Accepted     | Game, aksesibilitas   |
 
 ## Status
 

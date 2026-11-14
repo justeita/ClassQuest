@@ -91,7 +91,7 @@ describe("TouchControls — tongkat", () => {
 });
 
 describe("TouchControls — tombol aksi", () => {
-  it("tetap bisa ditekan tapi menampilkan pesan saat belum ada sasaran", () => {
+  it("bertuliskan Bicara redup dan menampilkan pesan saat belum ada sasaran", () => {
     const onAksi = vi.fn();
     render(
       <TouchControls
@@ -102,10 +102,9 @@ describe("TouchControls — tombol aksi", () => {
       />,
     );
 
-    const tombol = screen.getByRole("button", {
-      name: "Cari warga di sekitar",
-    });
+    const tombol = screen.getByRole("button", { name: "Bicara" });
     expect(tombol).toBeEnabled();
+    expect(tombol).toHaveTextContent("Bicara");
     expect(screen.queryByRole("status")).toBeNull();
 
     fireEvent.click(tombol);
@@ -128,9 +127,7 @@ describe("TouchControls — tombol aksi", () => {
         />,
       );
 
-      fireEvent.click(
-        screen.getByRole("button", { name: "Cari warga di sekitar" }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: "Bicara" }));
       expect(screen.getByRole("status")).toBeInTheDocument();
 
       act(() => {
@@ -142,7 +139,7 @@ describe("TouchControls — tombol aksi", () => {
     }
   });
 
-  it("bertuliskan Bicara dan memicunya saat pemain di zona NPC", () => {
+  it("memicu aksi saat pemain di zona NPC", () => {
     const onAksi = vi.fn();
     render(
       <TouchControls
@@ -155,23 +152,9 @@ describe("TouchControls — tombol aksi", () => {
 
     const tombol = screen.getByRole("button", { name: "Bicara dengan warga" });
     expect(tombol).toBeEnabled();
+    expect(tombol).toHaveTextContent("Bicara");
     fireEvent.click(tombol);
     expect(onAksi).toHaveBeenCalledTimes(1);
-  });
-
-  it("bertuliskan Lanjut selama dialog menunggu", () => {
-    render(
-      <TouchControls
-        mode="dek"
-        onMove={() => {}}
-        onAksi={() => {}}
-        aksi="lanjut"
-      />,
-    );
-
-    expect(
-      screen.getByRole("button", { name: "Lanjut dialog" }),
-    ).toHaveTextContent("Lanjut");
   });
 });
 

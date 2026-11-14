@@ -5,8 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { batasiStik, arahDariStik } from "@/game/arahSentuh";
 import type { ArahGerak } from "@/game/world/karakter";
 
-/** Aksi yang ditawarkan tombol besar; `null` berarti belum ada yang bisa dilakukan. */
-export type AksiSentuh = "bicara" | "lanjut";
+/**
+ * Konteks tombol besar: `"bicara"` saat ada warga di jangkauan, `null` saat
+ * belum ada sasaran. Tombol tidak lagi punya mode "Lanjut": selama dialog
+ * kontrol sentuh disembunyikan, dan pemain melanjutkan dengan mengetuk kotak
+ * dialog (ADR 0024).
+ */
+export type AksiSentuh = "bicara" | null;
 
 type TouchControlsProps = {
   /**
@@ -16,10 +21,10 @@ type TouchControlsProps = {
   mode: "dek" | "mengapung";
   /** Arah gerak dari tongkat; `null` saat tongkat dilepas. */
   onMove: (arah: ArahGerak | null) => void;
-  /** Tombol besar ditekan: bicara ke NPC atau lanjut dialog. */
+  /** Tombol besar ditekan saat ada warga di jangkauan. */
   onAksi: () => void;
-  /** Konteks tombol besar; `null` berarti belum ada sasaran di sekitar pemain. */
-  aksi: AksiSentuh | null;
+  /** Konteks tombol besar; `null` berarti belum ada warga di sekitar pemain. */
+  aksi: AksiSentuh;
 };
 
 /** Jari-jari pad tongkat dalam px CSS; juga jadi skala pergeseran → 1. */
@@ -41,13 +46,17 @@ const KELAS_REDUP = "border-[#3D4B41] text-[#8FA396]";
  *
  * Bukan papan tombol virtual: tongkat mengirim **satu arah** yang sama dipakai
  * `movement.ts`, jadi kecepatan, tabrakan, dan animasi tidak punya jalur kedua.
- * Tombol besar mengikuti konteks — "Bicara" saat pemain di zona NPC,
- * "Lanjut" saat dialog menunggu — supaya pemain tidak perlu menebak.
+ * Tombol besar selalu "Bicara": menyala saat pemain di zona NPC, redup saat
+ * belum ada warga di jangkauan.
  *
  * Tanpa sasaran tombolnya **tidak dimatikan** (ADR 0023): di ponsel tombol mati
  * tanpa penjelasan bikin bingung. Tombolnya tampil redup, tetap bisa ditekan,
- * dan menampilkan pesan singkat "dekati warga" — command `interact`/`advance`
- * baru dikirim saat memang ada sasaran.
+ * dan menampilkan pesan singkat "dekati warga" — command `interact` baru dikirim
+ * saat memang ada sasaran.
+ *
+ * Selama dialog kontrol ini tidak dirender sama sekali (ADR 0024): joystick dan
+ * tombol hanya menutupi layar, sedangkan lanjut dialog cukup mengetuk kotak
+ * dialognya.
  *
  * Pad memakai pointer events + `setPointerCapture`, jadi jempol yang menggeser
  * keluar kotak tetap menahan tongkat sampai diangkat (tanpa "nyangkut").
@@ -160,16 +169,10 @@ export function TouchControls({
         type="button"
         data-kontrol="aksi"
         onClick={tekanAksi}
-        aria-label={
-          aksi === "lanjut"
-            ? "Lanjut dialog"
-            : aksi === "bicara"
-              ? "Bicara dengan warga"
-              : "Cari warga di sekitar"
-        }
+        aria-label={aksi === "bicara" ? "Bicara dengan warga" : "Bicara"}
         className={`${KELAS_BUTTON} ${aksi === null ? KELAS_REDUP : KELAS_SIAP}`}
       >
-        {aksi === "lanjut" ? "Lanjut" : aksi === "bicara" ? "Bicara" : "·"}
+        Bicara
       </button>
     </div>
   );

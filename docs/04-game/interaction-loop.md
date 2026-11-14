@@ -285,12 +285,14 @@ dengan papan tombol, bukan jalur gerak kedua:
 - **Joystick** (`move`): tongkat analog disnap ke salah satu dari delapan
   `ArahGerak` — sama persis dengan tombol gerak — lalu dijalankan
   `gerakkanPemain()` yang sama. `null` saat tongkat dilepas berarti berhenti.
-- **Tombol aksi** (`interact` / `advance`): satu tombol besar yang labelnya
-  mengikuti konteks. Di dekat NPC jadi "Bicara" (`interact`, sama dengan
-  `Space`/`Enter`); saat dialog menunggu jadi "Lanjut" (`advance`). Saat tidak ada
-  yang bisa dilakukan tombolnya **tampil redup tetapi tetap bisa ditekan** (ADR
-  0023): menekannya hanya memunculkan pesan singkat "Dekati warga untuk bicara",
-  dan command `interact`/`advance` tidak dikirim.
+- **Tombol aksi** (`interact`): satu tombol besar berlabel "Bicara" (sama dengan
+  `Space`/`Enter`). Di dekat NPC tombolnya menyala; saat belum ada warga di
+  jangkauan ia **tampil redup tetapi tetap bisa ditekan** (ADR 0023) — menekannya
+  hanya memunculkan pesan singkat "Dekati warga untuk bicara", dan command
+  `interact` tidak dikirim.
+- **Selama dialog** joystick dan tombol aksi disembunyikan (ADR 0024); lanjut
+  dialog dilakukan dengan mengetuk kotak dialog di layar. Tidak ada lagi tombol
+  sentuh "Lanjut".
 - Selama soal, kontrol gerak disembunyikan; pilihan jawaban punya tombolnya
   sendiri di DOM.
 - Label prompt `Space` berganti jadi "Sentuh" dan semua keycap keyboard

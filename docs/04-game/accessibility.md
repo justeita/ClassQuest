@@ -62,24 +62,28 @@ Aturan:
 Setiap aksi yang bisa dilakukan keyboard juga punya jalur sentuh (ADR 0021),
 sehingga siswa di ponsel/tablet tidak ditinggalkan:
 
-| Aksi            | Sentuh                                   |
-| --------------- | ---------------------------------------- |
-| Gerak           | Joystick 8 arah di sudut kiri bawah      |
-| Bicara / Lanjut | Tombol aksi besar di sudut kanan bawah   |
-| Pilih jawaban   | Ketuk opsi / tombol di overlay tantangan |
-| Menu jeda       | Tombol "Jeda" di HUD                     |
-| Layar penuh     | Tombol di layar judul / ikon di HUD      |
+| Aksi          | Sentuh                                   |
+| ------------- | ---------------------------------------- |
+| Gerak         | Joystick 8 arah di sudut kiri bawah      |
+| Bicara        | Tombol aksi besar di sudut kanan bawah   |
+| Lanjut dialog | Ketuk kotak dialog yang sedang tampil    |
+| Pilih jawaban | Ketuk opsi / tombol di overlay tantangan |
+| Menu jeda     | Tombol "Jeda" di HUD                     |
+| Layar penuh   | Tombol di layar judul / ikon di HUD      |
 
 Aturan:
 
 - Joystick dan tombol aksi hanya muncul saat perangkat terbaca sentuh
   (`pointer: coarse` + `hover: none`), jadi tidak menutupi layar desktop.
+- Selama dialog, joystick dan tombol aksi **disembunyikan** (ADR 0024) supaya
+  tidak menutupi teks; lanjut dialog cukup dengan mengetuk kotak dialog.
 - Memakai pointer events + `setPointerCapture`, jadi jari yang menggeser keluar
   pad tetap menahan tongkat sampai diangkat — tidak "nyangkut".
 - Label yang menyebut tombol fisik (`Space`, keycap `Tab`/`B`/`Esc`) diganti atau
   disembunyikan di perangkat sentuh: menyebut tombol yang tidak ada itu menyesatkan.
-- Tombol aksi nonverbal tanpa sasaran tampil redup tetapi tetap bisa ditekan (ADR
-  0023); menekannya memunculkan pesan `role="status"` "Dekati warga untuk bicara"
+- Tombol aksi selalu berlabel "Bicara": menyala saat ada warga di jangkauan dan
+  tampil redup tetapi tetap bisa ditekan saat belum ada sasaran (ADR 0023);
+  menekannya lalu memunculkan pesan `role="status"` "Dekati warga untuk bicara"
   alih-alih command "hantu".
 - `touch-action: manipulation` dipasang pada tombol/tautan dan `.area-game` supaya
   ketukan di Android langsung jadi klik, bukan tertahan menunggu zoom ketuk-dua

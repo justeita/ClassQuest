@@ -293,10 +293,11 @@ menutupi dunia. Deteksinya ada di `useSentuh.ts`; ringkasan keputusannya di
 
 Joystick mengirim **satu dari delapan arah** yang sama dipakai papan tombol
 (`movement.ts`), bukan vektor bebas — jadi aturan gerak, tabrakan, dan animasi
-tetap satu jalur. Tombol aksi besar mengikuti konteks: "Bicara" saat pemain di
-zona NPC, "Lanjut" saat dialog menunggu. Saat tidak ada yang bisa dilakukan ia
-tampil redup tetapi tetap bisa ditekan, lalu memunculkan pesan "Dekati warga untuk
-bicara" (ADR 0023). Rincian interaksinya di
+tetap satu jalur. Tombol aksi besar berlabel "Bicara": menyala saat pemain di zona
+NPC, dan tampil redup tetapi tetap bisa ditekan saat belum ada warga, lalu
+memunculkan pesan "Dekati warga untuk bicara" (ADR 0023). Selama dialog joystick
+dan tombol aksi disembunyikan supaya tidak menutupi teks; lanjut dialog cukup
+dengan mengetuk kotak dialog (ADR 0024). Rincian interaksinya di
 [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#input-sentuh).
 
 Halaman game memakai seluruh viewport dengan margin 8–24 px dan bingkai bersudut
