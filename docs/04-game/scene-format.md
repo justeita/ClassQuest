@@ -90,7 +90,7 @@ dijelajahi:
   memeriksa `buatTabrakan()` dari sel collision editor. Kotak tabrakan hanya di
   kaki (16×9 px). Detailnya di
   [`world-design.md`](./world-design.md#objek-dan-collision).
-- NPC/objek interaksi punya zona 30 px di sekitar titik kaki. Pemain di dalam zona
+- NPC/objek interaksi punya zona 44 px di sekitar titik kaki. Pemain di dalam zona
   → kotak `Space` bergaya seperti penanda `!` muncul (satu paket dengan `!` untuk
   pemberi quest, pop-up untuk obrolan singkat) → `Space`/`Enter` memutar deretan
   beat scene itu (fase `dialog`); gerak terkunci sampai deretan beat habis.

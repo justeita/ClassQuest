@@ -36,12 +36,18 @@ export function PauseMenu({
   }, []);
 
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#0b120e]/80 p-3">
+    /*
+     * `overflow-y-auto` + `m-auto` pada panel: di ponsel lanskap tinggi layar
+     * sangat pendek, jadi menu yang lebih tinggi dari viewport harus bisa
+     * digulir alih-alih terpotong di tepi. Auto-margin menjaga panel tetap
+     * center saat muat, dan mulai dari atas saat tidak.
+     */
+    <div className="absolute inset-0 z-30 flex overflow-y-auto overscroll-contain bg-[#0b120e]/80 p-3">
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="judul-jeda"
-        className="w-full max-w-xs border-2 border-[#F7F4EC] bg-[#14201a] p-4 font-sans text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]"
+        className="m-auto w-full max-w-xs border-2 border-[#F7F4EC] bg-[#14201a] p-4 font-sans text-[#F7F4EC] shadow-[4px_4px_0_0_rgba(0,0,0,0.45)]"
       >
         <p className="mb-1 text-[10px] uppercase tracking-[0.3em] text-[#8FA396]">
           Permainan dijeda

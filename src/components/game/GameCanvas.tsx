@@ -88,6 +88,12 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
   /** Perangkat sentuh dan orientasi layar menentukan tata letak kontrol. */
   const sentuh = useSentuh();
   const layarPotret = useLayarPotret();
+  /**
+   * Layar potret sentuh: tombol HUD dipindah ke bar bawah di luar kanvas
+   * (layar 16:9 sempit, HUD di dalamnya menutupi dunia), dan teks dialog
+   * diperkecil supaya tidak melimpah dari kotaknya.
+   */
+  const hudBawah = sentuh && layarPotret;
   /** Pengaturan audio pengguna; persist di localStorage, dibaca saat mount. */
   const [audio, setAudio] = useState<PengaturanAudio>(() =>
     bacaPengaturanAudio(
@@ -616,10 +622,11 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
                       })
                 }
                 onAdvance={lanjutDialog}
+                kecil={hudBawah}
               />
             )}
 
-            {!jeda && (
+            {!jeda && !hudBawah && (
               <Hud
                 musikAktif={audio.music > 0}
                 onToggleMusik={() =>
@@ -644,7 +651,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
                 onResolve={lanjut}
               />
             )}
-            {!jeda && (
+            {!jeda && !hudBawah && (
               <QuestTracker
                 view={quest}
                 terbuka={bukuQuest}
@@ -655,6 +662,34 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
           </div>
         }
       </div>
+      {hudBawah && !jeda && (
+        <div
+          data-hud="bawah"
+          className="flex shrink-0 flex-wrap items-center justify-center gap-1.5 border-t border-[#3D4B41] bg-[#0b120e] px-2 py-2 font-game text-sm"
+        >
+          <QuestTracker
+            letak="bar"
+            view={quest}
+            terbuka={bukuQuest}
+            onToggle={() => setBukuQuest((sebelum) => !sebelum)}
+            onTutup={() => setBukuQuest(false)}
+          />
+          <Hud
+            letak="bar"
+            musikAktif={audio.music > 0}
+            onToggleMusik={() => ubahAudio("music", audio.music > 0 ? 0 : 1)}
+            onBukaLog={() => {
+              setBukuLog(true);
+              busRef.current?.send({ type: "freeze" });
+            }}
+            onMulaiLewati={mulaiLewatiDialog}
+            onHentikanLewati={hentikanLewatiDialog}
+            tampilLewati={dialogTerlihat}
+            onJeda={bukaJeda}
+            tombolJedaRef={tombolJedaRef}
+          />
+        </div>
+      )}
       {sentuh && !jeda && !tantangan && !dialogTerlihat && (
         <TouchControls
           mode={layarPotret ? "dek" : "mengapung"}

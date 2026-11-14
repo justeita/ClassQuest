@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -1092,6 +1093,76 @@ describe("GameShell — kontrol sentuh", () => {
 
     const tombol = await screen.findByRole("button", { name: /percepat/i });
     expect(tombol).not.toHaveTextContent("Tab");
+  });
+
+  it("memindahkan tombol HUD ke bar bawah kanvas saat layar potret", async () => {
+    pulihkanMedia();
+    pulihkanMedia = pasangMedia({ potret: true });
+    await mainkan();
+
+    // Tombol Quest baru muncul setelah event quest pertama.
+    bus.emit({
+      type: "quest",
+      view: {
+        chapterNumber: 1,
+        chapterTotal: 3,
+        chapterTitle: "Air dan Udara",
+        sceneTitle: "Pagi di Kampung",
+        activeQuestId: "sc_01_01",
+        quests: [],
+      },
+    });
+
+    const bar = document.querySelector('[data-hud="bawah"]');
+    expect(bar).not.toBeNull();
+    const dalam = within(bar as HTMLElement);
+
+    // Semua tombol HUD pindah ke bar statis di luar kanvas: Quest, Musik,
+    // Catatan, Jeda, dan tombol layar penuh.
+    const musik = dalam.getByRole("button", { name: /musik/i });
+    expect(dalam.getByRole("button", { name: /quest/i })).toBeInTheDocument();
+    expect(
+      dalam.getByRole("button", { name: /^catatan$/i }),
+    ).toBeInTheDocument();
+    expect(dalam.getByRole("button", { name: /^jeda$/i })).toBeInTheDocument();
+
+    // Latar halaman di bawah kanvas hitam, jadi tombolnya dibuat cerah: kertas
+    // terang dengan teks gelap, bukan gaya overlay gelap.
+    expect(musik.className).toContain("bg-[#F7F4EC]");
+    expect(musik.className).toContain("text-[#14201a]");
+  });
+
+  it("menampilkan tombol Percepat di bar bawah saat dialog di layar potret", async () => {
+    pulihkanMedia();
+    pulihkanMedia = pasangMedia({ potret: true });
+    await mainkan();
+
+    expect(document.querySelector('[data-hud="bawah"]')).not.toHaveTextContent(
+      /percepat/i,
+    );
+
+    bus.emit({
+      type: "dialogue",
+      view: {
+        visible: true,
+        name: "Bu Ratna",
+        text: "Halo.",
+        waiting: true,
+        portrait: null,
+      },
+    });
+
+    const bar = document.querySelector('[data-hud="bawah"]') as HTMLElement;
+    expect(
+      within(bar).getByRole("button", { name: /percepat/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("tetap memakai HUD overlay saat lanskap", async () => {
+    await mainkan();
+
+    expect(document.querySelector('[data-hud="bawah"]')).toBeNull();
+    expect(screen.getByRole("button", { name: /musik/i })).toBeInTheDocument();
   });
 
   it("kontrol sentuh tidak tampil di desktop", async () => {

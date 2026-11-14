@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayarPenuh } from "@/components/game/useLayarPenuh";
+import { kelasTombolHud, type LetakHud } from "@/components/game/gayaHud";
 
 type TombolLayarPenuhProps = {
   /** Kelas tambahan untuk menyesuaikan posisi/gaya pemakaian. */
@@ -10,6 +11,8 @@ type TombolLayarPenuhProps = {
    * sempit, mis. HUD di ponsel yang sudah penuh tombol lain.
    */
   ringkas?: boolean;
+  /** `overlay` di atas kanvas; `bar` di bar bawah dengan gaya cerah. */
+  letak?: LetakHud;
 };
 
 /**
@@ -22,6 +25,7 @@ type TombolLayarPenuhProps = {
 export function TombolLayarPenuh({
   className = "",
   ringkas = false,
+  letak = "overlay",
 }: TombolLayarPenuhProps) {
   const { aktif, didukung, toggle } = useLayarPenuh();
 
@@ -36,7 +40,7 @@ export function TombolLayarPenuh({
       aria-pressed={aktif}
       aria-label={label}
       title={label}
-      className={`flex items-center gap-1.5 border border-[#3D4B41] bg-[#0b120e]/85 px-2.5 py-1.5 uppercase tracking-wide text-[#F7F4EC] hover:border-[#8FA396] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E8A87C] ${className}`}
+      className={`${kelasTombolHud(letak)} ${className}`}
     >
       <svg
         aria-hidden="true"

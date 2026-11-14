@@ -163,7 +163,7 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   meluncur ke kanan, dan saat pemain pergi kotak standalone juga beranimasi
   keluar dengan halus (`animate-quest-pop-out`, atau meluncur kembali ke `!`
   untuk kotak quest yang tampil sendiri) — ditahan di DOM 200 ms oleh
-  `NpcHintLayer`. Zona interaksi memakai histeresis (masuk 30 px, keluar 38 px)
+  `NpcHintLayer`. Zona interaksi memakai histeresis (masuk 44 px, keluar 52 px)
   supaya kotak tidak berkedip di batas zona. Posisi papan nama, penanda, dan
   kotak `Space` diperbarui tiap frame lewat `NpcHintLayer`, jadi tanda tetap
   menempel pada NPC saat kamera bergeser, dan disembunyikan selama dialog,
@@ -174,7 +174,9 @@ State ini yang bertahan saat komponen di-remount oleh `<Activity>` (lihat
   time-lapse dan garis kecepatan menyala di tepi atas/bawah kanvas
   (`SpeedLines`); dilepas, tempo kembali normal. Soal tidak bisa dilewati —
   tombol dan pintasan berhenti di beat tantangan, dan fade transisi tetap
-  diputar.
+  diputar. Di perangkat sentuh tombolnya menangkap pointer
+  (`setPointerCapture`), jadi jempol yang bergeser tidak mematikan time-lapse
+  (ADR 0025).
 - Tombol `Catatan` (`B`) membuka buku catatan dua halaman: riwayat dialog
   (dikelompokkan per scene, dengan chip nama pembicara) dan jurnal konsep
   (conceptTag, status benar/perlu diulang, penjelasan). Dunia dibekukan
@@ -271,19 +273,26 @@ di [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#penanganan-
 
 ## Responsif
 
-| Layar               | Perilaku                                                                   |
-| ------------------- | -------------------------------------------------------------------------- |
-| Desktop ≥ 1024 px   | Kanvas mengisi bingkai (margin 24 px, sudut membulat); kontrol keyboard    |
-| Tablet / HP lanskap | Kanvas mengisi bingkai; joystick dan tombol aksi **mengapung** di dalamnya |
-| HP potret           | Panggung 16:9 di atas, **dek kontrol** (joystick + tombol aksi) di bawah   |
-| Sentuh              | Label `Space` berganti jadi "Sentuh"; semua keycap keyboard disembunyikan  |
-| Tombol layar penuh  | Ada di layar judul dan HUD; memenuhkan layar lalu mencoba mengunci lanskap |
+| Layar               | Perilaku                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| Desktop ≥ 1024 px   | Kanvas mengisi bingkai (margin 24 px, sudut membulat); kontrol keyboard              |
+| Tablet / HP lanskap | Kanvas mengisi bingkai; joystick dan tombol aksi **mengapung** di dalamnya           |
+| HP potret           | Panggung 16:9 di atas; **dek kontrol** (joystick + tombol aksi) dan bar HUD di bawah |
+| Sentuh              | Label `Space` berganti jadi "Sentuh"; semua keycap keyboard disembunyikan            |
+| Tombol layar penuh  | Ada di layar judul dan HUD; memenuhkan layar lalu mencoba mengunci lanskap           |
 
 Singkatnya: tidak ada lagi saran "putar layar". Di ponsel potret, kanvas tidak
 dipaksa memenuhi seluruh tinggi sehingga teksnya tetap terbaca — panggung game
 dikunci `aspect-video` di bagian atas, sisanya jadi dek kontrol yang jauh dari
 tepi bawah (tempat ibu jari beristirahat). Di lanskap, kontrol mengapung di dalam
 bingkai kanvas supaya dunia tidak ikut tergencet.
+
+Di ponsel potret tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar penuh)
+tidak lagi melayang di atas kanvas: semuanya dipindah ke **bar di bawah kanvas**.
+Latar halaman di sana hitam, jadi tombolnya memakai gaya cerah (kertas terang +
+teks gelap) agar kontras. Teks dialog juga diperkecil karena kotak 16:9 di potret
+hanya setinggi ±65 px. Gaya tombol dipakai bersama lewat `gayaHud.ts`, dan prop
+`letak` (`overlay` | `bar`) yang memilih variannya (ADR 0025).
 
 Kontrol muncul hanya saat perangkat terbaca sentuh: penunjuk utama **kasar**
 (`pointer: coarse`) dan **tidak bisa hover** (`hover: none`). Laptop berlayar

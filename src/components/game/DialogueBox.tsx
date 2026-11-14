@@ -19,6 +19,12 @@ type DialogueBoxProps = {
   view: DialogueView;
   /** Klik panel = satu langkah dialog (selesaikan ketikan atau lanjut beat). */
   onAdvance: () => void;
+  /**
+   * Perkecil ukuran teks panel. Dipakai di layar potret ponsel: kanvas
+   * 16:9 sempit sehingga kotak dialog hanya setinggi ±65 px, jadi huruf yang
+   * sama terasa terlalu besar dan cepat melimpah.
+   */
+  kecil?: boolean;
 };
 
 type PortraitSlotProps = {
@@ -134,7 +140,11 @@ function PortraitSlot({ portrait, bicara, menutup }: PortraitSlotProps) {
  * ter-mount sampai animasi tutup selesai — `GameCanvas` menahan view terakhir
  * walau `visible` sudah false.
  */
-export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
+export function DialogueBox({
+  view,
+  onAdvance,
+  kecil = false,
+}: DialogueBoxProps) {
   // View terakhir yang terlihat. State dialog dikosongkan begitu `visible` jadi
   // false (`textbox.ts`), jadi isi terakhir ini yang dipertahankan selama
   // animasi tutup.
@@ -256,7 +266,9 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
             <p
               className="font-pixel font-bold uppercase text-[#55D0A5]"
               style={{
-                fontSize: ukuranHuruf(15, 11, 22),
+                fontSize: kecil
+                  ? ukuranHuruf(15, 9, 18)
+                  : ukuranHuruf(15, 11, 22),
                 letterSpacing: "0.14em",
                 lineHeight: 1.15,
               }}
@@ -270,7 +282,9 @@ export function DialogueBox({ view, onAdvance }: DialogueBoxProps) {
             className="break-words whitespace-pre-wrap text-[#EFF2F7]"
             style={{
               marginTop: cqw(4),
-              fontSize: ukuranHuruf(19, 16, 30),
+              fontSize: kecil
+                ? ukuranHuruf(19, 12, 26)
+                : ukuranHuruf(19, 16, 30),
               lineHeight: 1.34,
             }}
           >

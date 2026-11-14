@@ -60,7 +60,7 @@ semua nilai di bawah dinyatakan dalam piksel.
 | Portrait dialog       | 64×64 px                                                     |
 | Kecepatan pemain      | 180 px/detik                                                 |
 | Kotak kaki pemain     | 16×9 px, membentang ke atas dari titik kaki                  |
-| Zona interaksi NPC    | 30 px masuk / 38 px keluar (histeresis 8 px)                 |
+| Zona interaksi NPC    | 44 px masuk / 52 px keluar (histeresis 8 px)                 |
 | Dead zone kamera      | 128×96 px di tengah layar                                    |
 | Zoom kamera           | 0,8 — bingkai 640×360 menampilkan 800×450 px dunia           |
 

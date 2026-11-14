@@ -313,7 +313,7 @@ Karena `hint` sendiri tetap langsung `null`, paket penanda quest tetap memulai
 animasi keluarnya lewat `NpcMarker` tanpa jeda tambahan. Animasi hanya jalan
 sekali per kemunculan: React memakai ulang kotak yang sama saat koordinatnya
 berubah tiap frame. Zona interaksi
-memakai histeresis — masuk di 30 px, keluar di 38 px — supaya kotak tidak
+memakai histeresis — masuk di 44 px, keluar di 52 px — supaya kotak tidak
 berkedip saat pemain berdiri di batas zona. Speaker disorot, beat `transition`
 fade otomatis, beat `challenge` dibuka sebagai overlay React.
 

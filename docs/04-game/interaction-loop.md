@@ -135,6 +135,9 @@ Aturan input:
   beat dimajukan bertahap seperti time-lapse (100 ms per beat); dilepas, tempo
   kembali normal. Skip berhenti di beat `challenge`, dan fade transisi tetap
   diputar. Setiap beat yang dilewati tetap masuk buku catatan log.
+  Di perangkat sentuh tombolnya **menangkap pointer** (`setPointerCapture`) saat
+  ditekan, jadi jempol yang bergeser beberapa piksel tidak memicu `pointerleave`
+  dan menghentikan time-lapse (ADR 0025).
 - Saat tab tidak aktif (`visibilitychange`), game pause otomatis.
 
 ## Alur tantangan

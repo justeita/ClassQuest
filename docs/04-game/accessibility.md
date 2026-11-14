@@ -89,6 +89,14 @@ Aturan:
   ketukan di Android langsung jadi klik, bukan tertahan menunggu zoom ketuk-dua
   kali. Tombol "Layar penuh" tetap tombol biasa: bisa difokuskan dan diaktifkan
   papan tombol, dan menghilang bila peramban tidak mendukungnya (ADR 0022).
+- **Di layar potret** tombol HUD (Quest, Percepat, Musik, Catatan, Jeda, layar
+  penuh) dipindah ke bar di bawah kanvas, bukan melayang menutupi dunia. Latar
+  halamannya hitam, jadi tombol memakai gaya **cerah** (kertas terang + teks
+  gelap) supaya kontras (ADR 0025). Teks dialog juga diperkecil agar tidak
+  melimpah dari kotak 16:9 yang sempit.
+- Tombol "Percepat" di sentuh memakai `setPointerCapture`, jadi jempol yang
+  bergeser di atas tombol tidak memicu `pointerleave` dan mematikan time-lapse
+  di tengah jalan (ADR 0025).
 
 ## Overlay tantangan (DOM)
 
