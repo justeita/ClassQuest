@@ -277,6 +277,7 @@ di [`../04-game/interaction-loop.md`](../04-game/interaction-loop.md#penanganan-
 | Tablet / HP lanskap | Kanvas mengisi bingkai; joystick dan tombol aksi **mengapung** di dalamnya |
 | HP potret           | Panggung 16:9 di atas, **dek kontrol** (joystick + tombol aksi) di bawah   |
 | Sentuh              | Label `Space` berganti jadi "Sentuh"; semua keycap keyboard disembunyikan  |
+| Tombol layar penuh  | Ada di layar judul dan HUD; memenuhkan layar lalu mencoba mengunci lanskap |
 
 Singkatnya: tidak ada lagi saran "putar layar". Di ponsel potret, kanvas tidak
 dipaksa memenuhi seluruh tinggi sehingga teksnya tetap terbaca — panggung game
@@ -302,9 +303,19 @@ membulat, ditambah **safe-area** (`env(safe-area-inset-*)`, lihat `.area-game` d
 `globals.css`) supaya HUD dan tombol sentuh tidak tertutup notch atau bar sistem.
 `viewport-fit=cover` di `layout.tsx` yang mengisi inset itu. Kanvas **selalu
 tampil utuh**: skala bulat dipakai bila sisa ruangnya ≤6%, selain itu kanvas
-dibesarkan penuh mengikuti bingkai supaya tidak muncul bar gelap besar. Fullscreen
-API peramban tidak dipakai dan tidak dipaksa, jadi tidak ada konten yang terpotong
-di layar apa pun.
+dibesarkan penuh mengikuti bingkai supaya tidak muncul bar gelap besar.
+
+Tombol **"Layar penuh"** (layar judul pojok kanan atas, dan ikon di HUD)
+memenuhkan halaman lalu mencoba mengunci orientasi mendatar; keluar dari layar
+penuh melepas kunci itu lagi. Keduanya best-effort — di Safari iPhone tombolnya
+tidak dirender sama sekali, dan bila kunci orientasi ditolak pemain tetap dapat
+layar penuh. Keputusannya di
+[ADR 0022](../09-decisions/0022-layar-penuh-lanskap.md).
+
+Semua tombol dan tautan memakai `touch-action: manipulation`, dan akar
+`GameCanvas` `touch-manipulation`, supaya di Android ketukan langsung jadi klik
+dan tidak tertahan menunggu ketuk-dua-kali zoom. Hanya pad tongkat yang tetap
+`touch-none` (perlu menahan gulir saat jempol menggeser).
 
 ## Berbagi
 

@@ -210,6 +210,7 @@ tabel ini — ada tes yang akan gagal kalau lupa.
 | [`09-decisions/0019-branching-konsekuensi-jawaban-salah.md`](./09-decisions/0019-branching-konsekuensi-jawaban-salah.md) | stable | Percabangan sebagai konsekuensi jawaban salah                |
 | [`09-decisions/0020-potret-ekspresi-persona.md`](./09-decisions/0020-potret-ekspresi-persona.md)                         | stable | Potret berekspresi di atas kotak dialog                      |
 | [`09-decisions/0021-kontrol-sentuh-hp.md`](./09-decisions/0021-kontrol-sentuh-hp.md)                                     | stable | Kontrol sentuh dan tata letak HP                             |
+| [`09-decisions/0022-layar-penuh-lanskap.md`](./09-decisions/0022-layar-penuh-lanskap.md)                                 | stable | Layar penuh, kunci lanskap, dan ketukan responsif            |
 | [`10-roadmap/hackathon-plan.md`](./10-roadmap/hackathon-plan.md)                                                         | draft  | Urutan kerja dan pembagian tugas                             |
 | [`10-roadmap/demo-script.md`](./10-roadmap/demo-script.md)                                                               | draft  | Naskah demo 3 menit + sketsa layar                           |
 | [`11-logicodix/README.md`](./11-logicodix/README.md)                                                                     | stable | **Aturan kompetisi**: peta aturan dan 10 aturan termahal     |

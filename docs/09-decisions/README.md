@@ -34,6 +34,7 @@ agent dan manusia berikutnya tidak mengulang perdebatan yang sama.
 | 0019 | [Percabangan konsekuensi jawaban salah](0019-branching-konsekuensi-jawaban-salah.md)                 | Accepted     | AI, validator, cerita |
 | 0020 | [Potret berekspresi ala Persona](0020-potret-ekspresi-persona.md)                                    | Accepted     | Game, aset, cerita    |
 | 0021 | [Kontrol sentuh dan tata letak HP](0021-kontrol-sentuh-hp.md)                                        | Accepted     | Game, aksesibilitas   |
+| 0022 | [Layar penuh, kunci lanskap, dan ketukan responsif](0022-layar-penuh-lanskap.md)                     | Accepted     | Game, aksesibilitas   |
 
 ## Status
 

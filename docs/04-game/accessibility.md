@@ -68,6 +68,7 @@ sehingga siswa di ponsel/tablet tidak ditinggalkan:
 | Bicara / Lanjut | Tombol aksi besar di sudut kanan bawah   |
 | Pilih jawaban   | Ketuk opsi / tombol di overlay tantangan |
 | Menu jeda       | Tombol "Jeda" di HUD                     |
+| Layar penuh     | Tombol di layar judul / ikon di HUD      |
 
 Aturan:
 
@@ -79,6 +80,10 @@ Aturan:
   disembunyikan di perangkat sentuh: menyebut tombol yang tidak ada itu menyesatkan.
 - Tombol aksi nonverbal saat tidak ada yang bisa dilakukan (`disabled`), jadi tidak
   ada aksi "hantu" yang bisa ditekan.
+- `touch-action: manipulation` dipasang pada tombol/tautan dan `.area-game` supaya
+  ketukan di Android langsung jadi klik, bukan tertahan menunggu zoom ketuk-dua
+  kali. Tombol "Layar penuh" tetap tombol biasa: bisa difokuskan dan diaktifkan
+  papan tombol, dan menghilang bila peramban tidak mendukungnya (ADR 0022).
 
 ## Overlay tantangan (DOM)
 

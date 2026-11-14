@@ -3,6 +3,7 @@
 import type { RefObject } from "react";
 
 import { Keycap } from "@/components/game/Keycap";
+import { TombolLayarPenuh } from "@/components/game/TombolLayarPenuh";
 
 type HudProps = {
   /** Musik nyala = volume musik > 0. Efek suara diatur di menu jeda. */
@@ -130,6 +131,10 @@ export function Hud({
           <Keycap>Esc</Keycap>
           Jeda
         </button>
+        {/* Ikon saja: di ponsel HUD sudah penuh tombol teks, sedangkan tombol ini
+            cuma pintasan masuk/keluar layar penuh. Hilang sendiri di peramban
+            tanpa Fullscreen API (mis. Safari iPhone). */}
+        <TombolLayarPenuh ringkas className="font-game" />
       </div>
     </div>
   );

@@ -538,7 +538,7 @@ export function GameCanvas({ story, onFinished }: GameCanvasProps) {
 
   return (
     <div
-      className={`h-full w-full touch-none select-none ${
+      className={`h-full w-full touch-manipulation select-none ${
         sentuh ? "relative flex flex-col" : "relative"
       }`}
       style={{ containerType: "size" }}

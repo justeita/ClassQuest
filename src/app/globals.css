@@ -339,6 +339,25 @@ img {
   -webkit-touch-callout: none;
 }
 
+/*
+ * Tombol dan tautan memakai `touch-action: manipulation`.
+ *
+ * Di Android, ketukan pada elemen dengan `touch-action` bawaan (`auto`) ditahan
+ * sebentar untuk menunggu kemungkinan ketuk-dua-kali zoom. Ketukan kedua yang
+ * cepat dianggap awal zoom, sehingga kliknya batal — gejala klasik "tombolnya
+ * tidak bisa ditekan". `manipulation` mematikan zoom ketuk-dua-kali itu saja
+ * (gulir dan cubit-zoom tetap jalan), jadi tombol menu langsung merespons.
+ */
+button,
+a,
+input,
+select,
+textarea,
+label,
+[role="button"] {
+  touch-action: manipulation;
+}
+
 /* Garis kecepatan ala Persona 3 Reload (SpeedLines.tsx): tumpukan garis
    horizontal di tepi atas/bawah kanvas yang bergerak cepat selama mode
    percepat aktif, memudar ke arah tengah layar.
@@ -419,6 +438,9 @@ img {
   /* Main game tidak pernah memantulkan-scroll: tarikan ke bawah justru
      membatalkan gerakan tongkat di ponsel. */
   overscroll-behavior: none;
+  /* Ruang game penuh tombol: matikan zoom ketuk-dua-kali supaya tiap ketukan
+     langsung jadi klik (tongkat tetap `touch-none` sendiri di TouchControls). */
+  touch-action: manipulation;
 }
 
 @media (min-width: 640px) {

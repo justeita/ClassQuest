@@ -289,6 +289,12 @@ dengan papan tombol, bukan jalur gerak kedua:
 - Label prompt `Space` berganti jadi "Sentuh" dan semua keycap keyboard
   disembunyikan (`Keycap` mengembalikan `null`), karena tidak ada tombol fisik di
   perangkat itu.
+- **Tombol "Layar penuh"** (layar judul dan HUD) memenuhkan halaman lalu mencoba
+  mengunci orientasi mendatar (ADR 0022). Bukan bagian alur cerita: tidak ada
+  command bus, dan gagal memenuhkan layar tidak mengubah jalannya permainan.
+- Ketukan memakai `touch-action: manipulation` supaya tidak tertahan menunggu
+  ketuk-dua-kali zoom; akar `GameCanvas` `touch-manipulation`, hanya pad tongkat
+  yang `touch-none`.
 
 ## Skenario tepi
 
