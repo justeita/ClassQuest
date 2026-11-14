@@ -1,6 +1,6 @@
 ---
 status: stable
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 owner: tim ClassQuest
 ---
 
@@ -116,6 +116,18 @@ Alasan:
    tepi bawah yang masih memudar (fringe alpha rendah) dipadatkan jadi potongan
    rata — tidak ada selaput transparan yang membuat potret tampak melayang di
    atas kotak. Itu siluet dialog Persona yang dituju.
+   Normalisasi tinggi belum menolong karakter yang wajahnya memang **lebar**:
+   kakek berjubah hijau (`npc_6`) punya kepala selebar 290 px sementara nilai
+   tengah karakter lain 218 px, jadi wajahnya tampak sepertiga lebih besar walau
+   tingginya pas. Karena lebar tidak bisa disamakan tanpa mendistorsi gambar,
+   importer memakai tabel koreksi per karakter (`KOREKSI`, untuk sekarang hanya
+   `npc_6` ×0,8) dan menambatkan karakter itu ke **dasar** kanvas: setelah
+   dikecilkan isinya tidak lagi menyentuh dasar, sedangkan potret yang mengapung
+   di atas kotak justru masalah yang baru saja dihilangkan. Bahunya tetap
+   menempel di tepi atas panel; konsekuensinya kepala `npc_6` duduk sedikit lebih
+   rendah di slotnya. Angka koreksinya diturunkan dengan
+   `bun run assets:portraits:ukur` dan dijaga test regresi
+   (`src/assets/portrait-ukuran.test.ts`).
 3. Potret disusun ke kanvas 456×360 (rasio sama dengan slot) dan disimpan dengan
    filter PNG adaptif: 60 berkas turun dari ±21 MB ke ±8 MB, jadi potret pertama
    muncul jauh lebih cepat. `DialogueBox` juga memanaskan keenam ekspresi
@@ -158,7 +170,9 @@ Alasan:
   [`../02-data-model/story-schema.md`](../02-data-model/story-schema.md).
 - `src/story/validate.ts` — `speakerId` pada narration ikut diperiksa.
 - `src/assets/manifest.ts` dan `scripts/import-portraits.mjs` — path potret per
-  ekspresi.
+  ekspresi, plus `scripts/lib/potret.mjs` (ukur leher) dan
+  `scripts/ukur-portret.mjs` (`assets:portraits:ukur`) yang menjaga koreksi
+  ukuran per karakter.
 - `src/game/textbox.ts`, `src/game/layout.ts`, dan
   `src/components/game/DialogueBox.tsx` — state dialog murni + render DOM.
 - `src/game/potret.ts` — aturan scene yang melibatkan pemain (potret MC).

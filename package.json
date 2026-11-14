@@ -17,6 +17,7 @@
     "assets:world": "bun scripts/import-world.mjs",
     "assets:characters": "bun scripts/import-characters.mjs",
     "assets:portraits": "bun scripts/import-portraits.mjs",
+    "assets:portraits:ukur": "bun scripts/ukur-portret.mjs",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

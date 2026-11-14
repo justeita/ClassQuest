@@ -80,6 +80,12 @@ tidak bergeser saat ekspresi berganti, latar transparan).
 Potret dirender DOM dan bukan bagian `PreloadScene` (ADR 0020). Kolom Potret di
 bawah menunjuk foldernya; nama folder mengikuti berkas sumber, bukan id manifest.
 
+Normalisasi menyamakan **tinggi** kepala; karakter yang wajahnya jelas lebih
+lebar dikecilkan lewat tabel `KOREKSI` di `scripts/import-portraits.mjs` (untuk
+sekarang hanya `npc_6`, kakek berjubah hijau) dan ditambatkan ke dasar kanvas
+supaya siluetnya tetap menempel ke kotak dialog. Ukur sebaran lebarnya kapan pun
+dengan `bun run assets:portraits:ukur`.
+
 | id            | Label                | Sprite                    | Potret (folder)            | Frame | Tags                                          | Status |
 | ------------- | -------------------- | ------------------------- | -------------------------- | ----- | --------------------------------------------- | ------ |
 | `char_mc`     | Pemuda syal biru     | `/assets/char/mc.png`     | `/assets/portrait/mc/`     | 38×66 | pemuda, syal, biru, desa, pemain, karakter    | ready  |

@@ -65,6 +65,7 @@ import { fileURLToPath } from "node:url";
 
 import { encodePng } from "./lib/pixel.mjs";
 import { decodePng } from "./lib/png.mjs";
+import { kotakOpaque, median, tinggiKepala } from "./lib/potret.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE =
@@ -141,15 +142,25 @@ const TINGGI_KEPALA = 188;
  */
 const GESER_TEPI = 0;
 
-/** Ambang alpha untuk menghitung kotak isi (buang bercak hampir transparan). */
-const AMBANG_ALPHA = 16;
-
 /**
- * Porsi bbox yang dipakai sebagai tinggi kepala kalau leher tidak terdeteksi —
- * mis. tokoh berambut/jubah lebar yang lebarnya tidak menyempit di leher.
- * Nilainya rata-rata leher karakter lain.
+ * Koreksi ukuran **per karakter**, dikalikan ke skala hasil normalisasi (px).
+ *
+ * Normalisasi tinggi kepala menyamakan tinggi wajah, tetapi tidak menolong
+ * karakter yang wajahnya memang lebar: kepala kakek jubah hijau (`npc_6`)
+ * selebar 290 px sementara nilai tengah karakter lain 218 px (ukur dengan
+ * `bun run assets:portraits:ukur`), jadi wajahnya tampak ±33% lebih besar walau
+ * tingginya sudah pas. Karena lebar tidak disamakan importer, satu-satunya cara
+ * memperkecilnya tanpa menyentuh karakter lain adalah faktor eksplisit di sini.
+ *
+ * Karakter yang dikoreksi **ditambatkan ke dasar kanvas** (bukan ke tepi atas
+ * `MARGIN_ATAS`): setelah dikecilkan isinya tidak lagi menyentuh dasar, dan
+ * potret yang mengapung di atas kotak dialog justru masalah yang sudah
+ * dihilangkan. Menambatkan dasar menjaga bahu tetap menempel di tepi atas panel;
+ * konsekuensinya kepala `npc_6` duduk sedikit lebih rendah di slotnya.
  */
-const PORSI_KEPALA_BAWAAN = 0.52;
+const KOREKSI = {
+  npc_6: 0.8,
+};
 
 /** Nama berkas tanpa ekstensi → ekspresi; `null` bila tidak ada yang cocok. */
 function ekspresiDariNama(nama) {
@@ -187,25 +198,6 @@ function bacaFolder(nama) {
   return hasil;
 }
 
-/** Kotak piksel opaque sebuah gambar. */
-function kotakOpaque(image) {
-  let minX = image.width;
-  let minY = image.height;
-  let maxX = -1;
-  let maxY = -1;
-  for (let y = 0; y < image.height; y += 1) {
-    for (let x = 0; x < image.width; x += 1) {
-      if (image.data[(y * image.width + x) * 4 + 3] < AMBANG_ALPHA) continue;
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    }
-  }
-  if (maxX < 0) throw new Error("potret kosong (tanpa piksel opaque)");
-  return { minX, minY, maxX, maxY };
-}
-
 /** Rata-rata berbobot alpha pada satu kotak sumber; hasil warna ter-premultiply. */
 function rataKanvas(image, x0, x1, y0, y1) {
   const ix0 = Math.max(0, Math.floor(x0));
@@ -239,85 +231,29 @@ function rataKanvas(image, x0, x1, y0, y1) {
   return [r / alpha, g / alpha, b / alpha, (alpha / bobot) * 255];
 }
 
-/** Profil lebar opaque tiap baris di dalam kotak isi. */
-function profilLebar(image, box) {
-  const tinggi = box.maxY - box.minY + 1;
-  const profil = new Array(tinggi);
-  for (let k = 0; k < tinggi; k += 1) {
-    const y = box.minY + k;
-    let minX = image.width;
-    let maxX = -1;
-    for (let x = box.minX; x <= box.maxX; x += 1) {
-      if (image.data[(y * image.width + x) * 4 + 3] < AMBANG_ALPHA) continue;
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-    }
-    profil[k] = maxX < 0 ? 0 : maxX - minX + 1;
-  }
-  return profil;
-}
-
 /**
- * Tinggi kepala dalam px sumber: dari tepi atas bbox sampai leher — penyempitan
- * lebar terdalam antara puncak kepala/bahu dan 80% bbox. Bila tidak ada
- * penyempitan berarti (rambut atau jubah lebar), pakai rasio bawaan supaya
- * skalanya tidak melejit.
+ * Susun satu ekspresi ke kanvas tetap: kepala ditinggikan `skala` kali, gambar
+ * digeser `geserKiri` px. Karena penyusunan selalu relatif ke tepi kiri bbox
+ * ekspresi itu, `geserKiri` yang sama menaruh sisi kiri semua ekspresi di titik
+ * yang sama — potret tidak melompat saat wajahnya berganti. Badan yang lebih
+ * panjang dari bingkai terpotong di tepi bawah.
+ *
+ * `ancorDasar` memindahkan patokan dari tepi atas (`MARGIN_ATAS`) ke tepi bawah
+ * kanvas. Dipakai karakter yang dikecilkan lewat `KOREKSI`: tanpa itu badannya
+ * berhenti di atas kanvas dan potret tampak melayang di atas kotak dialog.
  */
-function tinggiKepala(image, box) {
-  const profil = profilLebar(image, box);
-  const tinggi = profil.length;
-
-  const lo = Math.max(0, Math.round(tinggi * 0.15));
-  const hi = Math.max(lo, Math.round(tinggi * 0.45));
-  let iPuncak = lo;
-  let lebarPuncak = -1;
-  for (let i = lo; i <= hi; i += 1) {
-    if (profil[i] > lebarPuncak) {
-      lebarPuncak = profil[i];
-      iPuncak = i;
-    }
-  }
-
-  let iLeher = iPuncak;
-  let lebarLeher = Infinity;
-  const batasLeher = Math.max(iPuncak, Math.round(tinggi * 0.8));
-  for (let i = iPuncak; i <= batasLeher; i += 1) {
-    if (profil[i] < lebarLeher) {
-      lebarLeher = profil[i];
-      iLeher = i;
-    }
-  }
-
-  if (lebarPuncak <= 0 || lebarLeher > lebarPuncak * 0.8) {
-    return Math.max(1, Math.round(tinggi * PORSI_KEPALA_BAWAAN));
-  }
-  return Math.max(1, iLeher);
-}
-
-/** Nilai tengah; dipakai supaya satu ekspresi janggal tidak menggeser skala. */
-function median(nilai) {
-  const urut = [...nilai].sort((a, b) => a - b);
-  const tengah = Math.floor(urut.length / 2);
-  return urut.length % 2 === 0
-    ? (urut[tengah - 1] + urut[tengah]) / 2
-    : urut[tengah];
-}
-
-/**
- * Susun satu ekspresi ke kanvas tetap: kepala ditinggikan `skala` kali,
- * puncaknya di `MARGIN_ATAS`, dan gambar digeser `geserKiri` px. Karena
- * penyusunan selalu relatif ke tepi kiri bbox ekspresi itu, `geserKiri` yang
- * sama menaruh sisi kiri semua ekspresi di titik yang sama — potret tidak
- * melompat saat wajahnya berganti. Badan yang lebih panjang dari bingkai
- * terpotong di tepi bawah.
- */
-function susunPotret(image, box, skala, geserKiri) {
+function susunPotret(image, box, skala, geserKiri, ancorDasar = false) {
   const data = new Uint8Array(LEBAR_KANVAS * TINGGI_KANVAS * 4);
   const kiri = geserKiri;
+  const dasarSumber = box.maxY + 1;
 
   for (let y = 0; y < TINGGI_KANVAS; y += 1) {
-    const sy0 = box.minY + (y - MARGIN_ATAS) / skala;
-    const sy1 = box.minY + (y + 1 - MARGIN_ATAS) / skala;
+    const sy0 = ancorDasar
+      ? dasarSumber + (y - TINGGI_KANVAS) / skala
+      : box.minY + (y - MARGIN_ATAS) / skala;
+    const sy1 = ancorDasar
+      ? dasarSumber + (y + 1 - TINGGI_KANVAS) / skala
+      : box.minY + (y + 1 - MARGIN_ATAS) / skala;
     for (let x = 0; x < LEBAR_KANVAS; x += 1) {
       const sx0 = box.minX + (x - kiri) / skala;
       const sx1 = box.minX + (x + 1 - kiri) / skala;
@@ -424,22 +360,27 @@ for (const { folder, nama, pemain } of PETA) {
   });
 
   // Satu skala per karakter (median antar-ekspresi) supaya ukuran kepala tidak
-  // berubah saat ekspresi berganti.
-  const skalaKepala = TINGGI_KEPALA / median(ukur.map((entri) => entri.kepala));
+  // berubah saat ekspresi berganti. `KOREKSI` mengecilkan karakter yang wajahnya
+  // lebih lebar dari yang lain; karakter itu ditambatkan ke dasar kanvas.
+  const faktor = KOREKSI[nama] ?? 1;
+  const ancorDasar = KOREKSI[nama] !== undefined;
+  const skalaKepala =
+    (TINGGI_KEPALA / median(ukur.map((entri) => entri.kepala))) * faktor;
 
   // Isi potret harus menyentuh tepi bawah kanvas: kalau tidak, ada celah
   // transparan antara badan karakter dan tepi atas kotak dialog sehingga
   // potret tampak "melayang". Karakter berbadan pendek (kepala + bahu saja)
   // dinaikkan skalanya sedikit dengan satu faktor yang sama untuk semua
   // ekspresinya — kepala tetap rata di `MARGIN_ATAS`, dan potret tidak
-  // melompat saat ekspresi berganti.
+  // melompat saat ekspresi berganti. Karakter yang ditambatkan ke dasar sudah
+  // pasti menyentuh tepi bawah, jadi pemeriksa celah di bawah dilewati.
   const isiBawah = TINGGI_KANVAS - MARGIN_ATAS;
   const skalaIsi =
     isiBawah / median(ukur.map((entri) => entri.box.maxY - entri.box.minY + 1));
-  const skala = Math.max(skalaKepala, skalaIsi);
+  const skala = ancorDasar ? skalaKepala : Math.max(skalaKepala, skalaIsi);
 
   for (const { ekspresi, image, box } of ukur) {
-    const potret = susunPotret(image, box, skala, GESER_TEPI);
+    const potret = susunPotret(image, box, skala, GESER_TEPI, ancorDasar);
     const celah = celahBawah(potret.data);
     if (celah > MAKS_CELAH_BAWAH) {
       throw new Error(
