@@ -462,6 +462,15 @@ describe("GameShell", () => {
     ).toBeInTheDocument();
   });
 
+  it("Tab tidak dijebak saat layar hasil menutupi permainan", async () => {
+    await mainkan();
+    bus.emit({ type: "finished", result: hasilPalsu, answers: jawabanPalsu });
+    await screen.findByText(/Perjalanan ini sudah sampai ujung/i);
+
+    // Layar hasil punya tombol sendiri; Tab harus bebas menjangkaunya.
+    expect(fireEvent.keyDown(window, { key: "Tab" })).toBe(true);
+  });
+
   it("menyimpan hasil main lewat server action tanpa mengirim skor", async () => {
     await mainkan();
 
@@ -715,7 +724,7 @@ describe("GameShell — tombol percepat", () => {
     const lepasMulai = bus.onCommand("skip_start", mulai);
     const lepasBerhenti = bus.onCommand("skip_stop", berhenti);
 
-    // Belum ada dialog: Tab tidak diambil alih (fokus browser tetap jalan).
+    // Belum ada dialog: Tab bukan "Percepat" (jatah jebakan fokus gameplay).
     fireEvent.keyDown(window, { key: "Tab" });
     expect(mulai).not.toHaveBeenCalled();
 
@@ -737,6 +746,61 @@ describe("GameShell — tombol percepat", () => {
     expect(mulai).toHaveBeenCalledTimes(1);
     lepasMulai();
     lepasBerhenti();
+  });
+
+  it("Tab berputar di kontrol area permainan, tidak keluar ke peramban", async () => {
+    await mainkan();
+    const area = screen.getByRole("region", {
+      name: "Area permainan ClassQuest",
+    });
+
+    // Fokus awal dipasang di area permainan saat Phaser dibuat.
+    expect(area).toHaveFocus();
+
+    // Tab diambil alih dan memindahkan fokus ke kontrol pertama di dalam area.
+    expect(fireEvent.keyDown(area, { key: "Tab" })).toBe(false);
+    expect(area.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).not.toBe(area);
+
+    // Shift+Tab berjalan mundur dan tetap di dalam area.
+    const sebelumMundur = document.activeElement!;
+    expect(
+      fireEvent.keyDown(sebelumMundur, { key: "Tab", shiftKey: true }),
+    ).toBe(false);
+    expect(area.contains(document.activeElement)).toBe(true);
+
+    // Beberapa putaran penuh: fokus tidak pernah lepas ke body/peramban.
+    for (let putaran = 0; putaran < 12; putaran += 1) {
+      expect(fireEvent.keyDown(window, { key: "Tab" })).toBe(false);
+      expect(area.contains(document.activeElement)).toBe(true);
+    }
+  });
+
+  it("Ctrl+Tab dan Alt+Tab tetap milik peramban", async () => {
+    await mainkan();
+    const area = screen.getByRole("region", {
+      name: "Area permainan ClassQuest",
+    });
+    const fokusAwal = document.activeElement;
+
+    expect(fireEvent.keyDown(area, { key: "Tab", ctrlKey: true })).toBe(true);
+    expect(document.activeElement).toBe(fokusAwal);
+
+    expect(fireEvent.keyDown(area, { key: "Tab", altKey: true })).toBe(true);
+    expect(document.activeElement).toBe(fokusAwal);
+  });
+
+  it("Tab menarik fokus kembali saat aktifElement jatuh ke body", async () => {
+    await mainkan();
+    const area = screen.getByRole("region", {
+      name: "Area permainan ClassQuest",
+    });
+    // Tombol HUD memanggil `blur()`; fokus lalu ada di body.
+    (document.activeElement as HTMLElement | null)?.blur();
+    expect(document.activeElement).toBe(document.body);
+
+    expect(fireEvent.keyDown(window, { key: "Tab" })).toBe(false);
+    expect(area.contains(document.activeElement)).toBe(true);
   });
 
   it("garis kecepatan memudar masuk saat mempercepat dan keluar saat berhenti", async () => {

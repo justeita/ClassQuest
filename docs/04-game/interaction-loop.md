@@ -312,10 +312,12 @@ Browser memblokir audio sebelum interaksi pengguna. Karena itu:
 
 ## Fokus dan keyboard
 
-- Canvas diberi `tabindex="0"` dan `aria-label` singkat.
+- Area permainan diberi `tabindex="-1"` dan `aria-label` singkat.
 - Overlay tantangan memakai focus trap sederhana.
-- Setelah overlay ditutup, fokus kembali ke canvas.
-- Jangan menangkap `Tab` secara global.
+- Setelah overlay ditutup, fokus kembali ke area permainan.
+- Saat bermain tanpa dialog, `Tab`/`Shift+Tab` berputar di kontrol dalam area
+  permainan sehingga fokus tidak keluar ke bilah peramban. `Ctrl+Tab`/`Alt+Tab`
+  tidak disentuh, dan selama `dialog` `Tab` tetap dipakai untuk "Percepat".
 
 ## Input sentuh
 

@@ -8,6 +8,7 @@ import {
 } from "@/components/game/ChallengeOverlay";
 import { DialogueBox } from "@/components/game/DialogueBox";
 import { DialogueLog } from "@/components/game/DialogueLog";
+import { tangkapTab } from "@/components/game/fokusPermainan";
 import {
   ChapterCard,
   type ChapterCardView,
@@ -53,9 +54,19 @@ type GameCanvasProps = {
   onFinished?: (result: PlayResult, answers: Answer[]) => void;
   /** Tombol "Batal" di layar muat: kembali ke layar sebelum permainan. */
   onBatal: () => void;
+  /**
+   * `GameCanvas` adalah layar yang sedang aktif. Saat layar hasil menutupinya,
+   * jebakan fokus dilepas supaya `Tab` bisa menjangkau tombol-tombol hasil.
+   */
+  aktif?: boolean;
 };
 
-export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
+export function GameCanvas({
+  story,
+  onFinished,
+  onBatal,
+  aktif = true,
+}: GameCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const adaTantangan = useRef(false);
   const gameRef = useRef<GameHandle | null>(null);
@@ -546,8 +557,8 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
   }, []);
 
   // Pintasan Tab: sama dengan menahan tombol "Percepat" di HUD. Tab diambil
-  // alih hanya selama fase dialog; di luar itu biarkan browser memindahkan
-  // fokus seperti biasa (accessibility.md: jangan menangkap Tab secara global).
+  // alih hanya selama fase dialog; di luar itu Tab dipakai jebakan fokus di
+  // bawah supaya fokus tidak keluar ke bilah peramban.
   useEffect(() => {
     if (!dialogTerlihat) return;
 
@@ -586,6 +597,37 @@ export function GameCanvas({ story, onFinished, onBatal }: GameCanvasProps) {
     mulaiLewatiDialog,
     hentikanLewatiDialog,
   ]);
+
+  // Jebakan fokus area permainan: saat bermain tanpa dialog, `Tab`/`Shift+Tab`
+  // berputar di kontrol dalam area (HUD, buku quest) dan kembali ke kanvas bila
+  // tidak ada kontrol — jadi fokus tidak pernah lompat ke bilah peramban.
+  //
+  // Dilepas saat dialog (Tab = "Percepat") dan saat overlay tantangan/jeda/buku
+  // terbuka, karena panel-panel itu memegang fokusnya sendiri. `Ctrl+Tab` dan
+  // `Alt+Tab` tetap milik peramban (lihat `fokusPermainan.ts`).
+  useEffect(() => {
+    if (
+      !aktif ||
+      !siapMain ||
+      dialogTerlihat ||
+      jeda ||
+      bukuLog ||
+      bukuQuest ||
+      tantangan
+    ) {
+      return;
+    }
+
+    const wadah = containerRef.current;
+    if (!wadah) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      tangkapTab(event, wadah);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [aktif, siapMain, dialogTerlihat, jeda, bukuLog, bukuQuest, tantangan]);
 
   return (
     <div

@@ -138,7 +138,9 @@ di dalam `GameCanvas`: `loading` = progres aset belum penuh atau scene pertama
 belum siap, `ready` = event `ready` sudah datang dan layar muat sedang memudar.
 Selama overlay itu masih menutup layar, shortcut papan ketik `GameCanvas` (Esc,
 Q, B) sengaja mati — tidak ada permainan yang bisa dijedakan, dan Tab harus bisa
-keluar dari tombol "Batal". `QuestTracker` menerima daftar quest lewat event
+keluar dari tombol "Batal". Setelah `ready`, jebakan fokus aktif: `Tab`/
+`Shift+Tab` berputar di kontrol dalam area permainan supaya fokus tidak lompat ke
+bilah peramban. `QuestTracker` menerima daftar quest lewat event
 `quest` dari Phaser, diturunkan dari scene dan status runner — bukan ditebak dari
 DOM.
 
@@ -164,8 +166,9 @@ dari guru langsung melihat judul cerita, bukan menu.
   label versi di bawah. Pilihan aktif ditandai segitiga emas + warna emas.
 - Keyboard-first: `↑`/`↓` (atau `W`/`S`) memindahkan sorotan dan memindahkan
   fokus DOM, `Home`/`End` ke ujung daftar, `Enter`/`Space` menjalankan pilihan.
-  `Tab` tidak pernah diambil alih. Selama dialog terbuka, panah tidak menggerakkan
-  menu karena fokus milik dialog.
+  `Tab` tidak diambil alih di layar menu ini; jebakan fokus baru aktif di dalam
+  permainan. Selama dialog terbuka, panah tidak menggerakkan menu karena fokus
+  milik dialog.
 - `Mulai` menyerahkan kontrol ke `GameShell`, yang masih menampilkan layar judul
   cerita. Tidak ada "Lanjutkan": progres `localStorage` belum ada, jadi menu tidak
   menjanjikan simpanan yang belum pernah dibuat.

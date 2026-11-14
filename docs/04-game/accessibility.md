@@ -46,10 +46,13 @@ Aturan:
 
 - Urutan fokus logis: prompt → opsi → tombol jawab → feedback → lanjut.
 - Jangan memasang `tabindex` positif.
-- Jangan menangkap `Tab`; biarkan browser memindahkan fokus. **Pengecualian:**
-  hanya selama fase `dialog`, `Tab` dipakai untuk "Percepat" dan diambil alih
-  (`preventDefault`). Di semua fase lain — termasuk saat soal — `Tab` kembali
-  memindahkan fokus seperti biasa.
+- **Fokus tidak boleh keluar dari area permainan saat bermain.** `Tab`/
+  `Shift+Tab` berputar di kontrol dalam area game (HUD, buku quest) dan kembali
+  ke kanvas bila tidak ada kontrol, sehingga fokus tidak lompat ke bilah peramban.
+  Jebakan ini lokal: hanya berlaku saat fokus ada di area permainan (atau belum di
+  mana pun), dan `Ctrl+Tab`/`Alt+Tab` tetap milik peramban. Selama fase `dialog`,
+  `Tab` dipakai untuk "Percepat" dan diambil alih (`preventDefault`). Saat soal,
+  panel tantangan mengurus fokusnya sendiri.
 - Saat panel tantangan muncul, fokus pindah ke panel itu sendiri (`tabIndex={-1}`).
 - Saat panel ditutup, fokus kembali ke area permainan (canvas), bukan hilang ke
   `body`.
