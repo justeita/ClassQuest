@@ -59,7 +59,7 @@ const PAGES = [
 const OUTLINE: Outline = {
   title: "Perjalanan Setetes Air",
   synopsis:
-    "Kael mengikuti perjalanan air dari genangan di halaman sekolah sampai kembali sebagai hujan.",
+    "Kael mengikuti perjalanan air dari genangan di alun-alun desa sampai kembali sebagai hujan.",
   language: "id",
   concepts: ["Evaporasi", "Kondensasi", "Presipitasi"],
   cast: [
@@ -81,8 +81,7 @@ const OUTLINE: Outline = {
       id: "ch_01",
       title: "Pagi yang Menguap",
       concept: "Evaporasi",
-      summary:
-        "Kael melihat genangan di halaman sekolah menyusut tanpa diseka.",
+      summary: "Kael melihat genangan di alun-alun desa menyusut tanpa diseka.",
       sourcePages: [1],
     },
     {
@@ -97,8 +96,7 @@ const OUTLINE: Outline = {
       id: "ch_03",
       title: "Hujan Kembali",
       concept: "Presipitasi",
-      summary:
-        "Titik air jatuh kembali ke halaman sekolah dan menggenang lagi.",
+      summary: "Titik air jatuh kembali ke alun-alun desa dan menggenang lagi.",
       sourcePages: [3],
     },
   ],
@@ -112,12 +110,12 @@ const CONTINUITY: ContinuityState = {
   characterStates: [
     {
       id: "char_mc",
-      location: "halaman sekolah",
+      location: "alun-alun desa",
       knows: ["air bisa menguap"],
     },
     {
       id: "char_npc_10",
-      location: "halaman sekolah",
+      location: "alun-alun desa",
       knows: ["siklus air"],
     },
   ],
@@ -278,6 +276,35 @@ describe("blok prompt dan urutannya", () => {
     expect(SYSTEM_PROMPT).toContain("Dialog tentang suatu bidang diberikan");
     expect(SYSTEM_PROMPT).toContain("Elian, Elias, dan");
     expect(SYSTEM_PROMPT).toContain("Clara memang gemar membaca");
+  });
+
+  it("system prompt mengunci latar cerita ke peta desa", () => {
+    expect(SYSTEM_PROMPT).toContain("TEMPAT DAN WAKTU");
+    expect(SYSTEM_PROMPT).toContain("Desa Sukamaju");
+    expect(SYSTEM_PROMPT).toContain("DILARANG memakai ruang di dalam gedung");
+    expect(SYSTEM_PROMPT).toContain('"papan tulis"');
+    expect(SYSTEM_PROMPT).toContain('"halaman sekolah"');
+  });
+
+  it("blok DUNIA dikirim sebelum LOKASI dan melarang ruangan gedung", () => {
+    const outline = buildOutlinePrompt(outlineInput()).user;
+    const chapter = buildChapterPrompt(chapterInput()).user;
+
+    for (const user of [outline, chapter]) {
+      expectOrder(user, ["CAST", "DUNIA", "LOKASI", "OUTLINE"]);
+      expect(user).toContain("SATU peta desa");
+      expect(user).toContain("Adegan di dalam gedung");
+    }
+  });
+
+  it("blok CAST membawa sifat dan cara bicara per tokoh", () => {
+    const { user } = buildChapterPrompt(chapterInput());
+
+    expect(user).toContain("penampilan:");
+    expect(user).toContain("sifat:");
+    expect(user).toContain("bicara:");
+    expect(user).toContain("keahlian:");
+    expect(user).toContain("lokasi:");
   });
 
   it("TASK mengikuti nada guru dan mengingatkan suara roleplay", () => {
@@ -572,8 +599,8 @@ describe("repair", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("parameter generasi", () => {
-  it("memakai PROMPT_VERSION story-v12", () => {
-    expect(PROMPT_VERSION).toBe("story-v12");
+  it("memakai PROMPT_VERSION story-v14", () => {
+    expect(PROMPT_VERSION).toBe("story-v14");
   });
 
   it("BATAS OUTLINE menyebut batas konsep dan enum role", () => {
@@ -685,6 +712,50 @@ describe("mode permainan di prompt", () => {
     // lama dan tes supaya prompt tetap punya satu bentuk cerita.
     expect(outline(undefined)).toContain("Mode mix");
     expect(chapter(undefined)).toContain("Mode mix");
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* 5b. Sebaran pembicara (ADR 0036)                                           */
+/* -------------------------------------------------------------------------- */
+
+describe("sebaran pembicara", () => {
+  it("system prompt melarang satu tokoh memegang seluruh dialog", () => {
+    expect(SYSTEM_PROMPT).toContain("SEBARAN PEMBICARA");
+    expect(SYSTEM_PROMPT).toContain("minimal tiga tokoh berbeda");
+    expect(SYSTEM_PROMPT).toContain(
+      "Mentor tidak boleh memegang seluruh percakapan",
+    );
+  });
+
+  it("TASK chapter selalu meminta minimal dua NPC", () => {
+    const { user } = buildChapterPrompt(chapterInput());
+
+    expect(user).toContain("Sebaran pembicara:");
+    expect(user).toContain("minimal dua NPC berbeda");
+  });
+
+  it("chapter pertama diminta memilih dua sampai empat NPC", () => {
+    const { user } = buildChapterPrompt(chapterInput());
+
+    expect(user).toContain("Ini chapter pertama");
+    expect(user).not.toContain("Sudah bicara di chapter sebelumnya");
+  });
+
+  it("chapter berikutnya menyebut nama tokoh yang sudah bicara", () => {
+    const { user } = buildChapterPrompt(
+      chapterInput({ usedSpeakers: ["char_npc_10", "char_npc_1"] }),
+    );
+
+    // Nama, bukan id, supaya model tidak menyalin id ke teks cerita.
+    expect(user).toContain("Sudah bicara di chapter sebelumnya: Edric, Elian.");
+    expect(user).not.toContain("Sudah bicara di chapter sebelumnya: char_");
+  });
+
+  it("daftar pembicara kosong tetap menghasilkan TASK yang sah", () => {
+    const { user } = buildChapterPrompt(chapterInput({ usedSpeakers: [] }));
+
+    expect(user).toContain("Ini chapter pertama");
   });
 });
 

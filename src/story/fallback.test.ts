@@ -197,6 +197,40 @@ describe("bentuk cerita cadangan", () => {
     );
   });
 
+  it("menyebar dialog ke beberapa NPC, bukan hanya mentor", () => {
+    const { story } = check({ concepts: CONCEPTS });
+    const playerId = story.cast.find((c) => c.role === "player")?.id;
+    const semua = new Set<string>();
+
+    for (const chapter of story.chapters) {
+      const pembicara = new Set<string>();
+
+      for (const scene of chapter.scenes) {
+        for (const beat of scene.beats) {
+          const kandidat =
+            beat.type === "dialogue"
+              ? [beat]
+              : beat.type === "challenge"
+                ? (beat.onWrong?.detour ?? [])
+                : [];
+
+          for (const dialog of kandidat) {
+            if (dialog.type !== "dialogue") continue;
+            if (dialog.speakerId === playerId) continue;
+            pembicara.add(dialog.speakerId);
+            semua.add(dialog.speakerId);
+          }
+        }
+      }
+
+      // Mentor + dua pendamping; cukup untuk menghindari `W_SINGLE_SPEAKER`.
+      expect(pembicara.size).toBeGreaterThanOrEqual(2);
+    }
+
+    // Bergiliran antar chapter: cerita tiga chapter memakai minimal empat NPC.
+    expect(semua.size).toBeGreaterThanOrEqual(4);
+  });
+
   it("memakai tepat satu player dan minimal satu mentor", () => {
     const { story } = check({ concepts: CONCEPTS });
 
@@ -219,6 +253,21 @@ describe("bentuk cerita cadangan", () => {
     // Tidak ada jejak file asli yang bisa disalahartikan sebagai fakta materi.
     expect(text).not.toContain("siklus-air.pdf");
     expect(text).not.toMatch(/\b\d{4}\b/);
+  });
+
+  it("bercerita di desa, bukan di kelas atau gedung sekolah", () => {
+    const { story } = check({ concepts: CONCEPTS });
+    const text = JSON.stringify(story).toLowerCase();
+
+    for (const asing of [
+      "kelas",
+      "sekolah",
+      "papan tulis",
+      "bel berbunyi",
+      "papan piket",
+    ]) {
+      expect(text, asing).not.toContain(asing);
+    }
   });
 });
 

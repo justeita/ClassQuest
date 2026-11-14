@@ -702,6 +702,7 @@ describe("warning", () => {
       "W_LONG_DIALOGUE_RUN",
       "W_NO_CHALLENGE_IN_SCENE",
       "W_SHORT_ANSWER_ONLY",
+      "W_SINGLE_SPEAKER",
       "W_TRUE_FALSE_BIAS",
     ]);
   });
@@ -735,6 +736,11 @@ describe("warning", () => {
       "chapters[1]",
       "chapters[2]",
     ]);
+    expect(pathsOf(result.warnings, "W_SINGLE_SPEAKER")).toEqual([
+      "chapters[0]",
+      "chapters[1]",
+      "chapters[2]",
+    ]);
   });
 
   it("tidak melaporkan warning saat cerita masih punya error", () => {
@@ -748,9 +754,13 @@ describe("warning", () => {
       codes(validateStory(readFixture("warnings"), options).warnings),
     );
 
-    // W_TEXT_VARIANT_FLAG_UNSET hanya muncul dari `validateChapter`
-    // (validate-parts.test.ts), bukan dari validator cerita penuh.
-    const chapterOnly = new Set(["W_TEXT_VARIANT_FLAG_UNSET"]);
+    // W_TEXT_VARIANT_FLAG_UNSET dan W_LOCATION_UNKNOWN hanya muncul dari
+    // `validateChapter` (validate-parts.test.ts), bukan dari validator cerita
+    // penuh.
+    const chapterOnly = new Set([
+      "W_TEXT_VARIANT_FLAG_UNSET",
+      "W_LOCATION_UNKNOWN",
+    ]);
 
     expect(
       WARNING_CODES.filter(
@@ -771,11 +781,23 @@ describe("fixture demo game", () => {
     // Tiga `W_LONG_DIALOGUE_RUN` berasal dari isi fixture (adegan pesta panen
     // punya lebih dari 6 beat dialog/narasi berturut-turut), bukan dari
     // validator. Kalau fixture dirapikan, daftar ini ikut menyusut.
+    // `W_SINGLE_SPEAKER` menunjuk chapter 2 yang seluruh dialognya dipegang
+    // Theo; fixture ini sengaja tidak diubah supaya contoh peringatan tetap ada.
     expect(result.warnings.map((warning) => warning.code)).toEqual([
       "W_NO_CHALLENGE_IN_SCENE",
+      "W_SINGLE_SPEAKER",
       "W_LONG_DIALOGUE_RUN",
       "W_LONG_DIALOGUE_RUN",
       "W_LONG_DIALOGUE_RUN",
+    ]);
+  });
+
+  it("hanya menandai chapter yang dialognya dipegang satu tokoh", () => {
+    const result = validateStory(demoStory, options);
+
+    // Chapter lain memakai beberapa NPC, jadi tidak ikut ditandai.
+    expect(pathsOf(result.warnings, "W_SINGLE_SPEAKER")).toEqual([
+      "chapters[1]",
     ]);
   });
 });

@@ -11,8 +11,13 @@
  * dipasangkan dengan gambar.
  *
  * Detail visual yang lebih lengkap (rambut, outfit, usia, sifat) didokumentasikan
- * di `docs/07-assets/cast-bible.md`. Dokumen itu **tidak** dibaca runtime: yang
- * sampai ke model hanya `description` di bawah, maksimal 160 karakter.
+ * di `docs/07-assets/cast-bible.md`. Dokumen itu **tidak** dibaca runtime.
+ *
+ * Yang sampai ke model: `description` di bawah (maksimal 160 karakter, batas
+ * schema) ditambah tiga peta prompt-only — `CAST_EXPERTISE` (bidang),
+ * `CAST_TRAITS` (sifat khas), dan `CAST_VOICE` (cara bicara). Ketiganya **bukan**
+ * bagian schema cerita; mengubahnya hanya mengubah isi blok `CAST`, tidak
+ * mengubah bentuk `Story` (ADR 0038).
  */
 
 import type { Character } from "./schema";
@@ -159,6 +164,47 @@ export const CAST_EXPERTISE: Readonly<Record<string, string>> = {
 };
 
 /**
+ * Sifat khas tiap tokoh, **hanya untuk prompt**.
+ *
+ * Berbeda dari `description` yang harus memuat ciri fisik, peta ini khusus
+ * watak: bagaimana tokoh bereaksi, apa yang ia hindari, dan apa yang membuatnya
+ * terasa berbeda dari tokoh lain. Model memakainya untuk memilih emosi dan
+ * sikap, bukan untuk menyebut "sifat" secara harfiah di dialog (ADR 0038).
+ */
+export const CAST_TRAITS: Readonly<Record<string, string>> = {
+  char_mc: "tenang, pendiam, sederhana, penuh rasa ingin tahu",
+  char_npc_10: "bijaksana, tenang, berwibawa, menimbang sebelum memutuskan",
+  char_npc_1: "pendiam, lembut, gemar membaca, lebih nyaman dengan buku",
+  char_npc_3: "tenang, teliti, rapi, tidak suka menebak-nebak",
+  char_npc_4: "lembut, tekun, sabar, tidak pernah buru-buru",
+  char_npc_5: "bijaksana, ramah, penyayang, seperti nenek bagi semua warga",
+  char_npc_6: "bijaksana, tenang, ramah, suka bernostalgia",
+  char_npc_7: "ramah, santai, sabar, tidak pernah terburu-buru",
+  char_npc_8: "tenang, sopan, pemberani, menjunjung janji",
+  char_npc_9: "ramah, pekerja keras, ceria, bangga pada desanya",
+};
+
+/**
+ * Cara bicara tiap tokoh, **hanya untuk prompt**.
+ *
+ * Tanpa kolom ini, semua tokoh menulis kalimat dengan pola yang sama dan cerita
+ * terasa seperti satu orang berbicara dengan banyak nama. Isinya pola konkret
+ * (panjang kalimat, kebiasaan, perumpamaan), bukan sekadar kata sifat (ADR 0038).
+ */
+export const CAST_VOICE: Readonly<Record<string, string>> = {
+  char_mc: "kalimat pendek, banyak bertanya, jarang berpendapat panjang",
+  char_npc_10: "tenang dan runtut, menimbang dua sisi sebelum menyimpulkan",
+  char_npc_1: "pelan dan hati-hati, sering mengutip isi buku",
+  char_npc_3: "rinci dan berurutan, suka menyebut catatannya",
+  char_npc_4: "hangat dan sabar, mengulang hal penting dengan kata sendiri",
+  char_npc_5: "lembut dan pelan, memakai perumpamaan merawat tanaman",
+  char_npc_6: "seperti bercerita, suka membuka dengan kisah lama desa",
+  char_npc_7: "kalimat pendek, banyak jeda, suka perumpamaan sungai",
+  char_npc_8: "tegas dan sopan, kalimat pendek seperti sumpah kesatria",
+  char_npc_9: "ceplas-ceplos ceria, banyak menyebut kerja ladang",
+};
+
+/**
  * Tempat tetap di desa, **hanya untuk prompt**.
  *
  * Peta desa (`src/game/world/village.json`) sudah memposisikan sembilan NPC di
@@ -249,6 +295,48 @@ export const CAST_PLACES: readonly CastPlace[] = [
 /** Lokasi tetap seorang tokoh; `undefined` bila id tidak dikenal. */
 export function locationOf(id: string): string | undefined {
   return CAST_PLACES.find((place) => place.members.includes(id))?.label;
+}
+
+/**
+ * Sebutan pendek yang tetap dianggap menunjuk sebuah tempat desa.
+ *
+ * Model kadang menyingkat label `LOKASI` ("kolam timur" alih-alih "bangku di
+ * samping pohon berbunga merah muda, dekat kolam"). Daftar ini dipakai
+ * `isKnownPlace()` supaya singkatan wajar tidak memicu peringatan, sementara
+ * nama tempat di luar desa (mis. "kelas", "halaman sekolah") tetap tertangkap.
+ */
+const PLACE_ALIASES: Readonly<Record<string, readonly string[]>> = {
+  bebas: ["berjalan bebas", "mengikuti cerita"],
+  alun_alun: ["alun-alun", "air mancur"],
+  perpustakaan: ["perpustakaan", "taman bunga"],
+  kolam_timur: ["kolam timur", "kolam", "pohon berbunga"],
+  rumah_hijau: ["rumah beratap hijau", "rumah hijau"],
+  rumah_biru: ["rumah beratap biru", "rumah biru"],
+  jembatan: ["jembatan", "sungai"],
+  pintu_selatan: ["pintu masuk selatan", "pintu selatan", "gerbang desa"],
+  kebun: ["kebun", "sumur batu", "sawah"],
+  rumah_merah: ["rumah beratap merah", "rumah merah"],
+};
+
+/**
+ * Apakah `location` menyebut salah satu tempat tetap desa.
+ *
+ * Perbandingan longgar dan sengaja murah: label utuh, potongan label, atau
+ * alias pendek. Ini dipakai validator untuk memberi **peringatan** pada
+ * `continuity.characterStates[].location`, bukan untuk menolak cerita.
+ */
+export function isKnownPlace(location: string): boolean {
+  const text = location.trim().toLowerCase();
+  if (text.length === 0) return false;
+
+  return CAST_PLACES.some((place) => {
+    const label = place.label.toLowerCase();
+    if (text.includes(label)) return true;
+    if (text.length >= 4 && label.includes(text)) return true;
+    return (PLACE_ALIASES[place.id] ?? []).some((alias) =>
+      text.includes(alias),
+    );
+  });
 }
 
 /** Id pemain tetap; dipakai fallback dan test. */

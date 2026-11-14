@@ -26,6 +26,8 @@ import { ASSETS_BY_ID } from "../assets/manifest";
 import {
   CAST_EXPERTISE,
   CAST_PLACES,
+  CAST_TRAITS,
+  CAST_VOICE,
   FIXED_CAST,
   locationOf,
 } from "../story/cast";
@@ -39,7 +41,7 @@ import type { LlmRequest } from "./provider";
  * `story-v11` menambahkan instruksi per mode permainan (ADR 0028): `menjelaskan`,
  * `pertanyaan`, dan `mix` mengubah jumlah chapter serta kepadatan tantangan.
  */
-export const PROMPT_VERSION = "story-v12";
+export const PROMPT_VERSION = "story-v14";
 
 /**
  * Plafon output per panggilan. Reasoning model bisa memakai 6.000–14.000
@@ -96,6 +98,15 @@ export const MATERIAL_END = "<<<MATERIAL_END>>>";
  * `story-v12` menambahkan blok `LOKASI` dan aturan `PENEMPATAN TOKOH`: tiap
  * tokoh punya tempat tetap di desa, dan blok `CAST` kini membawa kolom `lokasi`
  * per tokoh (ADR 0029).
+ * `story-v13` menambahkan blok `SEBARAN PEMBICARA`: dialog satu chapter harus
+ * dibagi ke beberapa NPC, bukan dipegang satu tokoh saja. Prompt chapter juga
+ * menerima daftar pembicara chapter sebelumnya supaya giliran tokoh bergilir
+ * (ADR 0036).
+ * `story-v14` menambahkan blok `TEMPAT DAN WAKTU` di system prompt dan blok
+ * `DUNIA` di pesan pengguna: seluruh cerita terjadi di peta desa, bukan di
+ * ruang kelas atau gedung sekolah. Blok `CAST` kini membawa `sifat` dan `bicara`
+ * per tokoh supaya dialog tidak terdengar sama untuk semua orang (ADR 0037,
+ * ADR 0038).
  */
 export const SYSTEM_PROMPT = `Kamu adalah penulis cerita untuk game edukasi 2D pixel bergaya Omori.
 Tugasmu mengubah MATERI dari guru menjadi cerita yang bisa dimainkan.
@@ -128,6 +139,28 @@ GAYA
 - Tidak ada kekerasan, romansa, horor, atau tema depresi. Ketegangan hanya
   sebatas rasa penasaran.
 
+TEMPAT DAN WAKTU
+- Seluruh cerita terjadi di satu tempat yang sama: desa kecil bernama
+  Desa Sukamaju, dilihat dari atas seperti peta game. Pemain berjalan kaki dari
+  satu tempat ke tempat lain.
+- Tempat yang ada di desa: alun-alun dengan air mancur dan bangku kayu, jalan
+  utama berbatu, balai desa, rumah warga beratap merah, hijau, dan biru,
+  perpustakaan di timur laut, jembatan kayu di atas sungai di selatan, kolam di
+  timur, kebun sayur dan sawah di barat dengan sumur batu, pintu masuk desa di
+  selatan, serta hutan di luar gerbang.
+- Belajar terjadi di luar ruangan: di bangku alun-alun, di tepi jembatan, di
+  kebun, di halaman rumah, atau sambil berjalan di jalan utama.
+- DILARANG memakai ruang di dalam gedung: kelas, koridor, laboratorium, kantor
+  guru, ruang rapat, aula, atau perpustakaan bagian dalam. DILARANG memakai
+  kata "kelas", "papan tulis", "bel sekolah", "halaman sekolah", "meja guru",
+  atau "rapat di ruangan".
+- Jangan menulis adegan "guru menulis di papan tulis" atau "murid duduk di
+  bangku kelas". Ganti dengan tokoh yang menunjukkan benda nyata: selembar
+  daun, air dari sumur, biji di telapak tangan, keranjang ikan, atau batu di
+  tepi sungai.
+- Perpindahan tempat harus terasa: sebut dalam narasi bahwa tokoh berjalan,
+  menyeberang jembatan, atau menyusuri jalan sebelum adegan berpindah.
+
 PEMILIHAN PEMBICARA
 - Setiap tokoh punya bidangnya sendiri; lihat kolom "keahlian" di blok CAST.
   Dialog tentang suatu bidang diberikan kepada tokoh yang keahliannya cocok.
@@ -137,10 +170,29 @@ PEMILIHAN PEMBICARA
 - Topik desa dan alam punya pemiliknya: ikan, sungai, dan perahu → Marlow;
   ladang, tanaman, dan panen → Theo; menjaga, aturan, dan keamanan → Leonhardt;
   sejarah dan cerita lama desa → Eldric.
-- Konsep pelajaran tetap disampaikan Edric sebagai mentor, atau oleh tokoh yang
+- Konsep pelajaran boleh disampaikan Edric sebagai mentor, atau oleh tokoh yang
   mengalami langsung. Tokoh ahli menjelaskan dari pengalamannya, bukan dari buku.
-- Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor. Jangan mengarang
-  keahlian baru untuk tokoh lain.
+- Kalau tidak ada tokoh yang benar-benar ahli, pakai mentor untuk bagian
+  penjelasan, bukan untuk seluruh dialog. Tokoh lain tetap bertanya, mengamati,
+  dan bereaksi. Jangan mengarang keahlian baru untuk tokoh lain.
+
+SEBARAN PEMBICARA
+- Keahlian memilih siapa yang menjelaskan inti konsep, bukan siapa satu-satunya
+  yang boleh bicara. Mentor tidak boleh memegang seluruh percakapan.
+- Setiap chapter memakai dialog dari minimal tiga tokoh berbeda: Kael dan
+  minimal dua NPC. Chapter dengan lima scene atau lebih sebaiknya memakai tiga
+  sampai empat NPC.
+- Satu NPC tidak boleh memegang lebih dari separuh beat dialog chapter. Sesudah
+  mentor menjelaskan, beri tokoh lain giliran bertanya, menyanggah, atau
+  menambahkan pengalaman mereka.
+- Sebar dialog NPC ke beberapa scene; jangan menumpuk semua percakapan di scene
+  pertama lalu sisanya narasi.
+- Jangan memakai NPC yang sama sebagai satu-satunya lawan bicara di semua
+  chapter. Sepanjang cerita, minimal empat NPC berbeda mendapat dialog (lima
+  bila ada empat chapter atau lebih), selama tempat dan keahliannya cocok.
+- Jangan memaksa tokoh muncul hanya untuk memenuhi jumlah. Kalau adegan memang
+  paling masuk akal untuk dua NPC, pakai dua NPC berbeda dan pastikan keduanya
+  benar-benar bicara.
 
 PENEMPATAN TOKOH
 - Setiap tokoh punya tempat tetap di desa; lihat blok LOKASI. Adegan terjadi di
@@ -181,7 +233,12 @@ SUARA DAN ROLEPLAY
 - Narasi boleh menyapa pemain dengan "kamu" atau menyebut nama tokoh pemain.
   Pilih satu sudut pandang dan pakai konsisten sepanjang cerita.
 - Setiap tokoh punya cara bicara sendiri: pilihan kata, panjang kalimat, dan
-  kebiasaan ucapan. Jangan sampai semua tokoh terdengar sama.
+  kebiasaan ucapan. Kolom "sifat" dan "bicara" di blok CAST adalah peganganmu;
+  jangan sampai semua tokoh terdengar sama.
+- Saat seorang tokoh pertama kali muncul di sebuah chapter, narasi menyebut satu
+  ciri yang terlihat di sprite-nya (topi jerami Marlow, helm perak Leonhardt,
+  kacamata Elias, tongkat Griselda, jubah biru royal Clara). Satu ciri cukup;
+  jangan mendeskripsikan seluruh penampilan.
 - Dialog harus terasa diucapkan: pendek, ada jeda dan reaksi. Jangan ada
   dialog yang berbunyi seperti definisi kamus.
 - Ikuti tema dan nada (tone) yang diminta guru pada TASK: pilih kosakata,
@@ -309,6 +366,12 @@ export type ChapterPromptInput = {
    * supaya model memakai ulang id yang sama, bukan mengarang id baru.
    */
   usedFlags?: readonly string[];
+  /**
+   * Id NPC yang sudah bicara di chapter sebelumnya. Prompt memakainya untuk
+   * mengingatkan model supaya giliran pembicara bergilir, bukan menumpuk di
+   * tokoh yang sama (ADR 0036). Pemain (`char_mc`) tidak perlu dimasukkan.
+   */
+  usedSpeakers?: readonly string[];
 };
 
 export type RepairPromptInput = {
@@ -597,6 +660,8 @@ BATAS CHAPTER
 - Setiap chapter minimal satu beat challenge; setiap challenge dirujuk tepat
   satu kali.
 - transition tidak boleh menjadi beat terakhir sebuah scene.
+- continuity.characterStates[].location wajib nama tempat dari blok LOKASI,
+  bukan nama ruangan karangan (mis. "kelas").
 - Jangan menambahkan field di luar SCHEMA.`;
 
 /**
@@ -705,28 +770,62 @@ const assetSection = (assets: AssetManifest): string => {
 };
 
 /**
- * Blok roster tetap. Deskripsi penampilan, keahlian, dan lokasi tetap ikut
- * dikirim supaya model menulis aksi dan dialog yang cocok dengan sprite (mis.
- * nenek bertongkat atau pelajar bertopi biru), memberi dialog bidang tertentu
- * kepada tokoh yang memang ahli di bidang itu, dan menempatkan tokoh di tempat
- * yang sama dengan posisinya di peta (ADR 0025).
+ * Blok roster tetap. Satu tokoh = satu blok beberapa baris: penampilan, sifat,
+ * cara bicara, keahlian, dan lokasi. Semua itu ikut dikirim supaya model menulis
+ * aksi dan dialog yang cocok dengan sprite (mis. nenek bertongkat atau pelajar
+ * bertopi biru), memberi dialog bidang tertentu kepada tokoh yang memang ahli,
+ * menempatkan tokoh di tempat yang sama dengan posisinya di peta (ADR 0025,
+ * ADR 0029), dan membedakan suara tiap tokoh (ADR 0038).
  */
 const castSection = (): string => {
-  const lines = FIXED_CAST.map((member) => {
-    const smallTalk =
-      member.smallTalk === undefined ? "" : ` | obrolan: "${member.smallTalk}"`;
+  const entry = (member: (typeof FIXED_CAST)[number]): string[] => {
+    const lines = [
+      `- ${member.id} | ${member.name} | role: ${member.role} | sprite: ${member.spriteId}`,
+      `  penampilan: ${member.description ?? "(tanpa deskripsi)"}`,
+    ];
+
+    const sifat = CAST_TRAITS[member.id];
+    if (sifat !== undefined) lines.push(`  sifat: ${sifat}`);
+
+    const bicara = CAST_VOICE[member.id];
+    if (bicara !== undefined) lines.push(`  bicara: ${bicara}`);
+
     const keahlian = CAST_EXPERTISE[member.id];
-    const bidang = keahlian === undefined ? "" : ` | keahlian: ${keahlian}`;
+    if (keahlian !== undefined) lines.push(`  keahlian: ${keahlian}`);
+
     const lokasi = locationOf(member.id);
-    const di = lokasi === undefined ? "" : ` | lokasi: ${lokasi}`;
-    return `- ${member.id} | ${member.name} | role: ${member.role} | sprite: ${member.spriteId} | deskripsi: ${member.description ?? "(tanpa deskripsi)"}${bidang}${di}${smallTalk}`;
-  });
+    if (lokasi !== undefined) lines.push(`  lokasi: ${lokasi}`);
+
+    if (member.smallTalk !== undefined) {
+      lines.push(`  obrolan: "${member.smallTalk}"`);
+    }
+
+    return lines;
+  };
 
   return [
     "CAST",
     "Cast sudah ditetapkan dan tidak boleh diubah. Salin persis id, name, role, spriteId, description, dan smallTalk dari daftar ini. Jangan menambah, mengurangi, atau mengganti nama tokoh.",
-    "Kolom keahlian dan lokasi hanya untuk menyusun adegan; jangan disalin ke keluaran JSON.",
-    ...lines,
+    "Kolom sifat, bicara, keahlian, dan lokasi hanya untuk menyusun adegan; jangan disalin ke keluaran JSON.",
+    ...FIXED_CAST.flatMap(entry),
+  ].join("\n");
+};
+
+/**
+ * Blok dunia. Menegaskan bahwa cerita dimainkan di satu peta desa — bukan di
+ * gedung sekolah — dan menghubungkan tempat di peta dengan blok `LOKASI`.
+ *
+ * Tanpa blok ini, model mengikuti kebiasaan buku pelajaran dan menulis adegan
+ * "di kelas" walaupun latar runtime selalu peta desa (`scene-format.md`,
+ * ADR 0037).
+ */
+const worldSection = (): string => {
+  return [
+    "DUNIA",
+    "Latar permainan adalah SATU peta desa (Desa Sukamaju) yang digambar utuh. Tidak ada layar ruangan terpisah dan tidak ada pergantian latar: pemain selalu berada di peta ini.",
+    "Tempat yang boleh muncul di cerita hanya tempat yang ada di blok LOKASI dan daftar di bawah. Jangan mengarang ruangan baru.",
+    ...CAST_PLACES.map((place) => `- ${place.label}`),
+    "Adegan di dalam gedung (kelas, koridor, laboratorium, kantor) tidak bisa digambar oleh game ini: jangan menulisnya.",
   ].join("\n");
 };
 
@@ -859,6 +958,31 @@ const chapterModeTask = (mode: StoryMode): string => {
   }
 };
 
+/**
+ * Baris TASK untuk sebaran pembicara.
+ *
+ * Daftar `usedSpeakers` berasal dari chapter yang sudah ditulis. Tanpa
+ * pengingat ini, model cenderung memakai mentor yang sama di semua chapter,
+ * sehingga cerita terasa seperti monolog satu tokoh (ADR 0036).
+ */
+const speakerTask = (usedSpeakers: readonly string[]): string => {
+  const nama = new Map(FIXED_CAST.map((member) => [member.id, member.name]));
+  const sudah = [...new Set(usedSpeakers)]
+    .map((id) => nama.get(id) ?? id)
+    .filter((name) => name.length > 0);
+
+  const giliran =
+    sudah.length > 0
+      ? `Sudah bicara di chapter sebelumnya: ${sudah.join(", ")}. Beri giliran kepada tokoh yang belum bicara bila cocok dengan adegan dan keahliannya.`
+      : "Ini chapter pertama; pilih dua sampai empat NPC yang paling cocok dengan adegan dan keahliannya.";
+
+  return [
+    "Sebaran pembicara:",
+    "- Pakai minimal dua NPC berbeda di chapter ini (plus Kael), dan jangan biarkan satu tokoh memegang lebih dari separuh beat dialog.",
+    `- ${giliran}`,
+  ].join("\n");
+};
+
 /* -------------------------------------------------------------------------- */
 /* Builder                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -895,6 +1019,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): PromptResult {
     SECTION_SCHEMA_OUTLINE,
     assetSection(input.assets),
     castSection(),
+    worldSection(),
     locationSection(),
     [
       "OUTLINE",
@@ -907,6 +1032,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): PromptResult {
       `Buat outline cerita dari materi di atas. ${metaContext(input.meta, language)}`,
       outlineModeTask(modeOf(input.meta)),
       "Judul dan synopsis harus terasa seperti cerita bergaya roleplay yang mengikuti nada di atas, bukan judul buku pelajaran.",
+      "Synopsis dan ringkasan chapter terjadi di desa: sebut tempat warga, bukan ruang kelas atau gedung sekolah.",
       `Halaman yang tersedia: ${pageList(summary.pages)}.`,
       summary.droppedPages.length > 0
         ? `Materi dipotong pada batas ${MAX_MATERIAL_CHARS} karakter; halaman ${pageList(
@@ -947,6 +1073,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
     ...(input.branching ? [branchingSection(input.usedFlags ?? [])] : []),
     assetSection(input.assets),
     castSection(),
+    worldSection(),
     locationSection(),
     ["OUTLINE", JSON.stringify(input.outline, null, 2)].join("\n"),
     continuitySection(input.continuity),
@@ -956,6 +1083,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
       `Tulis chapter "${input.planned.id}" berjudul "${input.planned.title}" untuk konsep "${input.planned.concept}".`,
       metaContext(input.meta, language),
       chapterModeTask(modeOf(input.meta)),
+      speakerTask(input.usedSpeakers ?? []),
       'Tulis narasi dan dialog sebagai roleplay yang hidup: bahasa sehari-hari siswa, hindari "Anda/Saya" yang kaku, dan ikuti nada di atas.',
       "Beri setiap beat dialogue field expression sesuai reaksinya, dan beri expression berbeda pada varian jawaban salah.",
       `Halaman materi untuk chapter ini: ${pageList(summary.pages)}.`,
@@ -966,6 +1094,8 @@ export function buildChapterPrompt(input: ChapterPromptInput): PromptResult {
         : "",
       "Gunakan hanya fakta dari MATERIAL; setiap fakta harus berasal dari halaman yang ditandai [halaman N].",
       "Pertahankan cast, lokasi, pengetahuan karakter, dan openThreads dari OUTLINE dan CONTINUITY.",
+      "Adegan terjadi di peta desa: pilih tempat dari blok LOKASI dan tulis perpindahannya di narasi. Jangan memakai kelas atau ruangan di dalam gedung.",
+      "Isi continuity.characterStates[].location dengan nama tempat dari blok LOKASI.",
       "Keluaran hanya JSON valid sesuai SCHEMA CHAPTER, tanpa markdown dan tanpa penjelasan.",
     ]
       .filter(Boolean)

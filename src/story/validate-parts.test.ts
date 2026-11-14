@@ -505,6 +505,7 @@ describe("warning", () => {
     expect(result.ok).toBe(true);
     expect(codes(result.warnings)).toContain("W_NO_CHALLENGE_IN_SCENE");
     expect(codes(result.warnings)).toContain("W_DIFFICULTY_SKEW");
+    expect(codes(result.warnings)).not.toContain("W_LOCATION_UNKNOWN");
   });
 
   const warningCases: [string, (draft: Mutable) => void][] = [
@@ -560,6 +561,12 @@ describe("warning", () => {
         const when = draft.chapter.scenes[1].beats[1].textVariants[0].when;
         if (!("flag" in when)) throw new Error("fixture");
         when.flag = "flg_belum_diset";
+      },
+    ],
+    [
+      "W_LOCATION_UNKNOWN",
+      (draft) => {
+        draft.continuity.characterStates[0].location = "di depan kelas";
       },
     ],
   ];

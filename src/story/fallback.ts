@@ -22,17 +22,24 @@
  *   yang bereaksi pada flag hasil jawaban salah. Jadi fitur bercabang bisa
  *   dicoba tanpa kunci API. Detour hanya memakai speaker dan aset yang sudah
  *   dipakai cerita ini.
+ * - **Banyak suara.** Setiap chapter memakai mentor dan dua NPC pendamping yang
+ *   bergiliran dari roster desa, jadi dialog tidak dipegang satu tokoh
+ *   (ADR 0036). Dialog pendamping tidak mengklaim keahlian atau fakta baru.
  * - **Jujur.** Tidak mengarang fakta tentang PDF. Teks hanya menyebut *nama*
  *   konsep; penjelasan isi tetap tugas guru lewat editor. Penanda
  *   `usedFallback` hidup di record job, bukan di dalam `Story`
  *   (`validation-and-repair.md`).
  *
  * Karena itu cerita ini sengaja generik: satu chapter = satu konsep, dengan
- * pertanyaan "kata kunci apa yang ditulis di papan?" yang jawabannya ada di
+ * pertanyaan "kata kunci apa yang digores di tanah?" yang jawabannya ada di
  * cerita itu sendiri. Tidak ada klaim faktual tentang materi asli.
+ *
+ * Latarnya mengikuti satu-satunya peta game: tempat tetap mentor di desa
+ * (`locationOf`). Cerita cadangan tidak boleh bercerita di kelas, karena latar
+ * runtime selalu peta desa (`docs/04-game/scene-format.md`, ADR 0037).
  */
 
-import { fixedCast } from "./cast";
+import { fixedCast, locationOf } from "./cast";
 import { STORY_MODES } from "./schema";
 import type {
   Challenge,
@@ -231,15 +238,37 @@ const idForRole = (cast: readonly Character[], role: CharacterRole): string =>
   cast.find((character) => character.role === role)?.id ??
   (role === "mentor" ? DEFAULT_MENTOR.id : DEFAULT_PLAYER.id);
 
+/**
+ * Dua NPC pendamping untuk satu chapter, berputar mengikuti nomor chapter.
+ *
+ * Cerita cadangan dulu hanya memakai mentor, sehingga seluruh dialog dipegang
+ * satu tokoh (ADR 0036). Giliran ini membuat minimal tiga tokoh bicara per
+ * chapter tanpa mengarang nama baru: pool-nya tetap roster desa. Kalau pool
+ * hanya berisi satu tokoh, tokoh itu dipakai sekali saja supaya tidak ada
+ * speaker ganda.
+ */
+const companionsFor = (
+  cast: readonly Character[],
+  index: number,
+): Character[] => {
+  const pool = cast.filter((character) => character.role === "npc");
+  if (pool.length === 0) return [];
+
+  const first = pool[(index * 2) % pool.length];
+  const second = pool[(index * 2 + 1) % pool.length];
+
+  return second.id === first.id ? [first] : [first, second];
+};
+
 /* -------------------------------------------------------------------------- */
 /* Tantangan                                                                  */
 /* -------------------------------------------------------------------------- */
 
 /** Pilihan pengecoh yang tidak mengklaim apa pun tentang materi. */
 const GENERIC_DISTRACTORS = [
-  "Jadwal piket kelas",
-  "Daftar hadir",
-  "Kegiatan olahraga",
+  "Jadwal panen desa",
+  "Daftar tamu pesta",
+  "Kegiatan kerja bakti",
 ] as const;
 
 /**
@@ -247,7 +276,7 @@ const GENERIC_DISTRACTORS = [
  * tantangan chapter pertama, lalu dibaca `textVariants` di dialog sesudahnya.
  * Id mengikuti pola `flg_[a-z0-9_]+` dan tidak menambah aset apa pun.
  */
-const FLAG_SALAH_PAPAN = "flg_salah_papan";
+const FLAG_SALAH_PAPAN = "flg_salah_petunjuk";
 const FLAG_SALAH_CATATAN = "flg_salah_catatan";
 
 const buildOptions = (
@@ -337,15 +366,29 @@ const buildChapter = (
   const mentorId = idForRole(cast, "mentor");
   const quiz = mode === "pertanyaan";
 
+  // Cerita cadangan tidak mengarang tempat: setiap chapter bermain di tempat
+  // tetap mentor, sesuai peta desa (`CAST_PLACES`). Label diambil sebelum koma
+  // supaya kalimat narasi tetap pendek.
+  const tempatPenuh = locationOf(mentorId) ?? "alun-alun desa";
+  const tempat = tempatPenuh.split(",")[0] || "alun-alun desa";
+
+  // Pembicara pendamping; `undefined` bila roster tidak punya NPC lain.
+  const [companionA, companionB] = companionsFor(cast, index);
+  const companionAName = companionA?.name;
+  const companionBName = companionB?.name;
+  const hadir = [playerName, mentorName, companionAName, companionBName]
+    .filter((name): name is string => name !== undefined)
+    .join(", ");
+
   const boardChallenge = buildChallenge({
     concept,
     concepts,
     chapterNumber: number,
     index: 1,
     difficulty,
-    prompt: `${mentorName} menulis satu kata kunci di papan tulis. Kata kunci apa itu?`,
-    explanation: `Kata kunci yang ditulis di papan adalah ${concept}. Itulah konsep yang dibahas di chapter ini.`,
-    hint: `Perhatikan kalimat ${mentorName} sebelum papan tulis dibahas.`,
+    prompt: `${mentorName} menggores satu kata kunci di tanah lembap dengan ranting. Kata kunci apa itu?`,
+    explanation: `Kata kunci yang digores di tanah adalah ${concept}. Itulah konsep yang dibahas di chapter ini.`,
+    hint: `Perhatikan kalimat ${mentorName} sebelum kata kunci digores.`,
   });
 
   const notebookChallenge = buildChallenge({
@@ -372,9 +415,9 @@ const buildChapter = (
         chapterNumber: number,
         index: 3,
         difficulty,
-        prompt: `Di akhir pelajaran, ${mentorName} meminta ${playerName} menyebutkan satu istilah yang baru dipelajari. Istilah apa itu?`,
+        prompt: `Saat hari mulai sore, ${mentorName} meminta ${playerName} menyebutkan satu istilah yang baru dipelajari. Istilah apa itu?`,
         explanation: `Istilah yang diminta adalah ${concept}, konsep utama chapter ini.`,
-        hint: `Ingat kata kunci yang ditulis ${mentorName} di papan tulis.`,
+        hint: `Ingat kata kunci yang digores ${mentorName} di tanah.`,
       })
     : null;
 
@@ -383,7 +426,7 @@ const buildChapter = (
     title: clip(`Mengenal ${concept}`, 60),
     concept,
     summary: clip(
-      `${playerName} dan ${mentorName} membahas ${concept} lewat percakapan singkat di kelas.`,
+      `${hadir} membahas ${concept} lewat percakapan singkat di ${tempat}.`,
       240,
     ),
     backgroundId: BACKGROUNDS[index % BACKGROUNDS.length],
@@ -396,7 +439,7 @@ const buildChapter = (
           {
             type: "narration",
             text: clip(
-              `Bel berbunyi. ${playerName} dan ${mentorName} duduk di kelas untuk membahas ${concept}.`,
+              `Angin sore membawa aroma tanah. ${hadir} berkumpul di ${tempat} untuk membahas ${concept}.`,
               240,
             ),
           },
@@ -409,6 +452,21 @@ const buildChapter = (
             ),
             expression: "happy",
           },
+          // Pendamping pertama: bukan ahli topik, hanya ikut mengamati. Dialog
+          // ini yang membuat chapter tidak menjadi monolog mentor (ADR 0036).
+          ...(companionA === undefined
+            ? []
+            : [
+                {
+                  type: "dialogue" as const,
+                  speakerId: companionA.id,
+                  text: clip(
+                    `Aku ikut mendengarkan, ya. ${concept} ini menarik.`,
+                    240,
+                  ),
+                  expression: "happy" as const,
+                },
+              ]),
           {
             type: "dialogue",
             speakerId: playerId,
@@ -427,14 +485,14 @@ const buildChapter = (
                     setFlags: { [FLAG_SALAH_PAPAN]: true },
                     retryQuestions: [
                       clip(
-                        `Coba ingat lagi. Kata kunci apa yang barusan ditulis ${mentorName} di papan tulis?`,
+                        `Coba ingat lagi. Kata kunci apa yang barusan digores ${mentorName} di tanah?`,
                         300,
                       ),
                     ],
                     detour: [
                       {
                         type: "narration",
-                        text: `${playerName} menatap papan tulis sekali lagi. Ada satu kata kunci yang baru saja disebut sebelum soal ini.`,
+                        text: `${playerName} menatap goresan di tanah sekali lagi. Ada satu kata kunci yang baru saja disebut sebelum soal ini.`,
                       },
                       {
                         type: "dialogue",
@@ -475,6 +533,17 @@ const buildChapter = (
                 }
               : {}),
           },
+          // Pendamping kedua menanggapi penjelasan mentor, bukan mengulangnya.
+          ...(companionB === undefined
+            ? []
+            : [
+                {
+                  type: "dialogue" as const,
+                  speakerId: companionB.id,
+                  text: "Aku juga mau mencatat bagian pentingnya.",
+                  expression: "thinking" as const,
+                },
+              ]),
         ],
       },
       {
@@ -484,7 +553,7 @@ const buildChapter = (
           {
             type: "transition",
             effect: "fade",
-            text: "Suasana kelas kembali tenang.",
+            text: `Suasana di ${tempat} kembali tenang.`,
           },
           {
             type: "narration",
@@ -540,6 +609,17 @@ const buildChapter = (
                 }
               : {}),
           },
+          // Dialog NPC juga muncul di scene penutup, bukan hanya di pembuka.
+          ...(companionA === undefined
+            ? []
+            : [
+                {
+                  type: "dialogue" as const,
+                  speakerId: companionA.id,
+                  text: clip(`Aku juga mencatat ${concept} hari ini.`, 240),
+                  expression: "happy" as const,
+                },
+              ]),
           ...(recapChallenge === null
             ? []
             : [
@@ -678,7 +758,7 @@ export function buildFallbackStory(input: FallbackStoryInput = {}): Story {
       tone: text(metaInput.tone, DEFAULT_TONE, 1, 60),
       ...(mode === undefined ? {} : { mode }),
       synopsis: clip(
-        `Cerita cadangan tentang ${concepts.join(", ")}. ${playerName} dan ${mentorName} membahas beberapa konsep utamanya lewat percakapan singkat di kelas.`,
+        `Cerita cadangan tentang ${concepts.join(", ")}. ${playerName}, ${mentorName}, dan beberapa warga desa membahas konsep utamanya lewat percakapan singkat di desa.`,
         400,
       ),
       estimatedMinutes: integerInRange(

@@ -7,7 +7,7 @@
     "gradeLevel": "SMP 7",
     "language": "id",
     "tone": "hangat dan penasaran",
-    "synopsis": "Kael mengamati daun di kelas dan halaman sekolah. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
+    "synopsis": "Kael mengamati daun di kebun dan alun-alun desa. Ia belajar bahwa cahaya matahari, klorofil, dan glukosa bekerja bersama dalam fotosintesis.",
     "estimatedMinutes": 7
   },
   "source": {
@@ -26,14 +26,14 @@
     },
     {
       "id": "char_npc_10",
-      "name": "Pak Bima",
+      "name": "Edric",
       "role": "mentor",
       "spriteId": "char_npc_10",
       "description": "Guru IPA yang sabar dan suka bertanya."
     },
     {
       "id": "char_npc_1",
-      "name": "Tirta",
+      "name": "Elian",
       "role": "npc",
       "spriteId": "char_npc_1",
       "description": "Roh air yang membantu Kael melihat hal kecil."
@@ -44,7 +44,7 @@
       "id": "ch_01",
       "title": "Daun yang Bekerja",
       "concept": "Fotosintesis",
-      "summary": "Kael memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
+      "summary": "Kael memperhatikan daun di kebun dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
       "backgroundId": "bg_lab",
       "musicId": "bgm_default",
       "scenes": [
@@ -54,7 +54,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Bel istirahat berbunyi. Kael berdiri di depan pot tanaman di kelas dan memperhatikan daun yang basah oleh embun."
+              "text": "Bel istirahat berbunyi. Kael berdiri di depan pot tanaman di kebun dan memperhatikan daun yang basah oleh embun."
             },
             {
               "type": "dialogue",
@@ -82,7 +82,7 @@
             },
             {
               "type": "narration",
-              "text": "Pak Bima menunjuk jendela. Di luar, matahari sedang naik di atas atap sekolah."
+              "text": "Edric menunjuk jendela. Di luar, matahari sedang naik di atas atap rumah warga."
             }
           ]
         }
@@ -92,7 +92,7 @@
       "id": "ch_02",
       "title": "Warna Hijau Rahasia",
       "concept": "Klorofil",
-      "summary": "Di halaman sekolah, Kael menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
+      "summary": "Di kebun desa, Kael menemukan butir hijau bernama klorofil yang menangkap cahaya matahari.",
       "backgroundId": "bg_default",
       "musicId": "bgm_default",
       "scenes": [
@@ -102,7 +102,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Di halaman sekolah, Kael memetik sehelai daun rumput dan mengangkatnya ke arah cahaya."
+              "text": "Di kebun desa, Kael memetik sehelai daun rumput dan mengangkatnya ke arah cahaya."
             },
             {
               "type": "dialogue",
@@ -150,7 +150,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Kembali di kelas, Kael menggambar daun di buku catatannya. Ia menulis panah dari matahari menuju daun."
+              "text": "Kembali di kebun, Kael menggambar daun di buku catatannya. Ia menulis panah dari matahari menuju daun."
             },
             {
               "type": "dialogue",
@@ -169,7 +169,7 @@
           "beats": [
             {
               "type": "narration",
-              "text": "Pak Bima menulis satu kata di papan: glukosa."
+              "text": "Edric menulis satu kata di tanah: glukosa."
             },
             {
               "type": "dialogue",

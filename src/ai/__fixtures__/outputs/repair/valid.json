@@ -3,7 +3,7 @@
     "id": "ch_01",
     "title": "Daun yang Bekerja",
     "concept": "Fotosintesis",
-    "summary": "Kael memperhatikan daun di kelas dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
+    "summary": "Kael memperhatikan daun di kebun dan belajar bahwa cahaya matahari membantu daun membuat makanan.",
     "backgroundId": "bg_default",
     "musicId": "bgm_default",
     "scenes": [
@@ -13,7 +13,7 @@
         "beats": [
           {
             "type": "narration",
-            "text": "Kael mengamati daun yang basah oleh embun pagi di depan kelas."
+            "text": "Kael mengamati daun yang basah oleh embun pagi di kebun dekat sumur batu."
           },
           {
             "type": "dialogue",
@@ -41,7 +41,7 @@
           },
           {
             "type": "narration",
-            "text": "Pak Bima menunjuk jendela. Di luar, matahari sedang naik di atas atap sekolah."
+            "text": "Edric menunjuk jendela. Di luar, matahari sedang naik di atas atap rumah warga."
           }
         ]
       }
@@ -74,16 +74,16 @@
     }
   ],
   "continuity": {
-    "previousChapterSummary": "Kael baru saja mulai mengamati daun di depan kelas.",
+    "previousChapterSummary": "Kael baru saja mulai mengamati daun di kebun dekat sumur batu.",
     "characterStates": [
       {
         "id": "char_mc",
-        "location": "kelas",
+        "location": "kebun sayuran dekat sumur batu",
         "knows": ["daun membutuhkan cahaya matahari"]
       },
       {
         "id": "char_npc_10",
-        "location": "kelas",
+        "location": "kebun sayuran dekat sumur batu",
         "knows": ["fotosintesis membuat makanan dari cahaya"]
       }
     ],
